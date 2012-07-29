@@ -1,0 +1,9 @@
+"AddonInfo"
+{
+	"name"        "Expression3"
+	"version"     "INDEV"
+	"author_name" "Rusketh and Oskar"
+	"author_url"  "N/A"
+	"info"        ""
+	"override"    "1"
+}
