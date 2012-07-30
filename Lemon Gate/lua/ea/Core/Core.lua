@@ -500,13 +500,13 @@ function Operator:ReturnType(Long)
 	return self[2]
 end
 
-function Operator.Pcall(Op, self)
+function Operator.Pcall(Op, self, ...)
 	-- Purpose: Calls the operator safly and handels exceptions.
 	
-	local Ok, Result, Type = pcall(Op,self)
+	local Ok, Result, Type = pcall(Op, self, ...)
 	
 	if Ok then
-		return Ok, Res, Type
+		return Ok, Result, Type
 		
 	elseif Result[4] == ":" then
 		local Exception = SubString(Result, 0, 3)
@@ -517,10 +517,10 @@ function Operator.Pcall(Op, self)
 		elseif Exception == "spt" or Exception == "int" then -- Internal and Script
 			return false, Exception, SubString(Result, 5)
 		else
-			error(Res) -- Not handeled here.
+			error(Result) -- Not handeled here.
 		end
 	
 	else
-		error("int:" .. Res) -- Internal Error.
+		error("int:" .. Result) -- Internal Error.
 	end
 end

@@ -124,8 +124,8 @@ function Lemon:LoadScript(Script)
 	
 	local Check, Executable, Instance = Compiler.Execute(Instructions)
 	if !Check then
-		self:UpdateOverlay("Tokenizer Error")
-		return MsgN("E-A: PArser Error, " .. Executable)
+		self:UpdateOverlay("Compiler Error")
+		return MsgN("E-A: Compiler Error, " .. Executable)
 	end
 	
 	self:LoadInstance(Instance)
@@ -279,13 +279,15 @@ function Lemon:Execute()
 	end
 end
 
+local Pcall = E_A.Operator.Pcall
+
 function Lemon:RunOp(Op, ...)
 	if self.Errored then return true end -- Note: Code has errored so do not run.
 	
 	local Context = self.Context
 	if !Context then return true end
 	
-	local Ok, Return, Type = Op:Pcall(Context, ...)
+	local Ok, Return, Type = Pcall(Op, Context, ...)
 	
 	if Ok then
 		return true, Return, Type
@@ -333,8 +335,8 @@ function Lemon:CallEvent(Name, Perams, ...)
 	local Op = Operators["call(f)"][1]
 	
 	for Index, CallBack in pairs(Events) do
-	local Ok, Result, Result2 = self:RunOp(Op, CallBack, Perams or "", ...)
-	if !Sucess then return false, Result, Result2 end
+		local Ok, Result, Result2 = self:RunOp(Op, CallBack, Perams or "", ...)
+		if !Sucess then return false, Result, Result2 end
 	end
 	
 	self:TriggerOutputs()
