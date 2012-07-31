@@ -5,6 +5,8 @@
 ==============================================================================================*/
 local E_A = LemonGate
 
+local Round = 0.0000001000000
+
 /*==============================================================================================
 	Class & WireMod
 ==============================================================================================*/
@@ -31,11 +33,13 @@ E_A:WireModClass("number", "NORMAL", Input, Output)
 /*==============================================================================================
 	Var Operators
 ==============================================================================================*/
+E_A:SetCost(EA_COST_CHEAP)
+
 E_A:RegisterOperator("assign", "n", "", function(self, ValueOp, Memory)
 	-- Purpose: Assigns a number to memory
 	
 	local Value, Type = ValueOp(self)
-	if E_A.GetShortType(Type) != "n" then self:Error("Attempt to assign %s to number variabel", Type) end
+	if Type != "n" then self:Error("Attempt to assign %s to number variabel", Type) end
 	
 	self.Delta[Memory] = self.Memory[Memory]
 	
@@ -50,6 +54,25 @@ E_A:RegisterOperator("variabel", "n", "n", function(self, Memory)
 	return self.Memory[Memory]
 end)
 
+/*==============================================================================================
+	Section: Self Arithmatic Operators
+	Purpose: Does math stuffs?
+	Creditors: Rusketh
+==============================================================================================*/
+E_A:SetCost(EA_COST_NORMAL)
+
+E_A:RegisterOperator("incremet", "n", "n", function(self, Memory)
+	-- Purpose: ++ Math Operator
+	
+	self.Memory[Memory] = self.Memory[Memory] + 1
+end)
+
+E_A:RegisterOperator("decremet", "n", "n", function(self, Memory)
+	-- Purpose: -- Math Operator
+	
+	self.Memory[Memory] = self.Memory[Memory] - 1
+end)
+
 E_A:RegisterOperator("delta", "n", "n", function(self, Memory)
 	-- Purpose: ~ Delta Operator
 	
@@ -61,6 +84,7 @@ end)
 	Purpose: Does math stuffs?
 	Creditors: Rusketh
 ==============================================================================================*/
+E_A:SetCost(EA_COST_ABNORMAL)
 
 E_A:RegisterOperator("exponent", "nn", "n", function(self, ValueA, ValueB)
 	-- Purpose: ^ Math Operator
@@ -98,18 +122,6 @@ E_A:RegisterOperator("subtraction", "nn", "n", function(self, ValueA, ValueB)
 	return ValueA(self) - ValueB(self)
 end)
 
-E_A:RegisterOperator("incremet", "n", "n", function(self, Memory)
-	-- Purpose: ++ Math Operator
-	
-	self.Memory[Memory] = self.Memory[Memory] + 1
-end)
-
-E_A:RegisterOperator("decremet", "n", "n", function(self, Memory)
-	-- Purpose: -- Math Operator
-	
-	self.Memory[Memory] = self.Memory[Memory] - 1
-end)
-
 E_A:RegisterOperator("negative", "n", "n", function(self, Value)
 	-- Purpose: Negation Operator
 	
@@ -121,40 +133,60 @@ end)
 	Purpose: If statments and stuff?
 	Creditors: Rusketh
 ==============================================================================================*/
+E_A:SetCost(EA_COST_EXSPENSIVE)
+
 E_A:RegisterOperator("greater", "nn", "n", function(self, ValueA, ValueB)
 	-- Purpose: > Comparason Operator
 	
-	if ValueA(self) > ValueB(self) then return 1 else return 0 end
+	local Res = ValueA(self) - ValueB(self)
+	if Res > Round then
+		return 1 else return 0
+	end
 end)
 
 E_A:RegisterOperator("less", "nn", "n", function(self, ValueA, ValueB)
 	-- Purpose: < Comparason Operator
 	
-	if ValueA(self) < ValueB(self) then return 1 else return 0 end
+	local Res = ValueA(self) - ValueB(self)
+	if -Res > Round then
+		return 1 else return 0
+	end
 end)
 
 E_A:RegisterOperator("greaterequal", "nn", "n", function(self, ValueA, ValueB)
 	-- Purpose: <= Comparason Operator
 	
-	if ValueA(self) <= ValueB(self) then return 1 else return 0 end
+	local Res = ValueA(self) - ValueB(self)
+	if -Res <= Round then
+		return 1 else return 0
+	end
 end)
 
 E_A:RegisterOperator("lessequal", "nn", "n", function(self, ValueA, ValueB)
 	-- Purpose: <= Comparason Operator
 	
-	if ValueA(self) <= ValueB(self) then return 1 else return 0 end
+	local Res = ValueA(self) - ValueB(self)
+	if Res <= Round then
+		return 1 else return 0
+	end
 end)
 
 E_A:RegisterOperator("notequal", "nn", "n", function(self, ValueA, ValueB)
 	-- Purpose: != Comparason Operator
 	
-	if ValueA(self) != ValueB(self) then return 1 else return 0 end
+	local Res = ValueA(self) - ValueB(self)
+	if Res > Round and -Res < Round then
+		return 1 else return 0
+	end
 end)
 
 E_A:RegisterOperator("equal", "nn", "n", function(self, ValueA, ValueB)
 	-- Purpose: == Comparason Operator
 	
-	if ValueA(self) == ValueB(self) then return 1 else return 0 end
+	local Res = ValueA(self) - ValueB(self)
+	if Res <= Round and -Res <= Round then
+		return 1 else return 0
+	end
 end)
 
 /*==============================================================================================
@@ -163,6 +195,8 @@ end)
 	Warning: Do not remove these, as they become default operators.
 	Creditors: Rusketh
 ==============================================================================================*/
+E_A:SetCost(EA_COST_ABNORMAL)
+
 E_A:RegisterOperator("is", "n", "n", function(self, Value)
 	-- Purpose: Is Valid
 	
@@ -184,30 +218,21 @@ E_A:RegisterOperator("and", "nn", "n", function(self, ValueA, ValueB)
 end)
 
 /*==============================================================================================
-	Section: Test Functions
-	Purpose: These are tempory for the purpose of testing.
+	Section: Casting and converting
+	Purpose: these will be handy.
 	Creditors: Rusketh
 ==============================================================================================*/
-E_A:RegisterFunction("min", "nn...", "n", function(self, Value, ...)
-	local Numbers = {...}
-	
-	local Min = Value(self)
-	for I = 1, #Numbers do
-		local Value = Numbers[I](self)
-		if Value < Min then Min = Value end
-	end
-	
-	return Min
+local tostring = tostring
+local tonumber = tonumber
+
+E_A:RegisterFunction("toNumber", "s", "n", function(self, Value)
+	return tonumber(Value(self))
 end)
 
-E_A:RegisterFunction("max", "nn...", "n", function(self, Value, ...)
-	local Numbers = {...}
-	
-	local Max = Value(self)
-	for I = 1, #Numbers do
-		local Value = Numbers[I](self)
-		if Value > Max then Max = Value end
-	end
-	
-	return Max
+E_A:RegisterFunction("toString", "n", "s", function(self, Value)
+	return tostring(Value(self))
+end)
+
+E_A:RegisterOperator("cast", "sn", "s", function(self, Value, ConvertType)
+	return tostring(Value(self))
 end)

@@ -15,6 +15,8 @@ local tostring = tostring
 	Purpose: Its a string.
 	Creditors: Rusketh
 ==============================================================================================*/
+E_A:SetCost(EA_COST_CHEAP)
+
 E_A:RegisterClass("string", "s", "")
 
 E_A:RegisterOperator("assign", "s", "", function(self, ValueOp, Memory)
@@ -37,6 +39,8 @@ end)
 	Purpose: Operators that work on strings.
 	Creditors: Rusketh
 ==============================================================================================*/
+E_A:SetCost(EA_COST_NORMAL)
+
 E_A:RegisterOperator("lengh", "s", "n", function(self, Value)
 	-- Purpose: Gets the lengh of a string
 	
@@ -51,22 +55,29 @@ E_A:RegisterOperator("get", "sn", "s", function(self, Value, Index)
 	return SubStr(Value(self), I, I)
 end)
 
+/*==============================================================================================
+	Section: String Building
+	Purpose: Combines strings?
+	Creditors: Rusketh
+==============================================================================================*/
 E_A:RegisterOperator("addition", "ss", "s", function(self, ValueA, ValueB)
 	-- Purpose: Adds two strings together.
 	
 	return ValueA(self) .. ValueB(self)
 end)
 
-/*==============================================================================================
-	Section: Casting Operators
-	Purpose: Converts stuff to strings?
-	Creditors: Rusketh
-==============================================================================================*/
-E_A:RegisterOperator("cast", "s?", "s", function(self, Value, ConvertType)
-	-- Purpose: Wild type casting.
+E_A:RegisterOperator("addition", "ns", "s", function(self, ValueA, ValueB)
+	-- Purpose: Adds two strings together.
 	
-	return tostring(Value(self))
+	return ValueA(self) .. ValueB(self)
 end)
+
+E_A:RegisterOperator("addition", "sn", "s", function(self, ValueA, ValueB)
+	-- Purpose: Adds two strings together.
+	
+	return ValueA(self) .. ValueB(self)
+end)
+
 /*==============================================================================================
 	Section: Comparason Operators
 	Purpose: If statments and stuff?
