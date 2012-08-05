@@ -250,7 +250,7 @@ elseif CLIENT then
 				end
 			end
 
-			code = code or CODE or "" //TODO: Get editor code ( when we have one )
+			code = code or (ea_editor and ea_editor:GetCode() or "") 
 
 			if ea_function_data then 
 				// TODO: Validate clientside
@@ -296,23 +296,171 @@ elseif CLIENT then
 		usermessage.Hook( "ea_chunk_confirm", ea_chunk_confirm )
 	end
 
+
+	function init_EA_Editor()
+		ea_editor = vgui.Create( "EA_EditorPanel" )
+		ea_editor:ShowCloseButton( true )
+		ea_editor:SetSize( ScrW() * 0.7, ScrH() * 0.7 )
+		ea_editor:Center() 
+	end
+
+	function open_EA_Editor()
+		if( ea_editor == nil ) then init_EA_Editor() end
+		ea_editor:Open()
+	end
+
+	function TOOL:RightClick(trace) 
+		open_EA_Editor() 
+	end
+
 	/*---------------------------------------------------------------------------
 	Tool CPanel
 	---------------------------------------------------------------------------*/
 
-	function TOOL.BuildCPanel(panel)
+	local invalid_filename_chars = {
+		["*"] = "",
+		["?"] = "",
+		[">"] = "",
+		["<"] = "",
+		["|"] = "",
+		["\\"] = "",
+		['"'] = "",
+		[" "] = "_",
+		[":"] = "",
+	}
+
+	local function sort( a, b )
+		if a.IsFile == b.IsFile then 
+			return string.lower( a.Name ) < string.lower( b.Name )
+		end 
+		return not a.IsFile 
+	end
+
+	local function InvalidateLayout( panel ) 
+		if panel.ChildNodes then panel.ChildNodes:InvalidateLayout( true ) end
+		panel:InvalidateLayout( true ) 
+		if panel.GetParentNode then InvalidateLayout( panel:GetParentNode() ) end 
+	end
+
+	function TOOL.BuildCPanel( panel )
 		panel:ClearControls()
 		panel:AddControl("Header", { Text = "#Tool_expradv_name", Description = "#Tool_expradv_desc" })
 
-		local FileBrowser = vgui.Create("wire_expression2_browser" , panel)
-		panel:AddPanel(FileBrowser)
-		FileBrowser:Setup("Lemongate")
-		FileBrowser:SetSize(235,400)
+		local FileBrowser = vgui.Create( "EA_FileBrowser", panel )
+		panel:AddPanel( FileBrowser )
+		FileBrowser:Setup( "Lemongate" )
+		FileBrowser:SetSize( 235, 400 )
 
-		function FileBrowser:OnFileClick()
-			print( self.File.FileDir )
-			CODE = file.Read( self.File.FileDir )
-		end
+		do 
+			local folderMenu = {}
+			FileBrowser:AddMenuOption( folderMenu, "New File", function() 
+				Derma_StringRequestNoBlur("New File in \"" .. FileBrowser:GetSelectedItem().FileDir .. "\"", "Create new file", "",
+		 		function(result)
+					result = string.gsub(result, ".", invalid_filename_chars)
+					local fName = FileBrowser:GetSelectedItem().FileDir .. "/" .. result .. ".txt"
+					file.Write( fName, "")
+					if FileBrowser:GetSelectedItem().ChildsLoaded then 
+						local exp = string.Explode( "/", result ) 
+						FileBrowser.SetupFileNode( FileBrowser:GetSelectedItem(), fName, exp[#exp] )
+						table.sort( FileBrowser:GetSelectedItem().ChildNodes:GetItems(), sort )
+						InvalidateLayout( FileBrowser:GetSelectedItem() )
+					end
+				end)
+			end )
+			FileBrowser:AddMenuOption( folderMenu, "New Folder", function() 
+				Derma_StringRequestNoBlur("new folder in \"" .. FileBrowser:GetSelectedItem().FileDir .. "\"", "Create new folder", "",
+				function(result)
+					result = string.gsub(result, ".", invalid_filename_chars )
+					local fName = FileBrowser:GetSelectedItem().FileDir .. "/" .. result
+					file.CreateDir( fName ) 
+					if FileBrowser:GetSelectedItem().ChildsLoaded then 
+						local exp = string.Explode( "/", result ) 
+						FileBrowser.SetupFolderNode( FileBrowser:GetSelectedItem(), fName, exp[#exp] ) 
+						table.sort( FileBrowser:GetSelectedItem().ChildNodes:GetItems(), sort ) 
+						InvalidateLayout( FileBrowser:GetSelectedItem() )
+					end 
+				end)
+			end )
+			FileBrowser.FolderMenu = folderMenu 
+
+			local fileMenu = {} 
+			FileBrowser:AddMenuOption( fileMenu, "Open", function() 
+				open_EA_Editor()
+				ea_editor:LoadFile( FileBrowser:GetSelectedItem().FileDir ) 
+			end ) 
+			FileBrowser:AddMenuOption( fileMenu, "*SPACER*" ) 
+			FileBrowser:AddMenuOption( fileMenu, "New File", function() 
+				Derma_StringRequestNoBlur("New File in \"" .. FileBrowser:GetSelectedItem().FileDir .. "\"", "Create new file", "",
+				function(result)
+					result = string.gsub(result, ".", invalid_filename_chars)
+					local fName = string.GetPathFromFilename( FileBrowser:GetSelectedItem().FileDir ) .. result .. ".txt"
+					file.Write( fName, "")
+					local exp = string.Explode( "/", result ) 
+					FileBrowser.SetupFileNode( FileBrowser:GetSelectedItem():GetParentNode(), fName, exp[#exp] )
+					self:LoadFile( fName )
+					table.sort( FileBrowser:GetSelectedItem():GetParentNode().ChildNodes:GetItems(), sort )
+					InvalidateLayout( FileBrowser:GetSelectedItem():GetParentNode() )
+				end)
+			end )
+			FileBrowser:AddMenuOption( fileMenu, "Delete", function() 
+				Derma_Query( "Do you realy want to delete \"" .. FileBrowser:GetSelectedItem().FileDir .. "\" (This cannot be undone)", "", 
+					"Delete", function() 
+						local fName = FileBrowser:GetSelectedItem().FileDir 
+						-- file.Delete( fName ) 
+
+					end,
+					"Cancel", function() end )
+			end )
+			FileBrowser.FileMenu = fileMenu
+
+			local panelMenu = {}
+			FileBrowser:AddMenuOption( panelMenu, "New File", function() 
+				Derma_StringRequestNoBlur("New File in \"" .. FileBrowser.BaseDir .. "\"", "Create new file", "",
+				function(result)
+					result = string.gsub(result, ".", invalid_filename_chars)
+					local fName = FileBrowser.BaseDir .. "/" .. result .. ".txt"
+					file.Write( fName, "")
+					local exp = string.Explode( "/", result ) 
+					FileBrowser:SetupFileNode( fName, exp[#exp] )
+					FileBrowser:InvalidateLayout( true )
+					open_EA_Editor()
+					ea_editor:LoadFile( fName )
+					table.sort( FileBrowser.Items, sort )
+				end)
+			end )
+			FileBrowser:AddMenuOption( panelMenu, "New Folder", function() 
+				Derma_StringRequestNoBlur("new folder in \"" .. FileBrowser.BaseDir .. "\"", "Create new folder", "",
+				function(result)
+					result = string.gsub(result, ".", invalid_filename_chars )
+					local fName = FileBrowser.BaseDir .. "/" .. result
+					file.CreateDir( fName )
+					local exp = string.Explode( "/", result ) 
+					FileBrowser:SetupFolderNode( fName, exp[#exp] )
+					FileBrowser:InvalidateLayout( true )
+					table.sort( FileBrowser.Items, sort )
+				end)
+			end )
+			FileBrowser.PanelMenu = panelMenu
+
+			function FileBrowser:OnClickFolder( Dir, Node )
+				if Node.LastClick and CurTime() - Node.LastClick < 0.5 then 
+					Node.Expander:DoClick()
+					Node.LastClick = 0
+					return 
+				end 
+				Node.LastClick = CurTime() 
+			end
+
+			function FileBrowser:OnClickFile( Dir, Node )
+				if Node.LastClick and CurTime() - Node.LastClick < 0.5 then 
+					open_EA_Editor()
+					ea_editor:LoadFile( Dir )
+					Node.LastClick = 0
+					return 
+				end 
+				Node.LastClick = CurTime() 
+			end
+		end 
 	end
 
 	function TOOL:RenderToolScreen() end 

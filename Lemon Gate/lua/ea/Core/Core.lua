@@ -48,7 +48,7 @@ local tonumber = tonumber
 EA_COST_CHEAP = 0.5
 EA_COST_NORMAL = 1
 EA_COST_ABNORMAL = 2.5
-EA_COST_EXSPENSIVEL = 5
+EA_COST_EXSPENSIVE = 5
 
 /*==============================================================================================
 	Section: Util Funcs

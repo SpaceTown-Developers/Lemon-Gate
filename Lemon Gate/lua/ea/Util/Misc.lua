@@ -58,6 +58,6 @@ if CLIENT then
 	local ply
 	function PrintMessage( msg )
 		ply = ply or LocalPlayer()
-		-- ply:PrintMessage( HUD_PRINTTALK, msg )
+		ply:PrintMessage( HUD_PRINTTALK, msg )
 	end
 end
