@@ -7,9 +7,12 @@ local E_A = LemonGate
 
 local Functions = E_A.FunctionTable
 local Operators = E_A.OperatorTable
+local Types = E_A.TypeShorts
 
 local SubStr = string.sub -- Speed
 local MatchStr = string.match -- Speed
+
+local error = error -- Speed
 
 E_A:RegisterClass("function", "f", {})
 
@@ -25,10 +28,10 @@ E_A:RegisterOperator("variabel", "f", "f", function(self, Memory)
 	return self.Memory[Memory]
 end)
 
-E_A:RegisterOperator("udfunction", "", "f", function(self, Listed, Memory, Statments, Return)
+E_A:RegisterOperator("udfunction", "", "f", function(self, Sig, Assigments, Statments, Return)
 	-- Purpose: Builds a Function Object
 	
-	return {Listed, Memory, Statments, Return}
+	return {Sig, Assigments, Statments, Return}
 end)
 
 /*==============================================================================================
@@ -36,49 +39,48 @@ end)
 	Purpose: Just for certan things.
 	Creditors: Rusketh
 ==============================================================================================*/
-E_A:RegisterOperator("call", "f", "?", function(self, Value, PList, ...)
+E_A:RegisterOperator("call", "f", "?", function(self, Value, Ops)
 	-- Purpose: Calls the function, Required by the events manager.
 	
-	local Func = Value(self)
-	local Listed, Memory, Op, Return = Func[1], Func[2], Func[3], Func[4]
+	local Function = Value(self)
+	local Assigments, Sig, Total = Func[2], "", #Ops
 	
-	local Valid = false -- Credits: Divran.
-	if MatchStr(Listed, "%.%.%.$") then -- If it ends with "..."
-		Valid = SubStr(Listed, 1, -4) == SubStr(PList, 1, #Listed - 3)
-	else
-		Valid = PList == Listed -- Only works if they're exactly the same
+	if Total == #Assigments then return self:Error("call operator perameter missmatch") end
+	
+	for I = 1, Total do
+		local Value, Type = Ops[I](self)
+		Store[I](self, function() return Value, Type end)
+		Sig = Sig .. Type
 	end
 	
-	if !Valid then self:Error("Function perameter missmatch '%s' & '%s'", Listed, PList) end
+	if Sig != Func[1] then return self:Error("call operator perameter missmatch") end
 	
-	if Memory then
-		local Perams = {...}
-		
-		for I = 1, #Memory do
-			local Assign = Memory[I]
-			Assign[2](self, Assign[1], Perams[I])
-			-- Note: Assigning Vars to memory!
+	local ReturnType = Func[4]
+	
+	local Ok, Except, Level = Func[3]:Pcall() -- Note: Call the statments!
+	
+	local Ret = self.ReturnValue
+	self.ReturnValue = nil
+	
+	if !Ok and (!Except or Except != "rtn") then
+		error(Except .. ":" .. (Level or "")) -- This is not a return exception.
+	
+	elseif ReturnType and ReturnType != "" then
+		if Ok or !Ret then -- Note: Default return value
+			return Types[ReturnType][3], ReturnType
+		else Ret then
+			local Value, Type = Ret(self)
+			if Type != ReturnType then return self:Error("return type missmatch, '%s' expected got '%s'", ReturnType, Type) end
+			return function() return Value, Type end, Type -- Note: Valid return value
 		end
-		
-		-- Todo: Vararg support.
-		
-		local Ret = Op(self) or self.ReturnValue
-		self.ReturnValue = nil
-		
-		return Ret, Return
+	elseif Ret then
+		return self:Error("return type missmatch, 'void' expected got '%s'", ReturnType, Type)
 	end
-	
-	-- Note: No memory assigments so we can just try and run it.
-	
-	local Ret = Op(self, ...) or self.ReturnValue
-	self.ReturnValue = nil 
-	
-	return Ret, Return -- Todo: This needs Perf!
-	
 end)
 
 E_A:RegisterOperator("return", "", "", function(self, Value)
 	self.ReturnValue = Value
+	error("rtn:")
 end)
 
 E_A:RegisterOperator("is", "f", "n", function(self, Value)
@@ -93,16 +95,15 @@ end)
 	Purpose: These are rarly used but can be handy.
 	Creditors: Rusketh
 ==============================================================================================*/
-E_A:RegisterFunction("getFunction", "ss", "f", function(self, ValueA, ValueB)
-	-- Purpose: Allows moving existing functions to memory =D
 
-	local Name, Perams = ValueA(self), ValueB
-	local Listed = Name .. "(" .. Perams .. ")"
-	
-	if FindString(Listed, ":") then return {} end
-	
-	local Func = Functions[Listed]
-	if !Func then return {} end
-	
-	return {Listed, nil, Func[1], Func[2]}
-end)
+
+
+--[[ Just some code that we cant use yet =P
+local Valid = false -- Credits: Divran, We dont support varags yet =P
+if MatchStr(Listed, "%.%.%.$") then -- If it ends with "..."
+	Valid = SubStr(Listed, 1, -4) == SubStr(PList, 1, #Listed - 3)
+else
+	Valid = PList == Listed -- Note: Only works if they're exactly the same
+end
+
+if !Valid then self:Error("Function perameter missmatch '%s' & '%s'", Listed, PList) end]]

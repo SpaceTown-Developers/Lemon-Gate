@@ -21,9 +21,13 @@
 local E_A = {
 	-- Core:
 	TokenTable = {},
-	OpTable = {}, OpTableIdx = {},
-	TypeTable = {}, TypeShorts = {},
-	FunctionTable = {}, OperatorTable = {},
+	OpTable = {},
+	OpTableIdx = {},
+	TypeTable = {},
+	TypeShorts = {},
+	FunctionTable = {},
+	FunctionVATable = {},
+	OperatorTable = {},
 	
 	-- Api / Misc:
 	API = {},
@@ -399,7 +403,9 @@ function E_A:RegisterFunction(Name, Params, Return, Function)
 			typeData = typeData .. GetShortType( Params[i] )
 		end
 	end
-
+	
+	-- Todo: Vararg support. {FunctionVATable}
+	
 	Functions[ Name .. "(" .. typeData .. ")" ] = {Function, GetShortType(Return), OpCost}
 end
 
@@ -513,7 +519,8 @@ function Operator.Pcall(Op, self, ...)
 		
 		if Exception == "brk" or Exception == "cnt" then -- Break and Continue
 			return false, Exception, tonumber(SubString(Result, 5)) or 0
-		
+		elseif Exception == "rtn" then -- Return
+			return false, Exception
 		elseif Exception == "spt" or Exception == "int" then -- Internal and Script
 			return false, Exception, SubString(Result, 5)
 		else

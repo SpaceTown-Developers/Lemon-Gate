@@ -25,6 +25,7 @@ local FormatStr = string.format -- Speed
 local UpperStr = string.upper -- Speed
 local LowerStr = string.lower -- Speed
 local SubStr = string.sub -- Speed
+local FindStr = string.find -- Speed
 local LenStr = string.len -- Speed
 local ConcatTbl = table.concat -- Speed
 local RemoveTbl = table.remove -- Speed
@@ -323,7 +324,7 @@ function Compiler:Instr_ASSIGN_DECLARE(Name, Expr, Type, Special)
 	local Op, Ret, Cost = self:GetOperator("assign", Type)
 	if !Op then self:Error("Assigment operator (=) does not support '%s'", Type) end
 	
-	local ExprOp = self:CompileInst(Expr)
+	local ExprOp = self:CompileInst(Expr, true)
 	local RType = ExprOp:ReturnType()
 	if RType != Type and RType != "?" then self:Error("Variable %s of type %s, can not be assigned as '%s'", Name, Type, ExprOp:ReturnType(true)) end
 	
@@ -351,7 +352,7 @@ function Compiler:Instr_ASSIGN(Name, Expr)
 	local Op, Ret, Cost = self:GetOperator("assign", Type)
 	if !Op then self:Error("Assigment operator (=) does not support '%s'", Type) end
 	
-	local ExprOp = self:CompileInst(Expr)
+	local ExprOp = self:CompileInst(Expr, true)
 	local RType = ExprOp:ReturnType()
 	if RType != Type and RType != "?" then self:Error("Variable %s of type %s, can not be assigned as '%s'", Name, Type, ExprOp:ReturnType() ) end
 	
@@ -703,98 +704,78 @@ end
 	Purpose: These function are built in =D
 	Creditors: Rusketh
 ==============================================================================================*/
-function Compiler:CompilePerameters(Insts)
-	local Ops, Types, List = {}, {}, ""
-	for I = 1, #Insts do
-		local Op = self:CompileInst(Insts[I])
-		Ops[I] = Op
-		
+function Compiler:GenerateArguments(Insts, Method)
+	-- Purpose: Compiles function arguments.
+	
+	local Total = #Insts
+	if Total == 0 then return "" end
+	
+	local Op = self:CompileInst(Insts[1])
+	local Ops, Sig = {Op}, Op:ReturnType()
+	local Unsure = (Sig == "?")
+	
+	if Method then Sig = Sig .. ":" end
+	
+	for I = 2, Total do
+		local Op = self:CompileInst(Insts[1])
 		local Type = Op:ReturnType()
-		Types[I] = Type
-		List = List .. Type
+		
+		Ops[I] = Op; Sig = Sig .. Type
+		Unsure = Unsure or (Type == "?")
 	end
 	
-	return Ops, Types, List
+	return Ops, Sig, Unsure
+end
+
+function Compiler:CallFunction(Name, Ops, Sig)
+	local Functions = Functions -- Speed!
+	local Fun = Functions[Name .. "(" .. Sig .. ")"]
+	
+	if !Fun then self:Error("Uknown function %s(%s)", Name, Sig) end
+	
+	local Cost = Func[3]
+	self.Perf = self.Perf + Cost
+	return self:Operation(Func[1], Func[2], unpack(Ops)):SetCost(Cost)
 end
 
 function Compiler:Instr_FUNCTION(Name, Insts)
 	-- Purpose: Finds and calls a function.
 	
-	-- Note: First check if this is a udfunction
 	local VarID, Type = self:GetVar(Name)
-	if VarID then return self:Instr_CALL({"variabel", self.Trace, {Name}}, Insts) end
 	
-	-- Note: Its a normal inbuilt function.
-	local Ops, Types, List = self:CompilePerameters(Insts)
-	
-	local Functions = Functions -- Speed =D
-	local Func = Functions[Name .. "(" .. List .. ")"]
-	
-	if !Func then
-		local Len = LenStr(List)
-		
-		for I = #Ops, 1, -1 do
-			Len = Len - LenStr(Types[I])
-			List = SubStr(List, 1, Len)
-			
-			Func = Functions[Name .. "(" .. List .. "...)"]
-			if Func then break end -- Note: We found a varargs function.
-		end
+	if VarID then -- User Function needs to use Call Operator
+		return self:Instr_CALL({"variabel", self.Trace, {Name}}, Insts)
 	end
 	
-	if !Func then -- Note: This function does not exist so lets make a nice error.
-		local Pretty = ""
-		for I = 1, #Types do Pretty = Pretty .. GetLongType(Types[I]) .. "," end
-		self:Error("Unkown function %s(%s)", Name, SubStr(Pretty, 1, #Pretty - 1)) 
-	end
+	local Ops, Sig, Unsure = self:GenerateArguments(Insts)
+	if !Unsure then return self:CallFunction(Name, Ops, Sig) end
 	
-	local Cost = Func[3]
-	self.Perf = self.Perf + Cost
-	
-	return self:Operation(Func[1], Func[2], unpack(Ops)):SetCost(Cost)
+	local Op, Ret, Cost = self:GetOperator("call")
+	return self:Operation(Op, Ret, Name, Sig, Ops):SetCost(Cost)
 end
 
 function Compiler:Instr_METHOD(Name, Insts)
 	-- Purpose: Finds and calls a function.
 	
-	local Op = self:CompileInst(Insts[1])
-	local Type = Op:ReturnType() -- This is the object.
+	local Ops, Sig, Unsure = self:GenerateArguments(Insts, true)
+	if !Unsure then return self:CallFunction(Name, Ops, Sig) end
 	
-	local Ops, Types, List = {Op}, {Type}, Type .. ":"
-	for I = 2, #Insts do
-		local Op = self:CompileInst(Insts[I])
-		Ops[I] = Op
-		
-		local Type = Op:ReturnType()
-		Types[I] = Type
-		List = List .. Type
-	end
+	local Op, Ret, Cost = self:GetOperator("call")
+	return self:Operation(Op, Ret, Name, Sig, Ops):SetCost(Cost)
+end
+
+function Compiler:Instr_CALL(Func, Insts)
+	-- Purpose: This operator allows calling values.
 	
-	local Functions = Functions -- Speed =D
-	local Func = Functions[Name .. "(" .. List .. ")"]
+	local Value = self:CompileInst(Func)
 	
-	if !Func then
-		local Len = LenStr(List)
-		
-		for I = #Ops, 2, -1 do
-			Len = Len - LenStr(Types[I])
-			List = SubStr(List, 1, Len)
-			
-			Func = Functions[Name .. "(" .. List .. "...)"]
-			if Func then break end -- Note: We found a varargs function.
-		end
-	end
+	local Op, Ret, Cost = self:GetOperator("call", Value:ReturnType())
+	if !Op then self:Error("can not call a '%s'", Value:ReturnType(true)) end
 	
-	if !Func then -- Note: This function does not exist so lets make a nice error.
-		local Pretty = ""
-		for I = 2, #Types do Pretty = Pretty .. GetLongType(Types[I]) .. "," end
-		self:Error("Unkown method %s:%s(%s)", GetLongType(Type), Name, SubStr(Pretty, 1, #Pretty - 1)) 
-	end
-	
-	local Cost = Func[3]
 	self.Perf = self.Perf + Cost
 	
-	return self:Operation(Func[1], Func[2], unpack(Ops)):SetCost(Cost)
+	local Ops = self:GenerateArguments(Insts) -- Note: Sig not needed.
+	return self:Operation(Op, Ret, Value, Ops):SetCost(Cost)
 end
 
 /*==============================================================================================
@@ -876,19 +857,6 @@ function Compiler:Instr_RETURN(Inst)
 	
 	local Op, Ret, Cost = self:GetOperator("return")
 	return self:Operation(Op, Ret, Value):SetCost(Cost)
-end
-
-function Compiler:Instr_CALL(Func, Insts)
-	-- Purpose: This operator allows calling values.
-	
-	local Value = self:CompileInst(Func)
-	local Op, Ret, Cost = self:GetOperator("call", Value:ReturnType())
-	if !Op then self:Error("can not call a %s value", Value:ReturnType(true)) end
-	
-	self.Perf = self.Perf + Cost
-	
-	local Ops, Types, List = self:CompilePerameters(Insts)
-	return self:Operation(Op, Ret, Value, List, unpack(Ops)):SetCost(Cost)
 end
 
 /*==============================================================================================
