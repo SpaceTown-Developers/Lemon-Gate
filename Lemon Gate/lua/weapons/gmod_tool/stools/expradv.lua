@@ -259,7 +259,7 @@ elseif CLIENT then
 			local upload = { 
 				state = -1, 
 				ent = ent, 
-				data = string.chop( eaEncode( code ) ) 
+				data = string.chop( eaEncode( code ), 230 ) 
 			}
 			uploads[#uploads + 1] = upload
 			chunks_total = chunks_total + #upload.data

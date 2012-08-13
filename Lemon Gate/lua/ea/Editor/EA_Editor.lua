@@ -544,6 +544,7 @@ function PANEL:_OnKeyCodeTyped( code )
 			self:SetSelection( string_rep( " ", (self.Caret.y) % 4 + 1 ) )
 		end
 		self.TabFocus = true 
+		self:RequestFocus()
 	end
 end
 

@@ -103,8 +103,11 @@ function PANEL:Init()
 			Derma_Query( "Do you realy want to delete \"" .. self.Browser:GetSelectedItem().FileDir .. "\" (This cannot be undone)", "", 
 				"Delete", function() 
 					local fName = self.Browser:GetSelectedItem().FileDir 
-					-- file.Delete( fName ) 
-
+					file.Delete( fName ) 
+					local Parent = self.Browser:GetSelectedItem():GetParentNode()
+					Parent.ChildNodes:RemoveItem( self.Browser:GetSelectedItem() )
+					table.sort( Parent.ChildNodes:GetItems(), sort )
+					InvalidateLayout( Parent:GetParentNode() )
 				end,
 				"Cancel", function() end )
 		end )
@@ -172,11 +175,11 @@ function PANEL:GetCode( )
 end
 
 function PANEL:SaveFile( Name, SaveAs )
-	if ( !Name or SaveAs ) then 
+	if (!Name and !self.File) or SaveAs then 
 		Derma_StringRequestNoBlur( "Save to New File", "", "generic",
 		function( result )
 			result = string.gsub(result, ".", invalid_filename_chars)
-			self:SaveFile( result .. ".txt" )
+			self:SaveFile( "lemongate/" .. result .. ".txt" )
 			self.Browser:Update() 
 		end )
 		return

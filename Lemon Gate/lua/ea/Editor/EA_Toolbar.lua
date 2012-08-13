@@ -30,7 +30,7 @@ function PANEL:Init()
 	self.btnSaveAs:SizeToContentsX() 
 
 	function self.btnSaveAs:DoClick()
-		self:GetParent():GetParent():SaveFile( self:GetParent():GetParent().File, true ) 
+		self:GetParent():GetParent():SaveFile( nil, true ) 
 	end 
 
 
