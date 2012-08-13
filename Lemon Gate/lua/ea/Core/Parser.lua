@@ -959,9 +959,9 @@ function Parser:UDFunction()
 		elseif self:CheckToken("func") then
 			-- Section : Returnable function
 			
-			local Trace = self:TokenTrace()
-			
 			self:PrevToken()
+			
+			local Trace = self:TokenTrace()
 			
 			local Type = self:StrictType("return type '%s' is not recognised")
 			if !Type then self:Error("return type expected, before function") end
