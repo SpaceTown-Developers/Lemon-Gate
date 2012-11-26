@@ -6,6 +6,8 @@
 
 local E_A = LemonGate
 
+local CheckType = E_A.CheckType -- Speed
+
 local pairs = pairs
 local FindAll = ents.FindByClass
 
@@ -25,11 +27,47 @@ end)
 	Purpose: Lets just randomly make some events.
 	Creditors: Rusketh
 ==============================================================================================*/
-function E_A.API.CallEvent(Name, Perams, ...)
-	CheckType(1, "string", Name); CheckType(2, "string", Perams, true)
+local API = E_A.API
+function API.CallEvent(Name, ...)
+	CheckType(Name, "string", 1)
 	
 	for _, Gate in pairs(FindAll("lemongate")) do
-		Gate:CallEvent(Name, Perams, ...)
+		Gate:CallEvent(Name, ...)
 	end
 end
+
+/*==============================================================================================
+	Section: Events.
+	Purpose: Some cool events.
+	Creditors: Rusketh
+==============================================================================================*/
+E_A:RegisterEvent("think")
+
+-- Called by LemonGate entity!
+
+/**********************************************************************************************/
+
+E_A:RegisterEvent("playerJoin","e")
+
+hook.Add("PlayerInitialSpawn", "LemonGate", function(Player)
+	API.CallEvent("playerJoin", function() return Player, "e" end)
+end)
+
+/**********************************************************************************************/
+
+E_A:RegisterEvent("playerQuit","e")
+
+hook.Add("PlayerDisconnected", "LemonGate", function(Player)
+	API.CallEvent("playerQuit", function() return Player, "e" end)
+end)
+
+/**********************************************************************************************/
+
+E_A:RegisterEvent("playerChat","es")
+
+hook.Add("OnPlayerChat", "LemonGate", function(Player, Text)
+	API.CallEvent("playerChat",
+		function() return Player, "e" end,
+		function() return Text, "s" end)
+end)
 

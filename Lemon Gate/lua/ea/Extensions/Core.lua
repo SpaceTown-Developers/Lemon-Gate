@@ -59,9 +59,9 @@ E_A:RegisterOperator("for", "", "", function(self, Assign, Condition, Step, Bloc
 		
 		if !Ok then
 			if Exception == "break" then
-				if Level <= 0 then break else self:Thorw("break", Level - 1) end
+				if Level <= 0 then break else self:Throw("break", Level - 1) end
 			elseif Exception == "continue" then
-				if Level <= 0 then Step(self) else self:Thorw("continue", Level - 1) end
+				if Level <= 0 then Step(self) else self:Throw("continue", Level - 1) end
 			else
 				error(Exception, 0)
 			end
@@ -80,9 +80,9 @@ E_A:RegisterOperator("while", "", "", function(self, Condition, Block)
 		
 		if !Ok then
 			if Except == "break" then
-				if Level <= 0 then break else self:Thorw("break", Level - 1) end
+				if Level <= 0 then break else self:Throw("break", Level - 1) end
 			elseif Except == "continue" then
-				if Level <= 0 then Step(self) else self:Thorw("continue", Level - 1) end
+				if Level <= 0 then Step(self) else self:Throw("continue", Level - 1) end
 			else
 				error(Exception, 0)
 			end

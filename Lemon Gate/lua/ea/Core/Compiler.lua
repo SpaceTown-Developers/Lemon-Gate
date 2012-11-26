@@ -940,11 +940,11 @@ end
 function Compiler:Instr_BREAK(Depth)
 	-- Purpose: Breaks a loop.
 	
-	return function() error("brk:" .. (Depth or 0)) end
+	return function(self) self:Throw("break", Depth or 0) end
 end
 
 function Compiler:Instr_CONTINUE(Depth)
 	-- Purpose: Continues a loop.
 	
-	return function() error("cnt:" .. (Depth or 0)) end
+	return function(self) self:Throw("continue", Depth or 0) end
 end

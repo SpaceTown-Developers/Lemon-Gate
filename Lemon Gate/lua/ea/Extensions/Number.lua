@@ -203,7 +203,7 @@ E_A:RegisterOperator("is", "n", "n", function(self, Value)
 	if Value(self) > 0 then return 1 else return 0 end
 end)
 
-E_A:RegisterOperator("or", "nn", "", function(self, ValueA, ValueB)
+E_A:RegisterOperator("or", "nn", "n", function(self, ValueA, ValueB)
 	-- Purpose: | Conditonal Operator
 	
 	local A = ValueA(self)

@@ -1146,7 +1146,7 @@ function Parser:WhileLoop()
 end
 
 function Parser:ExitStatment()
-	local Depth, Level = self.LoopDeph
+	local Depth, Level = self.LoopDepth
 	
 	if self:AcceptToken("brk") then
 		Level = self:GetNumber(true)
@@ -1156,7 +1156,6 @@ function Parser:ExitStatment()
 		elseif Level and Level > Depth then
 			self:Error("break depth is to deep")
 		end
-		
 		
 		return self:Instruction("break", self:TokenTrace(), Level)
 	

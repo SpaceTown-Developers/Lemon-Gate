@@ -499,8 +499,6 @@ function E_A:RegisterEvent(Name, Params, Return)
 	Events[ Name ] = {typeData, Return}
 end
 
-E_A:RegisterEvent("think")
-
 /*==============================================================================================
 	Section: Script Context
 	Creditors: Rusketh
