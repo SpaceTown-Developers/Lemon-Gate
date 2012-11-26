@@ -204,6 +204,7 @@ function Toker:NextToken()
 	elseif self:IsToken("function constructor", true) then
 	elseif self:IsToken("switch", true) then
 	elseif self:IsToken("catch", true) then
+	elseif self:IsToken("event constructor", true) then
 	
 	-- Sub KeyWord
 	elseif self:IsToken("break", true) then

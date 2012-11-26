@@ -82,7 +82,7 @@ function Lemon:Think()
 				end
 			end
 			
-			self:CallEvent("Think")
+			self:CallEvent("think")
 		end
 	end
 	
@@ -141,10 +141,10 @@ function Lemon:LoadInstance(Instance)
 		Types = Instance.VarTypes,
 		Memory = {}, Delta = {}, Click = {},
 		Entity = self, Events = self.Events,
-		
 		Perf = MaxPerf:GetInt(),
-		Error = function(Context, Message, ...) return self:Error(Message, ...) end,
 	}
+	
+	setmetatable(self.Context, E_A.Context)
 	
 	self.InMemory = Instance.Inputs
 	self.OutMemory = Instance.Outputs
@@ -287,57 +287,52 @@ function Lemon:RunOp(Op, ...)
 	local Context = self.Context
 	if !Context then return true end
 	
-	local Ok, Return, Type = Pcall(Op, Context, ...)
+	local Ok, Exception, Message = Pcall(Op, Context, ...)
 	
 	if Ok then
-		return true, Return, Type
+		return true, Exception, Message
 	
-	elseif Return == "spt" then
+	elseif Exception == "script" then
 		self:SetColor(255, 0, 0, 255)
 		self:UpdateOverlay("Script Error")
 		
-		MsgN("E-A: Script Error, " .. Type)
+		MsgN("E-A: Script Error, " .. Message)
 		
-	elseif Return == "int" then
+	elseif Exception == "internal" then
 		self:SetColor(255, 0, 0, 255)
 		self:UpdateOverlay("Lua Error")
 		
-		MsgN("E-A: Lua Error, " .. Type)
+		MsgN("E-A: Lua Error, " .. Message)
 		
-	elseif Return == "exit" then
+	elseif Exception == "exit" then
 		return true -- This is normal.
-	
-	elseif Return[4] == ":" then
-		-- Note: Should never happen
-		
-		self:UpdateOverlay("Script Error")
-		MsgN("E-A: Strange Error, RunOp got '" .. Return .. "' exception.")
 	
 	else
 		self:UpdateOverlay("Lua Error")
 		MsgN("E-A: Strange Error:")
-		MsgN(Return)
+		MsgN(Message)
 	end
 	
-	self.Errored = true
-	return false, Result, Type
+	self.Errored = Message or true
+	return false, Exception, Message
 end
 
-function Lemon:CallEvent(Name, Perams, ...)
-	if self.Errored then return true end
+function Lemon:CallEvent(Name, ...)
+	if self.Errored or !self.Events then return true end
 	
-	local EventTable = self.Events
-	if !EventTable then return true end
+	local Event = self.Events[ Name ]
+	if !Event then return true end
 	
-	local Events = EventTable[Name]
-	if !Events then return true end
-	
-	local Op = Operators["call(f)"][1]
-	
-	for Index, CallBack in pairs(Events) do
-		local Ok, Result, Result2 = self:RunOp(Op, CallBack, Perams or "", ...)
-		if !Sucess then return false, Result, Result2 end
+	local Ops, Values = Event[1], {...}
+	for I = 1, #Ops do
+		local Store, Value = Ops[I], Values[I]
+		local Index, Op = Store[1], Store[2]
+		
+		-- Op[1](self, Index, Value)
+		self:RunOp(Op, Index, Value)
 	end
+	
+	self:RunOp(Event[2])
 	
 	self:TriggerOutputs()
 	
@@ -371,7 +366,7 @@ function Lemon:Error(Message, Info, ...)
 	
 	self.Errored = Message
 	
-	self:UpdateOverlay("Script Error")
+	self:UpdateOverlay("Lua Error")
 	
-	MsgN("E-A: Script Error, " .. Message)
+	MsgN("E-A: Error, " .. Message)
 end

@@ -14,6 +14,8 @@ function PANEL:Init()
 	self.FolderMenu = {}
 	self.FileMenu = {}
 	
+	self.Items = {}
+	
 	self.Ref = vgui.Create( "DButton", self )
 	self.Ref:Dock( BOTTOM )
 	self.Ref:DockMargin( 0,0,0,-1 )
@@ -81,13 +83,13 @@ end
 local MaxPerTick = 10
 local timername = "SetupFolderTree"
 local function SetupFolderTree( node, dir )
-	if ltype( dir ) ~= "string" or not IsValid( node ) or timer.IsTimer( timername ) then return end
+	if ltype( dir ) ~= "string" or not IsValid( node ) or timer.Exists( timername ) then return end
 
 	node:Clear( true )
 	node.ChildNodes = nil
 
-	local files = file.FindDir( dir .. "/*" )
-	local tFiles = file.Find( dir .. "/*.txt" )
+	local _, files = file.Find( dir .. "/*", "DATA" )
+	local tFiles = file.Find( dir .. "/*.txt", "DATA" )
 
 	table.sort( files, sortlower )
 	table.sort( tFiles, sortlower )
@@ -109,7 +111,7 @@ local function SetupFolderTree( node, dir )
 		end
 		timer.Create(timername, 0.01, TableCount, function() 
 			if ltype(dir) ~= "string" or not IsValid(node) then
-				if timer.IsTimer( timername ) then timer.Destroy( timername ) end
+				if timer.Exists( timername ) then timer.Destroy( timername ) end
 				return
 			end
 			if Timervalue < TCount then
@@ -121,8 +123,8 @@ local function SetupFolderTree( node, dir )
 
 					if ltype( fName ) == "string" then
 						local Filepath = dir .. "/" .. fName 
-						local IsDir = file.IsDir( Filepath )
-						local FileExists = file.Exists( Filepath )
+						local IsDir = file.IsDir( Filepath, "DATA" )
+						local FileExists = file.Exists( Filepath, "DATA" )
 
 						if not string.match( fName, "%.%." ) and not AddedItems[Filepath] then 
 							if IsDir then
@@ -164,7 +166,7 @@ local function SetupFolderTree( node, dir )
 									node:SetExpanded( true )
 								end
 							end
-							if timer.IsTimer( timername ) then timer.Destroy( timername ) end
+							if timer.Exists( timername ) then timer.Destroy( timername ) end
 						end
 					end
 				end
@@ -179,7 +181,7 @@ local function SetupFolderTree( node, dir )
 						node:SetExpanded( true )
 					end
 				end
-				if timer.IsTimer( timername ) then timer.Destroy( timername ) end
+				if timer.Exists( timername ) then timer.Destroy( timername ) end
 			end
 		end)
 	else

@@ -95,6 +95,6 @@ end)
 	Creditors: Rusketh
 ==============================================================================================*/
 E_A:RegisterFunction("print", "s", "", function(self, Value)
-	MsgN("E-A: " .. Value(self)) -- Temp
+	MsgN("E-A Print: " .. Value(self)) -- Temp
 end)
 

@@ -63,6 +63,7 @@ function Compiler:Run(Instr)
 	
 	self.VarIndex = 1
 	self.VarTypes = {}
+	self.VarData = {}
 	
 	self.Perf = 0
 	self.Trace = {1, 1}
@@ -89,9 +90,9 @@ function Compiler:CompileInst(Inst, Castable)
 		local Result, Type = Func(self, unpack(Inst[3]))
 		self.Trace = Trace -- Return parent trace.
 		
-		if Type and Type == "?" and !Castable then
-			self:Error(Trace, "casting operator ((type)), expected before '%s'", Inst[1])
-		end
+		-- if Type and Type == "?" and !Castable then
+			-- self:Error(Trace, "casting operator ((type)), expected before '%s'", Inst[1])
+		-- end
 		
 		return Result
 	else
@@ -326,7 +327,7 @@ function Compiler:Instr_ASSIGN_DECLARE(Name, Expr, Type, Special)
 	
 	local ExprOp = self:CompileInst(Expr, true)
 	local RType = ExprOp:ReturnType()
-	if RType != Type and RType != "?" then self:Error("Variable %s of type %s, can not be assigned as '%s'", Name, Type, ExprOp:ReturnType(true)) end
+	if RType != Type then self:Error("Variable %s of type %s, can not be assigned as '%s'", Name, Type, ExprOp:ReturnType(true)) end
 	
 	local VarID, Scope = self:AssignVar(Type, Name, Special)
 	
@@ -354,7 +355,7 @@ function Compiler:Instr_ASSIGN(Name, Expr)
 	
 	local ExprOp = self:CompileInst(Expr, true)
 	local RType = ExprOp:ReturnType()
-	if RType != Type and RType != "?" then self:Error("Variable %s of type %s, can not be assigned as '%s'", Name, Type, ExprOp:ReturnType() ) end
+	if RType != Type then self:Error("Variable %s of type %s, can not be assigned as '%s'", Name, Type, ExprOp:ReturnType() ) end
 	
 	self.Perf = self.Perf + Cost
 	
@@ -688,14 +689,8 @@ function Compiler:Instr_CAST(Type, Expr)
 	
 	-- Note: Lets see if we can cast at compile time.
 	local Op, Ret, Cost = self:GetOperator("cast", Type, Convert)
-	if Op then return self:Operation(Op, Type, Value, Type):SetCost(Cost) end
+	if !Op then self:Error("Can not cast from %q to %q", GetLongType(Convert), GetLongType(Type) ) end
 	
-	if Convert != "?" then -- Note: Wild type casting
-		local Op, Ret, Cost = self:GetOperator("cast", Type, "?")
-		if Op then return self:Operation(Op, Type, Value, Type):SetCost(Cost) end
-	end
-	
-	local Op, Ret, Cost = self:GetOperator("cast") -- Note: Runtime casting.
 	return self:Operation(Op, Type, Value, Type):SetCost(Cost)
 end
 
@@ -708,11 +703,10 @@ function Compiler:GenerateArguments(Insts, Method)
 	-- Purpose: Compiles function arguments.
 	
 	local Total = #Insts
-	if Total == 0 then return "" end
+	if Total == 0 then return {}, "" end
 	
 	local Op = self:CompileInst(Insts[1])
 	local Ops, Sig = {Op}, Op:ReturnType()
-	local Unsure = (Sig == "?")
 	
 	if Method then Sig = Sig .. ":" end
 	
@@ -721,17 +715,18 @@ function Compiler:GenerateArguments(Insts, Method)
 		local Type = Op:ReturnType()
 		
 		Ops[I] = Op; Sig = Sig .. Type
-		Unsure = Unsure or (Type == "?")
 	end
 	
-	return Ops, Sig, Unsure
+	MsgN("Gened: " .. Sig)
+	
+	return Ops, Sig
 end
 
 function Compiler:CallFunction(Name, Ops, Sig)
 	local Functions = Functions -- Speed!
-	local Fun = Functions[Name .. "(" .. Sig .. ")"]
+	local Func = Functions[Name .. "(" .. Sig .. ")"]
 	
-	if !Fun then self:Error("Uknown function %s(%s)", Name, Sig) end
+	if !Func then self:Error("Uknown function %s(%s)", Name, Sig) end
 	
 	local Cost = Func[3]
 	self.Perf = self.Perf + Cost
@@ -744,38 +739,18 @@ function Compiler:Instr_FUNCTION(Name, Insts)
 	local VarID, Type = self:GetVar(Name)
 	
 	if VarID then -- User Function needs to use Call Operator
-		return self:Instr_CALL({"variabel", self.Trace, {Name}}, Insts)
+		return self:Call_UDFunction(Name, VarID, Insts)
 	end
 	
-	local Ops, Sig, Unsure = self:GenerateArguments(Insts)
-	if !Unsure then return self:CallFunction(Name, Ops, Sig) end
-	
-	local Op, Ret, Cost = self:GetOperator("call")
-	return self:Operation(Op, Ret, Name, Sig, Ops):SetCost(Cost)
+	local Ops, Sig = self:GenerateArguments(Insts)
+	return self:CallFunction(Name, Ops, Sig)
 end
 
 function Compiler:Instr_METHOD(Name, Insts)
 	-- Purpose: Finds and calls a function.
 	
 	local Ops, Sig, Unsure = self:GenerateArguments(Insts, true)
-	if !Unsure then return self:CallFunction(Name, Ops, Sig) end
-	
-	local Op, Ret, Cost = self:GetOperator("call")
-	return self:Operation(Op, Ret, Name, Sig, Ops):SetCost(Cost)
-end
-
-function Compiler:Instr_CALL(Func, Insts)
-	-- Purpose: This operator allows calling values.
-	
-	local Value = self:CompileInst(Func)
-	
-	local Op, Ret, Cost = self:GetOperator("call", Value:ReturnType())
-	if !Op then self:Error("can not call a '%s'", Value:ReturnType(true)) end
-	
-	self.Perf = self.Perf + Cost
-	
-	local Ops = self:GenerateArguments(Insts) -- Note: Sig not needed.
-	return self:Operation(Op, Ret, Value, Ops):SetCost(Cost)
+	return self:CallFunction(Name, Ops, Sig)
 end
 
 /*==============================================================================================
@@ -783,29 +758,55 @@ end
 	Purpose: Function Objects, just 20% cooler!
 	Creditors: Rusketh
 ==============================================================================================*/
-function Compiler:Instr_FASSIGN(Name, Expr, Local)
-	-- Purpose: Assign function value.
+function Compiler:Call_UDFunction(Name, VarID, Insts)
+	-- Purpose: Calls user function.
+	
+	local Data = self.VarData[ VarID ]
+	local Perams, Return = Data[2], Data[1]
+	
+	local Ops, Sig = self:GenerateArguments(Insts)
+	if Perams != Sig then self:Error("Peramater missmatch for user function %s() %q vs %q", Name, tostring(Perams), tostring(Sig)) end
+	
+	local Op, Ret, Cost = self:GetOperator("udfcall")
+	self.Perf = self.Perf + Cost
+	
+	return self:Operation(Op, Return, VarID, Ops):SetCost(Cost)
+end
+
+function Compiler:Instr_UDFUNCTION(Local, Name, Listed, Perams, Types, Block, Return)
+	-- Purpose: Define user function.
 	
 	local VarID, Type
-	if !Local then
+	if !Local then -- Assign the function some memory.
 		VarID, Type = self:SetVar(Name, "f")
 	else
 		VarID, Type = self:LocalVar(Name, "f")
 	end
 	
-	local Op, Ret, Cost = self:GetOperator("assign", "f")
-	if !Op then self:Error("Function assigment operator (=), not found") end
+	local Current = self.VarData[ VarID ]
+	MsgN("Defined: " .. Name .. " -> " .. VarID .. " -> " .. tostring(Current))
 	
-	local ExprOp = self:CompileInst(Expr)
-	local EType = ExprOp:ReturnType()
-	if EType != "f" and EType != "?" then self:Error("Function assigment operator (=), can not assign '%s", ExprOp:ReturnType(true) ) end
+	if Current then -- Compare information as not to confuse the compiler!
+		PrintTable(Current)
+		
+		if Current[2] ~= Listed then
+			self:Error("Peramter missmach for function %q", Name)
+		elseif Current[1] ~= Return then
+			self:Error("Return type missmach for function %q exspected to be %q", Name, LongType(Current[1]))
+		end
+	else
+		self.VarData[ VarID ] = {Return, Listed}
+	end
 	
+	local Memory, Statments = self:BuildFunction(Listed, Perams, Types, Block, Return)
+	
+	local Op, Ret, Cost = self:GetOperator("udfdef")
 	self.Perf = self.Perf + Cost
 	
-	return self:Operation(Op, Ret, ExprOp, VarID):SetCost(Cost)
+	return self:Operation(Op, Ret, VarID, Perams, Memory, Statments, Return):SetCost(Cost)
 end
 
-function Compiler:Instr_UDFUNCTION(Listed, Perams, Types, Block, Return)
+function Compiler:BuildFunction(Listed, Perams, Types, Block, Return)
 	-- Purpose: This instruction Will create function variabels.
 	
 	local LastReturnType = self.ReturnType
@@ -835,7 +836,7 @@ function Compiler:Instr_UDFUNCTION(Listed, Perams, Types, Block, Return)
 	
 	local Op, Ret, Cost = self:GetOperator("udfunction")
 
-	return self:Operation(Op, Ret, Listed, Memory, Statments, Return):SetCost(Cost)
+	return Memory, Statments
 end
 
 function Compiler:Instr_RETURN(Inst)
@@ -856,9 +857,41 @@ function Compiler:Instr_RETURN(Inst)
 	end
 	
 	local Op, Ret, Cost = self:GetOperator("return")
-	return self:Operation(Op, Ret, Value):SetCost(Cost)
+	return self:Operation(Op, Return, Value):SetCost(Cost)
 end
 
+/*==============================================================================================
+	Section: Events
+	Purpose: Events do stuff.
+	Creditors: Rusketh
+==============================================================================================*/
+function Compiler:Instr_EVENT(Event, Listed, Perams, Types, Block)
+	-- Purpose: This instruction Will create function variabels.
+	
+	self:PushScope()
+	
+	local Memory, Ops = {}, Operators
+	for I = 1, #Perams do
+		local Var = Perams[I]
+		local Type = Types[Var]
+		
+		local Op = Operators["assign(" .. Type .. ")"]
+		if !Op then self:Error("type %s, can not be used in function perameters.", Type) end
+
+		Memory[I] = {self:LocalVar(Var, Type), Op}
+	end
+	
+	self:PushScope() -- Note: Allows us to overwrite perameters.
+	
+	local Statments = self:CompileInst(Block) -- Note: Event Body =D
+	
+	self:PopScope()
+	self:PopScope()
+	
+	Op, Ret, Cost = self:GetOperator("event")
+
+	return self:Operation(Op, Ret, Event, Memory, Statments):SetCost(Cost)
+end
 /*==============================================================================================
 	Section: Loops
 	Purpose: for loops, while loops.

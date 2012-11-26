@@ -283,7 +283,7 @@ function Parser:UnspoofToken()
 	local Token = self.RealToken
 	
 	if Token then
-		self:FakeToken(Token)
+		self:SpoofToken(Token)
 		self.RealToken = nil
 	end
 end
@@ -498,12 +498,12 @@ function Parser:GetValue()
 		
 		Instr = self:Instruction("variabel", Trace, self.TokenData)
 		
-	elseif self:AcceptToken("fun") or self:AcceptToken("func") then
+	elseif self:AcceptToken("fun") then
 		-- Section: We are going to getting a function.
 		
 		local Function = self.TokenData
 		
-		if !self:ThisToken("func") and self:AcceptToken("lpa") then
+		if self:AcceptToken("lpa") then
 			-- Section: We are calling this function.
 			
 			local Permaters = {}
@@ -523,11 +523,6 @@ function Parser:GetValue()
 			end
 			
 			Instr = self:Instruction("function", Trace, Function, Permaters)
-		else
-			-- Section: Get function Object
-			
-			self:PrevToken()
-			Instr = self:UDFunction()
 		end
 	end
 	
@@ -715,7 +710,7 @@ function Parser:Statment()
 		return self:ExitStatment()
 	end
 	
-	return self:FunctionStatment() or self:VariableStatment() or self:Expression()
+	return self:FunctionStatment() or self:EventStatment() or self:VariableStatment() or self:Expression()
 end
 
 /*==============================================================================================
@@ -942,59 +937,9 @@ end
 
 /*==============================================================================================
 	Section: First Class Functions (User Defined Functions).
-	Purpose: Function Objects, just 20% cooler!
+	Purpose: Functions, just 20% cooler!
 	Creditors: Rusketh
 ==============================================================================================*/
-function Parser:UDFunction()
-	-- Purpose: Gets a function object.
-	
-	if self:AcceptToken("fun") or self:AcceptToken("func")then
-		local Name = self.TokenData
-		
-		if self:ThisToken("func") and self:CheckToken("lpa") then
-			-- Section: Function
-			
-			return self:BuildFunction(self:TokenTrace())
-			
-		elseif self:CheckToken("func") then
-			-- Section : Returnable function
-			
-			self:PrevToken()
-			
-			local Trace = self:TokenTrace()
-			
-			local Type = self:StrictType("return type '%s' is not recognised")
-			if !Type then self:Error("return type expected, before function") end
-			
-			self:NextToken()
-			
-			return self:BuildFunction(Trace, Type)
-		else
-			-- Section: get function variabel
-			
-			return self:Instruction("variabel", self:TokenTrace(), Name)
-		end
-	end
-end
-
-/********************************************************************************************************************/
-
-function Parser:BuildFunction(Trace, Return)
-	-- Purpose: Creates a UDFunction.
-	
-	local Perams, Types, Listed = self:BuildPerams("function peramaters")
-	
-	local StillIn = self.InFunc
-	self.InFunc = true -- Note: We make sure the parser knows we are inside a function.
-	
-	local Block = self:Block("function body")
-	self.InFunc = StillIn -- Note: If we where in one before then the parser needs know.
-
-	return self:Instruction("udfunction", Trace, Listed, Perams, Types, Block, Return)
-end
-
-/********************************************************************************************************************/
-
 function Parser:BuildPerams(Type)
 	-- Purpose: Creates a UDFunction.
 	
@@ -1014,20 +959,6 @@ function Parser:BuildPerams(Type)
 			elseif !self:HasTokens() then
 				self:Error("perameter seperator (,) must not be succeeded by whitespace")
 			
-			elseif self:AcceptToken("vargs") then
-				Listed = Listed .. "..." -- Var args support
-				
-				if self:AcceptToken("com") then self:Error("varargs (...), must appear as last perameter") end
-				break -- Note: Varargs always come last
-			
-			elseif self:AcceptToken("fun") then
-				Index = Index + 1
-				Perams[Index] = self.TokenData
-				Types[Var] = "f"
-				Listed = Listed .. "f"
-				
-				-- Todo: Error on colon
-
 			elseif !self:AcceptToken("var") then
 				self:Error("variabel expected, after perameter seperator (,)")
 
@@ -1064,12 +995,6 @@ end
 function Parser:FunctionStatment()
 	local Local = self:AcceptToken("loc")
 	
-	if self:AcceptToken("fun") then
-		local Trace, Func = self:TokenTrace(), self.TokenData
-		if self:AcceptToken("ass") then return self:Instruction("fassign", Trace, Func, self:Expression(), Local) end
-		self:PrevToken()
-	end
-	
 	if self:AcceptToken("func") then
 		local Trace, Return, Name = self:TokenTrace()
 		
@@ -1077,21 +1002,59 @@ function Parser:FunctionStatment()
 			self:Error("function name expected, after (function)")
 		end
 		
-		Name = self.TokenData
-		
 		if self:AcceptToken("fun") then
-			self:PrevToken()
+			self:PrevToken(); self:PrevToken()
 			Return = self:StrictType() -- Note: We go back and grab the type.
-			
-			Name = self.TokenData
+			self:NextToken()
 		end
+		
+		Name = self.TokenData
+		MsgN("Type: " .. tostring(Return) .. " Name: " .. Name)
 		
 		if Name == "function" then self:Error("Invalid function name, 'function'") end
 		
-		return self:Instruction("fassign", Trace, Name, self:BuildFunction(Trace, Return), Local)
+			local Perams, Types, Listed = self:BuildPerams("function peramaters")
+		
+			local StillIn = self.InFunc
+			self.InFunc = true -- Note: We make sure the parser knows we are inside a function.
+			
+			local Block = self:Block("function body")
+			self.InFunc = StillIn -- Note: If we where in one before then the parser needs know.
+
+			return self:Instruction("udfunction", Trace, Local, Name, Listed, Perams, Types, Block, Return)
 	end
 	
 	if Local then self:PrevToken() end
+end
+
+/*==============================================================================================
+	Section: Hooks or Event
+	Purpose: Function Objects, just 20% cooler!
+	Creditors: Rusketh
+==============================================================================================*/
+local ValidEvents = E_A.ValidEvents
+
+function Parser:EventStatment()
+	if self:AcceptToken("evt") then
+		local Trace = self:TokenTrace()
+		
+		if !self:AcceptToken("fun") then
+			self:Error("event name expected, after (event)")
+		end
+		
+		local Event = self.TokenData
+		
+		local ValidEvent = ValidEvents[Event]
+		if !ValidEvent then self:Error("invalid event %q", Event) end
+		
+		local Perams, Types, Listed = self:BuildPerams("event peramaters")
+		
+		if Listed != ValidEvent[1] then
+			self:Error("perameter mismach for event %q", Event)
+		end
+		
+		return self:Instruction("event", Trace, Event, Perams, Types, Listed, self:Block("event body"))
+	end
 end
 
 /*==============================================================================================
@@ -1115,7 +1078,7 @@ function Parser:ForLoop()
 		end
 		
 		local VarName, Ass = self.TokenData
-		
+		 
 		if self:AcceptToken("ass") then -- Note: We allow a syntax for deafult vars.
 			Ass = self:Instruction("assign_declare", Trace, VarName, self:Expression(), "n", "local")
 		else
@@ -1129,14 +1092,20 @@ function Parser:ForLoop()
 		
 		local Cond = self:Expression()
 		
-		if !self:AcceptToken("com") then
+		if !Cond then
+			self:Error("Condition expected, after (,) in for loop.")
+		elseif !self:AcceptToken("com") then
 			self:Error("Comma (,) expected, after for loop condition.")
 		end
 		
 		local Step = self:VariableStatment(true)
 		
-		if !self:AcceptToken("rpa") then
-			self:Error("Right parenthesis ()) missing, after loop step '%s'", self.NextTokenType) -- Todo: MAke this error nicer.
+		if !Step and self:AcceptToken("var") then
+			self:Error("Inavlid step expression, after (,) in for loop.")
+		elseif !Step then
+			self:Error("Step expression expected, after (,) in for loop.")
+		elseif !self:AcceptToken("rpa") then
+			self:Error("Right parenthesis ()) missing, after loop step '%s'", self.NextTokenType) -- Todo: Make this error nicer.
 		end
 		
 		self.LoopDepth = self.LoopDepth + 1

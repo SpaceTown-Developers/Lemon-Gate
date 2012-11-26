@@ -41,6 +41,25 @@ Expresson Advanced Documentation:
 		
 		Example: number VarA, VarB, VarC = 1, VarA * 2, VarA + VarB
 	
+	Events:
+		
+		Events are blocks of code that are called during a particular server event.
+		Events are structured very simular to user functions however only 1 Event Block per event can exist at any one time.
+		To add to this, you can dynamicly change your Event call back by overwriting the event at run time.
+		
+		Example: event think() { print("I think") }
+		
+		Currently only the think event exists, more events that have perameters and return values will be added later in development.
+		
+	User Functions:
+		
+		User functions are custom user made functions that can be used to make writing complex code easyer.
+		
+		Example:
+			function test() { print("test") }
+			function number add(A, B:number) { return A + B }
+			
+		Todo: Better explantation.
 	
 	Proposed Features:
 		
@@ -48,93 +67,7 @@ Expresson Advanced Documentation:
 		These features are planned to be supported before E-A enters public beta testing.
 		The documentation provided is likly to change as at time of writing these features are only proposed.
 			
-		First Class Functions:
-			
-			First class functions will be implemented as Fvars (Function Variables).
-			Fvars must begin with lower cased letters and can be global or local, global Fvars will always be treated as persistant.
-			
-			The following example shows the creation of a local Fvar.
-			
-			Example:
-				
-				
-				local function fvar() {
-					//Do something here?
-				}
-			
-			
-			Fvars also support peramaters, these are type strict and missmatches at runtime will result in script errors.
-			Peramaters will become local variables for use in the function.
-			The following example shows a global Fvar with 3 differnt peramters.
-			
-			Example:
-			
-				function favr(PeramA, PeramB:num, PeramC:string) {
-					//Do something
-				}
-			
-			Notice: VarA does not have a type and will be assigned as a number by default.
-			
-			
-			Fvars can support return values witch need to be defeined when declaring an Fvar, as with peramaters missmatches will result in script errors.
-			
-			
-			Example:
-				
-				function string fvar(Peram:string) {
-					return Peram
-				}
-			
-			E-A also supports Fvars to be directly created in an array or table, the syntax will probably change during development.
-
-			Example:
-				
-				function number Array[1](Peram) {
-					return Peram + 1
-				}
-
-			It is also possible to move Fvars around, as well as to and from arrays/tables.
-			
-			Example:
-				
-				local fvarA = Array[1, function]
-
-				fvarB = fvarA
-
-				Array[1, function] = fvarB
-			
-
-		Obserable Variables:
-			
-			Obserable Variables are also known as OVars.
-			Unlike variabels Ovars will be assigned formulas and variables instead of values.
-			
-			Example:
-				
-				number VarA, VarB = 1, 3
-				
-				number $Ovar = VarA * VarB
-			
-			In the above example when Variables 'VarA and VarC' change so will the value of Ovar.
-			
-			Example:
-				
-				print( Ovar ) // Prints 3
-				
-				VarA = 2
-				
-				print( Ovar ) // Prints 6
-			
-			Any functions / methods used in Ovars will not be recalled, so variabels used as function peramaters will not be observed.
-			
-
-			Example:
-				
-				number VarA, VarB = 1, 2
-
-				number $Ovar = min(VarA, VarB)	* VarA
-			
-			In the above example 'Ovar' will always be '1 * VarA'.
+		
 		
 		
 		

@@ -28,6 +28,7 @@ local E_A = {
 	FunctionTable = {},
 	FunctionVATable = {},
 	OperatorTable = {},
+	ValidEvents = {},
 	
 	-- Api / Misc:
 	API = {},
@@ -40,6 +41,7 @@ local E_A = {
 
 LemonGate = E_A
 
+local SubString = string.sub
 local UpperStr = string.upper -- Speed
 local FormatStr = string.format -- Speed
 local LowerStr = string.lower -- Speed
@@ -88,7 +90,10 @@ function E_A.LimitString(String, Max)
 	return String
 end; local LimitString = E_A.LimitString -- Speed
 
-local TableToLua -- Created at line 97.
+E_A.Lua_Func_Cahce = {} -- Store functions
+local LFC = E_A.Lua_Func_Cahce
+
+local TableToLua -- Below the following function.
 function E_A.ValueToLua(Value,NoTables)
 	if !Value then return "NULL" end
 	
@@ -101,7 +106,10 @@ function E_A.ValueToLua(Value,NoTables)
 	elseif Type == "boolean" then
 		return Value and "true" or "false"
 	elseif Type == "table" and !NoTables then
-		return E_A.TableToLua(Value) 
+		return E_A.TableToLua(Value)
+	elseif Type == "function" and !NoTables then
+		local Index = #LFC + 1; LFC[ Index ] = Value
+		return "E_A.Lua_Func_Cahce[" .. Index .. "]"
 	end
 end; local ValueToLua = ValueToLua -- Speed
 
@@ -190,7 +198,9 @@ E_A:CreateToken("function", "func", "function constructor", E_A_Colour_KEYWORD)
 
 E_A:CreateToken("switch", "swh", "switch", E_A_Colour_KEYWORD)
 
-E_A:CreateToken("catch", "cth", "catch", E_A_Colour_KEYWORD)
+E_A:CreateToken("event", "evt", "event constructor", E_A_Colour_KEYWORD)
+
+-- E_A:CreateToken("catch", "cth", "catch", E_A_Colour_KEYWORD) -- Unused!
 
 -- Sub KeyWords
 E_A:CreateToken("break", "brk", "break", E_A_Colour_KEYWORD)
@@ -303,7 +313,7 @@ local Ops = {
 	E_A:CreateToken("]", "rsb", "right square bracket", E_A_Colour_OP),
 	
 	-- Misc
-	E_A:CreateToken("...", "vargs", "varargs", E_A_Colour_OP)
+	-- E_A:CreateToken("...", "vargs", "varargs", E_A_Colour_OP) -- Unused!
 }
 
 -- Convert Op Tokens to Opt Table
@@ -467,6 +477,51 @@ function E_A:ClassFactory(Type, ...)
 end
 
 /*==============================================================================================
+	Section: Hook Registery.
+	Purpose: Valid Hooks.
+	Creditors: Rusketh
+==============================================================================================*/
+local Events = E_A.ValidEvents
+
+function E_A:RegisterEvent(Name, Params, Return)
+	-- Purpose: Creates a new valid E_A hook.
+	
+	CheckType(Name, "string", 1); CheckType(Return or "", "string", 3);
+	
+	local typeData = Params or ""
+	if type(Params) == "table" then 
+		typeData = ""
+		for i=1,#Params do
+			typeData = typeData .. GetShortType( Params[i] )
+		end
+	end
+	
+	Events[ Name ] = {typeData, Return}
+end
+
+E_A:RegisterEvent("think")
+
+/*==============================================================================================
+	Section: Script Context
+	Creditors: Rusketh
+==============================================================================================*/
+local Context = {}
+E_A.Context = Context
+Context.__index = Context
+
+function Context:Throw(Exeption, ...)
+	self.Exception = Exeption
+	self.ExceptionInfo = {...}
+	error("Exception", 0)
+end
+
+function Context:Error(Message, Info, ...)
+	if Info then Message = FormatStr(Message, Info, ...) end
+	
+	self:Throw("script", Message)
+end
+
+/*==============================================================================================
 	Section: Instruction Operators
 	Purpose: Runable operators.
 	Creditors: Rusketh
@@ -476,7 +531,7 @@ E_A.Operator = Operator
 
 Operator.__index = Operator
 
-Operator.__call = function(Op, self)
+Operator.__call = function(Op, self, Arg, ...)
 	-- Purpose: Makes Operators callable and handels runtime perf.
 	
 	local Perf = self.Perf - Op[0]
@@ -486,9 +541,15 @@ Operator.__call = function(Op, self)
 	local Trace = self.Trace
 	self.Trace = Op[4] -- Note: replace parent trace with child trace.
 	
-	local Res, Type = Op[1](self, unpack(Op[3]))
-	self.Trace = Trace
+	local Res, Type
 	
+	if Arg == nil then 
+		Res, Type = Op[1](self, unpack(Op[3]))
+	else
+		Res, Type = Op[1](self, Arg, ...)
+	end
+	
+	self.Trace = Trace
 	return Res, Type or Op[2]
 end 
 
@@ -511,23 +572,9 @@ function Operator.Pcall(Op, self, ...)
 	
 	local Ok, Result, Type = pcall(Op, self, ...)
 	
-	if Ok then
-		return Ok, Result, Type
-		
-	elseif Result[4] == ":" then
-		local Exception = SubString(Result, 0, 3)
-		
-		if Exception == "brk" or Exception == "cnt" then -- Break and Continue
-			return false, Exception, tonumber(SubString(Result, 5)) or 0
-		elseif Exception == "rtn" then -- Return
-			return false, Exception
-		elseif Exception == "spt" or Exception == "int" then -- Internal and Script
-			return false, Exception, SubString(Result, 5)
-		else
-			error(Result) -- Not handeled here.
-		end
-	
-	else
-		error("int:" .. Result) -- Internal Error.
+	if !Ok and Result == "Exception" then
+		return false, self.Exception, unpack(self.ExceptionInfo)
 	end
+	
+	return Ok, Result, Type
 end

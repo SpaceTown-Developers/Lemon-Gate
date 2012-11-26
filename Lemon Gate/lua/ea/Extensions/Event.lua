@@ -14,23 +14,10 @@ local FindAll = ents.FindByClass
 	Purpose: Functions that Create and Remove events.
 	Creditors: Rusketh
 ==============================================================================================*/
-
-E_A:RegisterFunction("addEvent", "snf", "", function(self, ValueA, ValueB, ValueC)
-	local Event = ValueA(self)
-	local Events = self.Events[Event]
+E_A:RegisterOperator("event", "", "", function(self, Event, Memory, Statments)
+	-- Purpose: Builds a Function.
 	
-	if !Events then
-		Events = {}
-		self.Events[Event] = Events
-	end -- Note: If it did not have an events table then it does now.
-	
-	Events[ValueB(self)] = ValueC -- Note: We have added an Event =D
-	print(Event,ValueC)
-end)
-
-E_A:RegisterFunction("removeEvent", "sn", "", function(self, ValueA, ValueB)
-	local Events = self.Events[ValueA(self)]
-	if Events then Events[ValueB(self)] = nil end
+	self.Events[Event] = {Memory, Statments}
 end)
 
 /*==============================================================================================

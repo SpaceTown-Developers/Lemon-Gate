@@ -190,8 +190,8 @@ function PANEL:SaveFile( Name, SaveAs )
 end
 
 function PANEL:LoadFile( Name )
-	if !Name or file.IsDir( Name ) then return end
-	local Code = file.Read( Name )
+	if !Name or file.IsDir( Name, "DATA" ) then return end
+	local Code = file.Read( Name, "DATA" )
 	if Code then 
 		self.File = Name
 		self:SetCode( Code )

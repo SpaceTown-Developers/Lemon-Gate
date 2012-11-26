@@ -21,7 +21,7 @@ end
 
 
 local fPath = "ea/extensions/"
-for _, fName in pairs( file.FindInLua( fPath .. "/*.lua" ) ) do
+for _, fName in pairs( file.Find( fPath .. "/*.lua", "LUA" ) ) do
 	-- MsgN( fName )
 	
 	-- TODO: Add AddCSLuaFile 

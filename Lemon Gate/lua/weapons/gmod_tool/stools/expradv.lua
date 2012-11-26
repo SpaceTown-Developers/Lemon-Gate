@@ -68,6 +68,7 @@ if SERVER then
 	end
 
 	function TOOL:RightClick(trace) -- TODO: Add this (when we have a editor :P) /Oskar
+		self:GetOwner():SendLua("open_EA_Editor()")
 	end
 
 	function TOOL:Reload(trace) 
@@ -311,6 +312,7 @@ elseif CLIENT then
 
 	function TOOL:RightClick(trace) 
 		open_EA_Editor() 
+		MsgN(">> Right Clicked!")
 	end
 
 	/*---------------------------------------------------------------------------

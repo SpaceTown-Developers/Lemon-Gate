@@ -34,7 +34,9 @@ local draw_WordBox 			= draw.WordBox
 local input_IsKeyDown 		= input.IsKeyDown
 local input_IsMouseDown 	= input.IsMouseDown
 
-surface.CreateFont( "Fixedsys", Size, 400, false, false, "Fixedsys" )
+surface.CreateFont( "Fixedsys", { font = "Fixedsys", size = Size, weight = 440,} )
+
+-- Size, 400, false, false, "Fixedsys" )
 
 local PANEL = { }
 
@@ -71,6 +73,8 @@ function PANEL:Init( )
 
 	surface_SetFont("Fixedsys")
 	self.FontWidth, self.FontHeight = surface_GetTextSize(" ")
+	
+	ea_editor = self -- Yh Yh W/E
 end
 
 function PANEL:RequestFocus( )
