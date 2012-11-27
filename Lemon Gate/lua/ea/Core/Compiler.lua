@@ -725,7 +725,6 @@ function Compiler:CallFunction(Name, Ops, Sig)
 	local Cost = Func[3]
 	self.Perf = self.Perf + Cost
 	
-	PrintTable(Func)
 	return self:Operation(Func[1], Func[2], unpack(Ops)):SetCost(Cost)
 end
 

@@ -4,6 +4,7 @@
 	Creditors: Rusketh
 ==============================================================================================*/
 local E_A = LemonGate
+local API = E_A.API
 
 local ShortTypes = E_A.TypeShorts
 local Operators = E_A.OperatorTable
@@ -41,8 +42,6 @@ AddCSLuaFile("cl_init.lua")
 function Lemon:Initialize()
 	-- Purpose: Initializes the Gate with physics.
 	
-	self:SetModel("models/mandrac/wire/e3.mdl")
-	
 	self:PhysicsInit(SOLID_VPHYSICS)
 	self:SetMoveType(MOVETYPE_VPHYSICS)
 	self:SetSolid(SOLID_VPHYSICS)
@@ -56,9 +55,7 @@ function Lemon:Initialize()
 	
 	self:SetOverlayText("LemonGate\nExpresson Advanced\nOffline: 0%")
 	
-	E_A.GateEntitys[self] = self
-	MsgN("Gate Registered: " .. tostring(self))
-	PrintTable(E_A.GateEntitys)
+	API.AddGate(self) -- Let the api know this gate exists!
 end
 
 function Lemon:Think()
@@ -76,7 +73,7 @@ function Lemon:Think()
 				
 				local Perf, MaxPerf = Context.Perf, MaxPerf:GetInt()
 				if Perf == MaxPerf then
-					self:UpdateOverlay("Paused")
+					self:UpdateOverlay("Online")
 					self.LastPerf = 0
 				else
 					Perf = (MaxPerf - Perf)
@@ -99,7 +96,7 @@ end
 
 function Lemon:OnRemove()
 	self:CallEvent("final")
-	E_A.GateEntitys[self] = nil
+	API.RemoveGate(self) -- Update the api.
 end
 
 /*==============================================================================================
@@ -114,20 +111,20 @@ function Lemon:LoadScript(Script)
 	
 	local Check, Tokens = Tokenizer.Execute(Script)
 	if !Check then
-		self:UpdateOverlay("Tokenizer Error")
-		return MsgN("E-A: Tokenizer Error, " .. Tokens)
+		self:UpdateOverlay("Failed to compile.")
+		return WireLib.ClientError(Tokens, self.Player)
 	end
 	
 	local Check, Instructions = Parser.Execute(Tokens)
 	if !Check then
-		self:UpdateOverlay("Parser Error")
-		return MsgN("E-A: Parser Error, " .. Instructions)
+		self:UpdateOverlay("Failed to compile.")
+		return WireLib.ClientError(Instructions, self.Player)
 	end
 	
 	local Check, Executable, Instance = Compiler.Execute(Instructions)
 	if !Check then
-		self:UpdateOverlay("Compiler Error")
-		return MsgN("E-A: Compiler Error, " .. Executable)
+		self:UpdateOverlay("Failed to compile.")
+		return WireLib.ClientError(Executable, self.Player)
 	end
 	
 	self:LoadInstance(Instance)
@@ -142,7 +139,8 @@ function Lemon:LoadInstance(Instance)
 	self.Context = {
 		Types = Instance.VarTypes,
 		Memory = {}, Delta = {}, Click = {},
-		Entity = self, Events = self.Events,
+		Entity = self, Player = self.Player,
+		Events = self.Events,
 		Perf = MaxPerf:GetInt(),
 	}
 	
@@ -173,8 +171,10 @@ function Lemon:RefreshMemory()
 		local WireName = Type[4] -- Note: Get the wiremod name.
 		
 		if !WireName or !Type[5] then
+			self:SetColor(255, 0, 0, 255)
 			self:UpdateOverlay("Script Error")
-			return MsgN(FormatStr("E-A: type '%s' may not be used as input", Type[1]))
+			WireLib.ClientError("Type '" .. Type[1] .. "' may not be used as input.", self.Player)
+			return
 		end
 		
 		I = I + 1
@@ -194,8 +194,10 @@ function Lemon:RefreshMemory()
 		local WireName = Type[4] -- Note: Get the wiremod name.
 		
 		if !WireName or !Type[6] then
+			self:SetColor(255, 0, 0, 255)
 			self:UpdateOverlay("Script Error")
-			return MsgN(FormatStr("E-A: type '%s' may not be used as output", Type[1]))
+			WireLib.ClientError("Type '" .. Type[1] .. "' may not be used as output.", self.Player)
+			return
 		end
 		
 		I = I + 1
@@ -260,7 +262,7 @@ end
 	Purpose: Executes the gate =D.
 	Creditors: Rusketh
 ==============================================================================================*/
-function Lemon:ReStart()
+function Lemon:Restart()
 	self:RefreshMemory()
 	return self:Execute()
 end
@@ -293,26 +295,16 @@ function Lemon:RunOp(Op, ...)
 	
 	if Ok then
 		return true, Exception, Message
-	
 	elseif Exception == "script" then
 		self:SetColor(255, 0, 0, 255)
 		self:UpdateOverlay("Script Error")
 		
-		MsgN("E-A: Script Error, " .. Message)
-		
-	elseif Exception == "internal" then
-		self:SetColor(255, 0, 0, 255)
-		self:UpdateOverlay("Lua Error")
-		
-		MsgN("E-A: Lua Error, " .. Message)
-		
+		WireLib.ClientError(Message, self.Player)
 	elseif Exception == "exit" then
 		return true -- This is normal.
-	
 	else
-		self:UpdateOverlay("Lua Error")
-		MsgN("E-A: Strange Error:")
-		MsgN(Exception)
+		self:Error(Exception)
+		return
 	end
 	
 	self.Errored = Message or true
@@ -330,7 +322,6 @@ function Lemon:CallEvent(Name, ...)
 		local Store, Value = Ops[I], Values[I]
 		local Index, Op = Store[1], Store[2]
 		
-		MsgN("Memory Op: " .. Index .. " = " .. tostring(Op))
 		self:RunOp(Op, Value, Index)
 	end
 	
@@ -368,7 +359,10 @@ function Lemon:Error(Message, Info, ...)
 	
 	self.Errored = Message
 	
-	self:UpdateOverlay("Lua Error")
+	self:SetColor(255, 0, 0, 255)
+	self:UpdateOverlay("LUA Error")
+	WireLib.ClientError("LemonGate: Suffered a LUA error" , self.Player)
 	
-	MsgN("E-A: Error, " .. Message)
+	MsgN("LemonGate LUA: " .. Message)
+	self.Player:PrintMessage(HUD_PRINTCONSOLE, "LemonGate LUA: " .. Message)
 end

@@ -23,7 +23,6 @@ local E_A = {
 	
 	-- Api / Misc:
 	API = {},
-	GateEntitys = {},
 	
 	-- Base:
 	Tokenizer = {},
@@ -452,7 +451,7 @@ function E_A:WireModClass(Class, Name, In, Out)
 	Type[6] = Out
 end
 
-// These are not used!
+/* These are not used!
 function E_A:AddClassFactory(Name, Factory)
 	-- Purpose: Makes a class factory for on the fly object creaton.
 	
@@ -472,7 +471,7 @@ function E_A:ClassFactory(Type, ...)
 	if !Factory then error("class '" .. Class .. "' has no builder factory", 0) end
 	
 	return Factory(...)
-end
+end */
 
 /*==============================================================================================
 	Section: Hook Registery.
@@ -547,7 +546,6 @@ function E_A.CallOp(Op, self, Arg, ...)
 	
 	self.Trace = Trace
 	
-	MsgN("Called OP and Returned: " .. tostring(Res) .. " of type " .. tostring(Type or Op[2]) )
 	return Res, Type or Op[2]
 end 
 
@@ -585,6 +583,5 @@ Operator.SafeCall = E_A.SafeCall
 function E_A.ValueToOp(Value, Type)
 	-- Purpose: Can instantly convert values to operator values.
 	
-	print("Fakijng Op " .. tostring(Value) .. " of type " .. tostring(Type) )
 	return setmetatable({function() return Value, Type end, [2] = Type}, Operator)
 end

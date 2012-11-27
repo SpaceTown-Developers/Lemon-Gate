@@ -1,3 +1,8 @@
+/*==============================================================================================
+	Expression Advanced: Lemon Gate Core.
+	Purpose: Expression Advanced Operators and Functions.
+	Creditors: Rusketh
+==============================================================================================*/
 local E_A = LemonGate
 
 local Operators = E_A.OperatorTable
@@ -13,11 +18,19 @@ local SubString = string.sub -- Speed
 local unpack = unpack -- Speed
 
 /*==============================================================================================
-	Section: RunTime Operators
+	Section: RunTime Operators / functions
 	Purpose: These are slow but are needed.
 	Creditors: Rusketh
 ==============================================================================================*/
--- NONE!
+
+/*==============================================================================================
+	Section: Functions
+	Purpose: =D.
+	Creditors: Rusketh
+==============================================================================================*/
+E_A:RegisterFunction("exit", "", "", function(self)
+	self:Throw("exit")
+end)
 
 /*==============================================================================================
 	Section: Statment Executers

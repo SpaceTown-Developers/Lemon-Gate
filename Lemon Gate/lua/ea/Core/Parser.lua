@@ -74,7 +74,7 @@ end
 
 local FormatStr = string.format -- Speed
 
-function Parser:Error(Message, Info, ...) debug.Trace()
+function Parser:Error(Message, Info, ...)
 	-- Purpose: Create and push a syntax error.
 	
 	if Info then Message = FormatStr(Message, Info, ...) end
@@ -983,7 +983,6 @@ function Parser:BuildPerams(Type)
 				Types[Var] = Type
 				Listed = Listed .. Type
 				
-				-- MsgN("Peram " .. Index .. " -> " .. Var .. " = " .. Type)
 				if !self:AcceptToken("com") then break end -- Note: No more perameters lets exit loop
 			end
 		end

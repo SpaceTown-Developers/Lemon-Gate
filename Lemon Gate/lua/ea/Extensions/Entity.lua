@@ -33,8 +33,6 @@ E_A:RegisterOperator("assign", "e", "", function(self, ValueOp, Memory)
 	-- Purpose: Assigns a number to memory
 	
 	local Value, Type = ValueOp(self)
-	print("DEBUG: ",Value, Type)
-	
 	if Type != "e" then self:Error("Attempt to assign %s to entity", GetLongType(Type)) end
 	
 	self.Memory[Memory] = Value

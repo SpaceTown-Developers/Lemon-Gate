@@ -1,3 +1,4 @@
+
 TOOL.Category		= "Wire - Control"
 TOOL.Name			= "Chip - Expression Advanced"
 TOOL.Command 		= nil
@@ -53,7 +54,7 @@ if SERVER then
 		entity:Spawn()
 		entity:SetPos(trace.HitPos - trace.HitNormal * entity:OBBMins().z)
 		entity:SetPlayer(player)
-		entity.player = player
+		entity.Player = player
 		entity:SetNWEntity( "_player", player )
 
 		undo.Create( "lemongate" )
@@ -79,7 +80,7 @@ if SERVER then
 
 		if trace.Entity:IsValid()
 		    and trace.Entity:GetClass() == "lemongate"
-			and trace.Entity.player == player
+			and trace.Entity.Player == player
 			and E2Lib.isFriend(trace.Entity.player, player)
 		then
 			trace.Entity:ReStart()
@@ -116,7 +117,7 @@ if SERVER then
 			return
 		end
 
-		if ply ~= ent.player then
+		if ply ~= ent.Player then
 			ply:PrintMessage( HUD_PRINTTALK, "You are not allowed to upload to the target Expression Advanced chip. Upload aborted." )
 			umsg.Start( "ea_chunk_confirm", ply ) umsg.Long( entid ) umsg.Bool( false ) umsg.End()
 			timer.Destroy( "ea_upload_timeout_" .. entid  )
