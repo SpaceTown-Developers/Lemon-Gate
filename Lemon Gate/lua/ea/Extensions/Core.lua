@@ -54,7 +54,7 @@ E_A:RegisterOperator("for", "", "", function(self, Assign, Condition, Step, Bloc
 	Assign(self) -- Note: Run assigment
 	
 	while Condition(self) == 1 do -- Note: loop untill condition is met.
-		local Ok, Exception, Level = Block:Pcall(self)
+		local Ok, Exception, Level = Block:SafeCall(self)
 		Level = tonumber(Level or 0)
 		
 		if !Ok then
@@ -75,7 +75,7 @@ E_A:RegisterOperator("while", "", "", function(self, Condition, Block)
 	-- Purpose: Runs a for loop
 	
 	while Condition(self) == 1 do -- Note: loop untill condition is met.
-		local Ok, Exception, Level = Block:Pcall(self)
+		local Ok, Exception, Level = Block:SafeCall(self)
 		Level = tonumber(Level or 0)
 		
 		if !Ok then

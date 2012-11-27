@@ -90,10 +90,6 @@ function Compiler:CompileInst(Inst, Castable)
 		local Result, Type = Func(self, unpack(Inst[3]))
 		self.Trace = Trace -- Return parent trace.
 		
-		-- if Type and Type == "?" and !Castable then
-			-- self:Error(Trace, "casting operator ((type)), expected before '%s'", Inst[1])
-		-- end
-		
 		return Result
 	else
 		self:Error("Compiler: Uknown Instruction '%s'", Inst[1])
@@ -175,7 +171,6 @@ function Compiler:LocalVar(Name, Type)
 	self.Scope[Name] = VarID
 	self.VarTypes[VarID] = Type
 	
-	print("Built Local Var: ", Name, VarID, Type)
 	return VarID, self.ScopeID
 end
 
@@ -717,12 +712,11 @@ function Compiler:GenerateArguments(Insts, Method)
 		Ops[I] = Op; Sig = Sig .. Type
 	end
 	
-	MsgN("Gened: " .. Sig)
-	
 	return Ops, Sig
 end
 
 function Compiler:CallFunction(Name, Ops, Sig)
+	
 	local Functions = Functions -- Speed!
 	local Func = Functions[Name .. "(" .. Sig .. ")"]
 	
@@ -730,6 +724,8 @@ function Compiler:CallFunction(Name, Ops, Sig)
 	
 	local Cost = Func[3]
 	self.Perf = self.Perf + Cost
+	
+	PrintTable(Func)
 	return self:Operation(Func[1], Func[2], unpack(Ops)):SetCost(Cost)
 end
 
@@ -749,7 +745,7 @@ end
 function Compiler:Instr_METHOD(Name, Insts)
 	-- Purpose: Finds and calls a function.
 	
-	local Ops, Sig, Unsure = self:GenerateArguments(Insts, true)
+	local Ops, Sig = self:GenerateArguments(Insts, true)
 	return self:CallFunction(Name, Ops, Sig)
 end
 
@@ -784,10 +780,8 @@ function Compiler:Instr_UDFUNCTION(Local, Name, Listed, Perams, Types, Block, Re
 	end
 	
 	local Current = self.VarData[ VarID ]
-	MsgN("Defined: " .. Name .. " -> " .. VarID .. " -> " .. tostring(Current))
 	
 	if Current then -- Compare information as not to confuse the compiler!
-		PrintTable(Current)
 		
 		if Current[2] ~= Listed then
 			self:Error("Peramter missmach for function %q", Name)
@@ -865,7 +859,7 @@ end
 	Purpose: Events do stuff.
 	Creditors: Rusketh
 ==============================================================================================*/
-function Compiler:Instr_EVENT(Event, Listed, Perams, Types, Block)
+function Compiler:Instr_EVENT(Event, Perams, Types, Block)
 	-- Purpose: This instruction Will create function variabels.
 	
 	self:PushScope()
@@ -878,7 +872,7 @@ function Compiler:Instr_EVENT(Event, Listed, Perams, Types, Block)
 		local Op = Operators["assign(" .. Type .. ")"]
 		if !Op then self:Error("type %s, can not be used in function perameters.", Type) end
 
-		Memory[I] = {self:LocalVar(Var, Type), Op}
+		Memory[I] = { self:LocalVar(Var, Type), Op }
 	end
 	
 	self:PushScope() -- Note: Allows us to overwrite perameters.

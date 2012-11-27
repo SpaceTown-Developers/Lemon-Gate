@@ -6,11 +6,11 @@ function LemonGate_Reload()
 	include("ea/core/Tokenizer.lua")
 	include("ea/core/Parser.lua")
 	include("ea/core/Compiler.lua")
-
-	include("ea/Util/ExtLoader.lua")
+	include("ea/Extensions/Exts.lua")
+	
 	include("ea/Util/Misc.lua")
 	
-	MsgN("E-A Loading Complete")
+	MsgN("E-A Loading Complete!")
 end
 
 if SERVER then
@@ -22,7 +22,6 @@ if SERVER then
 	AddCSLuaFile("ea/core/Compiler.lua")
 
 	AddCSLuaFile("ea/Util/cl_Derma.lua")
-	AddCSLuaFile("ea/Util/ExtLoader.lua")
 	AddCSLuaFile("ea/Util/Misc.lua")
 	
 	AddCSLuaFile("ea/Editor/EA_Button.lua")

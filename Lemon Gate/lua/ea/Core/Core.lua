@@ -8,16 +8,7 @@
 			+ Parser
 			+ Compiler
 		Based on work by Syranide! (E2)
-================================================================================================
-		Pcall Error codes:
-			+ ext = Exit
-			+ brk = Break
-			+ cnt = Continue
-			+ ret = Return
-			+ spt = Script Error
-			+ int = Internal (LUA)
 ==============================================================================================*/
-	
 local E_A = {
 	-- Core:
 	TokenTable = {},
@@ -32,6 +23,7 @@ local E_A = {
 	
 	-- Api / Misc:
 	API = {},
+	GateEntitys = {},
 	
 	-- Base:
 	Tokenizer = {},
@@ -49,6 +41,7 @@ local ConcatTbl = table.concat -- Speed
 
 local pcall = pcall
 local tonumber = tonumber
+local setmetatable = setmetatable
 
 -- Thses are default op costs.
 EA_COST_CHEAP = 0.5
@@ -345,8 +338,11 @@ function E_A:RegisterClass(Name, Short, Default)
 	Types[ Name ] = Type
 	Shorts[ Short ] = Type
 	
-	-- Now we create a function that can return a deafult of this type =D
-	RunString("LemonGate.TypeTable['" .. Name .. "'][3] = function() return " .. self.ValueToLua(Default) .. " end")
+	if type(Default) == "function" then
+		Type[3] = Default
+	else -- Now we create a function that can return a deafult of this type =D
+		RunString("LemonGate.TypeTable['" .. Name .. "'][3] = function() return " .. self.ValueToLua(Default) .. " end")
+	end
 end
 
 /*==============================================================================================
@@ -364,20 +360,23 @@ end
 function E_A.GetShortType( Type )
 	CheckType( Type, "string", 1 ); Type = LowerStr( Type )
 	
-	local out = Types[Type] or Shorts[Type] or nil 
-	if out then return out[2] end
+	if !Type or Type == "" or Type == "void" then return "" end
 	
-	if Type == "?" then return "?" end -- Note: Wild Type
+	local Out = Types[Type] or Shorts[Type]
+	if Out then return Out[2] end
 	
+	error("Can not find Type of " .. Type)
 end; local GetShortType = E_A.GetShortType
 
 function E_A.GetLongType( Type )
 	CheckType( Type, "string", 1 ); Type = LowerStr( Type )
 	
-	local out = Types[Type] or Shorts[Type] or nil 
-	if out then return out[1] end
-
-	if Type == "?" then return "WildClass" end -- Note: Wild Type
+	if !Type or Type == "" or Type == "void" then return "void" end
+	
+	local Out = Types[Type] or Shorts[Type] 
+	if Out then return Out[1] end
+	
+	error("Can not find Type of " .. Type)
 end; local GetLongType = E_A.GetLongType
 
 /*==============================================================================================
@@ -413,8 +412,6 @@ function E_A:RegisterFunction(Name, Params, Return, Function)
 			typeData = typeData .. GetShortType( Params[i] )
 		end
 	end
-	
-	-- Todo: Vararg support. {FunctionVATable}
 	
 	Functions[ Name .. "(" .. typeData .. ")" ] = {Function, GetShortType(Return), OpCost}
 end
@@ -455,6 +452,7 @@ function E_A:WireModClass(Class, Name, In, Out)
 	Type[6] = Out
 end
 
+// These are not used!
 function E_A:AddClassFactory(Name, Factory)
 	-- Purpose: Makes a class factory for on the fly object creaton.
 	
@@ -515,7 +513,6 @@ end
 
 function Context:Error(Message, Info, ...)
 	if Info then Message = FormatStr(Message, Info, ...) end
-	
 	self:Throw("script", Message)
 end
 
@@ -524,32 +521,38 @@ end
 	Purpose: Runable operators.
 	Creditors: Rusketh
 ==============================================================================================*/
-local Operator = {[0] = EA_COST_NORMAL}
+local Operator = {}
 E_A.Operator = Operator
 
 Operator.__index = Operator
 
-Operator.__call = function(Op, self, Arg, ...)
+function E_A.CallOp(Op, self, Arg, ...)
 	-- Purpose: Makes Operators callable and handels runtime perf.
 	
-	local Perf = self.Perf - Op[0]
+	local Perf = self.Perf - (Op[0] or EA_COST_NORMAL)
 	self.Perf = Perf
-	if Perf < 0 then error("spt: Execution Limit Reached", 0) end
+	if Perf < 0 then self:Thow("script", "Execution Limit Reached") end
 	
 	local Trace = self.Trace
-	self.Trace = Op[4] -- Note: replace parent trace with child trace.
+	self.Trace = Op[4] or {0, 0} -- Note: replace parent trace with child trace.
 	
 	local Res, Type
-	
-	if Arg == nil then 
-		Res, Type = Op[1](self, unpack(Op[3]))
-	else
-		Res, Type = Op[1](self, Arg, ...)
-	end
+		if Arg == nil and Op[3] then 
+			Res, Type = Op[1](self, unpack(Op[3]))
+		elseif Arg == nil then
+			Res, Type = Op[1](self)
+		else
+			Res, Type = Op[1](self, Arg, ...)
+		end
 	
 	self.Trace = Trace
+	
+	MsgN("Called OP and Returned: " .. tostring(Res) .. " of type " .. tostring(Type or Op[2]) )
 	return Res, Type or Op[2]
 end 
+
+local CallOp = E_A.CallOp
+Operator.__call = E_A.CallOp
 
 function Operator:SetCost(Cost)
 	-- Purpose: Sets the coast of an operator.
@@ -562,17 +565,26 @@ function Operator:ReturnType(Long)
 	-- Purpose: Used to get the static return type.
 	
 	if Long then return GetLongType(self[2]) end
-	return self[2]
+	return self[2] or ""
 end
 
-function Operator.Pcall(Op, self, ...)
+function E_A.SafeCall(Op, self, ...)
 	-- Purpose: Calls the operator safly and handels exceptions.
 	
-	local Ok, Result, Type = pcall(Op, self, ...)
+	local Ok, Result, Type = pcall(CallOp, Op, self, ...)
 	
 	if !Ok and Result == "Exception" then
 		return false, self.Exception, unpack(self.ExceptionInfo)
 	end
 	
 	return Ok, Result, Type
+end
+
+Operator.SafeCall = E_A.SafeCall
+
+function E_A.ValueToOp(Value, Type)
+	-- Purpose: Can instantly convert values to operator values.
+	
+	print("Fakijng Op " .. tostring(Value) .. " of type " .. tostring(Type) )
+	return setmetatable({function() return Value, Type end, [2] = Type}, Operator)
 end

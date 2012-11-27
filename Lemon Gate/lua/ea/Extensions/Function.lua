@@ -26,10 +26,10 @@ E_A:RegisterOperator("udfcall", "", "", function(self, VarID, Values)
 	for I = 1, #Ops do
 		local Store, Value = Ops[I], Values[I]
 		local Index, Op = Store[1], Store[2]
-		Op:Pcall(self, Index, Value)
+		Op[1](Op, self, Value, Index)
 	end
 	
-	local Ok, Exception, RetValue = Statments:Pcall(self)
+	local Ok, Exception, RetValue = Statments[1](Statments, self)
 	
 	if (Ok and ReturnType and ReturnType != "") or (!Ok and Exception == "return") then
 		if RetValue then

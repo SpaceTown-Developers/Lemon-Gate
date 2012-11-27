@@ -15,6 +15,7 @@ local Compiler = E_A.Compiler
 local CheckType = E_A.CheckType
 local GetLongType = E_A.GetLongType
 local GetShortType = E_A.GetShortType
+local ValueToOp = E_A.ValueToOp
 
 local UpperStr = string.upper -- Speed
 local FormatStr = string.format -- Speed
@@ -54,6 +55,10 @@ function Lemon:Initialize()
 	self.LastPerf = 0
 	
 	self:SetOverlayText("LemonGate\nExpresson Advanced\nOffline: 0%")
+	
+	E_A.GateEntitys[self] = self
+	MsgN("Gate Registered: " .. tostring(self))
+	PrintTable(E_A.GateEntitys)
 end
 
 function Lemon:Think()
@@ -93,11 +98,8 @@ function Lemon:Think()
 end
 
 function Lemon:OnRemove()
-	self:CallEvent("Final")
-end
-
-function Lemon:Use(Player)
-	-- self:CallEvent("Use", "e", E_A:Class("e", Player))
+	self:CallEvent("final")
+	E_A.GateEntitys[self] = nil
 end
 
 /*==============================================================================================
@@ -279,7 +281,7 @@ function Lemon:Execute()
 	end
 end
 
-local Pcall = E_A.Operator.Pcall
+local SafeCall = E_A.SafeCall
 
 function Lemon:RunOp(Op, ...)
 	if self.Errored then return true end -- Note: Code has errored so do not run.
@@ -287,7 +289,7 @@ function Lemon:RunOp(Op, ...)
 	local Context = self.Context
 	if !Context then return true end
 	
-	local Ok, Exception, Message = Pcall(Op, Context, ...)
+	local Ok, Exception, Message = SafeCall(Op, Context, ...)
 	
 	if Ok then
 		return true, Exception, Message
@@ -310,7 +312,7 @@ function Lemon:RunOp(Op, ...)
 	else
 		self:UpdateOverlay("Lua Error")
 		MsgN("E-A: Strange Error:")
-		MsgN(Message)
+		MsgN(Exception)
 	end
 	
 	self.Errored = Message or true
@@ -328,8 +330,8 @@ function Lemon:CallEvent(Name, ...)
 		local Store, Value = Ops[I], Values[I]
 		local Index, Op = Store[1], Store[2]
 		
-		-- Op[1](self, Index, Value)
-		self:RunOp(Op, Index, Value)
+		MsgN("Memory Op: " .. Index .. " = " .. tostring(Op))
+		self:RunOp(Op, Value, Index)
 	end
 	
 	self:RunOp(Event[2])

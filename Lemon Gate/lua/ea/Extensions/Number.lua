@@ -5,6 +5,8 @@
 ==============================================================================================*/
 local E_A = LemonGate
 
+local GetLongType = E_A.GetLongType
+
 local Round = 0.0000001000000
 
 /*==============================================================================================
@@ -24,8 +26,6 @@ local function Output(self, Memory)
 	return self.Memory[Memory]
 end
 
-E_A:RegisterClass("number", "n", 0)
-
 E_A:WireModClass("number", "NORMAL", Input, Output)
 
 -- Note: With out Input function 'Number' would not be inputable, The same goes with Output.
@@ -39,7 +39,7 @@ E_A:RegisterOperator("assign", "n", "", function(self, ValueOp, Memory)
 	-- Purpose: Assigns a number to memory
 	
 	local Value, Type = ValueOp(self)
-	if Type != "n" then self:Error("Attempt to assign %s to number variabel", Type) end
+	if Type != "n" then self:Error("Attempt to assign %s to number", GetLongType(Type)) end
 	
 	self.Delta[Memory] = self.Memory[Memory]
 	

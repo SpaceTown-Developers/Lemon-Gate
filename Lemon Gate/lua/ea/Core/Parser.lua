@@ -208,7 +208,7 @@ end
 
 function Parser:Instruction(Name, Trace, ...)
 	-- Purpose: Creates an instruction.
-
+	
 	return {Name, Trace, {...}}
 end
 
@@ -532,14 +532,19 @@ function Parser:GetValue()
 		-- Note: Lets check for methods {{Value:method()}}.
 		
 		if self:AcceptToken("col") then
+			local Trace = self:TokenTrace() 
+			
 			if !self:AcceptToken("fun") then self:Error("Method operator (:) must be followed by method name") end
+			
+			local Function = self.TokenData
+			
 			if !self:AcceptToken("lpa") then self:Error("Left parenthesis (() missing, after method name") end
+	
+			local Permaters = {Instr}
 			
-			local Trace, Function, Permaters = self:TokenTrace(), self.TokenData, {}
-			
-			if !self:AcceptToken("rpa") then
-				Permaters[1] = self:Expression() 
-				local Index = 1 -- Note: Faster to do it here then use count.
+			if !self:CheckToken("rpa") then
+				Permaters[2] = self:Expression() 
+				local Index = 2 -- Note: Faster to do it here then use count.
 				
 				while self:AcceptToken("com") do
 					Index = Index + 1
@@ -551,7 +556,7 @@ function Parser:GetValue()
 				self:Error("Right parenthesis ()) missing, to close method perameters")
 			end
 			
-			Instr = self:Instruction("method", Trace, Function, Instr, Permaters)
+			Instr = self:Instruction("method", Trace, Function, Permaters)
 		
 		-- Note: Now we check for Index operators {{Value[1, number]}}.
 		elseif self:AcceptToken("lsb") then
@@ -978,6 +983,7 @@ function Parser:BuildPerams(Type)
 				Types[Var] = Type
 				Listed = Listed .. Type
 				
+				-- MsgN("Peram " .. Index .. " -> " .. Var .. " = " .. Type)
 				if !self:AcceptToken("com") then break end -- Note: No more perameters lets exit loop
 			end
 		end
@@ -1009,7 +1015,6 @@ function Parser:FunctionStatment()
 		end
 		
 		Name = self.TokenData
-		MsgN("Type: " .. tostring(Return) .. " Name: " .. Name)
 		
 		if Name == "function" then self:Error("Invalid function name, 'function'") end
 		
@@ -1053,7 +1058,7 @@ function Parser:EventStatment()
 			self:Error("perameter mismach for event %q", Event)
 		end
 		
-		return self:Instruction("event", Trace, Event, Perams, Types, Listed, self:Block("event body"))
+		return self:Instruction("event", Trace, Event, Perams, Types, self:Block("event body"))
 	end
 end
 

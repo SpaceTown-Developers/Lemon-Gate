@@ -5,6 +5,8 @@
 ==============================================================================================*/
 local E_A = LemonGate
 
+local GetLongType = E_A.GetLongType
+
 /*==============================================================================================
 	Class & WireMod
 ==============================================================================================*/
@@ -20,8 +22,6 @@ local function Output(self, Memory)
 	return self.Memory[Memory]
 end
 
-E_A:RegisterClass("entity", "e", 0)
-
 E_A:WireModClass("entity", "ENTITY", Input, Output)
 
 /*==============================================================================================
@@ -33,7 +33,9 @@ E_A:RegisterOperator("assign", "e", "", function(self, ValueOp, Memory)
 	-- Purpose: Assigns a number to memory
 	
 	local Value, Type = ValueOp(self)
-	if Type != "e" then self:Error("Attempt to assign %s to entity variabel", Type) end
+	print("DEBUG: ",Value, Type)
+	
+	if Type != "e" then self:Error("Attempt to assign %s to entity", GetLongType(Type)) end
 	
 	self.Memory[Memory] = Value
 	

@@ -5,6 +5,8 @@
 ==============================================================================================*/
 local E_A = LemonGate
 
+local GetLongType = E_A.GetLongType
+
 local LenStr = string.len -- Speed
 local SubStr = string.sub -- Speed
 
@@ -17,13 +19,11 @@ local tostring = tostring
 ==============================================================================================*/
 E_A:SetCost(EA_COST_CHEAP)
 
-E_A:RegisterClass("string", "s", "")
-
 E_A:RegisterOperator("assign", "s", "", function(self, ValueOp, Memory)
 	-- Purpose: Assigns a string to memory
 	
 	local Value, Type = ValueOp(self)
-	if E_A.GetShortType(Type) != "s" then self:Error("Attempt to assign %s to string variabel", Type) end
+	if E_A.GetShortType(Type) != "s" then self:Error("Attempt to assign %s to string", GetLongType(Type)) end
 	
 	self.Memory[Memory] = Value
 end)
