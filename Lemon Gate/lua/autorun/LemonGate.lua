@@ -12,6 +12,8 @@ function LemonGate_Reload()
 	
 	include("ea/Util/Misc.lua")
 	
+	if CLIENT then include("ea/Editor.lua") end
+	
 	MsgN("E-A Loading Complete!")
 end
 
@@ -24,29 +26,30 @@ if SERVER then
 	AddCSLuaFile("ea/core/Compiler.lua")
 	AddCSLuaFile("ea/core/API.lua")
 
-	AddCSLuaFile("ea/Util/cl_Derma.lua")
+	-- AddCSLuaFile("ea/Util/cl_Derma.lua")
+	AddCSLuaFile("ea/Editor.lua")
 	AddCSLuaFile("ea/Util/Misc.lua")
 	
-	AddCSLuaFile("ea/Editor/EA_Button.lua")
-	AddCSLuaFile("ea/Editor/EA_CloseButton.lua")
-	AddCSLuaFile("ea/Editor/EA_Editor.lua")
-	AddCSLuaFile("ea/Editor/EA_EditorPanel.lua")
-	AddCSLuaFile("ea/Editor/EA_FileBrowser.lua")
-	AddCSLuaFile("ea/Editor/EA_FileNode.lua")
-	AddCSLuaFile("ea/Editor/EA_Frame.lua")
-	AddCSLuaFile("ea/Editor/EA_Toolbar.lua")
+	-- AddCSLuaFile("ea/Editor/EA_Button.lua")
+	-- AddCSLuaFile("ea/Editor/EA_CloseButton.lua")
+	-- AddCSLuaFile("ea/Editor/EA_Editor.lua")
+	-- AddCSLuaFile("ea/Editor/EA_EditorPanel.lua")
+	-- AddCSLuaFile("ea/Editor/EA_FileBrowser.lua")
+	-- AddCSLuaFile("ea/Editor/EA_FileNode.lua")
+	-- AddCSLuaFile("ea/Editor/EA_Frame.lua")
+	-- AddCSLuaFile("ea/Editor/EA_Toolbar.lua")
 
 	concommand.Add("lemongate_reload", LemonGate_Reload)
 else 
-	include("ea/Editor/EA_Button.lua")
-	include("ea/Editor/EA_CloseButton.lua")
-	include("ea/Editor/EA_Editor.lua")
-	include("ea/Editor/EA_EditorPanel.lua")
-	include("ea/Editor/EA_FileBrowser.lua")
-	include("ea/Editor/EA_FileNode.lua")
-	include("ea/Editor/EA_Frame.lua")
-	include("ea/Editor/EA_Toolbar.lua")
-	include("ea/Util/cl_Derma.lua")
+	-- include("ea/Editor/EA_Button.lua")
+	-- include("ea/Editor/EA_CloseButton.lua")
+	-- include("ea/Editor/EA_Editor.lua")
+	-- include("ea/Editor/EA_EditorPanel.lua")
+	-- include("ea/Editor/EA_FileBrowser.lua")
+	-- include("ea/Editor/EA_FileNode.lua")
+	-- include("ea/Editor/EA_Frame.lua")
+	-- include("ea/Editor/EA_Toolbar.lua")
+	-- include("ea/Util/cl_Derma.lua")
 end
 
 LemonGate_Reload()

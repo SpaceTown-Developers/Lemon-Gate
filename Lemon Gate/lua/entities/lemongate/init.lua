@@ -42,6 +42,8 @@ AddCSLuaFile("cl_init.lua")
 function Lemon:Initialize()
 	-- Purpose: Initializes the Gate with physics.
 	
+	self:SetModel("models/mandrac/wire/e3.mdl")
+	
 	self:PhysicsInit(SOLID_VPHYSICS)
 	self:SetMoveType(MOVETYPE_VPHYSICS)
 	self:SetSolid(SOLID_VPHYSICS)

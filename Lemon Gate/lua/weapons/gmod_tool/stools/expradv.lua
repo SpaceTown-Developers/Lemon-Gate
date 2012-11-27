@@ -1,4 +1,3 @@
-
 TOOL.Category		= "Wire - Control"
 TOOL.Name			= "Chip - Expression Advanced"
 TOOL.Command 		= nil
@@ -6,9 +5,9 @@ TOOL.ConfigName 	= nil
 TOOL.Tab			= "Wire"
 
 if CLIENT then
-	language.Add( "Tool_expradv_name", 	"Expression Advanced" )
-	language.Add( "Tool_expradv_desc", 	"Spawns an Expression Advanced chip." )
-	language.Add( "Tool_expradv_0", 	"Create/Update Expression, Secondary: Open Expression in Editor,Reload: Reload Expression" )
+	language.Add( "Tool.expradv.name", 	"Expression Advanced" )
+	language.Add( "Tool.expradv.desc", 	"Spawns an Expression Advanced chip." )
+	language.Add( "Tool.expradv.0", 	"Create/Update Expression, Secondary: Open Expression in Editor, Reload: Reload Expression" )
 end
 
 
@@ -69,7 +68,7 @@ if SERVER then
 	end
 
 	function TOOL:RightClick(trace) -- TODO: Add this (when we have a editor :P) /Oskar
-		self:GetOwner():SendLua("open_EA_Editor()")
+		-- Todo: Add Downloading!
 	end
 
 	function TOOL:Reload(trace) 
@@ -81,9 +80,9 @@ if SERVER then
 		if trace.Entity:IsValid()
 		    and trace.Entity:GetClass() == "lemongate"
 			and trace.Entity.Player == player
-			and E2Lib.isFriend(trace.Entity.player, player)
+			and E2Lib.isFriend(trace.Entity.Player, player)
 		then
-			trace.Entity:ReStart()
+			trace.Entity:Restart()
 			return true
 		else
 			return false
@@ -96,9 +95,9 @@ if SERVER then
 		umsg.End( )
 	end
 
-	/*---------------------------------------------------------------------------
+/*---------------------------------------------------------------------------
 	Upload / Download
-	---------------------------------------------------------------------------*/
+---------------------------------------------------------------------------*/
 
 	local downloads = {}
 	local function download_begin( ply, cmd, args )
@@ -198,9 +197,9 @@ if SERVER then
 	concommand.Add( "ea_sendcode_chunk", download_chunk )
 elseif CLIENT then
 	
-	/*---------------------------------------------------------------------------
+/*---------------------------------------------------------------------------
 	Upload / Download
-	---------------------------------------------------------------------------*/
+---------------------------------------------------------------------------*/
 	do 
 		local uploads = {}
 		local chunks_total, chunks_current = 0, 0
@@ -252,7 +251,7 @@ elseif CLIENT then
 				end
 			end
 
-			code = code or (ea_editor and ea_editor:GetCode() or "") 
+			code = (LemonGate.Editor.GetCode() or "") 
 
 			if ea_function_data then 
 				// TODO: Validate clientside
@@ -297,25 +296,46 @@ elseif CLIENT then
 		usermessage.Hook( "ea_getcode", ea_getcode )
 		usermessage.Hook( "ea_chunk_confirm", ea_chunk_confirm )
 	end
-
-
-	function init_EA_Editor()
-		ea_editor = vgui.Create( "EA_EditorPanel" )
-		ea_editor:ShowCloseButton( true )
-		ea_editor:SetSize( ScrW() * 0.7, ScrH() * 0.7 )
-		ea_editor:Center() 
-	end
-
-	function open_EA_Editor()
-		if( ea_editor == nil ) then init_EA_Editor() end
-		ea_editor:Open()
-	end
-
+	
 	function TOOL:RightClick(trace) 
-		open_EA_Editor() 
-		MsgN(">> Right Clicked!")
+		LemonGate.Editor.Open()
 	end
 
+/*---------------------------------------------------------------------------
+	Tool Panel
+---------------------------------------------------------------------------*/
+	function TOOL.BuildCPanel( Panel )
+		local W, H = Panel:GetSize()
+		local Editor = LemonGate.Editor.GetInstance()
+		
+		local FileBrowser = vgui.Create("wire_expression2_browser" , Panel)
+		FileBrowser.OpenOnSingleClick = Editor
+		Panel:AddPanel(FileBrowser)
+		
+		FileBrowser:Setup("Expression Advanced")
+		FileBrowser:SetSize(W, 300)
+		FileBrowser:DockMargin(5, 5, 5, 5)
+		FileBrowser:DockPadding(5, 5, 5, 5)
+		FileBrowser:Dock( TOP )
+		
+		function FileBrowser:OnFileOpen(filepath, newtab)
+			Editor:Open(filepath, nil, newtab)
+		end
+
+		local OpenEditor = Panel:Button("Open Editor")
+		OpenEditor.DoClick = function(button)
+			Editor:Open()
+		end
+
+		local NewExpression = Panel:Button("New Expression")
+		NewExpression.DoClick = function(button)
+			Editor:Open()
+			Editor:NewScript()
+		end
+	end
+end
+
+--[[ COMMENTED OUT FOR NOW!
 	/*---------------------------------------------------------------------------
 	Tool CPanel
 	---------------------------------------------------------------------------*/
@@ -468,4 +488,4 @@ elseif CLIENT then
 
 	function TOOL:RenderToolScreen() end 
 end
-
+]]
