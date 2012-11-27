@@ -5,6 +5,7 @@
 ==============================================================================================*/
 local E_A = LemonGate
 
+local CallOp = E_A.CallOp
 local LongType = E_A.GetLongType
 local Types = E_A.TypeShorts
 
@@ -21,15 +22,15 @@ E_A:RegisterOperator("udfcall", "", "", function(self, VarID, Values)
 	-- Purpose: Builds a Function.
 	
 	local Data = self.Memory[VarID]
-	local Perams, Ops, Statments, ReturnType = Data[1], Data[2], Data[3], Data[4]
+	local Perams, Memory, Statments, ReturnType = Data[1], Data[2], Data[3], Data[4]
 	
-	for I = 1, #Ops do
-		local Store, Value = Ops[I], Values[I]
+	for I = 1, #Memory do
+		local Store, Value = Memory[I], Values[I]
 		local Index, Op = Store[1], Store[2]
-		Op[1](Op, self, Value, Index)
+		CallOp(Op, self, Value, Index)
 	end
 	
-	local Ok, Exception, RetValue = Statments[1](Statments, self)
+	local Ok, Exception, RetValue = Statments:SafeCall(self)
 	
 	if (Ok and ReturnType and ReturnType != "") or (!Ok and Exception == "return") then
 		if RetValue then
@@ -38,6 +39,7 @@ E_A:RegisterOperator("udfcall", "", "", function(self, VarID, Values)
 			return Types[ReturnType][3](self)
 		end
 	elseif !Ok then
+		-- MsgN("Not OK: " .. Exception .. " -> " .. tostring(RetValue))
 		error(Exception, 0)
 	end
 	

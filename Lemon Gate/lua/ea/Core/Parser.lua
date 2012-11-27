@@ -13,7 +13,7 @@
 			2: "s1 q1", "s1, q2"
 		
 		Statment:
-			1: [input, output, persist, global] type var[, ...] = e1[, ...]
+			1: [input, output, global] type var[, ...] = e1[, ...]
 			2: if e1 { q1 } i1
 			3: var++, var--
 			4: var = e1, var += e1, var -= e1, var *= e1, var /= e1
@@ -41,6 +41,9 @@
 */
 
 local E_A = LemonGate
+
+local GetLongType = E_A.GetLongType
+local GetShortType = E_A.GetShortType
 
 local Parser = E_A.Parser
 Parser.__index = Parser
@@ -727,8 +730,8 @@ end
 function Parser:VariableDeclaration()
 	local Trace, Special = self:TokenTrace()
 	
-	if self:AcceptToken("loc") then
-		Special = "local" -- Local
+	if self:AcceptToken("glob") then
+		Special = "global" -- Global
 	elseif self:AcceptToken("in") then
 		Special = "input" -- Input
 	elseif self:AcceptToken("out") then
@@ -945,51 +948,87 @@ end
 	Purpose: Functions, just 20% cooler!
 	Creditors: Rusketh
 ==============================================================================================*/
-function Parser:BuildPerams(Type)
+function Parser:BuildPerams(BlockType)
 	-- Purpose: Creates a UDFunction.
 	
 	if !self:AcceptToken("lpa") then
-		self:Error("Left parenthesis (() missing, to start %s", Type or "peramaters")
+		self:Error("Left parenthesis (() missing, to start %s", BlockType or "peramaters")
 	end
 
 	local Perams, Types, Listed, Index = {}, {}, "", 0
 	
-	if self:AcceptToken("var") then
+	if self:AcceptToken("var") or self:AcceptToken("fun") then
 		self:PrevToken()
 		
 		while true do
 			if self:AcceptToken("com") then
 				self:Error("perameter seperator (,) must not appear twice")
-			
 			elseif !self:HasTokens() then
 				self:Error("perameter seperator (,) must not be succeeded by whitespace")
-			
-			elseif !self:AcceptToken("var") then
-				self:Error("variabel expected, after perameter seperator (,)")
-
-			else
-				local Var, Type = self.TokenData, "n"
-				
-				if Types[Var] then -- Note: Perameter conflict.
-					self:Error("Perameter %s already exists, inside %s", Type or "peramaters")
-					
-				elseif self:AcceptToken("col") then
-					Type = self:StrictType()
-					if !Type then self:Error("Perameter type expected, after colon (:)") end
-				end
-				
-				Index = Index + 1
-				Perams[Index] = Var
-				Types[Var] = Type
-				Listed = Listed .. Type
-				
-				if !self:AcceptToken("com") then break end -- Note: No more perameters lets exit loop
 			end
+			
+			local Type
+			
+			if self:CheckToken("fun") then
+				Type = self:StrictType()
+				if !Type then self:Error("variabel expected, after perameter seperator (,)") end
+				
+				if !self:AcceptToken("var") then
+					self:Error("variabel expected, after perameter type (%s)", GetLongType(Type))
+				end
+			else
+				Type = "n"
+				
+				if !self:AcceptToken("var") then
+					self:Error("variabel expected, after perameter seperator (,)")
+				end
+			end
+			
+			local Var = self.TokenData
+			
+			if Types[Var] then -- Note: Perameter conflict.
+				self:Error("Perameter %s already exists, inside %s", BlockType or "peramaters")
+			end
+			
+			Index = Index + 1
+			Perams[Index] = Var
+			Types[Var] = Type
+			Listed = Listed .. Type
+			
+			if !self:AcceptToken("com") then break end -- Note: No more perameters lets exit loop
+		
+									-- if self:AcceptToken("com") then
+										-- self:Error("perameter seperator (,) must not appear twice")
+									
+									-- elseif !self:HasTokens() then
+										-- self:Error("perameter seperator (,) must not be succeeded by whitespace")
+									
+									-- elseif !self:AcceptToken("var") then
+										-- self:Error("variabel expected, after perameter seperator (,)")
+
+									-- else
+										-- local Var, Type = self.TokenData, "n"
+										
+										-- if Types[Var] then -- Note: Perameter conflict.
+											-- self:Error("Perameter %s already exists, inside %s", Type or "peramaters")
+											
+										-- elseif self:AcceptToken("col") then
+											-- Type = self:StrictType()
+											-- if !Type then self:Error("Perameter type expected, after colon (:)") end
+										-- end
+										
+										-- Index = Index + 1
+										-- Perams[Index] = Var
+										-- Types[Var] = Type
+										-- Listed = Listed .. Type
+										
+										-- if !self:AcceptToken("com") then break end -- Note: No more perameters lets exit loop
+									-- end
 		end
 	end
 
 	if !self:AcceptToken("rpa") then
-		self:Error("Right parenthesis ()) missing, to close %s", Type or "peramaters")
+		self:Error("Right parenthesis ()) missing, to close %s", BlockType or "peramaters")
 	end
 	
 	return Perams, Types, Listed
@@ -998,7 +1037,7 @@ end
 /********************************************************************************************************************/
 
 function Parser:FunctionStatment()
-	local Local = self:AcceptToken("loc")
+	local Global = self:AcceptToken("glob")
 	
 	if self:AcceptToken("func") then
 		local Trace, Return, Name = self:TokenTrace()
@@ -1025,10 +1064,10 @@ function Parser:FunctionStatment()
 			local Block = self:Block("function body")
 			self.InFunc = StillIn -- Note: If we where in one before then the parser needs know.
 
-			return self:Instruction("udfunction", Trace, Local, Name, Listed, Perams, Types, Block, Return)
+			return self:Instruction("udfunction", Trace, Global, Name, Listed, Perams, Types, Block, Return)
 	end
 	
-	if Local then self:PrevToken() end
+	if Global then self:PrevToken() end
 end
 
 /*==============================================================================================

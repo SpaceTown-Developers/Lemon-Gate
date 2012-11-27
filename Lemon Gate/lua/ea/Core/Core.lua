@@ -204,7 +204,7 @@ E_A:CreateToken("return", "ret", "return", E_A_Colour_KEYWORD)
 E_A:CreateToken("error", "err", "error", E_A_Colour_KEYWORD)
 
 -- Decleration KeyWords
-E_A:CreateToken("local", "loc", "local", E_A_Colour_KEYWORD)
+E_A:CreateToken("global", "glob", "global", E_A_Colour_KEYWORD)
 
 E_A:CreateToken("input", "in", "input", E_A_Colour_KEYWORD)
 
@@ -364,7 +364,10 @@ function E_A.GetShortType( Type )
 	local Out = Types[Type] or Shorts[Type]
 	if Out then return Out[2] end
 	
+	debug.Trace()
+	
 	error("Can not find Type of " .. Type)
+	
 end; local GetShortType = E_A.GetShortType
 
 function E_A.GetLongType( Type )
@@ -375,7 +378,11 @@ function E_A.GetLongType( Type )
 	local Out = Types[Type] or Shorts[Type] 
 	if Out then return Out[1] end
 	
+	
+	debug.Trace()
+	
 	error("Can not find Type of " .. Type)
+	
 end; local GetLongType = E_A.GetLongType
 
 /*==============================================================================================

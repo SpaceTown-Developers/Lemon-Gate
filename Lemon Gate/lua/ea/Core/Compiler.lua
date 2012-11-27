@@ -150,16 +150,29 @@ end
 	Purpose: Assigns Variables to Scopes and Memory.
 	Creditors: Rusketh
 ==============================================================================================*/
+local function AsType(Type, Short)
+	-- Purpose: Like GetShortType and GetLongType but supports user functions.
+	
+	if !Type or Type == "" or Type == "void" then
+		if Short then return "" else return "void" end
+	elseif Type == "f" or Type == "function" then
+		if Short then return "f" else return "function" end
+	elseif Short then
+		return GetShortType(Type)
+	end
+	return GetLongType(Type)
+end
+
 function Compiler:LocalVar(Name, Type)
 	-- Purpose: Checks the memory for a Variable or creates a new Variable.
 	
-	Type = GetShortType(Type)
+	Type = AsType(Type, true)
 	
 	local Cur = self.Scope[Name]
 	if Cur then
 		local CType = self.VarTypes[Cur]
 		if CType != Type then -- Check to see if this value exists?
-			self:Error("Variable %s already exists as %s, and can not be assigned to %s", Name, GetLongType(CType), GetLongType(Type))
+			self:Error("Variable %s already exists as %s, and can not be assigned to %s", Name, AsType(CType), AsType(Type))
 		else
 			return Curr -- Return the existing Var Index
 		end
@@ -175,7 +188,7 @@ function Compiler:LocalVar(Name, Type)
 end
 
 function Compiler:SetVar(Name, Type, NoError)
-	Type = GetShortType(Type)
+	Type = AsType(Type, true)
 	
 	local Scopes = self.Scopes
 	for I = self.ScopeID, 0, -1 do
@@ -183,7 +196,7 @@ function Compiler:SetVar(Name, Type, NoError)
 		if Cur then
 			local CType = self.VarTypes[Cur]
 			if CType != Type then
-				self:Error("Variable %s already exists as %s, and can not be assigned to %s", Name, GetLongType(CType), GetLongType(Type))
+				self:Error("Variable %s already exists as %s, and can not be assigned to %s", Name, AsType(CType), AsType(Type))
 			else
 				return Cur, I
 			end
@@ -267,11 +280,11 @@ end
 function Compiler:AssignVar(Type, Name, Special)
 	-- Purpose: Handels variable assigments properly and sorts special cases.
 	
-	if !Special then
-		return self:SetVar(Name, Type)
-		
-	elseif Special == "local" then
+	if Special or Special == "local" then
 		return self:LocalVar(Name, Type)
+		
+	elseif Special == "global" then
+		return self:SetVar(Name, Type)
 		
 	elseif self.ScopeID != 1 then -- They can not be declaired here!
 		self:Error("%s can not be declared outside of code body.", UpcaseStr(Special) .. "'s")

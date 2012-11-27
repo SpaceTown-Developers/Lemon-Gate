@@ -213,10 +213,10 @@ function Toker:NextToken()
 	elseif self:IsToken("error", true) then
 	
 	-- Decleration Types
-	elseif self:IsToken("local", true) then
+	elseif self:IsToken("global", true) then
 	elseif self:IsToken("input", true) then
 	elseif self:IsToken("output", true) then
-	elseif self:IsToken("persistant", true) then
+	-- elseif self:IsToken("persistant", true) then
 	
 	-- Function / Variable
 	elseif self:IsToken("function") then
