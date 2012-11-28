@@ -28,10 +28,17 @@ local unpack = unpack -- Speed
 	Purpose: =D.
 	Creditors: Rusketh
 ==============================================================================================*/
+E_A:SetCost(EA_COST_CHEAP)
+
 E_A:RegisterFunction("exit", "", "", function(self)
 	self:Throw("exit")
 end)
 
+E_A:SetCost(EA_COST_ABNORMAL)
+
+E_A:RegisterFunction("print", "s", "", function(self, Value)
+	self.Player:PrintMessage( HUD_PRINTTALK, Value(self) )
+end)
 /*==============================================================================================
 	Section: Statment Executers
 	Purpose: Runs statments.

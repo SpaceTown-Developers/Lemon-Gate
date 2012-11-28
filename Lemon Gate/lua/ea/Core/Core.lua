@@ -278,17 +278,17 @@ local Ops = {
 	
 	E_A:CreateToken(":", "col", "colon", E_A_Colour_OP),
 
-	E_A:CreateToken("?:", "def", "?:", E_A_Colour_OP),
+	-- E_A:CreateToken("?:", "def", "?:", E_A_Colour_OP),
 
 	E_A:CreateToken(",", "com", "comma", E_A_Colour_OP),
 	
-	E_A:CreateToken("$", "dol", "dolla", E_A_Colour_OP), -- TODO: Make this not delta.
+	-- E_A:CreateToken("$", "dol", "dolla", E_A_Colour_OP),
 	
 	E_A:CreateToken("~", "dlt", "delta", E_A_Colour_OP),
 	
 	E_A:CreateToken("#", "len", "length", E_A_Colour_OP),
 	
-	E_A:CreateToken("->", "imp", "->", E_A_Colour_OP),
+	-- E_A:CreateToken("->", "imp", "->", E_A_Colour_OP),
 	
 	
 	-- Brackets
@@ -536,24 +536,32 @@ function E_A.CallOp(Op, self, Arg, ...)
 	-- Purpose: Makes Operators callable and handels runtime perf.
 	
 	local Perf = self.Perf - (Op[0] or EA_COST_NORMAL)
+	
 	self.Perf = Perf
+	
 	if Perf < 0 then self:Thow("script", "Execution Limit Reached") end
 	
 	local Trace = self.Trace
-	self.Trace = Op[4] or {0, 0} -- Note: replace parent trace with child trace.
 	
-	local Res, Type
-		if Arg == nil and Op[3] then 
-			Res, Type = Op[1](self, unpack(Op[3]))
-		elseif Arg == nil then
-			Res, Type = Op[1](self)
-		else
-			Res, Type = Op[1](self, Arg, ...)
-		end
+	self.Trace = Op[4] or {0, 0} -- Replace parent trace with child trace.
+	
+	local Perams, Res, Type = Op[3]
+	
+	if Arg then Perams = {Arg, ...} end -- Use custom peramaters!
+	
+	if !Perams or #Perams == 0 then
+		Res, Type = Op[1](self) -- No perams!
+	elseif #Perams < 20 then
+		-- Unpack is slow so lets avoid it!
+		local A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T = Perams[1], Perams[2], Perams[3], Perams[4], Perams[5], Perams[6], Perams[7], Perams[8], Perams[9], Perams[10], Perams[11], Perams[12], Perams[13], Perams[14], Perams[15], Perams[16], Perams[17], Perams[18], Perams[19], Perams[20]
+		Res, Type = Op[1](self, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T)
+	else
+		Res, Type = Op[1](self, unpack(Perams)) -- More then 20 perams!
+	end
 	
 	self.Trace = Trace
 	
-	return Res, Type or Op[2]
+	return Res, (Type or Op[2])
 end 
 
 local CallOp = E_A.CallOp

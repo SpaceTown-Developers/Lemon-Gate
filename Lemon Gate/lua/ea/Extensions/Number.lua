@@ -62,7 +62,7 @@ end)
 	Purpose: Does math stuffs?
 	Creditors: Rusketh
 ==============================================================================================*/
-E_A:SetCost(EA_COST_NORMAL)
+E_A:SetCost(EA_COST_CHEAP)
 
 E_A:RegisterOperator("incremet", "n", "n", function(self, Memory)
 	-- Purpose: ++ Math Operator
@@ -87,7 +87,7 @@ end)
 	Purpose: Does math stuffs?
 	Creditors: Rusketh
 ==============================================================================================*/
-E_A:SetCost(EA_COST_ABNORMAL)
+E_A:SetCost(EA_COST_NORMAL)
 
 E_A:RegisterOperator("exponent", "nn", "n", function(self, ValueA, ValueB)
 	-- Purpose: ^ Math Operator
@@ -136,8 +136,6 @@ end)
 	Purpose: If statments and stuff?
 	Creditors: Rusketh
 ==============================================================================================*/
-E_A:SetCost(EA_COST_EXSPENSIVE)
-
 E_A:RegisterOperator("greater", "nn", "n", function(self, ValueA, ValueB)
 	-- Purpose: > Comparason Operator
 	
@@ -198,7 +196,7 @@ end)
 	Warning: Do not remove these, as they become default operators.
 	Creditors: Rusketh
 ==============================================================================================*/
-E_A:SetCost(EA_COST_ABNORMAL)
+E_A:SetCost(EA_COST_NORMAL)
 
 E_A:RegisterOperator("is", "n", "n", function(self, Value)
 	-- Purpose: Is Valid
@@ -225,6 +223,8 @@ end)
 	Purpose: these will be handy.
 	Creditors: Rusketh
 ==============================================================================================*/
+E_A:SetCost(EA_COST_ABNORMAL)
+
 local tostring = tostring
 local tonumber = tonumber
 
@@ -249,6 +249,8 @@ end)
 	Purpose: Min and Max numbers.
 	Creditors: Rusketh
 ==============================================================================================*/
+E_A:SetCost(EA_COST_NORMAL)
+
 E_A:RegisterFunction("min", "nn", "n", function(self, ValueA, ValueB)
 	local A, B = ValueA(self), ValueB(self)
 	if A < B then return A else return B end
@@ -368,6 +370,8 @@ end)
 	Purpose: Lets cause some mayhem.
 	Creditors: Rusketh
 ==============================================================================================*/
+E_A:SetCost(EA_COST_ABNORMAL)
+
 local MathRandom = math.random -- Speed
 
 E_A:RegisterFunction("random", "", "n", MathRandom) -- Probably a good idea =D
@@ -423,6 +427,8 @@ end)
 	Purpose: Complex Stuffs?
 	Creditors: Rusketh
 ==============================================================================================*/
+E_A:SetCost(EA_COST_CHEAP)
+
 local Pi = math.pi -- Speed
 local MathAcos = math.acos -- Speed
 local MathAsin = math.asin -- Speed
@@ -447,6 +453,8 @@ E_A:RegisterFunction("pi", "", "n", function(self)
 	return Pi
 end)
 
+E_A:SetCost(EA_COST_NORMAL)
+
 E_A:RegisterFunction("toRad", "n", "n", function(self, Value)
 	return Value(self) * deg2rad
 end)
@@ -454,6 +462,8 @@ end)
 E_A:RegisterFunction("toDeg", "n", "n", function(self, Value)
 	return Value(self) * rad2deg
 end)
+
+E_A:SetCost(EA_COST_ABNORMAL)
 
 E_A:RegisterFunction("acos", "n", "n", function(self, Value)
 	return MathAcos( Value(self) ) * rad2deg
