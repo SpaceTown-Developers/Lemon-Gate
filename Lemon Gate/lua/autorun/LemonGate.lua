@@ -18,6 +18,7 @@ function LemonGate_Reload()
 end
 
 if SERVER then
+	
 	AddCSLuaFile("LemonGate.lua")
 	
 	AddCSLuaFile("ea/core/Core.lua")
@@ -40,6 +41,17 @@ if SERVER then
 	-- AddCSLuaFile("ea/Editor/EA_Toolbar.lua")
 
 	concommand.Add("lemongate_reload", LemonGate_Reload)
+	
+	-- Add Resources!
+		resource.AddFile( "models\mandrac\wire\e3.mdl" )
+		resource.AddFile( "materials\mandrac\wire\e3.2323.vmt" )
+		resource.AddFile( "materials\mandrac\wire\e3.vmt" )
+		resource.AddFile( "materials\fugue\blue-folder-horizontal.vmt" )
+		resource.AddFile( "materials\fugue\magnifier.vmt" )
+		resource.AddFile( "materials\fugue\minus-circle.vmt" )
+		resource.AddFile( "materials\fugue\plus-circle.vmt" )
+		resource.AddFile( "materials\fugue\script-text.vmt" )
+		resource.AddFile( "materials\fugue\24\cross-circle.vmt" )
 else 
 	-- include("ea/Editor/EA_Button.lua")
 	-- include("ea/Editor/EA_CloseButton.lua")
