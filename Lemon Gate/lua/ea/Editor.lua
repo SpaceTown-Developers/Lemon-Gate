@@ -9,6 +9,7 @@ E_A.Editor = {}
 local Editor = E_A.Editor
 
 /*==============================================================================================
+	Home Screen
 ==============================================================================================*/
 local HomeScreen = [[/*===================================================
 Expression Advanced Alpha
@@ -40,7 +41,7 @@ local Compiler = E_A.Compiler
 local ShortTypes = E_A.TypeShorts
 local Operators = E_A.OperatorTable
 
-local function Validate(Script)
+function Editor.Validate(Script)
 	local Check, Tokens = Tokenizer.Execute(Script)
 	if !Check then return Tokens end
 	
@@ -66,6 +67,8 @@ local function Validate(Script)
 		end
 	end
 end
+
+local Validate = Editor.Validate
 
 /*==============================================================================================
 	Hack the E2 Editor!
@@ -118,9 +121,23 @@ function Editor.Create()
 	Editor.Instance = Instance
 end
 
-function Editor.Open()
+function Editor.Open(Line, Code, NewTab)
 	Editor.Create()
-	Editor.Instance:Open()
+	Editor.Instance:Open(Line, Code, NewTab)
+end
+
+function Editor.NewTab(Script, Title)
+	Editor.Create()
+	
+	local Instance = Editor.Instance
+	local Tab = Instance:CreateTab( Title or "Generic" ).Tab
+	Instance:SetActiveTab( Tab )
+	Instance:ChosenFile()
+	Instance:SetV(true)
+	
+	if Script then
+		Instance:SetCode( Script )
+	end
 end
 
 function Editor.GetOpenFile()

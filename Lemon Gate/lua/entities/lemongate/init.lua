@@ -6,6 +6,8 @@
 local E_A = LemonGate
 local API = E_A.API
 
+local Lemon = ENT
+
 local ShortTypes = E_A.TypeShorts
 local Operators = E_A.OperatorTable
 
@@ -20,12 +22,14 @@ local ValueToOp = E_A.ValueToOp
 
 local UpperStr = string.upper -- Speed
 local FormatStr = string.format -- Speed
+local MathCeil = math.ceil -- Speed
 
 local CurTime = CurTime -- Speed
 local pairs = pairs -- Speed
 local pcall = pcall -- Speed
 
-local Lemon = ENT
+local GoodColor = Color(255, 255, 255, 255)
+local BadColor = Color(255, 0, 0, 0)
 
 local MaxPerf = CreateConVar("lemongate_perf", "25000")
 
@@ -42,12 +46,12 @@ AddCSLuaFile("cl_init.lua")
 function Lemon:Initialize()
 	-- Purpose: Initializes the Gate with physics.
 	
-	self:SetModel("models/mandrac/wire/e3.mdl")
-	
 	self:PhysicsInit(SOLID_VPHYSICS)
 	self:SetMoveType(MOVETYPE_VPHYSICS)
 	self:SetSolid(SOLID_VPHYSICS)
-
+	
+	-- self:SetUseType( SIMPLE_USE ) -- Todo: use this
+	
 	WireLib.CreateInputs(self, {})
 	WireLib.CreateOutputs(self, {})
 	
@@ -66,33 +70,19 @@ function Lemon:Think()
 	local Time = CurTime()
 	
 	if !self.Errored then
-		
-		local Context, PerfTime = self.Context, self.PerfTime
-		if Context then
-			
-			if !PerfTime or PerfTime > Time then
-				PerfTime = Time + 1
-				
-				local Perf, MaxPerf = Context.Perf, MaxPerf:GetInt()
-				if Perf == MaxPerf then
-					self:UpdateOverlay("Online")
-					self.LastPerf = 0
-				else
-					Perf = (MaxPerf - Perf)
-					self.LastPerf = Perf
-					Context.Perf = MaxPerf
-					
-					self:UpdateOverlay("Online: %s%%", math.ceil((Perf / MaxPerf) * 100))
-				end
-			end
-			
-			self:CallEvent("think")
+		local PerfTime = self.PerfTime
+		if self.Context and (!PerfTime or PerfTime > Time) then
+			self.PerfTime = Time + 1
+			local _, _, Percent = self:CaculatePerf()
+			self:UpdateOverlay("Online: %i%%", Percent)
 		end
+		
+		self:CallEvent("think")
 	end
 	
 	self.BaseClass.Think(self)
 	
-	self:NextThink(Time)
+	self:NextThink(Time + 0.2)
 	return true
 end
 
@@ -106,6 +96,10 @@ end
 	Purpose: This is the entity that does everything!
 	Creditors: Rusketh
 ==============================================================================================*/
+function Lemon:GetScript()
+	return self.Script or ""
+end
+
 function Lemon:LoadScript(Script)
 	-- Purpose: Compile script into an executable.
 	
@@ -173,7 +167,7 @@ function Lemon:RefreshMemory()
 		local WireName = Type[4] -- Note: Get the wiremod name.
 		
 		if !WireName or !Type[5] then
-			self:SetColor(255, 0, 0, 255)
+			self:SetColor(BadColor)
 			self:UpdateOverlay("Script Error")
 			WireLib.ClientError("Type '" .. Type[1] .. "' may not be used as input.", self.Player)
 			return
@@ -196,7 +190,7 @@ function Lemon:RefreshMemory()
 		local WireName = Type[4] -- Note: Get the wiremod name.
 		
 		if !WireName or !Type[6] then
-			self:SetColor(255, 0, 0, 255)
+			self:SetColor(BadColor)
 			self:UpdateOverlay("Script Error")
 			WireLib.ClientError("Type '" .. Type[1] .. "' may not be used as output.", self.Player)
 			return
@@ -273,7 +267,7 @@ function Lemon:Execute()
 	local Exe = self.Executable -- Note: This is E-A's root.
 	
 	if Exe then
-		self:SetColor(255, 255, 255, 255)
+		self:SetColor(GoodColor)
 		
 		self:UpdateOverlay("Online: 0%%")
 		
@@ -295,16 +289,19 @@ function Lemon:RunOp(Op, ...)
 	
 	local Ok, Exception, Message = SafeCall(Op, Context, ...)
 	
-	if Ok then
+	if Ok or Exception == "exit" then
 		return true, Exception, Message
-	elseif Exception == "script" then
-		self:SetColor(255, 0, 0, 255)
-		self:UpdateOverlay("Script Error")
+	end
+	
+	if Exception == "script" then
+		local Trace = Context.Trace
+		if Trace then Message = Message .. " at Line " .. Trace[1] .. " Char " .. Trace[2] end
 		
+		self:SetColor(BadColor)
+		self:UpdateOverlay("Script Error")
 		WireLib.ClientError(Message, self.Player)
-	elseif Exception == "exit" then
-		return true -- This is normal.
-	else
+	
+	else -- Lua Error!
 		self:Error(Exception)
 		return
 	end
@@ -334,12 +331,27 @@ function Lemon:CallEvent(Name, ...)
 	return true
 end
 
+function Lemon:Error(Message, Info, ...)
+	-- Purpose: Create and push an error.
+	
+	if Info then Message = FormatStr(Message, Info, ...) end
+	
+	self.Errored = Message
+	
+	self:SetColor(BadColor)
+	self:UpdateOverlay("LUA Error")
+	WireLib.ClientError("LemonGate: Suffered a LUA error" , self.Player)
+	
+	MsgN("LemonGate LUA: " .. Message)
+	self.Player:PrintMessage(HUD_PRINTCONSOLE, "LemonGate LUA: " .. Message)
+end
+
 /*==============================================================================================
 	Section: Name and Overlay.
 	Purpose: Mainly Overlay and name stuff!
 	Creditors: Rusketh
 ==============================================================================================*/
-function Lemon:SetName(Name)
+function Lemon:SetGateName(Name)
 	self.Name = Name or "LemonGate"
 end
 
@@ -350,21 +362,27 @@ function Lemon:UpdateOverlay(Status, Info, ...)
 end
 
 /*==============================================================================================
-	Section: Execute.
-	Purpose: Executes the gate =D.
+	Section: Perf stuffs.
+	Purpose: Performance busting madnes.
 	Creditors: Rusketh
 ==============================================================================================*/
-function Lemon:Error(Message, Info, ...)
-	-- Purpose: Create and push an error.
+function Lemon:CaculatePerf(NoUpdate)
+	local Context = self.Context
+	if Context then
+		local Perf, MaxPerf, Percent = Context.Perf, MaxPerf:GetInt(), 0
+		Perf = (MaxPerf - Perf)
+		
+		if !NoUpdate then 
+			Context.Perf = MaxPerf
+			self.LastPerf = Perf
+		end
+			
+		if Perf ~= MaxPerf then
+			Percent = MathCeil((Perf / MaxPerf) * 100)
+		end
+		
+		return Perf, MaxPerf, Percent
+	end
 	
-	if Info then Message = FormatStr(Message, Info, ...) end
-	
-	self.Errored = Message
-	
-	self:SetColor(255, 0, 0, 255)
-	self:UpdateOverlay("LUA Error")
-	WireLib.ClientError("LemonGate: Suffered a LUA error" , self.Player)
-	
-	MsgN("LemonGate LUA: " .. Message)
-	self.Player:PrintMessage(HUD_PRINTCONSOLE, "LemonGate LUA: " .. Message)
+	return 0, 0, 0
 end

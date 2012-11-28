@@ -60,6 +60,8 @@ local function type(Value)
 	return LowerStr( _type(Value) )
 end
 
+/***********************************************************************************************/
+
 function E_A.CheckType(Value, Type, I, AllowNil)
 	-- Purpose: Checks the type of a function peramater. This prevents bad code from breaking E_As core!
 	
@@ -70,6 +72,7 @@ function E_A.CheckType(Value, Type, I, AllowNil)
 	end
 end; local CheckType = E_A.CheckType -- Speed
 
+/***********************************************************************************************/
 
 function E_A.LimitString(String, Max)
 	-- Purpose: Limit the size of a string and append '...' if the string is to big.
@@ -81,6 +84,8 @@ function E_A.LimitString(String, Max)
 	
 	return String
 end; local LimitString = E_A.LimitString -- Speed
+
+/***********************************************************************************************/
 
 E_A.Lua_Func_Cahce = {} -- Store functions
 local LFC = E_A.Lua_Func_Cahce
@@ -127,6 +132,26 @@ function E_A.TableToLua(Table)
 	return Lua .. "}"
 end; TableToLua = E_A.TableToLua
 
+/***********************************************************************************************/
+
+if SERVER then
+
+	function E_A.IsFreind(Player, Owner)
+		if CPPI and Owner.CPPIGetFriends then
+			local Friends = Owner:CPPIGetFriends()
+			
+			if type( Friends ) == "table" then
+
+				for _,Friend in pairs(friends) do
+					if Player == Friend then return true end
+				end
+			end
+		else
+			return Player == Owner
+		end
+	end
+	
+end
 /*==============================================================================================
 	Section: Colours
 	Purpose: The syntax colours for tokens.
@@ -539,11 +564,11 @@ function E_A.CallOp(Op, self, Arg, ...)
 	
 	self.Perf = Perf
 	
-	if Perf < 0 then self:Thow("script", "Execution Limit Reached") end
+	if Perf < 0 then self:Throw("script", "Execution Limit Reached") end
 	
 	local Trace = self.Trace
 	
-	self.Trace = Op[4] or {0, 0} -- Replace parent trace with child trace.
+	self.Trace = Op[4] -- Replace parent trace with child trace.
 	
 	local Perams, Res, Type = Op[3]
 	

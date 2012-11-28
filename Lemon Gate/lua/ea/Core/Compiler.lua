@@ -280,7 +280,7 @@ end
 function Compiler:AssignVar(Type, Name, Special)
 	-- Purpose: Handels variable assigments properly and sorts special cases.
 	
-	if Special or Special == "local" then
+	if !Special or Special == "local" then
 		return self:LocalVar(Name, Type)
 		
 	elseif Special == "global" then

@@ -16,6 +16,7 @@ local Entity = Entity
 	Creditors: Rusketh
 ==============================================================================================*/
 E_A:RegisterEvent("think")
+E_A:RegisterEvent("tick")
 E_A:RegisterEvent("final")
 E_A:RegisterEvent("playerJoin","e")
 E_A:RegisterEvent("playerQuit","e")
@@ -39,6 +40,10 @@ end)
 ==============================================================================================*/
 if CLIENT then return end
 local API = E_A.API
+
+hook.Add("Tick", "LemonGate", function(Player)
+	API.CallEvent("tick")
+end)
 
 hook.Add("PlayerInitialSpawn", "LemonGate", function(Player)
 	API.CallEvent("playerJoin",ValueToOp(Player, "e"))

@@ -15,6 +15,9 @@ local GetShortType = E_A.GetShortType
 local FormatStr = string.format -- Speed
 local SubString = string.sub -- Speed
 
+local MathCeil = math.ceil -- Speed
+
+local GetConVarNumber = GetConVarNumber -- Speed
 local unpack = unpack -- Speed
 
 /*==============================================================================================
@@ -39,6 +42,47 @@ E_A:SetCost(EA_COST_ABNORMAL)
 E_A:RegisterFunction("print", "s", "", function(self, Value)
 	self.Player:PrintMessage( HUD_PRINTTALK, Value(self) )
 end)
+
+/*==============================================================================================
+	Section: Basic Selfaware stuff
+	Purpose: =D.
+	Creditors: Rusketh
+==============================================================================================*/
+E_A:SetCost(EA_COST_NORMAL)
+
+E_A:RegisterFunction("gate", "", "e", function(self)
+	return self.Entity
+end)
+
+E_A:RegisterFunction("owner", "", "e", function(self)
+	return self.Player
+end)
+
+E_A:RegisterFunction("gateName", "", "s", function(self)
+	return self.Entity.Name
+end)
+
+E_A:RegisterFunction("gateName", "s", "", function(self, Value)
+	self.Entity:SetGateName( Value(self) )
+end)
+
+
+E_A:RegisterFunction("perf", "", "n", function(self)
+	return self.Perf
+end)
+
+E_A:RegisterFunction("maxPerf", "", "n", function(self)
+	return GetConVarNumber("lemongate_perf")
+end)
+
+E_A:RegisterFunction("perfPer", "", "n", function(self)
+	local Perf, MaxPerf = self.Perf, GetConVarNumber("lemongate_perf")
+	
+	if Perf <= 0 or MaxPerf <= 0 then return 0 end
+	
+	return MathCeil((Perf / MaxPerf) * 100)
+end)
+
 /*==============================================================================================
 	Section: Statment Executers
 	Purpose: Runs statments.
