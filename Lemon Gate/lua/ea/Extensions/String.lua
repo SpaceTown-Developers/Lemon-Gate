@@ -96,13 +96,13 @@ end)
 E_A:RegisterOperator("notequal", "ss", "n", function(self, ValueA, ValueB)
 	-- Purpose: != Comparason Operator
 	
-	if ValueA(self) ~= ValueB(self) return 1 else return 0 end
+	if ValueA(self) ~= ValueB(self) then return 1 else return 0 end
 end)
 
 E_A:RegisterOperator("equal", "ss", "n", function(self, ValueA, ValueB)
 	-- Purpose: == Comparason Operator
 	
-	if ValueA(self) == ValueB(self) return 1 else return 0 end
+	if ValueA(self) == ValueB(self) then return 1 else return 0 end
 end)
 
 /*==============================================================================================
@@ -219,7 +219,7 @@ E_A:RegisterFunction("find", "s:s", "n", function(self, ValueA, ValueB)
 	return FindStr( ValueA(self), ValueB(self), 1, true) or 0
 end)
 
-E_A:RegisterFunction("find", "s:s", "n", function(self, ValueA, ValueB, ValueC)
+E_A:RegisterFunction("find", "s:sn", "n", function(self, ValueA, ValueB, ValueC)
 	return FindStr( ValueA(self), ValueB(self), ValueC(self), true) or 0
 end)
 
