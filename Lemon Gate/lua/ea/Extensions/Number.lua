@@ -41,12 +41,9 @@ E_A:SetCost(EA_COST_CHEAP)
 E_A:RegisterOperator("assign", "n", "", function(self, ValueOp, Memory)
 	-- Purpose: Assigns a number to memory
 	
-	local Value, Type = ValueOp(self)
-	if Type != "n" then self:Error("Attempt to assign %s to number", GetLongType(Type)) end
-	
 	self.Delta[Memory] = self.Memory[Memory]
 	
-	self.Memory[Memory] = Value
+	self.Memory[Memory] = ValueOp(self)
 	
 	self.Click[Memory] = true
 end)
@@ -154,7 +151,7 @@ E_A:RegisterOperator("less", "nn", "n", function(self, ValueA, ValueB)
 	end
 end)
 
-E_A:RegisterOperator("greaterequal", "nn", "n", function(self, ValueA, ValueB)
+E_A:RegisterOperator("eqgreater", "nn", "n", function(self, ValueA, ValueB)
 	-- Purpose: <= Comparason Operator
 	
 	local Res = ValueA(self) - ValueB(self)
@@ -163,7 +160,7 @@ E_A:RegisterOperator("greaterequal", "nn", "n", function(self, ValueA, ValueB)
 	end
 end)
 
-E_A:RegisterOperator("lessequal", "nn", "n", function(self, ValueA, ValueB)
+E_A:RegisterOperator("eqless", "nn", "n", function(self, ValueA, ValueB)
 	-- Purpose: <= Comparason Operator
 	
 	local Res = ValueA(self) - ValueB(self)
@@ -172,7 +169,7 @@ E_A:RegisterOperator("lessequal", "nn", "n", function(self, ValueA, ValueB)
 	end
 end)
 
-E_A:RegisterOperator("notequal", "nn", "n", function(self, ValueA, ValueB)
+E_A:RegisterOperator("negeq", "nn", "n", function(self, ValueA, ValueB)
 	-- Purpose: != Comparason Operator
 	
 	local Res = ValueA(self) - ValueB(self)
@@ -181,7 +178,7 @@ E_A:RegisterOperator("notequal", "nn", "n", function(self, ValueA, ValueB)
 	end
 end)
 
-E_A:RegisterOperator("equal", "nn", "n", function(self, ValueA, ValueB)
+E_A:RegisterOperator("eq", "nn", "n", function(self, ValueA, ValueB)
 	-- Purpose: == Comparason Operator
 	
 	local Res = ValueA(self) - ValueB(self)

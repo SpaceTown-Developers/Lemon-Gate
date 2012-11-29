@@ -80,6 +80,7 @@ local FormatStr = string.format -- Speed
 function Parser:Error(Message, Info, ...)
 	-- Purpose: Create and push a syntax error.
 	
+	debug.Trace()
 	if Info then Message = FormatStr(Message, Info, ...) end
 	error( FormatStr(Message .. " at line %i, char %i", self.TokenLine, self.TokenChar), 0)
 end
@@ -420,22 +421,22 @@ function Parser:Operators(Expr)
 		return self:Instruction("binary_shift_left", self:TokenTrace(), Expr, self:Expression())
 		
 	elseif self:AcceptToken("gth") then -- gth >
-		return self:Instruction("greater_than", self:TokenTrace(), Expr, self:Expression())
+		return self:Instruction("greater", self:TokenTrace(), Expr, self:Expression())
 		
 	elseif self:AcceptToken("lth") then -- lth <
-		return self:Instruction("less_than", self:TokenTrace(), Expr, self:Expression())
+		return self:Instruction("less", self:TokenTrace(), Expr, self:Expression())
 		
 	elseif self:AcceptToken("geq") then -- geq >=
-		return self:Instruction("greater_equal", self:TokenTrace(), Expr, self:Expression())
+		return self:Instruction("eqgreater", self:TokenTrace(), Expr, self:Expression())
 		
 	elseif self:AcceptToken("leq") then -- leq <=
-		return self:Instruction("less_equal", self:TokenTrace(), Expr, self:Expression())
+		return self:Instruction("eqless", self:TokenTrace(), Expr, self:Expression())
 		
 	elseif self:AcceptToken("neq") then -- neq !=
-		return self:Instruction("not_equal", self:TokenTrace(), Expr, self:Expression())
+		return self:Instruction("negeq", self:TokenTrace(), Expr, self:Expression())
 		
 	elseif self:AcceptToken("eq") then -- eq ==
-		return self:Instruction("equal", self:TokenTrace(), Expr, self:Expression())
+		return self:Instruction("eq", self:TokenTrace(), Expr, self:Expression())
 		
 	elseif self:AcceptToken("bxor") then -- bxor ^^
 		return self:Instruction("binary_xor", self:TokenTrace(), Expr, self:Expression())
@@ -494,7 +495,7 @@ function Parser:GetValue()
 	elseif self:AcceptToken("str") then
 		-- Section: Create a string from a string token.
 		
-		return self:Instruction("string", Trace, self.TokenData)
+		Instr = self:Instruction("string", Trace, self.TokenData)
 	
 	elseif self:AcceptToken("var") then
 		-- Section: Grabe a var from a var token.
@@ -527,6 +528,8 @@ function Parser:GetValue()
 			
 			Instr = self:Instruction("function", Trace, Function, Permaters)
 		end
+	elseif self:CheckToken("lcb") then
+		Instr = self:BuildTable() -- We is making a table!
 	end
 	
 	if !Instr then self:ExpressionError() end
@@ -566,38 +569,18 @@ function Parser:GetValue()
 			local Trace, Index = self:TokenTrace(), self:Expression()
 			
 			if self:AcceptToken("com") then
-				local Type = self:StrictType("variabel type expected after comma (,) in indexing operator, got (%s)")
-				if !Type then self:Error("Indexing operator ([]) requires a lower case type [Index,type]") end
+				local Type = self:StrictType()
+				if !Type then self:Error("Indexing operator ([]) requires a lower case type [Index, type]") end
 				Instr = self:Instruction("get", Trace, Instr, Index, Type)
 			else
 				Instr = self:Instruction("get", Trace, Instr, Index)
 			end
 			
-			if !self:AcceptToken("rsb") then self:Error("Right square bracket (]) missing, to close indexing operator [Index,type]") end
-		
-		-- Note: Now we check for the unlikly event of using a call operator {{Value()}}.
-		elseif self:AcceptToken("lpa") then
-			local Permaters = {}
-			
-			if !self:AcceptToken("rpa") then
-				Permaters[1] = self:Expression() 
-				local Index = 1 -- Note: Faster to do it here then use count.
-				
-				while self:AcceptToken("com") do
-					Index = Index + 1
-					Permaters[Index] = self:Expression()
-				end
+			if !self:AcceptToken("rsb") then
+				self:Error("Right square bracket (]) missing, to close indexing operator [Index,type]")
 			end
-			
-			if !self:AcceptToken("rpa") then
-				self:Error("Right parenthesis ()) missing, to close call perameters")
-			end
-			
-			Instr = self:Instruction("call", Trace, Instr, Permaters)
 		else
-			
-			-- Note: We leave this loop now!
-			break
+			break -- Note: We leave this loop now!
 		end
 	end
 	
@@ -637,7 +620,7 @@ function Parser:ExpressionError()
 		self:ExcludeToken("dec", "Decrement operator (--) must be preceded by variable")
 
 		self:ExcludeToken("rpa", "Right parenthesis ()) without matching left parenthesis")
-		self:ExcludeToken("lcb", "Left curly bracket ({) must be part of an if/while/for-statement block")
+		self:ExcludeToken("lcb", "Left curly bracket ({) must be part of an table/if/while/for-statement block")
 		self:ExcludeToken("rcb", "Right curly bracket (}) without matching left curly bracket")
 		self:ExcludeToken("lsb", "Left square bracket ([) must be preceded by variable")
 		self:ExcludeToken("rsb", "Right square bracket (]) without matching left square bracket")
@@ -944,7 +927,7 @@ function Parser:Block(Name)
 end
 
 /*==============================================================================================
-	Section: First Class Functions (User Defined Functions).
+	Section: User Functions (User Defined Functions).
 	Purpose: Functions, just 20% cooler!
 	Creditors: Rusketh
 ==============================================================================================*/
@@ -996,34 +979,6 @@ function Parser:BuildPerams(BlockType)
 			Listed = Listed .. Type
 			
 			if !self:AcceptToken("com") then break end -- Note: No more perameters lets exit loop
-		
-									-- if self:AcceptToken("com") then
-										-- self:Error("perameter seperator (,) must not appear twice")
-									
-									-- elseif !self:HasTokens() then
-										-- self:Error("perameter seperator (,) must not be succeeded by whitespace")
-									
-									-- elseif !self:AcceptToken("var") then
-										-- self:Error("variabel expected, after perameter seperator (,)")
-
-									-- else
-										-- local Var, Type = self.TokenData, "n"
-										
-										-- if Types[Var] then -- Note: Perameter conflict.
-											-- self:Error("Perameter %s already exists, inside %s", Type or "peramaters")
-											
-										-- elseif self:AcceptToken("col") then
-											-- Type = self:StrictType()
-											-- if !Type then self:Error("Perameter type expected, after colon (:)") end
-										-- end
-										
-										-- Index = Index + 1
-										-- Perams[Index] = Var
-										-- Types[Var] = Type
-										-- Listed = Listed .. Type
-										
-										-- if !self:AcceptToken("com") then break end -- Note: No more perameters lets exit loop
-									-- end
 		end
 	end
 
@@ -1220,5 +1175,47 @@ function Parser:ExitStatment()
 		end
 		
 		return self:Instruction("return", self:TokenTrace(), self:Expression())
+	end
+end
+
+/*==============================================================================================
+	Section: Table Syntax
+	Purpose: Cus we makes a table
+	Creditors: Rusketh
+==============================================================================================*/
+function Parser:BuildTable()
+	
+	if self:AcceptToken("lcb") then
+		local Trace = self:TokenTrace()
+		
+		local Index, Keys, Values = 0, {}, {}
+		
+		if !self:CheckToken("rcb") then
+			while true do
+				if self:AcceptToken("com") then
+					self:Error("perameter seperator (,) must not appear twice")
+				elseif !self:HasTokens() then
+					self:Error("perameter seperator (,) must not be succeeded by whitespace")
+				end
+				
+				Index = Index + 1
+				local Value = self:Expression()
+				
+				if self:AcceptToken("ass") then
+					Keys[Index] = Value
+					Value = self:Expression()
+				end
+				
+				Values[Index] = Value
+				
+				if !self:AcceptToken("com") then break end
+			end
+		end
+		
+		if !self:AcceptToken("rcb") then
+			self:Error("Left curly bracket ({) exspected, after table contents")
+		end
+		
+		return self:Instruction("table", Trace, Keys, Values)
 	end
 end

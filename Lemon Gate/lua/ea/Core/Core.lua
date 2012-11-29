@@ -483,28 +483,6 @@ function E_A:WireModClass(Class, Name, In, Out)
 	Type[6] = Out
 end
 
-/* These are not used!
-function E_A:AddClassFactory(Name, Factory)
-	-- Purpose: Makes a class factory for on the fly object creaton.
-	
-	CheckType(Class, "string", 1); CheckType(Factory, "function", 2)
-	
-	local Type = Types[Class] -- Note: Check to see if this type exists.
-	if !Type then error("unkown class '" .. Class .. "'", 0) end
-	
-	Type[7] = Factory
-end
-
-function E_A:ClassFactory(Type, ...)
-	local Type = Types[Class] -- Note: Check to see if this type exists.
-	if !Type then error("unkown class '" .. Class .. "'", 0) end
-	
-	local Factory = Type[7]
-	if !Factory then error("class '" .. Class .. "' has no builder factory", 0) end
-	
-	return Factory(...)
-end */
-
 /*==============================================================================================
 	Section: Hook Registery.
 	Purpose: Valid Hooks.
@@ -592,19 +570,19 @@ end
 local CallOp = E_A.CallOp
 Operator.__call = E_A.CallOp
 
-function Operator:SetCost(Cost)
+-- function Operator:SetCost(Cost) -- DEPRICATED!
 	-- Purpose: Sets the coast of an operator.
 	
-	self[0] = Cost or COST_NORMAL
-	return self -- Note: We return self (Read code to see why).
-end
+	-- self[0] = Cost or COST_NORMAL
+	-- return self -- Note: We return self (Read code to see why).
+-- end
 
-function Operator:ReturnType(Long)
+-- function Operator:ReturnType(Long)
 	-- Purpose: Used to get the static return type.
 	
-	if Long then return GetLongType(self[2]) end
-	return self[2] or ""
-end
+	-- if Long then return GetLongType(self[2]) end
+	-- return self[2] or ""
+-- end
 
 function E_A.SafeCall(Op, self, ...)
 	-- Purpose: Calls the operator safly and handels exceptions.

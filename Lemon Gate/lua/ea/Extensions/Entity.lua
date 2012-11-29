@@ -54,13 +54,13 @@ end)
 E_A:SetCost(EA_COST_EXSPENSIVE)
 
 
-E_A:RegisterOperator("notequal", "ee", "n", function(self, ValueA, ValueB)
+E_A:RegisterOperator("negeq", "ee", "n", function(self, ValueA, ValueB)
 	-- Purpose: != Comparason Operator
 	
 	return (ValueA(self) == ValueB(self)) and 0 or 1
 end)
 
-E_A:RegisterOperator("equal", "ee", "n", function(self, ValueA, ValueB)
+E_A:RegisterOperator("eq", "ee", "n", function(self, ValueA, ValueB)
 	-- Purpose: == Comparason Operator
 	
 	return (ValueA(self) == ValueB(self)) and 1 or 0

@@ -93,13 +93,13 @@ E_A:RegisterOperator("is", "s", "n", function(self, Value)
 	if Value(self) != "" then return 1 else return 0 end
 end)
 
-E_A:RegisterOperator("notequal", "ss", "n", function(self, ValueA, ValueB)
+E_A:RegisterOperator("negeq", "ss", "n", function(self, ValueA, ValueB)
 	-- Purpose: != Comparason Operator
 	
 	if ValueA(self) ~= ValueB(self) then return 1 else return 0 end
 end)
 
-E_A:RegisterOperator("equal", "ss", "n", function(self, ValueA, ValueB)
+E_A:RegisterOperator("eq", "ss", "n", function(self, ValueA, ValueB)
 	-- Purpose: == Comparason Operator
 	
 	if ValueA(self) == ValueB(self) then return 1 else return 0 end

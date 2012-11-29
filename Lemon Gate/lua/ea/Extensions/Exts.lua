@@ -10,12 +10,14 @@ local E_A = LemonGate
 E_A:RegisterClass("number", "n", 0)
 E_A:RegisterClass("string", "s", "")
 E_A:RegisterClass("entity", "e", Entity)
+E_A:RegisterClass("table", "t", {})
 
 -- Load the Exts!
 include("Core.lua")
 include("Number.lua")
 include("String.lua")
 include("Entity.lua")
+include("Table.lua")
 include("Function.lua")
 include("Event.lua")
 
@@ -25,6 +27,7 @@ AddCSLuaFile("Core.lua")
 AddCSLuaFile("Number.lua")
 AddCSLuaFile("String.lua")
 AddCSLuaFile("Entity.lua")
+AddCSLuaFile("Table.lua")
 AddCSLuaFile("Function.lua")
 AddCSLuaFile("Event.lua")
 
@@ -41,3 +44,5 @@ for _, File in pairs( file.Find( "ea/extensions/custom/*.lua", "LUA" ) ) do
 	end
 	
 end
+
+-- Todo: API HOOK!

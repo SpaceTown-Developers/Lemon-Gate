@@ -71,6 +71,8 @@ function Compiler:Run(Instr)
 	return self:CompileInst(Instr), self
 end
 
+/********************************************************************************************************************/
+
 function Compiler:Error(Message, Info, ...)
 	-- Purpose: Create and push a syntax error.
 	
@@ -78,7 +80,14 @@ function Compiler:Error(Message, Info, ...)
 	error( FormatStr(Message .. " at line %i, char %i", self.Trace[1] or 0, self.Trace[2] or 0), 0)
 end
 
-function Compiler:CompileInst(Inst, Castable)
+/*==============================================================================================
+	Section: Instruction Convershion
+	Purpose: Functions to find instructions and convert them to operators.
+	Creditors: Rusketh
+==============================================================================================*/
+local Operator = E_A.Operator
+
+function Compiler:CompileInst(Inst)
 	-- Purpose: Compiles an instuction.
 
 	local Func = self["Instr_" .. UpperStr(Inst[1])]
@@ -90,26 +99,39 @@ function Compiler:CompileInst(Inst, Castable)
 		local Result, Type = Func(self, unpack(Inst[3]))
 		self.Trace = Trace -- Return parent trace.
 		
-		return Result
+		return Result, Type
 	else
 		self:Error("Compiler: Uknown Instruction '%s'", Inst[1])
 	end
 end
 
-/*==============================================================================================
-	Section: Instruction Operators
-	Purpose: Runable operators.
-	Creditors: Rusketh
-==============================================================================================*/
-local Operator = E_A.Operator
+function Compiler:GetOperator(Name, sType, ...)
+	-- Purpose: Grabs an operator.
 
-function Compiler:Operation(Op, Type, ...)
+	local tArgs = {...}
+	
+	local Types = GetShortType( sType or "" )
+	
+	if #tArgs > 0 then 
+		for i=1,#tArgs do Types = Types .. GetShortType( tArgs[i] ) end
+	end
+	
+	local Op = Operators[ Name .. "(" .. Types .. ")" ]
+	if Op then return Op[1], Op[2], Op[3] end
+end
+
+function Compiler:Operator(Op, Type, Perf, ...)
 	-- Purpose: Creates an operation.
 	
 	if !Op then debug.Trace(); self:Error("Internal Error: missing operator function") end
 	if !Type or Type == "" then Type = "void" end -- Nicer then nil!
 	
-	return setmetatable({Op, GetShortType(Type), {...}, self.Trace}, Operator), Type
+	return setmetatable({Op, GetShortType(Type), {...}, self.Trace, [0] = (Perf or 0)}, Operator), Type
+end
+
+function Compiler:PushPerf(Perf)
+	self.Perf = self.Perf + Perf
+	-- TODO: Compiler perf exceed!
 end
 
 /*==============================================================================================
@@ -160,8 +182,11 @@ local function AsType(Type, Short)
 	elseif Short then
 		return GetShortType(Type)
 	end
+	
 	return GetLongType(Type)
 end
+
+/********************************************************************************************************************/
 
 function Compiler:LocalVar(Name, Type)
 	-- Purpose: Checks the memory for a Variable or creates a new Variable.
@@ -186,6 +211,8 @@ function Compiler:LocalVar(Name, Type)
 	
 	return VarID, self.ScopeID
 end
+
+/********************************************************************************************************************/
 
 function Compiler:SetVar(Name, Type, NoError)
 	Type = AsType(Type, true)
@@ -212,6 +239,8 @@ function Compiler:SetVar(Name, Type, NoError)
 	return VarID, 0
 end
 
+/********************************************************************************************************************/
+
 function Compiler:GetVar(Name)
 	local Scopes = self.Scopes
 	for I = self.ScopeID, 0, -1 do
@@ -220,63 +249,8 @@ function Compiler:GetVar(Name)
 	end
 end
 
-/*==============================================================================================
-	Section: Operator Getters
-	Purpose: 
-	Creditors: Rusketh
-==============================================================================================*/
-function Compiler:GetOperator(Name, sType, ...)
-	-- Purpose: Grabs an operator.
+/********************************************************************************************************************/
 
-	local tArgs = {...}
-	
-	local Types = GetShortType( sType or "" ) or ""
-	if #tArgs > 0 then 
-		for i=1,#tArgs do
-			Types = Types .. GetShortType( tArgs[i] )
-		end
-	end
-	
-	local Op = Operators[ Name .. "(" .. Types .. ")" ]
-	if Op then return Op[1], Op[2], Op[3] end
-end
-
-/*==============================================================================================
-	Section: Sequence Instructions
-	Purpose: Runs a sequence
-	Creditors: Rusketh
-==============================================================================================*/
-function Compiler:Instr_SEQUENCE(Statments)
-	local Stmts = {}
-	
-	for I = 1, #Statments do
-		Stmts[I] = self:CompileInst(Statments[I])
-	end
-	
-	local Op, Ret = self:GetOperator("sequence")
-	return self:Operation(Op, Ret, Stmts, #Stmts)
-end
-
-/*==============================================================================================
-	Section: Raw Value Instructions
-	Purpose: Runs a sequence
-	Creditors: Rusketh
-==============================================================================================*/
-function Compiler:Instr_NUMBER(Number)
-	self.Perf = self.Perf + EA_COST_CHEAP
-	return self:Operation(function() return Number end, "number"):SetCost(EA_COST_CHEAP)
-end
-
-function Compiler:Instr_STRING(String)
-	self.Perf = self.Perf + EA_COST_CHEAP
-	return self:Operation(function() return String end, "string"):SetCost(EA_COST_CHEAP)
-end
-
-/*==============================================================================================
-	Section: Assigment Operators
-	Purpose: Assigns Values to Variables
-	Creditors: Rusketh
-==============================================================================================*/
 function Compiler:AssignVar(Type, Name, Special)
 	-- Purpose: Handels variable assigments properly and sorts special cases.
 	
@@ -308,34 +282,69 @@ function Compiler:AssignVar(Type, Name, Special)
 	end
 end
 
-/********************************************************************************************************************/
+/*==============================================================================================
+	Section: Sequence Instructions
+	Purpose: Runs a sequence
+	Creditors: Rusketh
+==============================================================================================*/
+function Compiler:Instr_SEQUENCE(Smts)
+	local Statments = {}
+	
+	for I = 1, #Smts do
+		Statments[I] = self:CompileInst(Smts[I])
+	end
+	
+	local Operator, Return = self:GetOperator("sequence")
+	return self:Operator(Operator, Return, 0, Statments, #Statments)
+end
 
+/*==============================================================================================
+	Section: Raw value Instructions
+	Purpose: Grabs raw data and converts to a value operator.
+	Creditors: Rusketh
+==============================================================================================*/
+function Compiler:Instr_NUMBER(Number)
+	self:PushPerf(EA_COST_CHEAP)
+	return self:Operator(function() return Number end, "number", EA_COST_CHEAP)
+end
+
+function Compiler:Instr_STRING(String)
+	self:PushPerf(EA_COST_CHEAP)
+	return self:Operator(function() return String end, "string", EA_COST_CHEAP)
+end
+
+/*==============================================================================================
+	Section: Assigment Operators
+	Purpose: Assigns Values to Variables
+	Creditors: Rusketh
+==============================================================================================*/
 function Compiler:Instr_ASSIGN_DEFAULT(Name, Type, Special)
 	-- Purpose: Assign a Variable with a default value.
 	
-	local Op, Ret, Cost = self:GetOperator("assign", Type)
-	if !Op then self:Error("Assigment operator (=) does not support '%s'", GetLongType(Type)) end
+	local Operator, Return, Perf = self:GetOperator("assign", Type)
+	
+	if !Operator then self:Error("Assigment operator (=) does not support '%s'", GetLongType(Type)) end
 	
 	local VarID, Scope = self:AssignVar(Type, Name, Special) -- Create the Var
 	
-	if self.Inputs[VarID] then -- Note: Inputs can not be assigned so registering them is enogh.
-		return self:Operation(function() end)
-	end
+	-- Note: Inputs can not be assigned so registering them is enogh.
+	if self.Inputs[VarID] then return self:Operator(function() end) end
 	
-	self.Perf = self.Perf + Cost
+	self:PushPerf(Perf)
 	
-	return self:Operation(Op, Ret, self:Operation(TypeShorts[Type][3], Type), VarID):SetCost(Cost)
+	return self:Operator(Operator, Return, Perf, self:Operator(TypeShorts[Type][3], Type, 0), VarID)
 end
+
+/********************************************************************************************************************/
 
 function Compiler:Instr_ASSIGN_DECLARE(Name, Expr, Type, Special)
 	-- Purpose: Declares a value
 	
-	local Op, Ret, Cost = self:GetOperator("assign", Type)
-	if !Op then self:Error("Assigment operator (=) does not support '%s'", Type) end
+	local Operator, Return, Perf = self:GetOperator("assign", Type)
+	if !Operator then self:Error("Assigment operator (=) does not support '%s'", Type) end
 	
-	local ExprOp = self:CompileInst(Expr, true)
-	local RType = ExprOp:ReturnType()
-	if RType != Type then self:Error("Variable %s of type %s, can not be assigned as '%s'", Name, Type, ExprOp:ReturnType(true)) end
+	local Value, tValue = self:CompileInst(Expr, true)
+	if tValue != Type then self:Error("Variable %s of type %s, can not be assigned as '%s'", Name, Type, GetLongType(tValue)) end
 	
 	local VarID, Scope = self:AssignVar(Type, Name, Special)
 	
@@ -343,10 +352,12 @@ function Compiler:Instr_ASSIGN_DECLARE(Name, Expr, Type, Special)
 		self:Error("Assigment operator (=) does not support input Variables")
 	end
 	
-	self.Perf = self.Perf + Cost
+	self:PushPerf(Perf)
 	
-	return self:Operation(Op, Ret, ExprOp, VarID):SetCost(Cost)
+	return self:Operator(Operator, Return, Perf, Value, VarID)
 end
+
+/********************************************************************************************************************/
 
 function Compiler:Instr_ASSIGN(Name, Expr)
 	-- Purpose: Assign Default value.
@@ -358,30 +369,31 @@ function Compiler:Instr_ASSIGN(Name, Expr)
 		self:Error("Assigment operator (=) does not support input Variables")
 	end
 	
-	local Op, Ret, Cost = self:GetOperator("assign", Type)
-	if !Op then self:Error("Assigment operator (=) does not support '%s'", Type) end
+	local Operator, Return, Perf = self:GetOperator("assign", Type)
+	if !Operator then self:Error("Assigment operator (=) does not support '%s'", Type) end
 	
-	local ExprOp = self:CompileInst(Expr, true)
-	local RType = ExprOp:ReturnType()
-	if RType != Type then self:Error("Variable %s of type %s, can not be assigned as '%s'", Name, Type, ExprOp:ReturnType() ) end
+	local Value, tValue = self:CompileInst(Expr)
+	if tValue != Type then self:Error("Variable %s of type %s, can not be assigned as '%s'", Name, Type, GetLongType(tValue)) end
 	
-	self.Perf = self.Perf + Cost
+	self:PushPerf(Perf)
 	
-	return self:Operation(Op, Ret, ExprOp, VarID):SetCost(Cost)
+	return self:Operator(Operator, Return, Perf, Value, VarID)
 end
-		
+
+/********************************************************************************************************************/
+
 function Compiler:Instr_VARIABEL(Name)
 	-- Purpose: Retrive variabel.
 	
 	local VarID, Type = self:GetVar(Name)
 	if !VarID then self:Error("variabel %s does not exist", Name) end
 	
-	local Op, Ret = self:GetOperator("variabel", Type)
-	if !Op then self:Error("Improbable Error: variabel operator does not support '%s'", Type) end
+	local Operator, Return = self:GetOperator("variabel", Type)
+	if !Operator then self:Error("Improbable Error: variabel operator does not support '%s'", Type) end
 	
-	self.Perf = self.Perf + EA_COST_CHEAP
+	self:PushPerf(EA_COST_CHEAP)
 	
-	return self:Operation(Op, Ret, VarID):SetCost(EA_COST_CHEAP)
+	return self:Operator(Operator, Return, EA_COST_CHEAP, VarID)
 end
 
 /*==============================================================================================
@@ -389,100 +401,54 @@ end
 	Purpose: Does math stuffs?
 	Creditors: Rusketh
 ==============================================================================================*/
-function Compiler:Instr_EXPONENT(InstA, InstB)
-	-- Purpose: ^ Math Operator.
-	
-	local OpA, OpB = self:CompileInst(InstA), self:CompileInst(InstB)
-	local Op, Ret, Cost = self:GetOperator("exponent", OpA:ReturnType(), OpB:ReturnType())
-	if !Op then self:Error("exponent operator (^) does not support '%s ^ %s'", OpA:ReturnType(true), GetLongType(OpB:ReturnType())) end
-	
-	self.Perf = self.Perf + Cost
-	return self:Operation(Op, Ret, OpA, OpB):SetCost(Cost)
+for Name, Symbol in pairs({exponent = "^", multiply = "*", divide = "/", modulus = "%", addition = "+", subtraction = "-"}) do
+
+	Compiler["Instr_" .. UpperStr(Name)] = function(self, InstA, InstB)
+		
+		local ValueA, TypeA = self:CompileInst(InstA)
+		local ValueB, TypeB = self:CompileInst(InstB)
+		
+		local Operator, Return, Perf = self:GetOperator(Name, TypeA, TypeB)
+		if !Operator then self:Error("%s operator (%s) does not support '%s ^ %s'", Name, Symbol, GetLongType(TypeA), GetLongType(TypeB)) end
+		
+		self:PushPerf(Perf)
+		
+		return self:Operator(Operator, Return, Perf, ValueA, ValueB)
+	end
 end
 
-function Compiler:Instr_MULTIPLY(InstA, InstB)
-	-- Purpose: * Math Operator.
-	
-	local OpA, OpB = self:CompileInst(InstA), self:CompileInst(InstB)
-	local Op, Ret, Cost = self:GetOperator("multiply", OpA:ReturnType(), OpB:ReturnType())
-	if !Op then self:Error("multiply operator (*) does not support '%s * %s'", OpA:ReturnType(true), OpB:ReturnType(true)) end
-	
-	self.Perf = self.Perf + Cost
-	return self:Operation(Op, Ret, OpA, OpB):SetCost(Cost)
-end
+/********************************************************************************************************************/
 
-function Compiler:Instr_DIVIDE(InstA, InstB)
-	-- Purpose: / Math Operator.
-	
-	local OpA, OpB = self:CompileInst(InstA), self:CompileInst(InstB)
-	local Op, Ret, Cost = self:GetOperator("divide", OpA:ReturnType(), OpB:ReturnType())
-	if !Op then self:Error("division operator (/) does not support '%s / %s'", OpA:ReturnType(true),OpB:ReturnType(true)) end
-	
-	self.Perf = self.Perf + Cost
-	return self:Operation(Op, Ret, OpA, OpB):SetCost(Cost)
-end
-
-function Compiler:Instr_MODULUS(InstA, InstB)
-	-- Purpose: % Math Operator.
-	
-	local OpA, OpB = self:CompileInst(InstA), self:CompileInst(InstB)
-	local Op, Ret, Cost = self:GetOperator("modulus", OpA:ReturnType(), OpB:ReturnType())
-	if !Op then self:Error("modulus operator (%) does not support '%s % %s'", OpA:ReturnType(true), OpB:ReturnType(true)) end
-	
-	self.Perf = self.Perf + Cost
-	return self:Operation(Op, Ret, OpA, OpB):SetCost(Cost)
-end
-
-function Compiler:Instr_ADDITION(InstA, InstB)
-	-- Purpose: + Math Operator.
-	
-	local OpA, OpB = self:CompileInst(InstA), self:CompileInst(InstB)
-	local Op, Ret, Cost = self:GetOperator("addition", OpA:ReturnType(), OpB:ReturnType())
-	if !Op then self:Error("addition operator (+) does not support '%s + %s'", OpA:ReturnType(true), OpB:ReturnType(true)) end
-	
-	self.Perf = self.Perf + Cost
-	return self:Operation(Op, Ret, OpA, OpB):SetCost(Cost)
-end
-
-function Compiler:Instr_SUBTRACTION(InstA, InstB)
-	-- Purpose: - Math Operator.
-	
-	local OpA, OpB = self:CompileInst(InstA), self:CompileInst(InstB)
-	local Op, Ret, Cost = self:GetOperator("subtraction", OpA:ReturnType(), OpB:ReturnType())
-	if !Op then self:Error("subtraction operator (-) does not support '%s - %s'", OpA:ReturnType(true), OpB:ReturnType(true)) end
-	
-	self.Perf = self.Perf + Cost
-	return self:Operation(Op, Ret, OpA, OpB):SetCost(Cost)
-end
-
-function Compiler:Instr_INCREMET(Var)
+function Compiler:Instr_INCREMET(Name)
 	-- Purpose: ++ Math Operator.
 	
-	local Memory, Type = self:GetVar(Var)
-	if !Memory then self:Error("Variable %s does not exist", Var) end
+	local Memory, Type = self:GetVar(Name)
+	if !Memory then self:Error("Variable %s does not exist", Name) end
 	
-	if self.Inputs[Memory] then self:Error("incremet operator (--) can not accept inputs") end
+	if self.Inputs[Memory] then self:Error("incremet operator (--) will not accept input %s", Name) end
 	
-	local Op, Ret, Cost = self:GetOperator("incremet", Type)
-	if !Op then self:Error("incremet operator (++) does not support '%s++'", Type) end
+	local Operator, Return, Perf = self:GetOperator("incremet", Type)
+	if !Operator then self:Error("incremet operator (++) does not support '%s++'", Type) end
 	
-	self.Perf = self.Perf + Cost
-	return self:Operation(Op, Ret, Memory):SetCost(Cost)
+	self:PushPerf(Perf)
+	
+	return self:Operator(Operator, Return, Perf, Memory)
 end
 
-function Compiler:Instr_DECREMET(Var)
+function Compiler:Instr_DECREMET(Name)
 	-- Purpose: -- Math Operator.
 	
-	local Memory, Type = self:GetVar(Var)
-	if !Memory then self:Error("Variable %s does not exist", Var) end
+	local Memory, Type = self:GetVar(Name)
+	if !Memory then self:Error("Variable %s does not exist", Name) end
 	
-	if self.Inputs[Memory] then self:Error("decremet operator (--) can not accept inputs") end
+	if self.Inputs[Memory] then self:Error("decremet operator (--) will not accept input %s", Name) end
 	
-	local Op, Ret, Cost = self:GetOperator("incremet", Type)
-	if !Op then self:Error("decremet operator (--) does not support '%s--'", Type) end
+	local Operator, Return, Perf = self:GetOperator("decremet", Type)
+	if !Operator then self:Error("decremet operator (--) does not support '%s++'", Type) end
 	
-	self.Perf = self.Perf + Cost
-	return self:Operation(Op, Ret, Memory):SetCost(Cost)
+	self:PushPerf(Perf)
+	
+	return self:Operator(Operator, Return, Perf, Memory)
 end
 
 /*==============================================================================================
@@ -490,141 +456,110 @@ end
 	Purpose: Compare Values =D
 	Creditors: Rusketh
 ==============================================================================================*/
-function Compiler:Instr_GREATER_THAN(InstA, InstB)
-	-- Purpose: > Comparason Operator.
+for Name, Symbol in pairs({greater = ">", less = "<", eqgreater = ">=", eqless = ">=", negeq = "!=", eq = "=="}) do
 	
-	local OpA, OpB = self:CompileInst(InstA), self:CompileInst(InstB)
-	local Op, Ret, Cost = self:GetOperator("greater", OpA:ReturnType(), OpB:ReturnType())
-	if !Op then self:Error("comparason operator (>) does not support '%s > %s'", OpA:ReturnType(true), OpB:ReturnType(true)) end
-	
-	self.Perf = self.Perf + Cost
-	return self:Operation(Op, Ret, OpA, OpB):SetCost(Cost)
-end
-
-function Compiler:Instr_LESS_THAN(InstA, InstB)
-	-- Purpose: < Comparason Operator.
-	
-	local OpA, OpB = self:CompileInst(InstA), self:CompileInst(InstB)
-	local Op, Ret, Cost = self:GetOperator("less", OpA:ReturnType(), OpB:ReturnType())
-	if !Op then self:Error("comparason operator (<) does not support '%s < %s'", OpA:ReturnType(true), OpB:ReturnType(true)) end
-	
-	self.Perf = self.Perf + Cost
-	return self:Operation(Op, Ret, OpA, OpB):SetCost(Cost)
-end
-
-function Compiler:Instr_GREATER_EQUAL(InstA, InstB)
-	-- Purpose: <= Comparason Operator.
-	
-	local OpA, OpB = self:CompileInst(InstA), self:CompileInst(InstB)
-	local Op, Ret, Cost = self:GetOperator("greaterequal", OpA:ReturnType(), OpB:ReturnType())
-	if !Op then self:Error("comparason operator (<=) does not support '%s <= %s'", OpA:ReturnType(true), OpB:ReturnType(true)) end
-	
-	self.Perf = self.Perf + Cost
-	return self:Operation(Op, Ret, OpA, OpB):SetCost(Cost)
-end
-
-function Compiler:Instr_LESS_EQUAL(InstA, InstB)
-	-- Purpose: >= Comparason Operator.
-	
-	local OpA, OpB = self:CompileInst(InstA), self:CompileInst(InstB)
-	local Op, Ret, Cost = self:GetOperator("lessequal", OpA:ReturnType(), OpB:ReturnType())
-	if !Op then self:Error("comparason operator (>=) does not support '%s >= %s'", OpA:ReturnType(true), OpB:ReturnType(true)) end
-	
-	self.Perf = self.Perf + Cost
-	return self:Operation(Op, Ret, OpA, OpB):SetCost(Cost)
-end
-
-function Compiler:Instr_NOT_EQUAL(InstA, InstB)
-	-- Purpose: != Comparason Operator.
-	
-	local OpA, OpB = self:CompileInst(InstA), self:CompileInst(InstB)
-	local Op, Ret, Cost = self:GetOperator("notequal", OpA:ReturnType(), OpB:ReturnType())
-	if !Op then self:Error("comparason operator (!=) does not support '%s != %s'", OpA:ReturnType(true), OpB:ReturnType(true)) end
-	
-	self.Perf = self.Perf + Cost
-	return self:Operation(Op, Ret, OpA, OpB):SetCost(Cost)
-end
-	
-function Compiler:Instr_EQUAL(InstA, InstB)
-	-- Purpose: == Comparason Operator.
-	
-	local OpA, OpB = self:CompileInst(InstA), self:CompileInst(InstB)
-	local Op, Ret, Cost = self:GetOperator("equal", OpA:ReturnType(), OpB:ReturnType())
-	if !Op then self:Error("comparason operator (==) does not support '%s == %s'", OpA:ReturnType(true), OpB:ReturnType(true)) end
-	
-	self.Perf = self.Perf + Cost
-	return self:Operation(Op, Ret, OpA, OpB):SetCost(Cost)
-end
+	Compiler["Instr_" .. UpperStr(Name)] = function(self, InstA, InstB)
+		local ValueA, TypeA = self:CompileInst(InstA)
+		local ValueB, TypeB = self:CompileInst(InstB)
 		
+		local Operator, Return, Perf = self:GetOperator(Name, TypeA, TypeB)
+		if !Operator then self:Error("comparason operator (%s) does not support '%s > %s'", Symbol, GetLongType(TypeA), GetLongType(TypeB)) end
+		
+		self:PushPerf(Perf)
+		
+		return self:Operator(Operator, Return, Perf, ValueA, ValueB)
+	end
+end
+
 /*==============================================================================================
 	Section: If Stamtment
 	Purpose: If Condition Then Do This
 	Creditors: Rusketh
 ==============================================================================================*/
-function Compiler:Instr_IF(Conditon, Block, Else)
+function Compiler:Instr_IF(InstA, InstB, InstC)
 	
-	local Con = self:CompileInst(Conditon)
-	local OpC, RetC, CostC = self:GetOperator("is", Con:ReturnType())
-	if !OpC or RetC ~= "n" then self:Error("if stament conditions do not support '%s'", Con:ReturnType()) end
+	local Value, tValue = self:CompileInst(InstA) -- Condition
+	local Operator, Return, aPerf = self:GetOperator("is",tValue)
+	if !Operator or Return ~= "n" then self:Error("if stament conditions do not support '%s'", GetLongType(tValue)) end
+	
+	local Condition = self:Operator(Operator, Return, Perf, Value)
 	
 	self:PushScope()
-	local Op, Ret, Cost = self:GetOperator("if")
-	local Statments = self:CompileInst(Block)
+	
+	local Statments = self:CompileInst(InstB)
+	
 	self:PopScope()
 	
-	Cost = (Cost or EA_COST_CHEAP) + (CostC or EA_COST_CHEAP)
-	self.Perf = self.Perf + Cost -- Note: Temp!
+	local Operator, Return, bPerf = self:GetOperator("if")
 	
-	if !Else then
-		return self:Operation(Op, Ret, self:Operation(OpC, RetC, Con), Statments):SetCost(Cost)
-	else
-		local ElseOp = self:CompileInst(Else)
-		return self:Operation(Op, Ret, self:Operation(OpC, RetC, Con), Statments, ElseOp):SetCost(Cost)
+	self:PushPerf(aPerf + bPerf)
+	
+	if !InstC then -- No elseif or else statment
+		return self:Operator(Operator, Retutrn, bPerf, Condition, Statments)
 	end
+	
+	local Else = self:CompileInst(InstC)
+	return self:Operator(Operator, Return, bPerf, Condition, Statments, Else)
 end
+
+/********************************************************************************************************************/
 
 function Compiler:Instr_OR(InstA, InstB)
 	-- Purpose: || conditonal Operator.
 	
-	local OpA, OpB = self:CompileInst(InstA), self:CompileInst(InstB)
-	local TypeA, TypeB = OpA:ReturnType(), OpB:ReturnType()
-	local Op, Ret, Cost = self:GetOperator("or", TypeA, TypeB)
+	local ValueA, TypeA = self:CompileInst(InstA)
+	local ValueB, TypeB = self:CompileInst(InstB)
+	local Operator, Return, Perf = self:GetOperator("or", TypeA, TypeB)
 	
-	if !Op then -- Note: Default Or Operators
-		if TypeA == TypeB then
-			local IOp, IRet, ICost = self:GetOperator("is", TypeA)
-			if IOp then
-				local Op, Ret, Cost = self:GetOperator("or", IRet, IRet)
-				self.Perf = self.Perf + Cost + ICost + ICost
-				
-				return self:Operation(Op, Ret, self:Operation(IOp, IRet, OpA):SetCost(ICost), self:Operation(IOp, IRet, OpB):SetCost(ICost)):SetCost(Cost)
-			end
+	if !Operator and TypeA == TypeB then -- Lets see if we can default this?	
+	
+		local _Operator, _Return, _Perf = self:GetOperator("is", TypeA)
+		if _Operator then -- Yep we will do 'is(A) or is(B)'
+			
+			local Operator, Return, Perf = self:GetOperator("or", aReturn, aReturn)
+			
+			self:PushPerf(Perf + _Perf + _Perf)
+			
+			local TestA = self:Operator(_Operator, _Return, _Perf, ValueA)
+			local TestB = self:Operator(_Operator, _Return, _Perf, ValueB)
+			
+			return self:Operator(Operator, Return, Perf, TestA, TestB)
 		end
+		
+		self:Error("or operator (||) does not support '%s || %s'", GetLongType(TypeA), GetLongType(TypeB))
 	end
 	
-	if !Op then self:Error("or (||) does not support '%s || %s'", TypeA, TypeB) end
+	-- Ooh Supported Or operators, Fancy!
 	
-	-- Note: Ooh Supported Or operators =D
+	self:PushPerf(Perf)
 	
-	self.Perf = self.Perf + Cost
-	return self:Operation(Op, Ret, OpA, OpB):SetCost(Cost)
+	return self:Operator(Operator, Return, Perf, ValueA, ValueB)
 end
 
 function Compiler:Instr_AND(InstA, InstB)
 	-- Purpose: && conditonal Operator.
 	
-	local OpA, OpB = self:CompileInst(InstA), self:CompileInst(InstB)
-	local TypeA, TypeB = OpA:ReturnType(), OpB:ReturnType()
+	local ValueA, TypeA = self:CompileInst(InstA)
+	local ValueB, TypeB = self:CompileInst(InstB)
 	
-	local AOp, ARet, ACost = self:GetOperator("is", TypeA)
-	local BOp, BRet, BCost = self:GetOperator("is", TypeB)
-	if !AOp or !BOp then self:Error("and (&&) does not support '%s && %s'", TypeA, TypeB) end
+	local aOperator, aReturn, aPerf = self:GetOperator("is", TypeA)
+	local bOperator, bReturn, bPerf = self:GetOperator("is", TypeA)
 	
-	local Op, Ret, Cost = self:GetOperator("and", ARet, BRet)
-	if !Op then self:Error("and (&&) does not support '%s && %s'", TypeA, TypeB) end
+	if aOperator and bOperator then
+		local Operator, Return, Perf = self:GetOperator("and", aReturn, bReturn)
+		
+		if Operator then
+			
+			local TestA = self:Operator(aOperator, aReturn, aPerf, ValueA)
+			local TestB = self:Operator(bOperator, bReturn, bPerf, ValueB)
+			
+			self:PushPerf(Perf + aPerf + bPerf)
+			
+			return self:Operator(Operator, Return, Perf, TestA, TestB)
+		end
+	end
 	
-	self.Perf = self.Perf + Cost
-	return self:Operation(Op, Ret, self:Operation(AOp, ARet, OpA):SetCost(ACost), self:Operation(BOp, BRet, OpB):SetCost(BCost)):SetCost(Cost)
+	self:Error("and operator (&&) does not support '%s && %s'", GetLongType(TypeA), GetLongType(TypeB))
 end
 
 /*==============================================================================================
@@ -632,56 +567,19 @@ end
 	Purpose: These handel stuff like Delta, not and Neg
 	Creditors: Rusketh
 ==============================================================================================*/
-function Compiler:Instr_NEGATIVE(Inst)
-	local Value = self:CompileInst(Inst)
+for Name, Symbol in pairs({negative = "-", ["not"] = "!", lenth = "#", delta = "~"}) do
 	
-	local Op, Ret, Cost = self:GetOperator("negative", Value:ReturnType())
-	if !Op then self:Error("Negation operator (-) does not support '-%s'", Value:ReturnType()) end
-	
-	self.Perf = self.Perf + Cost
-	return self:Operation(Op, Ret, Value):SetCost(Cost)
-end
-
-function Compiler:Instr_NOT(Inst)
-	-- Purpose: ! Not Operator
-	
-	local Value = self:CompileInst(Inst)
-	
-	local Op, Ret, Cost = self:GetOperator("not", Value:ReturnType())
-	if !Op then self:Error("Not operator (!) does not support '!%s'", Value:ReturnType()) end
-	
-	self.Perf = self.Perf + Cost
-	return self:Operation(Op, Ret, Value):SetCost(Cost)
-end
-
-function Compiler:Instr_LENTH(Inst)
-	-- Purpose: # Length Operator
-	
-	local Value = self:CompileInst(Inst)
-	
-	local Op, Ret, Cost = self:GetOperator("lenth", Value:ReturnType())
-	if !Op then self:Error("Lenth operator (#) does not support '#%s'", Value:ReturnType()) end
-	
-	self.Perf = self.Perf + Cost
-	return self:Operation(Op, Ret, Value):SetCost(Cost)
-end
-
-/*==============================================================================================
-	Section: Delta
-	Purpose: Differnce between new and old values.
-	Creditors: Rusketh
-==============================================================================================*/
-function Compiler:Instr_DELTA(Name)
-	-- Purpose: ~ Delta Operator
-	
-	local VarID, Type = self:GetVar(Name)
-	if !VarID then self:Error("variabel %s does not exist", Name) end
-
-	local Op, Ret, Cost = self:GetOperator("delta", Type)
-	if !Op then self:Error("Delta operator (~) does not support '~%s'", Type) end
-	
-	self.Perf = self.Perf + Cost
-	return self:Operation(Op, Ret, VarID):SetCost(Cost)
+	Compiler["Instr_" .. UpperStr(Name)] = function(self, Inst)
+		
+		local Value, tValue = self:CompileInst(Inst)
+		
+		local Operator, Return, Perf = self:GetOperator("negative", tValue)
+		if !Operator then self:Error("%s operator (%s) does not support '%s%s'", Name, Symbol, Symbol, GetLongType(tValue)) end
+		
+		self:PushPerf(Perf)
+		
+		return self:Operator(Operator, Return, Perf, Value)
+	end
 end
 
 /*==============================================================================================
@@ -689,17 +587,17 @@ end
 	Purpose: Casting converts one type to another.
 	Creditors: Rusketh
 ==============================================================================================*/
-function Compiler:Instr_CAST(Type, Expr)
-	-- Purpose: (type) epresson casting
+function Compiler:Instr_CAST(Type, Inst)
+	-- Purpose: (type) value casting
 	
-	local Value = self:CompileInst(Expr, true)
-	local Convert = Value:ReturnType()
+	local Value, tValue = self:CompileInst(Inst)
+	local Operator, Return, Perf = self:GetOperator("cast", Type, tValue)
 	
-	-- Note: Lets see if we can cast at compile time.
-	local Op, Ret, Cost = self:GetOperator("cast", Type, Convert)
-	if !Op then self:Error("Can not cast from %q to %q", GetLongType(Convert), GetLongType(Type) ) end
+	if !Operator then self:Error("Can not cast from %s to %s", GetLongType(tValue), GetLongType(Type) ) end
 	
-	return self:Operation(Op, Type, Value, Type):SetCost(Cost)
+	self:PushPerf(Perf)
+	
+	return self:Operator(Operator, Return, Perf, Value)
 end
 
 /*==============================================================================================
@@ -711,34 +609,54 @@ function Compiler:GenerateArguments(Insts, Method)
 	-- Purpose: Compiles function arguments.
 	
 	local Total = #Insts
-	if Total == 0 then return {}, "" end
-	
-	local Op = self:CompileInst(Insts[1])
-	local Ops, Sig = {Op}, Op:ReturnType()
-	
-	if Method then Sig = Sig .. ":" end
-	
-	for I = 2, Total do
-		local Op = self:CompileInst(Insts[1])
-		local Type = Op:ReturnType()
+	if Total != 0 then
+		local Value, Sig = self:CompileInst(Insts[1])
+		local Values = {Value} 
 		
-		Ops[I] = Op; Sig = Sig .. Type
+		if Method then Sig = Sig .. ":" end
+		
+		for I = 2, Total do
+			local Value, tValue = self:CompileInst(Insts[1])
+			
+			--Todo: Prevent nil values!
+			
+			Values[I] = Value
+			Sig = Sig .. tValue
+		end
+		
+		return Values, Sig
 	end
 	
-	return Ops, Sig
+	return {}, ""
 end
 
-function Compiler:CallFunction(Name, Ops, Sig)
+/********************************************************************************************************************/
+
+function Compiler:CallFunction(Name, Operators, Sig)
+	-- Purpose: Finds and calls a function!
+	-- Todo: VarArg support!
 	
-	local Functions = Functions -- Speed!
-	local Func = Functions[Name .. "(" .. Sig .. ")"]
+	local Function = Functions[Name .. "(" .. Sig .. ")"]
 	
-	if !Func then self:Error("Uknown function %s(%s)", Name, Sig) end
+	if !Function then -- Lets look for a supporting vararg function!
+		local Functions, Sig = Functions, Sig -- Speed!, Copy the signature!
+		
+		for I = #Operators, 0 do
+			if Sig[#Sig] == ":" then
+				break -- Hit the meta peramater, abort!
+			else
+				Sig = SubStr(Sig, 1, #Sig - #Operators[I][2])
+				Function = Functions[Name .. "(" .. Sig .. "...)"]
+				if Function then break end
+			end
+		end
+	end
 	
-	local Cost = Func[3]
-	self.Perf = self.Perf + Cost
+	if !Function then self:Error("No such function %s(%s)", Name, Sig) end
 	
-	return self:Operation(Func[1], Func[2], unpack(Ops)):SetCost(Cost)
+	self:PushPerf(Function[3] or 0)
+	
+	return self:Operator(Function[1], Function[2], Function[3], unpack(Operators))
 end
 
 function Compiler:Instr_FUNCTION(Name, Insts)
@@ -750,15 +668,15 @@ function Compiler:Instr_FUNCTION(Name, Insts)
 		return self:Call_UDFunction(Name, VarID, Insts)
 	end
 	
-	local Ops, Sig = self:GenerateArguments(Insts)
-	return self:CallFunction(Name, Ops, Sig)
+	local Operators, Sig = self:GenerateArguments(Insts)
+	return self:CallFunction(Name, Operators, Sig)
 end
 
 function Compiler:Instr_METHOD(Name, Insts)
 	-- Purpose: Finds and calls a function.
 	
-	local Ops, Sig = self:GenerateArguments(Insts, true)
-	return self:CallFunction(Name, Ops, Sig)
+	local Operators, Sig = self:GenerateArguments(Insts, true)
+	return self:CallFunction(Name, Operators, Sig)
 end
 
 /*==============================================================================================
@@ -772,76 +690,77 @@ function Compiler:Call_UDFunction(Name, VarID, Insts)
 	local Data = self.VarData[ VarID ]
 	local Perams, Return = Data[2], Data[1]
 	
-	local Ops, Sig = self:GenerateArguments(Insts)
-	if Perams != Sig then self:Error("Peramater missmatch for user function %s() %q vs %q", Name, tostring(Perams), tostring(Sig)) end
+	local Operator, _, Perf = self:GetOperator("udfcall")
+	local Operators, Sig = self:GenerateArguments(Insts)
 	
-	local Op, Ret, Cost = self:GetOperator("udfcall")
-	self.Perf = self.Perf + Cost
+	if Perams != Sig then self:Error("Peramater missmatch for user function %s(%s)", Name, tostring(Sig)) end -- Todo: Perams List!
 	
-	return self:Operation(Op, Return, VarID, Ops):SetCost(Cost)
+	self:PushPerf(Perf)
+	
+	return self:Operator(Operator, Return, Perf, VarID, Operators)
 end
 
-function Compiler:Instr_UDFUNCTION(Local, Name, Listed, Perams, Types, Block, Return)
+/********************************************************************************************************************/
+
+function Compiler:Instr_UDFUNCTION(Local, Name, Sig, Perams, tPerams, Stmts, Return)
 	-- Purpose: Define user function.
 	
 	local VarID, Type
-	if !Local then -- Assign the function some memory.
+	if !Local then
 		VarID, Type = self:SetVar(Name, "f")
 	else
 		VarID, Type = self:LocalVar(Name, "f")
 	end
 	
-	local Current = self.VarData[ VarID ]
+	local Memory = self.VarData[ VarID ]
 	
-	if Current then -- Compare information as not to confuse the compiler!
+	if Memory then
+		if Memory[2] ~= Sig then -- Previous function has conflicting peramaters.
+			self:Error("Peramter missmach for new user function %q(%s)", Name, Memory[2]) -- Todo: Perams List!
 		
-		if Current[2] ~= Listed then
-			self:Error("Peramter missmach for function %q", Name)
-		elseif Current[1] ~= Return then
-			self:Error("Return type missmach for function %q exspected to be %q", Name, LongType(Current[1]))
+		elseif Memory[1] ~= Return then -- Previous function has conflicting return type.
+			self:Error("Return type missmach for function %q exspected to be %q", Name, GetLongType(Memory[1]))
 		end
-	else
-		self.VarData[ VarID ] = {Return, Listed}
 	end
 	
-	local Memory, Statments = self:BuildFunction(Listed, Perams, Types, Block, Return)
+	self.VarData[ VarID ] = {Return, Sig}
 	
-	local Op, Ret, Cost = self:GetOperator("udfdef")
-	self.Perf = self.Perf + Cost
+	local MemoryInfo, Statments = self:BuildFunction(Sig, Perams, tPerams, Stmts, Return)
+	local Operator, _R, Perf = self:GetOperator("udfdef")
 	
-	return self:Operation(Op, Ret, VarID, Perams, Memory, Statments, Return):SetCost(Cost)
+	self:PushPerf(Perf)
+	
+	return self:Operator(Operator, _R, Perf, VarID, Perams, MemoryInfo, Statments, Return)
 end
 
-function Compiler:BuildFunction(Listed, Perams, Types, Block, Return)
+function Compiler:BuildFunction(Sig, Perams, tPerams, Stmts, Return)
 	-- Purpose: This instruction Will create function variabels.
 	
-	local LastReturnType = self.ReturnType
-	self.ReturnType = Return
+	local _ReturnType = self.ReturnType
+	self.ReturnType = Return -- We set what this function can return!
 	
 	self:PushScope()
 	
-	local Memory, Ops = {}, Operators
-	for I = 1, #Perams do
-		local Var = Perams[I]
-		local Type = Types[Var]
+		local MemoryInfo = {}
+		for I = 1, #Perams do
+			local Peramater = Perams[I]
+			local Type = tPerams[Peramater]
+			
+			local Operator = Operators["assign(" .. Type .. ")"]
+			if !Operator then self:Error("type %s, can not be used in function perameters.", Type) end
+
+			MemoryInfo[I] = { self:LocalVar(Var, Type), Operator }
+		end
+	
+		self:PushScope()
 		
-		local Op = Operators["assign(" .. Type .. ")"]
-		if !Op then self:Error("type %s, can not be used in function perameters.", Type) end
-
-		Memory[I] = {self:LocalVar(Var, Type), Op}
-	end
-	
-	self:PushScope() -- Note: Allows us to overwrite perameters.
-	
-	local Statments = self:CompileInst(Block) -- Note: Function Body =D
-	
-	self:PopScope()
+			local Statments = self:CompileInst(Stmts)
+		
+		self:PopScope()
+		
 	self:PopScope()
 	
-	self.ReturnType = LastReturnType
-	
-	local Op, Ret, Cost = self:GetOperator("udfunction")
-
+	self.ReturnType = _ReturnType
 	return Memory, Statments
 end
 
@@ -849,21 +768,24 @@ function Compiler:Instr_RETURN(Inst)
 	local Return, Value = self.ReturnType
 	
 	if Inst then
-		Value = self:CompileInst(Inst)
+		Value, tValue = self:CompileInst(Inst)
 	
 		if !Return then
-			self:Error("Unable to return '%s', function return type is 'void'", Value:ReturnType(true))
+			self:Error("Unable to return '%s', function return type is 'void'", GetLongType(tValue))
 			
-		elseif Value:ReturnType() != Return then
-			self:Error("Unable to return '%s', function return type is '%s'", Value:ReturnType(true), GetLongType(Return))
+		elseif Return != tValue then
+			self:Error("Unable to return '%s', function return type is '%s'", GetLongType(tValue), GetLongType(Return))
 		end
 		
 	elseif Return then
 		self:Error("Unable to return 'void', function return type is '%s'", GetLongType(Return))
 	end
 	
-	local Op, Ret, Cost = self:GetOperator("return")
-	return self:Operation(Op, Return, Value):SetCost(Cost)
+	local Operator, _R, Perf = self:GetOperator("return")
+	
+	self:PushPerf(Perf)
+	
+	return self:Operator(Operator, Return, Perf, Value)
 end
 
 /*==============================================================================================
@@ -871,77 +793,90 @@ end
 	Purpose: Events do stuff.
 	Creditors: Rusketh
 ==============================================================================================*/
-function Compiler:Instr_EVENT(Event, Perams, Types, Block)
+function Compiler:Instr_EVENT(Name, Perams, tPerams, Stmts)
 	-- Purpose: This instruction Will create function variabels.
 	
 	self:PushScope()
 	
-	local Memory, Ops = {}, Operators
-	for I = 1, #Perams do
-		local Var = Perams[I]
-		local Type = Types[Var]
+		local MemoryInfo = {}
 		
-		local Op = Operators["assign(" .. Type .. ")"]
-		if !Op then self:Error("type %s, can not be used in function perameters.", Type) end
+		for I = 1, #Perams do
+			local Peramater = Perams[I]
+			local Type = tPerams[Peramater]
+			
+			local Operator = Operators["assign(" .. Type .. ")"]
+			if !Operator then self:Error("type %s, can not be used in function perameters.", Type) end
 
-		Memory[I] = { self:LocalVar(Var, Type), Op }
-	end
+			MemoryInfo[I] = { self:LocalVar(Var, Type), Operator }
+		end
 	
-	self:PushScope() -- Note: Allows us to overwrite perameters.
+		self:PushScope()
+		
+			local Statments = self:CompileInst(Stmts)
 	
-	local Statments = self:CompileInst(Block) -- Note: Event Body =D
-	
+		self:PopScope()
+		
 	self:PopScope()
-	self:PopScope()
 	
-	Op, Ret, Cost = self:GetOperator("event")
-
-	return self:Operation(Op, Ret, Event, Memory, Statments):SetCost(Cost)
+	Operator, Return, Perf = self:GetOperator("event")
+	
+	self:PushPerf(Perf)
+	
+	return self:Operator(Operator, Return, Perf, Name, MemoryInfo, Statments)
 end
 /*==============================================================================================
 	Section: Loops
 	Purpose: for loops, while loops.
 	Creditors: Rusketh
 ==============================================================================================*/
-function Compiler:Instr_LOOP_FOR(Assign, Condition, Step, Block)
+function Compiler:Instr_LOOP_FOR(InstA, InstB, InstC, Stmts)
 	-- Purpose: Runs a for loop.
 	
-	local Op, Ret, Cost = self:GetOperator("for")
-	
 	self:PushScope()
-	
-	local Assign = self:CompileInst(Assign)
-	
-	local Cond = self:CompileInst(Condition) -- Note: Conditions need an is operator.
-	local op, ret, cost = self:GetOperator("is", Cond:ReturnType())
-	if !op or ret ~= "n" then self:Error("for loop conditions do not support '%s'", Cond:ReturnType()) end
-	
-	local Step = self:CompileInst(Step)
-
-	local Block = self:CompileInst(Block)
+		
+		local Variable, tVariable = self:CompileInst(InstA)
+		local Condition, tCondition = self:CompileInst(InstB)
+		
+		local Operator, Return, Perf = self:GetOperator("is", tCondition)
+		if !Operator or tCondition ~= "n" then self:Error("for loop conditions do not support '%s'", GetLongType(tCondition)) end
+		
+		local IsOperator = self:Operator(Operator, Return, Perf, Condition)
+		
+		local Step = self:CompileInst(InstC)
+		local Statments = self:CompileInst(Stmts)
 	
 	self:PopScope()
 	
-	return self:Operation(Op, Ret, Assign, self:Operation(op, ret, Cond):SetCost(cost), Step, Block):SetCost(Cost)
+	local Operator, Return, Perf = self:GetOperator("for")
+	
+	self:PushPerf(Perf)
+	
+	return self:Operator(Operator, Return, Perf, Variable, IsOperator, Step, Statments)
 end
 
-function Compiler:Instr_LOOP_WHILE(Condition, Block)
+function Compiler:Instr_LOOP_WHILE(Inst, Stmts)
 	-- Purpose: Runs a while loop.
 	
-	local Op, Ret, Cost = self:GetOperator("while")
-	
-	local Cond = self:CompileInst(Condition) -- Note: Conditions need an is operator.
-	local op, ret, cost = self:GetOperator("is", Cond:ReturnType())
-	if !op or ret ~= "n" then self:Error("for loop conditions do not support '%s'", Cond:ReturnType()) end
-		
 	self:PushScope()
-	
-	local Block = self:CompileInst(Block)
-	
-	self:PopScope()
 		
-	return self:Operation(Op, Ret, self:Operation(op, ret, Cond):SetCost(cost), Block):SetCost(Cost)
+		local Condition, tCondition = self:CompileInst(Inst)
+		
+		local Operator, Return, Perf = self:GetOperator("is", tCondition)
+		if !Operator or tCondition ~= "n" then self:Error("for loop conditions do not support '%s'", GetLongType(tCondition)) end
+		
+		local IsOperator = self:Operator(Operator, Return, Perf, Condition)
+		local Statments = self:CompileInst(Stmts)
+		
+	self:PopScope()	
+		
+	local Operator, Return, Perf = self:GetOperator("while")
+	
+	self:PushPerf(Perf)
+	
+	return self:Operator(Operator, Return, Perf, IsOperator, Statments)
 end
+
+/********************************************************************************************************************/
 
 function Compiler:Instr_BREAK(Depth)
 	-- Purpose: Breaks a loop.
@@ -953,4 +888,74 @@ function Compiler:Instr_CONTINUE(Depth)
 	-- Purpose: Continues a loop.
 	
 	return function(self) self:Throw("continue", Depth or 0) end
+end
+
+/*==============================================================================================
+	Section: Tables
+	Purpose: Makes Tables.
+	Creditors: Rusketh
+==============================================================================================*/
+function Compiler:Instr_TABLE(InstK, InstV)
+	-- Purpose: Creates a table.
+	
+	local Keys, Values = {}, {}
+	
+	for I = 1, #InstV do
+		Values[I] = self:CompileInst(InstV[I])
+		local Key = InstK[I]
+		
+		if Key then -- Adds a key!
+			local Value, tValue = self:CompileInst(Key)
+			Keys[I] = Value
+			
+			if tValue ~= "n" and tValue ~= "s" and tValue ~= "e" then
+				self:Error("%s is not a valid table index", GetLongType(tValue))
+			end
+		end
+	end
+	
+	local Operator, Return, Perf = self:GetOperator("table")
+	
+	self:PushPerf(Perf)
+	
+	return self:Operator(Operator, Return, Perf, Keys, Values)
+end
+
+function Compiler:Instr_GET(InstA, InstB, Type)
+	-- Purpose: [K,Y] Index Operator
+	
+	local Variable, tVariable = self:CompileInst(Inst)
+	local Key, tKey = self:CompileInst(InstB)
+	local Operator, Return, Perf
+	
+	if Type then
+		Operator, Return, Perf = self:GetOperator("get", tVariable, tKey, Type)
+		if !Operator then self:Error("%s does not support index operator ([%s, %s])", GetLongType(tVariable), GetLongType(tKey), GetLongType(Type)) end
+	else
+		Operator, Return, Perf = self:GetOperator("get", tVariable, tKey)
+		if !Operator then self:Error("%s does not support index operator ([%s])", GetLongType(tVariable), GetLongType(tKey)) end
+	end
+	
+	self:PushPerf(Perf)
+	
+	return self:Operator(Operator, Return, Perf, Variable, Key)
+end
+
+function Compiler:Instr_SET(InstA, InstB, InstC, Type)
+	-- Purpose: [K,Y] Index Operator
+	
+	local Variable, tVariable = self:CompileInst(InstA)
+	local Key, tKey = self:CompileInst(InstB)
+	local Value, tValue = self:CompileInst(Inst2B)
+	
+	if Type and Type ~= tValue then
+		self:Error("%s can not be set to a %s index", GetLongType(tValue), GetLongType(Type))
+	end
+	
+	local Operator, Return, Perf = self:GetOperator("set", tVariable, tKey, tValue)
+	if !Operator then self:Error("%s does not support assignment index operator ([%s, %s])", GetLongType(tVariable), GetLongType(tKey), GetLongType(tValue)) end
+	
+	self:PushPerf(Perf)
+	
+	return self:Operator(Operator, Return, Perf, Variable, Key, Value)
 end

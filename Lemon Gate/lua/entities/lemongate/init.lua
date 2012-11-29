@@ -358,7 +358,7 @@ end
 function Lemon:UpdateOverlay(Status, Info, ...)
 	if Info then Status = FormatStr(Status, Info, ...) end
 	
-	self:SetOverlayText(FormatStr("%s\nExpression Advanced\n%s", self.Name, Status ))
+	self:SetOverlayText(FormatStr("%s\n%s", self.Name, Status ))
 end
 
 /*==============================================================================================
