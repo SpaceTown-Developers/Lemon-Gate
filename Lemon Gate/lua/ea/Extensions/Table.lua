@@ -128,7 +128,7 @@ E_A:RegisterOperator("assign", "t", "", function(self, ValueOp, Memory)
 	self.Memory[Memory] = ValueOp(self)
 end)
 
-E_A:RegisterOperator("variabel", "", "t", function(self, Memory)
+E_A:RegisterOperator("variabel", "t", "t", function(self, Memory)
 	-- Purpose: Assigns a string to memory
 	
 	return self.Memory[Memory]
@@ -139,4 +139,98 @@ end)
 	Purpose: Basic operations.
 	Creditors: Rusketh
 ==============================================================================================*/
+E_A:RegisterOperator("lengh", "t", "n", function(self, Value)
+	-- Purpose: Gets the highest numric index
+	
+	local Data = Value(self).Data
+	if !Data then return 0 else return #Data end
+end)
+
+for Type, tTable in pairs(E_A.TypeShorts) do
+	
+	MsgN("Adding table support for: " .. E_A.GetLongType(Type))
+	
+	-- Get Number Index
+	E_A:RegisterOperator("get", "tn" .. Type, Type, function(self, ValueA, ValueB)
+		local Table, Index = ValueA(self), ValueB(self)
+		if !Table.Data then self:Error("Attempt to index feild " .. tostring(Index) .. " on invalid table.") end
+		
+		local tIndex = Table.Types[Index]
+		if !tIndex and Type == "t" then self:Error("Attempt to reach invalid table at index " .. tostring(Index) .. ".")
+		elseif !tIndex or tIndex != Type then return tTable[3](self) end -- Default value!
+		
+		return Table.Data[Index]
+	end)
+	
+	-- Get String Index
+	E_A:RegisterOperator("get", "ts" .. Type, Type, function(self, ValueA, ValueB)
+		local Table, Index = ValueA(self), ValueB(self)
+		if !Table.Data then self:Error("Attempt to index feild " .. tostring(Index) .. " on invalid table.") end
+		
+		local tIndex = Table.Types[Index]
+		if !tIndex and Type == "t" then self:Error("Attempt to reach invalid table at index " .. tostring(Index) .. ".")
+		elseif !tIndex or tIndex != Type then return tTbale[3](self) end -- Default value!
+		
+		return Table.Data[Index]
+	end)
+	
+	-- Get Entity Index
+	E_A:RegisterOperator("get", "te" .. Type, Type, function(self, ValueA, ValueB)
+		local Table, Index = ValueA(self), ValueB(self)
+		if !Table.Data then self:Error("Attempt to index feild " .. tostring(Index) .. " on invalid table.") end
+		
+		local tIndex = Table.Types[Index]
+		if !tIndex and Type == "t" then self:Error("Attempt to reach invalid table at index " .. tostring(Index) .. ".")
+		elseif !tIndex or tIndex != Type then return tTable[3](self) end -- Default value!
+		
+		return Table.Data[Index]
+	end)
+	
+	/*****************************************************************************************************************************/
+	
+	-- Set Number Index
+	E_A:RegisterOperator("set", "tn" .. Type, "", function(self, ValueA, ValueB, ValueC)
+		local Table, Index = ValueA(self), ValueB(self)
+		MsgN("Table is -> " .. tostring(Table))
+		if !Table.Data then self:Error("Attempt to index feild " .. tostring(Index) .. " on invalid table.") end
+		
+		if !Table:Set(Index, Type, ValueC(self)) then self:Error("Maxamum table size exceeded.") end
+	end)
+	
+	-- Set String Index
+	E_A:RegisterOperator("set", "ts" .. Type, "", function(self, ValueA, ValueB, ValueC)
+		local Table, Index = ValueA(self), ValueB(self)
+		if !Table.Data then self:Error("Attempt to index feild " .. tostring(Index) .. " on invalid table.") end
+		
+		if !Table:Set(Index, Type, ValueC(self)) then self:Error("Maxamum table size exceeded.") end
+	end)
+	
+	-- Set Entity Index
+	E_A:RegisterOperator("set", "te" .. Type, "", function(self, ValueA, ValueB, ValueC)
+		local Table, Index = ValueA(self), ValueB(self)
+		if !Table.Data then self:Error("Attempt to index feild " .. tostring(Index) .. " on invalid table.") end
+		
+		if !Table:Set(Index, Type, ValueC(self)) then self:Error("Maxamum table size exceeded.") end
+	end)
+end
+
+/*==============================================================================================
+	Section: Table Functions
+	Purpose: Basic operations.
+	Creditors: Rusketh
+==============================================================================================*/
+E_A:RegisterFunction("size", "t:", "n", function(self, Value)
+	return Value(self).Size or 0
+end)
+
+E_A:RegisterFunction("count", "t:", "n", function(self, Value)
+	return Value(self).Count or 0
+end)
+
+E_A:RegisterFunction("lengh", "t:", "n", function(self, Value)
+	local Data = Value(self).Data
+	if !Data then return 0 else return #Data end
+end)
+
+
 

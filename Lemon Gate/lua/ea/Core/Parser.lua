@@ -66,7 +66,8 @@ function Parser:Run(Tokens)
 	
 	self.Tokens = Tokens
 	self.TotalTokens = Count
-	
+	self.PredictionTypes = {}
+	self.PredictionReturns = {}
 	self.LoopDepth = 0
 	
 	self.Pos = -1
@@ -80,7 +81,6 @@ local FormatStr = string.format -- Speed
 function Parser:Error(Message, Info, ...)
 	-- Purpose: Create and push a syntax error.
 	
-	debug.Trace()
 	if Info then Message = FormatStr(Message, Info, ...) end
 	error( FormatStr(Message .. " at line %i, char %i", self.TokenLine, self.TokenChar), 0)
 end
@@ -213,6 +213,11 @@ end
 function Parser:Instruction(Name, Trace, ...)
 	-- Purpose: Creates an instruction.
 	
+	if type(Name) ~= "string" then
+		debug.Trace()
+		self:Error("[LUA] Parser created invalid instruction.")
+	end
+	
 	return {Name, Trace, {...}}
 end
 
@@ -291,6 +296,42 @@ function Parser:UnspoofToken()
 		self.RealToken = nil
 	end
 end
+
+/*==============================================================================================
+	Section: Predictions
+	Purpose: It tells the compiler what we need!.
+	Todo: Figure out how to fit into over loaded functions!
+	Creditors: Rusketh
+==============================================================================================*/
+-- function self:PredictType(Type)
+	-- local T = self.PredictionTypes
+	-- T[#T + 1] = Type
+-- end
+
+-- function self:UnpredictType()
+	-- local T = self.PredictionTypes
+	-- T[#T] = nil
+-- end
+
+-- function self:PredictedType()
+	-- local T = self.PredictionTypes
+	-- return T[#T]
+-- end
+
+-- function self:PredictReturn(Type)
+	-- local T = self.PredictionReturns
+	-- T[#T + 1] = Type
+-- end
+
+-- function self:UnpredictReturn()
+	-- local T = self.PredictionReturns
+	-- T[#T] = nil
+-- end
+
+-- function self:PredictedReturn()
+	-- local T = self.PredictionReturns
+	-- return T[#T]
+-- end
 
 /*==============================================================================================
 	Section: Expressions
@@ -850,47 +891,42 @@ end
 	Example: Array[i, number] = 10, Array[i, number] += 10
 	Creditors: Rusketh
 ==============================================================================================*/
+
 function Parser:IndexedStatment()
 	if self:AcceptToken("var") then
-		local Trace, Var = self:TokenTrace(), self.TokenData
+		local Trace = self:TokenTrace()
+		local Get = self:Instruction("variabel", Trace, self.TokenData)
 		
-		if self:AcceptToken("lsb") then
-			self:PrevToken()
-			
-			local Indexs = { self:IndexingList() }
-			local Count = #Indexs -- Speed
-			
-			local Get, Set = self:Instruction("variabel", Trace, Var)
-			
+		if self:CheckToken("lsb") then
+			local List = { self:IndexingList() } -- {{1:Expr 2:Type 3:Trace}, ...}
+			local Count = #List
+				
 			for I = 1, Count do
-				local Index = Indexs[I]
-				local Expression, Type, Trace = Index[1], Index[2], Index[3]
-				
-				if I == Count then
-					Set = self:Instruction("set", Trace, Get, Expression, nil, Type) -- OMG: A nill value to be changed later.
-				end
-				
-				Get = self:Instruction(trace, "get", Get, Expression, Type)
+				local Data = List[I]
+				if I != Count then Get = self:Instruction("get", Data[3], Get, Data[1], Data[2]) end
 			end
 			
-			if self:AcceptToken("ass") then -- Assignment operator
-				Set[5] = self:Expression()
-				return Set
-			elseif self:AcceptToken("aadd") then -- Additon Assignment operator
-				Set[5] = self:Instruction("add", Trace, Get, self:Expression())
-				return Set
-			elseif self:AcceptToken("asub") then -- Subraction Assignment operator
-				Set[5] = self:Instruction("subtract", Trace, Get, self:Expression())
-				return Set
-			elseif self:AcceptToken("amul") then -- Multiplication Assignment operator
-				Set[5] = self:Instruction("multiply", Trace, Get, self:Expression())
-				return Set
-			elseif self:AcceptToken("adiv") then -- Divishion Assignment operator
-				Set[5] = self:Instruction("dividie", Trace, Get, self:Expression())
-				return Set
-			end
-		end
+			local Data = List[Count]
+			local Inst = self:Instruction("get", Data[3], Get, Data[1], Data[2])
 		
+			if self:AcceptToken("ass") then -- Assignment operator
+				Inst = self:Expression()
+			elseif self:AcceptToken("aadd") then -- Additon Assignment operator
+				Inst = self:Instruction("add", Trace, Inst, self:Expression())
+			elseif self:AcceptToken("asub") then -- Subraction Assignment operator
+				Inst = self:Instruction("subtract", Trace, Inst, self:Expression())
+			elseif self:AcceptToken("amul") then -- Multiplication Assignment operator
+				Inst = self:Instruction("multiply", Trace, Inst, self:Expression())
+			elseif self:AcceptToken("adiv") then -- Divishion Assignment operator
+				Inst = self:Instruction("dividie", Trace, Inst, self:Expression())
+			else
+				return -- Let it error!
+			end
+			
+			return self:Instruction("set", Data[3], Get, Data[1], Inst, Data[2])
+			
+		end
+			
 		self:PrevToken()
 	end
 end

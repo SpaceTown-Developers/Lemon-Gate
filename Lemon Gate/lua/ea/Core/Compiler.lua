@@ -89,7 +89,12 @@ local Operator = E_A.Operator
 
 function Compiler:CompileInst(Inst)
 	-- Purpose: Compiles an instuction.
-
+	
+	if !Inst then
+		debug.Trace()
+		self:Error("[LUA] Compiler recived invalid instruction", 0)
+	end
+	
 	local Func = self["Instr_" .. UpperStr(Inst[1])]
 	
 	if Func then
@@ -305,12 +310,12 @@ end
 ==============================================================================================*/
 function Compiler:Instr_NUMBER(Number)
 	self:PushPerf(EA_COST_CHEAP)
-	return self:Operator(function() return Number end, "number", EA_COST_CHEAP)
+	return self:Operator(function() return Number end, "n", EA_COST_CHEAP)
 end
 
 function Compiler:Instr_STRING(String)
 	self:PushPerf(EA_COST_CHEAP)
-	return self:Operator(function() return String end, "string", EA_COST_CHEAP)
+	return self:Operator(function() return String end, "s", EA_COST_CHEAP)
 end
 
 /*==============================================================================================
@@ -924,7 +929,7 @@ end
 function Compiler:Instr_GET(InstA, InstB, Type)
 	-- Purpose: [K,Y] Index Operator
 	
-	local Variable, tVariable = self:CompileInst(Inst)
+	local Variable, tVariable = self:CompileInst(InstA)
 	local Key, tKey = self:CompileInst(InstB)
 	local Operator, Return, Perf
 	
@@ -946,7 +951,7 @@ function Compiler:Instr_SET(InstA, InstB, InstC, Type)
 	
 	local Variable, tVariable = self:CompileInst(InstA)
 	local Key, tKey = self:CompileInst(InstB)
-	local Value, tValue = self:CompileInst(Inst2B)
+	local Value, tValue = self:CompileInst(InstC)
 	
 	if Type and Type ~= tValue then
 		self:Error("%s can not be set to a %s index", GetLongType(tValue), GetLongType(Type))
