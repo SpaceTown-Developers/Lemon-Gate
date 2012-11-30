@@ -80,6 +80,13 @@ E_A:RegisterOperator("is", "e", "n", function(self, Value)
 	return (Entity and Entity:IsValid()) and 1 or 0
 end)
 
+E_A:RegisterOperator("is", "e", "n", function(self, Value)
+	-- Purpose: Is Valid
+	
+	local Entity = Value(self)
+	return (Entity and Entity:IsValid()) and 0 or 1
+end)
+
 E_A:RegisterOperator("or", "ee", "e", function(self, ValueA, ValueB)
 	-- Purpose: | Conditonal Operator
 	
@@ -110,22 +117,108 @@ E_A:RegisterOperator("cast", "se", "s", function(self, Value, ConvertType)
 end)
 
 /*==============================================================================================
-	Section: 
-	Purpose: 
+	Section: Entiy is somthing.
 	Creditors: Rusketh
 ==============================================================================================*/
 E_A:RegisterFunction("isPlayer", "e:", "n", function(self, Value)
 	local Entity = Value(self)
-	return (Entity and Entity:IsValid() and Entity:IsPlayer()) and 1 or 0
+	if Entity and Entity:IsValid() and Entity:IsPlayer() then return 1 end
+	return 0
 end)
 
 E_A:RegisterFunction("isNPC", "e:", "n", function(self, Value)
 	local Entity = Value(self)
-	return (Entity and Entity:IsValid() and Entity:IsNPC()) and 1 or 0
+	if Entity and Entity:IsValid() and Entity:IsNPC() then return 1 end
+	return 0
+end)
+
+E_A:RegisterFunction("isVehicle", "e:", "n", function(self, Value)
+	local Entity = Value(self)
+	if Entity and Entity:IsValid() and Entity:IsVehicle() then return 1 end
+	return 0
+end)
+
+E_A:RegisterFunction("isWorld", "e:", "n", function(self, Value)
+	local Entity = Value(self)
+	if Entity and Entity:IsValid() and Entity:IsWorld() then return 1 end
+	return 0
+end)
+
+E_A:RegisterFunction("isOnGround", "e:", "n", function(self, Value)
+	local Entity = Value(self)
+	if Entity and Entity:IsValid() and Entity:IsOnGround() then return 1 end
+	return 0
+end)
+
+E_A:RegisterFunction("isUnderWater", "e:", "n", function(self, Value)
+	local Entity = Value(self)
+	if Entity and Entity:IsValid() and Entity:WaterLevel() > 0 then return 1 end
+	return 0
+end)
+
+E_A:RegisterFunction("isValid", "e:", "n", function(self, Value)
+	local Entity = Value(self)
+	if Entity and Entity:IsValid() then return 1 end
+	return 0
+end)
+
+/*==============================================================================================
+	Section: Unchangable entity information.
+	Purpose: These can not be changed by lemongate!
+	Creditors: Rusketh
+==============================================================================================*/
+E_A:RegisterFunction("class", "e:", "s", function(self, Value)
+	local Entity = Value(self)
+	if !Entity or !Entity:IsValid() then return "" end
+	
+	return Entity:GetClass()
+end)
+
+E_A:RegisterFunction("model", "e:", "s", function(self, Value)
+	local Entity = Value(self)
+	if !Entity or !Entity:IsValid() then return "" end
+	
+	return Entity:GetModel()
 end)
 
 E_A:RegisterFunction("name", "e:", "s", function(self, Value)
 	local Entity = Value(self)
-	if Entity and Entity:IsValid() then return Entity:GetName() or "" end
-	return ""
+	if !Entity or Entity:IsValid() then return "" end
+	
+	return Entity:GetName()
+end)
+
+E_A:RegisterFunction("health", "e:", "n", function(self, Value)
+	local Entity = Value(self)
+	if Entity and Entity:IsValid() then return 0 end
+	
+	return Entity:Health()
+end)
+
+E_A:RegisterFunction("radius", "e:", "n", function(self, Value)
+	local Entity = Value(self)
+	if Entity and Entity:IsValid() then return 0 end
+	
+	return Entity:BoundingRadius()
+end)
+
+/*==============================================================================================
+	Section: Casting and converting
+	Purpose: these will be handy.
+	Creditors: Rusketh
+==============================================================================================*/
+E_A:SetCost(EA_COST_ABNORMAL)
+
+local tostring = tostring
+
+E_A:RegisterFunction("toString", "e", "s", function(self, Value)
+	return tostring(Value(self))
+end)
+
+E_A:RegisterFunction("toString", "e:", "s", function(self, Value)
+	return tostring(Value(self))
+end)
+
+E_A:RegisterOperator("cast", "se", "s", function(self, Value, ConvertType)
+	return tostring(Value(self))
 end)

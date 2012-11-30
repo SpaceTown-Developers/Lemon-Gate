@@ -128,8 +128,6 @@ end
 function Compiler:Operator(Op, Type, Perf, ...)
 	-- Purpose: Creates an operation.
 	
-	print("Root Operator:", tostring(Operator))
-	PrintTable(Operator)
 	if !Op then debug.Trace(); self:Error("Internal Error: missing operator function") end
 	if !Type or Type == "" then Type = "void" end -- Nicer then nil!
 	
@@ -580,7 +578,7 @@ for Name, Symbol in pairs({negative = "-", ["not"] = "!", lenth = "#", delta = "
 		
 		local Value, tValue = self:CompileInst(Inst)
 		
-		local Operator, Return, Perf = self:GetOperator("negative", tValue)
+		local Operator, Return, Perf = self:GetOperator(Name, tValue)
 		if !Operator then self:Error("%s operator (%s) does not support '%s%s'", Name, Symbol, Symbol, GetLongType(tValue)) end
 		
 		self:PushPerf(Perf)
@@ -623,7 +621,7 @@ function Compiler:GenerateArguments(Insts, Method)
 		if Method then Sig = Sig .. ":" end
 		
 		for I = 2, Total do
-			local Value, tValue = self:CompileInst(Insts[1])
+			local Value, tValue = self:CompileInst(Insts[I])
 			
 			--Todo: Prevent nil values!
 			
@@ -648,7 +646,7 @@ function Compiler:CallFunction(Name, Operators, Sig)
 	if !Function then -- Lets look for a supporting vararg function!
 		local Functions, Sig = Functions, Sig -- Speed!, Copy the signature!
 		
-		for I = #Operators, 0 do
+		for I = #Operators, 0, -1 do
 			if Sig[#Sig] == ":" then
 				break -- Hit the meta peramater, abort!
 			else

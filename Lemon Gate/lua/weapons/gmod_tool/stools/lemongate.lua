@@ -160,6 +160,7 @@ if CLIENT then
 	end
 	
 	local Ninty = Angle(90,0,0)
+	local Wooo = Color(255, 255, 255, 10)
 	
 	function Lemon:Think()
 		local Ghost = self.GhostEntity
@@ -168,6 +169,7 @@ if CLIENT then
 		
 		if !Ghost or !Ghost:IsValid() then
 			self.GhostEntity = ents.CreateClientProp(self:GetModel())
+			self.GhostEntity:SetColor(Wooo)
 		elseif Ghost:GetModel() != self:GetModel() then
 			Ghost:SetModel( self:GetModel() )
 		elseif Entity and Entity:IsValid() and ( Entity:IsPlayer() or Entity:IsNPC() or Entity:GetClass() == "lemongate" ) then

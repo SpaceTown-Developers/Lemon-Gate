@@ -5,35 +5,46 @@
 	Creditors: The creator(s) of the E2 extloader
 ==============================================================================================*/
 local E_A = LemonGate
+local API = E_A.API
 
--- Register the main types so exts can use them early!
+/*==============================================================================================
+	Register Main Types, so they can interact!
+==============================================================================================*/
 E_A:RegisterClass("number", "n", 0)
 E_A:RegisterClass("string", "s", "")
 E_A:RegisterClass("entity", "e", Entity)
 E_A:RegisterClass("table", "t", {})
 
--- Load the Exts!
+/*==============================================================================================
+	Load the main Extenshions!
+==============================================================================================*/
 include("Core.lua")
 include("Number.lua")
 include("String.lua")
 include("Entity.lua")
 include("Table.lua")
+include("SelfAware.lua")
 include("Function.lua")
 include("Event.lua")
 
--- ClientSide the files!
 AddCSLuaFile("Exts.lua")
 AddCSLuaFile("Core.lua")
 AddCSLuaFile("Number.lua")
 AddCSLuaFile("String.lua")
 AddCSLuaFile("Entity.lua")
 AddCSLuaFile("Table.lua")
+AddCSLuaFile("SelfAware.lua")
 AddCSLuaFile("Function.lua")
 AddCSLuaFile("Event.lua")
 
--- Load Custom Exts
+API.CallHook("PostLoadMain")
+
+/*==============================================================================================
+	Load the custom Extenshions!
+==============================================================================================*/
+API.CallHook("PreLoadCustom")
+
 for _, File in pairs( file.Find( "ea/extensions/custom/*.lua", "LUA" ) ) do
-	
 	if fName:match( "^cl_" ) then
 		if SERVER then AddCSLuaFile(File) else include(File) end
 	elseif fName:match( "^sv_" ) then
@@ -42,7 +53,6 @@ for _, File in pairs( file.Find( "ea/extensions/custom/*.lua", "LUA" ) ) do
 		if SERVER then AddCSLuaFile(File) end
 		include(File)
 	end
-	
 end
 
--- Todo: API HOOK!
+API.CallHook("PostLoadCustom")

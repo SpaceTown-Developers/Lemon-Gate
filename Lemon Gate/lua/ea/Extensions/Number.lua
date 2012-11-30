@@ -201,6 +201,12 @@ E_A:RegisterOperator("is", "n", "n", function(self, Value)
 	if Value(self) > 0 then return 1 else return 0 end
 end)
 
+E_A:RegisterOperator("not", "n", "n", function(self, Value)
+	-- Purpose: Is Valid
+	
+	if Value(self) < 0 then return 1 else return 0 end
+end)
+
 E_A:RegisterOperator("or", "nn", "n", function(self, ValueA, ValueB)
 	-- Purpose: | Conditonal Operator
 	
@@ -225,10 +231,6 @@ E_A:SetCost(EA_COST_ABNORMAL)
 local tostring = tostring
 local tonumber = tonumber
 
-E_A:RegisterFunction("toNumber", "s", "n", function(self, Value)
-	return tonumber(Value(self))
-end)
-
 E_A:RegisterFunction("toString", "n", "s", function(self, Value)
 	return tostring(Value(self))
 end)
@@ -239,6 +241,20 @@ end)
 
 E_A:RegisterOperator("cast", "sn", "s", function(self, Value, ConvertType)
 	return tostring(Value(self))
+end)
+
+/********************************************************************************/
+
+E_A:RegisterFunction("toNumber", "s", "n", function(self, Value)
+	return tonumber(Value(self))
+end)
+
+E_A:RegisterFunction("toNumber", "s:", "n", function(self, Value)
+	return tonumber(Value(self))
+end)
+
+E_A:RegisterOperator("cast", "ns", "n", function(self, Value, ConvertType)
+	return tonumber(Value(self))
 end)
 
 /*==============================================================================================

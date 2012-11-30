@@ -146,9 +146,9 @@ if SERVER then
 					if Player == Friend then return true end
 				end
 			end
-		else
-			return Player == Owner
 		end
+		
+		return Player == Owner
 	end
 	
 end
@@ -569,20 +569,6 @@ end
 
 local CallOp = E_A.CallOp
 Operator.__call = E_A.CallOp
-
--- function Operator:SetCost(Cost) -- DEPRICATED!
-	-- Purpose: Sets the coast of an operator.
-	
-	-- self[0] = Cost or COST_NORMAL
-	-- return self -- Note: We return self (Read code to see why).
--- end
-
--- function Operator:ReturnType(Long)
-	-- Purpose: Used to get the static return type.
-	
-	-- if Long then return GetLongType(self[2]) end
-	-- return self[2] or ""
--- end
 
 function E_A.SafeCall(Op, self, ...)
 	-- Purpose: Calls the operator safly and handels exceptions.

@@ -13,6 +13,11 @@ local LenStr = string.len -- Speed
 local SubStr = string.sub -- Speed
 local LowerStr = string.lower -- Speed
 local UpperStr = string.upper -- Speed
+local EplodeStr = string.Explode -- Speed
+local RepStr = string.rep -- Speed
+local TrimStr = string.Trim -- Speed
+local TrimRightStr = string.TrimRight -- Speed
+local MatchStr = string.match -- Speed
 
 local tostring = tostring
 local pcall = pcall
@@ -93,6 +98,12 @@ E_A:RegisterOperator("is", "s", "n", function(self, Value)
 	if Value(self) != "" then return 1 else return 0 end
 end)
 
+E_A:RegisterOperator("not", "s", "n", function(self, Value)
+	-- Purpose: Is Valid
+	
+	if Value(self) == "" then return 1 else return 0 end
+end)
+
 E_A:RegisterOperator("negeq", "ss", "n", function(self, ValueA, ValueB)
 	-- Purpose: != Comparason Operator
 	
@@ -153,11 +164,6 @@ end)
 	Creditors: Rusketh
 ==============================================================================================*/
 E_A:SetCost(EA_COST_ABNORMAL)
-
-local RepStr = string.rep -- Speed
-local TrimStr = string.Trim -- Speed
-local TrimRightStr = string.TrimRight -- Speed
-local MatchStr = string.match -- Speed
 
 E_A:RegisterFunction("repeat", "s:n", "s", function(self, ValueA, ValueB)
 	return RepStr( ValueA(self), ValueB(self) )
@@ -231,22 +237,72 @@ E_A:SetCost(EA_COST_EXSPENSIVE)
 
 -- Regex functions
 E_A:RegisterFunction("findPattern", "s:s", "n", function(self, ValueA, ValueB)
-	local Ok, Return = pcall(FindStr, ValueA(self), ValueB(self))
-	if !Ok or !Return then return 0 else return Return end
-end) -- TODO: Make this throw an exception!
+	local Ok, Return = pcall( FindStr, ValueA(self), ValueB(self) )
+	if !Ok or !Return then self:Throw("string", "Invalid string pattern.") end
+	return Return
+end)
 
 E_A:RegisterFunction("findPattern", "s:sn", "n", function(self, ValueA, ValueB, ValueC)
-	local Ok, Return = pcall(FindStr, ValueA(self), ValueB(self), ValueC(self))
-	if !Ok or !Return then return 0 else return Return end
-end) -- TODO: Make this throw an exception!
+	local Ok, Return = pcall( FindStr, ValueA(self), ValueB(self), ValueC(self) )
+	if !Ok or !Return then self:Throw("string", "Invalid string pattern.") end
+	return Return
+end)
 
 E_A:RegisterFunction("replacePattern", "s:ss", "n", function(self, ValueA, ValueB, ValueC)
-	local Ok, Return = pcall(GsubStr, ValueA(self), ValueB(self), ValueC(self))
-	if !Ok or !Return then return "" else return Return end
-end) -- TODO: Make this throw an exception!
-
+	local Ok, Return = pcall( GsubStr, ValueA(self), ValueB(self), ValueC(self) )
+	if !Ok or !Return then self:Throw("string", "Invalid string pattern.") end
+	return Return
+end)
 
 /*==============================================================================================
-	TODO: Explode / Matches
-	We need array's first!
+	Section: Explode / Matches
+	Purpose: And other regex stuffs!
+	Creditors: Rusketh
 ==============================================================================================*/
+E_A:SetCost(EA_COST_EXSPENSIVE)
+
+local RemoveTable = table.remove
+
+E_A:RegisterFunction("explode", "s:s", "t", function(self, ValueA, ValueB)
+	local String = ValueA(self)
+	local Results = EplodeStr( ValueB(self), String )
+	
+	self.Perf = self.Perf - ((#Results * 0.5) + (#String * 0.2))
+	return E_A.NewResultTable(Results, "s")
+end)
+
+E_A:RegisterFunction("explodePatern", "s:s", "t", function(self, ValueA, ValueB)
+	local String = ValueA(self)
+	local Results = EplodeStr( ValueB(self), String, true )
+	
+	self.Perf = self.Perf - ((#Results * 0.5) + (#String * 0.2))
+	return E_A.NewResultTable(Results, "s")
+end)
+
+E_A:RegisterFunction("matchPatern", "s:s", "t", function(self, ValueA, ValueB)
+	local Results = { pcall( MatchStr, ValueA(self), ValueB(self) ) }
+	if !Results[1] then self:Throw("string", "Invalid string pattern.") end
+	
+	RemoveTable(Results, 1)
+	return E_A.NewResultTable(Results, "s")
+end)
+
+E_A:RegisterFunction("matchPatern", "s:sn", "t", function(self, ValueA, ValueB, ValueC)
+	local Results = { pcall( MatchStr, ValueA(self), ValueB(self), ValueC(self) ) }
+	if !Results[1] then self:Throw("string", "Invalid string pattern.") end
+	
+	RemoveTable(Results, 1)
+	return E_A.NewResultTable(Results, "s")
+end)
+
+E_A:RegisterFunction("matchFirst", "s:s", "s", function(self, ValueA, ValueB)
+	local Ok, Return = pcall(MachStr, ValueA(self), ValueB(self))
+	if !Ok or !Return then self:Throw("string", "Invalid string pattern.") end
+	return Return
+end)
+
+E_A:RegisterFunction("matchFirst", "s:sn", "s", function(self, ValueA, ValueB, ValueC)
+	local Ok, Return = pcall( MachStr, ValueA(self), ValueB(self), ValueC(self) )
+	if !Ok or !Return then self:Throw("string", "Invalid string pattern.") end
+	return Return
+end)
