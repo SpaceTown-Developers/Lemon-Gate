@@ -128,6 +128,8 @@ end
 function Compiler:Operator(Op, Type, Perf, ...)
 	-- Purpose: Creates an operation.
 	
+	print("Root Operator:", tostring(Operator))
+	PrintTable(Operator)
 	if !Op then debug.Trace(); self:Error("Internal Error: missing operator function") end
 	if !Type or Type == "" then Type = "void" end -- Nicer then nil!
 	
@@ -823,7 +825,7 @@ function Compiler:Instr_EVENT(Name, Perams, tPerams, Stmts)
 		
 	self:PopScope()
 	
-	Operator, Return, Perf = self:GetOperator("event")
+	local Operator, Return, Perf = self:GetOperator("event")
 	
 	self:PushPerf(Perf)
 	
