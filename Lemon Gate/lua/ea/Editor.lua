@@ -51,6 +51,7 @@ function Editor.Validate(Script)
 	local Check, Executable, Instance = Compiler.Execute(Instructions)
 	if !Check then return Executable end
 	
+	local Types = Instance.VarTypes
 	for Cell, Name in pairs( Instance.Inputs ) do
 		local Type = ShortTypes[ Types[Cell] ]
 		
