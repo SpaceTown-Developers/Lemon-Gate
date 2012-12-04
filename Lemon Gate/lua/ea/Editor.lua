@@ -76,7 +76,7 @@ function Editor.Create()
 	if Editor.Instance then return end
 	
 	local Instance = vgui.Create("Expression2EditorFrame")
-	Instance:Setup("Expression Advanced Editor", "Expression Advanced", "EA")
+	Instance:Setup("Expression Advanced Editor", "LemonGate", "EA")
 	Instance:SetSyntaxColorLine( SyntaxColorLine )
 	-- Instance.E2 = true -- Activates the validator, I'll hax that later!
 	

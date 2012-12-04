@@ -196,6 +196,18 @@ E_A:RegisterFunction("radius", "e:", "n", function(self, Value)
 end)
 
 /*==============================================================================================
+	Section: Vectors
+==============================================================================================*/
+E_A:RegisterFunction("pos", "e:", "v", function(self, Value)
+	local Entity = Value(self)
+	if !Entity or !Entity:IsValid() then return {0, 0, 0} end
+	
+	local Pos = Entity:GetPos()
+	
+	return {Pos.x, Pos,y, Pos.z}
+end)
+
+/*==============================================================================================
 	Section: Force
 ==============================================================================================*/
 E_A:RegisterFunction("applyForce", "e:v", "", function(self, ValueA, ValueB)

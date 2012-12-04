@@ -189,7 +189,7 @@ if CLIENT then
 		FileBrowser.OpenOnSingleClick = Editor
 		Panel:AddPanel(FileBrowser)
 		
-		FileBrowser:Setup("Expression Advanced")
+		FileBrowser:Setup("LemonGate")
 		FileBrowser:SetSize(W, 300)
 		FileBrowser:DockMargin(5, 5, 5, 5)
 		FileBrowser:DockPadding(5, 5, 5, 5)
