@@ -9,15 +9,19 @@ local E_A = LemonGate
 local GetLongType = E_A.GetLongType
 local GetShortType = E_A.GetShortType
 
-local LenStr = string.len -- Speed
 local SubStr = string.sub -- Speed
 local LowerStr = string.lower -- Speed
 local UpperStr = string.upper -- Speed
 local EplodeStr = string.Explode -- Speed
 local RepStr = string.rep -- Speed
 local TrimStr = string.Trim -- Speed
-local TrimRightStr = string.TrimRight -- Speed
 local MatchStr = string.match -- Speed
+local GsubStr = string.gsub -- Speed
+
+-- Sanitize input for use with Lua pattern functions
+local function sanitize( str )
+	return (gsub( str, "[%-%^%$%(%)%%%.%[%]%*%+%?]", "%%%1" ))
+end
 
 local tostring = tostring
 local pcall = pcall
@@ -65,7 +69,7 @@ end)
 E_A:RegisterOperator("lengh", "s", "n", function(self, Value)
 	-- Purpose: Gets the lengh of a string
 	
-	return LenStr( Value(self) )
+	return #Value(self)
 end)
 
 E_A:RegisterOperator("get", "sn", "s", function(self, Value, Index)
@@ -123,7 +127,7 @@ end)
 E_A:SetCost(EA_COST_NORMAL)
 
 E_A:RegisterFunction("length", "s:", "n", function(self, Value)
-	return LenStr( Value(self) )
+	return #Value(self)
 end)
 
 E_A:RegisterFunction("lower", "s:", "s", function(self, Value)
@@ -146,7 +150,7 @@ end)
 
 E_A:RegisterFunction("index", "s:n", "s", function(self, ValueA, ValueB)
 	local V = ValueB(self)
-	return ValueA(self):sub(V, V)
+	return SubStr(ValueA(self),V, V)
 end)
 
 E_A:RegisterFunction("left", "s:n", "s", function(self, ValueA, ValueB)
@@ -170,12 +174,32 @@ E_A:RegisterFunction("trim", "s:", "s", function(self, Value)
 	return TrimStr( Value(self) )
 end)
 
+E_A:RegisterFunction("trim", "s:s", "s", function(self, Value)
+	return TrimStr( ValueA(self), sanitize(ValueB(self)) )
+end)
+
+local function trimLeft( str, char )
+	return ( GsubStr( str, "^" .. char .. "*(.+)$", "%1" ) )
+end
+
+local function trimRight( str, char )
+	return ( GsubStr( str, "^(.-)" .. (char or "%s") .. "*$", "%1" ) )
+end
+
 E_A:RegisterFunction("trimLeft", "s:", "s", function(self, Value)
-	return MatchStr( Value(self), "^ *(.-)$") 
+	return trimLeft( Value(self) )
+end)
+
+E_A:RegisterFunction("trimLeft", "s:s", "s", function(self, Value)
+	return trimLeft( ValueA(self), sanitize(ValueB(self)) )
 end)
 
 E_A:RegisterFunction("trimRight", "s:", "s", function(self, Value)
-	return TrimRightStr( Value(self) )
+	return trimRight( Value(self) )
+end)
+
+E_A:RegisterFunction("trimRight", "s:s", "s", function(self, Value)
+	return trimRight( ValueA(self), sanitize(ValueB(self)) )
 end)
 
 /*==============================================================================================
@@ -211,7 +235,6 @@ end)
 E_A:SetCost(EA_COST_ABNORMAL)
 
 local ReplaceStr = string.Replace -- Speed
-local GsubStr = string.gsub -- Speed
 local FindStr = string.find -- Speed
 
 E_A:RegisterFunction("find", "s:s", "n", function(self, ValueA, ValueB)
@@ -222,7 +245,7 @@ E_A:RegisterFunction("find", "s:sn", "n", function(self, ValueA, ValueB, ValueC)
 	return FindStr( ValueA(self), ValueB(self), ValueC(self), true) or 0
 end)
 
-E_A:RegisterFunction("replace", "s:ss", "n", function(self, ValueA, ValueB, ValueC)
+E_A:RegisterFunction("replace", "s:ss", "s", function(self, ValueA, ValueB, ValueC)
 	return ReplaceStr( ValueA(self), ValueB(self), ValueC(self) )
 end)
 
@@ -241,7 +264,7 @@ E_A:RegisterFunction("findPattern", "s:sn", "n", function(self, ValueA, ValueB, 
 	return Return
 end)
 
-E_A:RegisterFunction("replacePattern", "s:ss", "n", function(self, ValueA, ValueB, ValueC)
+E_A:RegisterFunction("replacePattern", "s:ss", "s", function(self, ValueA, ValueB, ValueC)
 	local Ok, Return = pcall( GsubStr, ValueA(self), ValueB(self), ValueC(self) )
 	if !Ok or !Return then self:Throw("string", "Invalid string pattern.") end
 	return Return
@@ -262,7 +285,7 @@ E_A:RegisterFunction("explode", "s:s", "t", function(self, ValueA, ValueB)
 	return E_A.NewResultTable(Results, "s")
 end)
 
-E_A:RegisterFunction("explodePatern", "s:s", "t", function(self, ValueA, ValueB)
+E_A:RegisterFunction("explodePattern", "s:s", "t", function(self, ValueA, ValueB)
 	local String = ValueA(self)
 	local Results = EplodeStr( ValueB(self), String, true )
 	
@@ -270,7 +293,7 @@ E_A:RegisterFunction("explodePatern", "s:s", "t", function(self, ValueA, ValueB)
 	return E_A.NewResultTable(Results, "s")
 end)
 
-E_A:RegisterFunction("matchPatern", "s:s", "t", function(self, ValueA, ValueB)
+E_A:RegisterFunction("matchPattern", "s:s", "t", function(self, ValueA, ValueB)
 	local Results = { pcall( MatchStr, ValueA(self), ValueB(self) ) }
 	if !Results[1] then self:Throw("string", "Invalid string pattern.") end
 	
@@ -278,7 +301,7 @@ E_A:RegisterFunction("matchPatern", "s:s", "t", function(self, ValueA, ValueB)
 	return E_A.NewResultTable(Results, "s")
 end)
 
-E_A:RegisterFunction("matchPatern", "s:sn", "t", function(self, ValueA, ValueB, ValueC)
+E_A:RegisterFunction("matchPattern", "s:sn", "t", function(self, ValueA, ValueB, ValueC)
 	local Results = { pcall( MatchStr, ValueA(self), ValueB(self), ValueC(self) ) }
 	if !Results[1] then self:Throw("string", "Invalid string pattern.") end
 	
