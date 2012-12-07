@@ -129,7 +129,7 @@ function Lemon:LoadInstance(Instance)
 		Types = Instance.VarTypes,
 		Memory = {}, Delta = {}, Click = {},
 		Entity = self, Player = self.Player,
-		Events = {},
+		Events = {}, VariantTypes = {},
 		Perf = MaxPerf:GetInt(),
 	}
 	
@@ -289,12 +289,10 @@ function Lemon:CallEvent(Name, ...)
 	
 	if Event then
 		
-		local Ops, Values = Event[1], {...}
+		local Params, Values = Event[1], {...}
 		
-		for I = 1, #Ops do -- Push the parameters
-			local Store, Value = Ops[I], Values[I]
-			local Index, Op = Store[1], Store[2]
-			SafeCall(Op, Context, Value, Index)
+		for I = 1, #Params do -- Push the parameters
+			Params[I](Context, Value[I])
 		end
 		
 		local Ok, Exception, Message = SafeCall(Event[2], Context)
@@ -342,7 +340,7 @@ function Lemon:LuaError(Message, Info, ...)
 end
 
 function Lemon:ScriptError(Message)
-	local Trace = Context.Trace
+	local Trace = self.Context.Trace
 		
 	if Trace then
 		Message = Message .. " at Line " .. Trace[1] .. " Char " .. Trace[2]

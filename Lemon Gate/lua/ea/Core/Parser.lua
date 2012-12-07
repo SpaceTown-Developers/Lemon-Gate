@@ -85,10 +85,12 @@ end
 
 function Parser:TokenError(Trace, Message, ...)
 	-- Purpose: Create a syntax error at a given token.
-
-	self.TokenLine = Trace[1]
-	self.TokenChar = Trace[2]
-
+	
+	if Trace then
+		self.TokenLine = Trace[1]
+		self.TokenChar = Trace[2]
+	end
+	
 	self:Error(Message, ...)
 end
 
@@ -490,31 +492,26 @@ function Parser:GetValue()
 	local Trace, Instr = self:TokenTrace()
 	
 	if self:CheckToken("num") then
-		return self:GetNumber()
+		Instr = self:GetNumber()
 		
-	elseif self:AcceptToken("str") then
-		-- Section: Create a string from a string token.
+	elseif self:AcceptToken("str") then -- Create a string from a string token.
 		
 		Instr = self:Instruction("string", Trace, self.TokenData)
 	
-	elseif self:AcceptToken("var") then
-		-- Section: Grabe a var from a var token.
-		
+	elseif self:AcceptToken("var") then -- Grab a var from a var token.
 		Instr = self:Instruction("variabel", Trace, self.TokenData)
-		
-	elseif self:AcceptToken("fun") then
-		-- Section: We are going to getting a function.
+	elseif self:AcceptToken("fun") then -- We are going to getting a function.
 		
 		local Function = self.TokenData
 		
+	-- FUNCTION CALL, function()
+	
 		if self:AcceptToken("lpa") then
-			-- Section: We are calling this function.
 			
-			local Permaters = {}
+			local Permaters, Index = {}, 1
 			
 			if !self:CheckToken("rpa") then
 				Permaters[1] = self:Expression() 
-				local Index = 1 -- Note: Faster to do it here then use count.
 				
 				while self:AcceptToken("com") do
 					Index = Index + 1
@@ -523,68 +520,123 @@ function Parser:GetValue()
 			end
 			
 			if !self:AcceptToken("rpa") then
-				self:Error("Right parenthesis ()) missing, to close function perameters")
+				self:Error("Right parenthesis ()) missing, to close function parameters")
 			end
 			
 			Instr = self:Instruction("function", Trace, Function, Permaters)
+		
+	
+	-- RETURNABLE LAMBADA FUNCTION, type function() {}
+	
+		elseif self:CheckToken("func") then
+			self:PrevToken()
+			Instr = self:LambadaFunction()
+			
+	-- FUNCTION VAR, func
+	
+		else
+			Instr = self:Instruction("funcvar", Trace, self.TokenData)
 		end
+		
+-- LAMBADA FUNCTION, function() {}
+	
+	elseif self:CheckToken("func") then
+		Instr = self:LambadaFunction()
+		
+-- TABLE CONSTRUCTOR, {A, B, C, D}
+
 	elseif self:CheckToken("lcb") then
-		Instr = self:BuildTable() -- We is making a table!
+		Instr = self:BuildTable()
 	end
 	
 	if !Instr then self:ExpressionError() end
 	
 	while true do
-		-- Note: Lets check for methods {{Value:method()}}.
 		
-		if self:AcceptToken("col") then
-			local Trace = self:TokenTrace() 
-			
-			if !self:AcceptToken("fun") then self:Error("Method operator (:) must be followed by method name") end
-			
-			local Function = self.TokenData
-			
-			if !self:AcceptToken("lpa") then self:Error("Left parenthesis (() missing, after method name") end
-	
-			local Permaters = {Instr}
-			
-			if !self:CheckToken("rpa") then
-				Permaters[2] = self:Expression() 
-				local Index = 2 -- Note: Faster to do it here then use count.
+		-- METHOD CHECK, Var:method(...)
+		
+			if self:AcceptToken("col") then
+				local Trace = self:TokenTrace() 
 				
-				while self:AcceptToken("com") do
-					Index = Index + 1
-					Permaters[Index] = self:Expression()
-				end
-			end
-			
-			if !self:AcceptToken("rpa") then
-				self:Error("Right parenthesis ()) missing, to close method perameters")
-			end
-			
-			Instr = self:Instruction("method", Trace, Function, Permaters)
+				if !self:AcceptToken("fun") then self:Error("Method operator (:) must be followed by method name") end
+				
+				local Function = self.TokenData
+				
+				if !self:AcceptToken("lpa") then self:Error("Left parenthesis (() missing, after method name") end
 		
-		-- Note: Now we check for Index operators {{Value[1, number]}}.
-		elseif self:AcceptToken("lsb") then
-			local Trace, Index = self:TokenTrace(), self:Expression()
+				local Permaters = {Instr}
+				
+				if !self:CheckToken("rpa") then
+					Permaters[2] = self:Expression() 
+					local Index = 2 -- Note: Faster to do it here then use count.
+					
+					while self:AcceptToken("com") do
+						Index = Index + 1
+						Permaters[Index] = self:Expression()
+					end
+				end
+				
+				if !self:AcceptToken("rpa") then
+					self:Error("Right parenthesis ()) missing, to close method parameters")
+				end
+				
+				Instr = self:Instruction("method", Trace, Function, Permaters)
 			
-			if self:AcceptToken("com") then
-				local Type = self:StrictType()
-				if !Type then self:Error("Indexing operator ([]) requires a lower case type [Index, type]") end
-				Instr = self:Instruction("get", Trace, Instr, Index, Type)
+		-- INDEX CHECK, Var[Index, type]
+		
+			elseif self:AcceptToken("lsb") then
+				
+				local Trace, Index = self:TokenTrace(), self:Expression()
+				
+				if self:AcceptToken("com") then
+					local Type = self:StrictType()
+					if !Type then self:Error("Indexing operator ([]) requires a lower case type [Index, type]") end
+					Instr = self:Instruction("get", Trace, Instr, Index, Type)
+				else
+					Instr = self:Instruction("get", Trace, Instr, Index)
+				end
+				
+				if !self:AcceptToken("rsb") then
+					self:Error("Right square bracket (]) missing, to close indexing operator [Index,type]")
+				end
+				
+		-- CALL CHECK, Var(...)
+		
+			elseif self:CheckToken("lpa") then
+				
+				Instr = self:CallOperator(Instr)
+			
+		-- ALL DONE!
+		
 			else
-				Instr = self:Instruction("get", Trace, Instr, Index)
+				break -- Note: We leave this loop now!
 			end
-			
-			if !self:AcceptToken("rsb") then
-				self:Error("Right square bracket (]) missing, to close indexing operator [Index,type]")
-			end
-		else
-			break -- Note: We leave this loop now!
 		end
-	end
-	
+		
 	return Instr
+end
+
+
+function Parser:CallOperator(Instr)
+	if self:AcceptToken("lpa") then
+		local Permaters, Index = {}, 1
+		
+		if !self:CheckToken("rpa") then
+		
+			Permaters[1] = self:Expression() 
+			
+			while self:AcceptToken("com") do
+				Index = Index + 1
+				Permaters[Index] = self:Expression()
+			end
+		end
+		
+		if !self:AcceptToken("rpa") then
+			self:Error("Right parenthesis ()) missing, to close call parameters")
+		end
+		
+		return self:Instruction("call", Trace, Instr, Permaters)
+	end
 end
 
 /********************************************************************************************************************/
@@ -701,7 +753,23 @@ function Parser:Statment()
 		return self:ExitStatment()
 	end
 	
-	return self:FunctionStatment() or self:EventStatment() or self:VariableStatment() or self:Expression()
+	return self:FunctionStatment()	or
+		   self:EventStatment()		or
+		   self:VariableStatment()	or
+		   self:Expression()		or
+		   self:StatmentError() -- Error in statment!
+end
+
+function Parser:StatmentError()
+	if self:HasTokens() then
+		self:ExcludeToken("num", "Number must be part of statment or expression")
+		self:ExcludeToken("str", "String must be part of statment or expression")
+		self:ExcludeToken("var", "Variable must be part of statment or expression")
+
+		self:Error("Unexpected token found (%s)", self.NextTokenName)
+	else
+		self:TokenError(self.ExprTrace, "Further input required at end of code, incomplete statment/expression")
+	end
 end
 
 /*==============================================================================================
@@ -730,9 +798,7 @@ function Parser:VariableDeclaration()
 		
 		if Type then
 			
-			if Type == "function" then -- Functions are not variabels
-				self:Error("assigment operator (=), does not support 'functions'")
-			elseif !self:AcceptToken("var") then
+			if !self:AcceptToken("var") then
 				self:Error("Variable expected after type (%s), for variabel decleration", Type)
 			end
 			
@@ -850,7 +916,6 @@ end
 	Example: Array[i, number] = 10, Array[i, number] += 10
 	Creditors: Rusketh
 ==============================================================================================*/
-
 function Parser:IndexedStatment()
 	if self:AcceptToken("var") then
 		local Trace = self:TokenTrace()
@@ -878,8 +943,10 @@ function Parser:IndexedStatment()
 				Inst = self:Instruction("multiply", Trace, Inst, self:Expression())
 			elseif self:AcceptToken("adiv") then -- Divishion Assignment operator
 				Inst = self:Instruction("dividie", Trace, Inst, self:Expression())
+			elseif self:CheckToken("lpa") then -- Call operator
+				return self:CallOperator(Inst)
 			else
-				return -- Let it error!
+				return -- This will/should error
 			end
 			
 			return self:Instruction("set", Data[3], Get, Data[1], Inst, Data[2])
@@ -926,54 +993,54 @@ end
 	Purpose: Functions, just 20% cooler!
 	Creditors: Rusketh
 ==============================================================================================*/
-function Parser:BuildPerams(BlockType)
-	-- Purpose: Creates a UDFunction.
+function Parser:BuildParams(BlockType)
+	-- Purpose: Creates he perams of a ud function.
 	
 	if !self:AcceptToken("lpa") then
 		self:Error("Left parenthesis (() missing, to start %s", BlockType or "peramaters")
 	end
 
-	local Perams, Types, Listed, Index = {}, {}, "", 0
+	local Params, Types, Listed, Index = {}, {}, "", 0
 	
 	if self:AcceptToken("var") or self:AcceptToken("fun") then
 		self:PrevToken()
 		
 		while true do
 			if self:AcceptToken("com") then
-				self:Error("perameter seperator (,) must not appear twice")
+				self:Error("parameter seperator (,) must not appear twice")
 			elseif !self:HasTokens() then
-				self:Error("perameter seperator (,) must not be succeeded by whitespace")
+				self:Error("parameter seperator (,) must not be succeeded by whitespace")
 			end
 			
 			local Type
 			
 			if self:CheckToken("fun") then
 				Type = self:StrictType()
-				if !Type then self:Error("variabel expected, after perameter seperator (,)") end
+				if !Type then self:Error("variabel expected, after parameter seperator (,)") end
 				
 				if !self:AcceptToken("var") then
-					self:Error("variabel expected, after perameter type (%s)", GetLongType(Type))
+					self:Error("variabel expected, after parameter type (%s)", GetLongType(Type))
 				end
 			else
 				Type = "n"
 				
 				if !self:AcceptToken("var") then
-					self:Error("variabel expected, after perameter seperator (,)")
+					self:Error("variabel expected, after parameter seperator (,)")
 				end
 			end
 			
 			local Var = self.TokenData
 			
-			if Types[Var] then -- Note: Perameter conflict.
-				self:Error("Perameter %s already exists, inside %s", BlockType or "peramaters")
+			if Types[Var] then -- Note: Parameter conflict.
+				self:Error("Parameter %s already exists, inside %s", BlockType or "peramaters")
 			end
 			
 			Index = Index + 1
-			Perams[Index] = Var
+			Params[Index] = Var
 			Types[Var] = Type
 			Listed = Listed .. Type
 			
-			if !self:AcceptToken("com") then break end -- Note: No more perameters lets exit loop
+			if !self:AcceptToken("com") then break end -- Note: No more parameters lets exit loop
 		end
 	end
 
@@ -981,43 +1048,90 @@ function Parser:BuildPerams(BlockType)
 		self:Error("Right parenthesis ()) missing, to close %s", BlockType or "peramaters")
 	end
 	
-	return Perams, Types, Listed
+	return Params, Types, Listed
 end
 
 /********************************************************************************************************************/
 
-function Parser:FunctionStatment()
-	local Global = self:AcceptToken("glob")
+function Parser:LambadaFunction()
+	-- Purpose: Creates a Lambada.
+	
+	local Ret = self:AcceptToken("fun")
 	
 	if self:AcceptToken("func") then
-		local Trace, Return, Name = self:TokenTrace()
 		
-		if !self:AcceptToken("fun") and !self:AcceptToken("func") then
-			self:Error("function name expected, after (function)")
+		local Return
+		
+		if Ret then
+			self:PrevToken() -- Back to func
+			self:PrevToken() -- Back to fun
+			Return = self:StrictType()
+			self:NextToken() -- Forward past func
 		end
 		
-		if self:AcceptToken("fun") then
-			self:PrevToken(); self:PrevToken()
-			Return = self:StrictType() -- Note: We go back and grab the type.
-			self:NextToken()
-		end
+		local Params, Types, Sig = self:BuildParams("function peramaters")
 		
-		Name = self.TokenData
+		local InFunc = self.InFunc; self.InFunc = true
+		local Block = self:Block("function body")
+		self.InFunc = InFunc
 		
-		if Name == "function" then self:Error("Invalid function name, 'function'") end
+		return self:Instruction("lambada", Trace, Sig, Params, Types, Block, Return)
 		
-			local Perams, Types, Listed = self:BuildPerams("function peramaters")
-		
-			local StillIn = self.InFunc
-			self.InFunc = true -- Note: We make sure the parser knows we are inside a function.
-			
-			local Block = self:Block("function body")
-			self.InFunc = StillIn -- Note: If we where in one before then the parser needs know.
-
-			return self:Instruction("udfunction", Trace, Global, Name, Listed, Perams, Types, Block, Return)
+	elseif Ret then
+		self:PrevToken()
 	end
+end
+
+
+function Parser:FunctionStatment()
+	local Trace = self:TokenTrace()
+		
+	local Global = self:AcceptToken("glob")
+		
+	-- FUNCTION ASSIGN
 	
-	if Global then self:PrevToken() end
+		if self:AcceptToken("fun") then
+			
+			local Name = self.TokenData
+			
+			if self:AcceptToken("ass") then -- Function Assigment, func = func, func = function() {}
+				return self:Instruction("funcass", Trace, Global, Name, self:GetValue())
+			end
+		
+			self:PrevToken() -- Not a funcass!
+		
+		
+	-- FUNCTION DECLAIR
+	
+		elseif self:AcceptToken("func") then
+			
+			if !self:AcceptToken("fun") then
+				self:Error("function name expected, after (function)")
+			end
+			
+			local Name, Return = self.TokenData
+			
+			if self:AcceptToken("fun") then
+				Name = self.TokenData
+				
+				self:PrevToken() -- Type
+				self:PrevToken() -- Function
+				Return = self:StrictType() -- Note: We go back and grab the type.
+				self:NextToken() -- Name
+			end
+			
+			local Params, Types, Sig = self:BuildParams("function peramaters")
+		
+			local InFunc = self.InFunc; self.InFunc = true
+			local Block = self:Block("function body")
+			self.InFunc = InFunc
+			
+			local Lambada = self:Instruction("lambada", Trace, Sig, Params, Types, Block, Return)
+			return self:Instruction("funcass", Trace, Global, Name, Lambada)
+
+	elseif Global then
+		self:PrevToken()
+	end
 end
 
 /*==============================================================================================
@@ -1039,13 +1153,13 @@ function Parser:EventStatment()
 		local ValidEvent = E_A.EventsTable[Event]
 		if !ValidEvent then self:Error("invalid event %q", Event) end
 		
-		local Perams, Types, Listed = self:BuildPerams("event peramaters")
+		local Params, Types, Sig = self:BuildParams("event peramaters")
 		
-		if Listed != ValidEvent[1] then
-			self:Error("perameter mismach for event %q", Event)
+		if Sig != ValidEvent[1] then
+			self:Error("parameter mismach for event %q", Event)
 		end
 		
-		return self:Instruction("event", Trace, Event, Perams, Types, self:Block("event body"), ValidEvent[2])
+		return self:Instruction("event", Trace, Event, Sig, Params, Types, self:Block("event body"), ValidEvent[2])
 	end
 end
 
@@ -1187,9 +1301,9 @@ function Parser:BuildTable()
 		if !self:CheckToken("rcb") then
 			while true do
 				if self:AcceptToken("com") then
-					self:Error("perameter seperator (,) must not appear twice")
+					self:Error("parameter seperator (,) must not appear twice")
 				elseif !self:HasTokens() then
-					self:Error("perameter seperator (,) must not be succeeded by whitespace")
+					self:Error("parameter seperator (,) must not be succeeded by whitespace")
 				end
 				
 				Index = Index + 1

@@ -72,8 +72,14 @@ end
 function Compiler:Error(Message, Info, ...)
 	-- Purpose: Create and push a syntax error.
 	
+	local Line, Char = 0, 0
+	if self.Trace then
+		Line = self.Trace[1]
+		Char = self.Trace[2]
+	end
+	
 	if Info then Message = FormatStr(Message, Info, ...) end
-	error( FormatStr(Message .. " at line %i, char %i", self.Trace[1] or 0, self.Trace[2] or 0), 0)
+	error( FormatStr(Message .. " at line %i, char %i", Line, Char), 0)
 end
 
 /*==============================================================================================
@@ -184,32 +190,16 @@ end
 	Purpose: Assigns Variables to Scopes and Memory.
 	Creditors: Rusketh
 ==============================================================================================*/
-local function AsType(Type, Short)
-	-- Purpose: Like GetShortType and GetLongType but supports user functions.
-	
-	if !Type or Type == "" or Type == "void" then
-		if Short then return "" else return "void" end
-	elseif Type == "f" or Type == "function" then
-		if Short then return "f" else return "function" end
-	elseif Short then
-		return GetShortType(Type)
-	end
-	
-	return GetLongType(Type)
-end
-
-/********************************************************************************************************************/
-
 function Compiler:LocalVar(Name, Type)
 	-- Purpose: Checks the memory for a Variable or creates a new Variable.
 	
-	Type = AsType(Type, true)
+	Type = GetShortType(Type)
 	
 	local Cur = self.Scope[Name]
 	if Cur then
 		local CType = self.VarTypes[Cur]
 		if CType != Type then -- Check to see if this value exists?
-			self:Error("Variable %s already exists as %s, and can not be assigned to %s", Name, AsType(CType), AsType(Type))
+			self:Error("Variable %s already exists as %s, and can not be assigned to %s", Name, GetLongType(CType), GetLongType(Type))
 		else
 			return Curr -- Return the existing Var Index
 		end
@@ -227,7 +217,7 @@ end
 /********************************************************************************************************************/
 
 function Compiler:SetVar(Name, Type, NoError)
-	Type = AsType(Type, true)
+	Type = GetShortType(Type, true)
 	
 	local Scopes = self.Scopes
 	for I = self.ScopeID, 0, -1 do
@@ -235,7 +225,7 @@ function Compiler:SetVar(Name, Type, NoError)
 		if Cur then
 			local CType = self.VarTypes[Cur]
 			if CType != Type then
-				self:Error("Variable %s already exists as %s, and can not be assigned to %s", Name, AsType(CType), AsType(Type))
+				self:Error("Variable %s already exists as %s, and can not be assigned to %s", Name, GetLongType(CType), GetLongType(Type))
 			else
 				return Cur, I
 			end
@@ -344,7 +334,10 @@ function Compiler:Instr_ASSIGN_DEFAULT(Name, Type, Special)
 	
 	self:PushPerf(Perf)
 	
-	return self:Operator(Operator, Return, Perf, self:Operator(E_A.TypeShorts[Type][3], Type, 0), VarID)
+	local Default = E_A.TypeShorts[Type][3]
+	if !Default then self:Error("Assigment operator (=) can not auto assign default value '%s'", GetLongType(Type)) end
+	
+	return self:Operator(Operator, Return, Perf, self:Operator(Default, Type, 0), VarID)
 end
 
 /********************************************************************************************************************/
@@ -353,10 +346,13 @@ function Compiler:Instr_ASSIGN_DECLARE(Name, Expr, Type, Special)
 	-- Purpose: Declares a value
 	
 	local Operator, Return, Perf = self:GetOperator("assign", Type)
-	if !Operator then self:Error("Assigment operator (=) does not support '%s'", Type) end
+	if !Operator then self:Error("Assigment operator (=) does not support '%s'", GetLongType(Type)) end
 	
 	local Value, tValue = self:CompileInst(Expr, true)
-	if tValue != Type then self:Error("Variable %s of type %s, can not be assigned as '%s'", Name, Type, GetLongType(tValue)) end
+	if tValue != Type and Type ~= "?" then
+		if tValue == "?" then self:Error("Variable of type variant must be casted before assigning to %s", GetLongType(Type)) end
+		self:Error("Variable %s of type %s, can not be assigned as '%s'", Name, GetLongType(Type), GetLongType(tValue))
+	end
 	
 	local VarID, Scope = self:AssignVar(Type, Name, Special)
 	
@@ -382,10 +378,13 @@ function Compiler:Instr_ASSIGN(Name, Expr)
 	end
 	
 	local Operator, Return, Perf = self:GetOperator("assign", Type)
-	if !Operator then self:Error("Assigment operator (=) does not support '%s'", Type) end
+	if !Operator then self:Error("Assigment operator (=) does not support '%s'", GetLongType(Type)) end
 	
 	local Value, tValue = self:CompileInst(Expr)
-	if tValue != Type then self:Error("Variable %s of type %s, can not be assigned as '%s'", Name, Type, GetLongType(tValue)) end
+	if tValue != Type  and Type ~= "?" then
+		if tValue == "?" then self:Error("Variable of type variant must be casted before assigning to %s", GetLongType(Type)) end
+		self:Error("Variable %s of type %s, can not be assigned as '%s'", Name, GetLongType(Type), GetLongType(tValue))
+	end
 	
 	self:PushPerf(Perf)
 	
@@ -613,233 +612,6 @@ function Compiler:Instr_CAST(Type, Inst)
 end
 
 /*==============================================================================================
-	Section: Inbuilt Functions and Methods
-	Purpose: These function are built in =D
-	Creditors: Rusketh
-==============================================================================================*/
-function Compiler:GenerateArguments(Insts, Method)
-	-- Purpose: Compiles function arguments.
-	
-	local Total = #Insts
-	if Total != 0 then
-		local Value, Sig = self:CompileInst(Insts[1])
-		local Values = {Value} 
-		
-		if Method then Sig = Sig .. ":" end
-		
-		for I = 2, Total do
-			local Value, tValue = self:CompileInst(Insts[I])
-			
-			--Todo: Prevent nil values!
-			
-			Values[I] = Value
-			Sig = Sig .. tValue
-		end
-		
-		return Values, Sig
-	end
-	
-	return {}, ""
-end
-
-/********************************************************************************************************************/
-
-function Compiler:CallFunction(Name, Operators, Sig)
-	-- Purpose: Finds and calls a function!
-	-- Todo: VarArg support!
-	
-	local Function = E_A.FunctionTable[Name .. "(" .. Sig .. ")"]
-	
-	if !Function then -- Lets look for a supporting vararg function!
-		local Functions, Sig = E_A.FunctionTable, Sig -- Speed!, Copy the signature!
-		
-		for I = #Operators, 1, -1 do
-			if Sig[#Sig] == ":" then
-				break -- Hit the meta peramater, abort!
-			else
-				Sig = SubStr(Sig, 1, #Sig - #Operators[I][2])
-				Function = Functions[Name .. "(" .. Sig .. "...)"]
-				if Function then break end
-			end
-		end
-	end
-	
-	if !Function then self:Error("No such function %s(%s)", Name, Sig) end
-	
-	self:PushPerf(Function[3] or 0)
-	
-	return self:Operator(Function[1], Function[2], Function[3], unpack(Operators))
-end
-
-function Compiler:Instr_FUNCTION(Name, Insts)
-	-- Purpose: Finds and calls a function.
-	
-	local VarID, Type = self:GetVar(Name)
-	
-	if VarID then -- User Function needs to use Call Operator
-		return self:Call_UDFunction(Name, VarID, Insts)
-	end
-	
-	local Operators, Sig = self:GenerateArguments(Insts)
-	return self:CallFunction(Name, Operators, Sig)
-end
-
-function Compiler:Instr_METHOD(Name, Insts)
-	-- Purpose: Finds and calls a function.
-	
-	local Operators, Sig = self:GenerateArguments(Insts, true)
-	return self:CallFunction(Name, Operators, Sig)
-end
-
-/*==============================================================================================
-	Section: First Class Functions (User Defined Functions).
-	Purpose: Function Objects, just 20% cooler!
-	Creditors: Rusketh
-==============================================================================================*/
-function Compiler:Call_UDFunction(Name, VarID, Insts)
-	-- Purpose: Calls user function.
-	
-	local Data = self.VarData[ VarID ]
-	local Perams, Return = Data[2], Data[1]
-	
-	local Operator, _, Perf = self:GetOperator("udfcall")
-	local Operators, Sig = self:GenerateArguments(Insts)
-	
-	if Perams != Sig then self:Error("Peramater missmatch for user function %s(%s)", Name, tostring(Sig)) end -- Todo: Perams List!
-	
-	self:PushPerf(Perf)
-	
-	return self:Operator(Operator, Return, Perf, VarID, Operators)
-end
-
-/********************************************************************************************************************/
-
-function Compiler:Instr_UDFUNCTION(Local, Name, Sig, Perams, tPerams, Stmts, Return)
-	-- Purpose: Define user function.
-	
-	local VarID, Type
-	if !Local then
-		VarID, Type = self:SetVar(Name, "f")
-	else
-		VarID, Type = self:LocalVar(Name, "f")
-	end
-	
-	local Memory = self.VarData[ VarID ]
-	
-	if Memory then
-		if Memory[2] ~= Sig then -- Previous function has conflicting peramaters.
-			self:Error("Peramter missmach for new user function %q(%s)", Name, Memory[2]) -- Todo: Perams List!
-		
-		elseif Memory[1] ~= Return then -- Previous function has conflicting return type.
-			self:Error("Return type missmach for function %q exspected to be %q", Name, GetLongType(Memory[1]))
-		end
-	end
-	
-	self.VarData[ VarID ] = {Return, Sig}
-	
-	local MemoryInfo, Statments = self:BuildFunction(Sig, Perams, tPerams, Stmts, Return)
-	local Operator, _R, Perf = self:GetOperator("udfdef")
-	
-	self:PushPerf(Perf)
-	
-	return self:Operator(Operator, _R, Perf, VarID, Perams, MemoryInfo, Statments, Return)
-end
-
-function Compiler:BuildFunction(Sig, Perams, tPerams, Stmts, Return)
-	-- Purpose: This instruction Will create function variabels.
-	
-	self:PushReturnType(Return)
-	
-	self:PushScope()
-	
-		local MemoryInfo = {}
-		for I = 1, #Perams do
-			local Peramater = Perams[I]
-			local Type = tPerams[Peramater]
-			
-			local Operator = E_A.OperatorTable["assign(" .. Type .. ")"]
-			if !Operator then self:Error("type %s, can not be used in function perameters.", Type) end
-
-			MemoryInfo[I] = { self:LocalVar(Var, Type), Operator }
-		end
-	
-		self:PushScope()
-		
-			local Statments = self:CompileInst(Stmts)
-		
-		self:PopScope()
-		
-	self:PopScope()
-	
-	self:PopReturnType()
-	
-	return MemoryInfo, Statments
-end
-
-function Compiler:Instr_RETURN(Inst)
-	local Return, Value = self.ReturnTypes[#self.ReturnTypes]
-	
-	if Inst then
-		Value, tValue = self:CompileInst(Inst)
-	
-		if !Return then
-			self:Error("Unable to return '%s', function return type is 'void'", GetLongType(tValue))
-		elseif Return != tValue then
-			self:Error("Unable to return '%s', function return type is '%s'", GetLongType(tValue), GetLongType(Return))
-		end
-		
-	elseif Return then
-		self:Error("Unable to return 'void', function return type is '%s'", GetLongType(Return))
-	end
-	
-	local Operator, _R, Perf = self:GetOperator("return")
-	
-	self:PushPerf(Perf)
-	
-	return self:Operator(Operator, Return, Perf, Value)
-end
-
-/*==============================================================================================
-	Section: Events
-	Purpose: Events do stuff.
-	Creditors: Rusketh
-==============================================================================================*/
-function Compiler:Instr_EVENT(Name, Perams, tPerams, Stmts, Return)
-	-- Purpose: This instruction Will create function variabels.
-	
-	self:PushScope()
-	
-		local MemoryInfo = {}
-		
-		for I = 1, #Perams do
-			local Peramater = Perams[I]
-			local Type = tPerams[Peramater]
-			
-			local Operator = E_A.OperatorTable["assign(" .. Type .. ")"]
-			if !Operator then self:Error("type %s, can not be used in function perameters.", Type) end
-
-			MemoryInfo[I] = { self:LocalVar(Peramater, Type), Operator }
-		end
-	
-		self:PushScope()
-			
-			self:PushReturnType(Return)
-			
-			local Statments = self:CompileInst(Stmts)
-			
-			self:PopReturnType()
-			
-		self:PopScope()
-		
-	self:PopScope()
-	
-	local Operator, _Return, Perf = self:GetOperator("event")
-	
-	self:PushPerf(Perf)
-	
-	return self:Operator(Operator, Return, Perf, Name, MemoryInfo, Statments)
-end
-/*==============================================================================================
 	Section: Loops
 	Purpose: for loops, while loops.
 	Creditors: Rusketh
@@ -973,4 +745,261 @@ function Compiler:Instr_SET(InstA, InstB, InstC, Type)
 	self:PushPerf(Perf)
 	
 	return self:Operator(Operator, Return, Perf, Variable, Key, Value)
+end
+
+/*==============================================================================================
+	Section: Inbuilt Functions and Methods
+	Purpose: These function are built in =D
+	Creditors: Rusketh
+==============================================================================================*/
+function Compiler:GenerateArguments(Insts, Method)
+	-- Purpose: Compiles function arguments.
+	
+	local Total = #Insts
+	if Total != 0 then
+		local Value, Sig = self:CompileInst(Insts[1])
+		local Values = {Value} 
+		
+		if Method then Sig = Sig .. ":" end
+		
+		for I = 2, Total do
+			local Value, tValue = self:CompileInst(Insts[I])
+			
+			--Todo: Prevent nil values!
+			
+			Values[I] = Value
+			Sig = Sig .. tValue
+		end
+		
+		return Values, Sig
+	end
+	
+	return {}, ""
+end
+
+/********************************************************************************************************************/
+
+function Compiler:CallFunction(Name, Operators, Sig)
+	-- Purpose: Finds and calls a function!
+	-- Todo: VarArg support!
+	
+	local Function = E_A.FunctionTable[Name .. "(" .. Sig .. ")"]
+	
+	if !Function then -- Lets look for a supporting vararg function!
+		local Functions, Sig = E_A.FunctionTable, Sig -- Speed!, Copy the signature!
+		
+		for I = #Operators, 1, -1 do
+			if Sig[#Sig] == ":" then
+				break -- Hit the meta peramater, abort!
+			else
+				Sig = SubStr(Sig, 1, #Sig - #Operators[I][2])
+				Function = Functions[Name .. "(" .. Sig .. "...)"]
+				if Function then break end
+			end
+		end
+	end
+	
+	if !Function then self:Error("No such function %s(%s)", Name, Sig) end
+	
+	self:PushPerf(Function[3] or 0)
+	
+	return self:Operator(Function[1], Function[2], Function[3], unpack(Operators))
+end
+
+function Compiler:Instr_FUNCTION(Name, Insts)
+	-- Purpose: Finds and calls a function.
+	
+	local VarID, Type = self:GetVar(Name)
+	
+	if VarID then -- User Function needs to use Call Operator.
+		return self:CallLambada(Name, VarID, Insts)
+	end
+	
+	local Operators, Sig = self:GenerateArguments(Insts)
+	return self:CallFunction(Name, Operators, Sig)
+end
+
+function Compiler:Instr_METHOD(Name, Insts)
+	-- Purpose: Finds and calls a function.
+	
+	local Operators, Sig = self:GenerateArguments(Insts, true)
+	return self:CallFunction(Name, Operators, Sig)
+end
+
+
+
+/*==============================================================================================
+	Section: Lambada Functions.
+	Purpose: Function Objects, just 20% cooler!
+	Creditors: Rusketh
+==============================================================================================*/
+function Compiler:Instr_FUNCVAR(Name)
+	-- Purpose: Grabe a function var.
+	
+	local VarID, Type = self:GetVar(Name)
+	if !VarID then self:Error("function %s does not exist", Name) end
+	if Type ~= "f" then self:Error("Impossible Error: variable %s is not a function.", Name) end
+	
+	local Operator, Return, Perf = self:GetOperator("funcvar", Type)
+	
+	self:PushPerf(Perf)
+	
+	return self:Operator(Operator, Return, Perf, VarID)
+end
+
+function Compiler:Instr_FUNCASS(Global, Name, Inst)
+	-- Purpose: Grabe a function var.
+	
+	local Function, tFunction = self:CompileInst(Insts[I])
+	if tFunction ~= "f" then self:Error("Can not assign %q as 'function'", GetLongType(tFunction)) end
+	
+	local VarID, Scope
+	
+	if Global then
+		VarID, Scope = self:SetVar(Name, "f")
+	else
+		VarID, Scope = self:LocalVar(Name, "f")
+	end
+	
+	local Operator, Return, Perf = self:GetOperator("funcass", "f")
+	
+	self:PushPerf(Perf)
+	
+	return self:Operator(Operator, Return, Perf, Function, VarID)
+end
+
+/***********************************************************************************************/
+
+function Compiler:BuildFunction(Sig, Params, tParams, Stmts, Return)
+	-- Purpose: This instruction Will create function variabels.
+	
+	self:PushReturnType(Return)
+	
+	self:PushScope()
+		
+		local Arguments = {}
+		for I = 1, #Params do
+			local Name = Params[I]
+			local Type = tParams[Name]
+			
+			local Operator = E_A.OperatorTable["assign(" .. Type .. ")"]
+			if !Operator then self:Error("type %s, can not be used in function parameters.", Type) end
+			
+			local VarID, Scope = self:LocalVar(Name, Type)
+			
+			Arguments[I] = function(self, Value)
+				local Val, tVal = Value(self)
+				
+				if tVal ~= Type and Type ~= "?" then
+					self:Throw("invoke", "Peramater missmatch #" .. I .. " " .. GetLongType(Type) .. " exspected got " .. GetLongType(tVal))
+				end
+				
+				Operator[1](self, function() return Val, tVal end, VarID)
+			end
+		end
+		
+	
+		self:PushScope()
+		
+			local Statments = self:CompileInst(Stmts)
+		
+		self:PopScope()
+		
+	self:PopScope()
+	
+	self:PopReturnType()
+	
+	return Arguments, Statments
+end
+
+function Compiler:Instr_LAMBADA(Sig, Params, tParams, Stmts, Return)
+	local Arguments, Statments = self:BuildFunction(Sig, Params, tParams, Stmts, Return)
+	
+	local Operator, _Return, Perf = self:GetOperator("lambada")
+	
+	self:PushPerf(Perf)
+	
+	return self:Operator(Operator, _Return, Perf, Sig, Arguments, Statments, Return)
+end
+
+/*==============================================================================================
+	Section: Call Operator.
+==============================================================================================*/
+function Compiler:Instr_CALL(Inst, Insts)
+	
+	MsgN("Compiler: Call -> " .. Inst[1])
+	local Value, tValue = self:CompileInst(Inst)
+	
+	local Operator, Return, Perf = self:GetOperator("call", tValue)
+	if !Operator then self:Error("Type %q can not be called" ,GetLongType(tValue)) end
+	
+	local Operators, Sig = self:GenerateArguments(Insts)
+	
+	self:PushPerf(Perf)
+	
+	return self:Operator(Operator, Return, Perf, Value, Sig, Operators)
+end
+
+function Compiler:CallLambada(Name, VarID, Insts)
+	
+	-- GET FROM MEMORY.
+	
+		local Operator, Return, Perf = self:GetOperator("funcvar", "f")
+		
+		self:PushPerf(Perf)
+		
+		local Lambada = self:Operator(Operator, Return, Perf, VarID)
+	
+	-- CALL.
+	
+		local Operator, Return, Perf = self:GetOperator("call", Return)
+		
+		local Operators, Sig = self:GenerateArguments(Insts)
+		
+		self:PushPerf(Perf)
+		
+	return self:Operator(Operator, Return, Perf, Lambada, Sig, Operators)
+end
+
+/*==============================================================================================
+	Section: Return Operator.
+==============================================================================================*/
+function Compiler:Instr_RETURN(Inst)
+	local Return, Value = self.ReturnTypes[#self.ReturnTypes]
+	
+	if Inst then
+		Value, tValue = self:CompileInst(Inst)
+	
+		if !Return then
+			self:Error("Unable to return '%s', function return type is 'void'", GetLongType(tValue))
+		elseif Return != tValue and Return ~= "?" then
+			self:Error("Unable to return '%s', function return type is '%s'", GetLongType(tValue), GetLongType(Return))
+		end
+		
+	elseif Return then
+		self:Error("Unable to return 'void', function return type is '%s'", GetLongType(Return))
+	end
+	
+	local Operator, _R, Perf = self:GetOperator("return")
+	
+	self:PushPerf(Perf)
+	
+	return self:Operator(Operator, Return, Perf, Value)
+end
+
+/*==============================================================================================
+	Section: Events
+	Purpose: Events do stuff.
+	Creditors: Rusketh
+==============================================================================================*/
+function Compiler:Instr_EVENT(Name, Sig, Params, tParams, Stmts, Return)
+	-- Purpose: This instruction Will create function variabels.
+	
+	local Arguments, Statments = self:BuildFunction(Sig, Params, tParams, Stmts, Return)
+	
+	local Operator, _Return, Perf = self:GetOperator("event")
+	
+	self:PushPerf(Perf)
+	
+	return self:Operator(Operator, Return, Perf, Name, Arguments, Statments)
 end

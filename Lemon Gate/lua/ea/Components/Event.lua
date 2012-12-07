@@ -15,10 +15,10 @@ local Entity = Entity
 	Purpose: Functions that Create and Remove events.
 	Creditors: Rusketh
 ==============================================================================================*/
-E_A:RegisterOperator("event", "", "", function(self, Event, MemoryInfo, Statments)
+E_A:RegisterOperator("event", "", "", function(self, Event, Arguments, Statments)
 	-- Purpose: Builds a Function.
 	
-	self.Events[Event] = {MemoryInfo, Statments}
+	self.Events[Event] = {Arguments, Statments}
 end)
 
 /*==============================================================================================
