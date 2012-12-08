@@ -292,7 +292,7 @@ function Lemon:CallEvent(Name, ...)
 		local Params, Values = Event[1], {...}
 		
 		for I = 1, #Params do -- Push the parameters
-			Params[I](Context, Value[I])
+			Params[I](Context, Values[I])
 		end
 		
 		local Ok, Exception, Message = SafeCall(Event[2], Context)

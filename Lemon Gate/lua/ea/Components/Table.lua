@@ -283,10 +283,25 @@ E_A.API.AddHook("BuildFunctions", function()
 			
 			if !Table:Set(Index, Type, ValueC(self)) then self:Error("Maxamum table size exceeded.") end
 		end)
+		
 	end
 end)
 
+/*==============================================================================================
+	Section: Variant Indexing Operators
+	Purpose: Getters and Setters.
+	Creditors: Rusketh
+==============================================================================================*/
+local function GetVariant(self, ValueA, ValueB)
+	local Table, Index = ValueA(self), ValueB(self)
+	if !Table.Data then self:Error("Attempt to index feild " .. tostring(Index) .. " on invalid table.") end
+			
+	if !Table.Types[Index] then self:Error("Attempt to index feild " .. tostring(Index) .. " a void value.") end
+	return Table.Data[Index]
+end
 
-
+E_A:RegisterOperator("get", "tn", "?", GetVariant)
+E_A:RegisterOperator("get", "ts", "?", GetVariant)
+E_A:RegisterOperator("get", "te", "?", GetVariant)
 
 

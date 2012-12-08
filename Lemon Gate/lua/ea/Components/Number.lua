@@ -238,8 +238,8 @@ E_A:RegisterFunction("toString", "n:", "s", function(self, Value)
 	return tostring(Value(self))
 end)
 
-E_A:RegisterOperator("cast", "sn", "s", function(self, Value, ConvertType)
-	return tostring(Value(self))
+E_A:RegisterOperator("cast", "sn", "s", function(self, Value)
+	return tostring(Value(self), nil)
 end)
 
 /********************************************************************************/
@@ -252,8 +252,8 @@ E_A:RegisterFunction("toNumber", "s:", "n", function(self, Value)
 	return tonumber(Value(self))
 end)
 
-E_A:RegisterOperator("cast", "ns", "n", function(self, Value, ConvertType)
-	return tonumber(Value(self))
+E_A:RegisterOperator("cast", "ns", "n", function(self, Value)
+	return tonumber(Value(self), nil) or 0 -- The nill is required or the type of Value will become arg 2!
 end)
 
 /*==============================================================================================
