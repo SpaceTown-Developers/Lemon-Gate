@@ -46,6 +46,26 @@ end
 E_A:WireModClass("string", "STRING", Input, Output)
 
 /*==============================================================================================
+	Wire Links
+==============================================================================================*/
+E_A:RegisterOperator("get", "wlss", "s", function(self, ValueA, ValueB)
+	local Entity, Index = ValueA(self), ValueB(self)
+	if !Entity or !Entity:IsValid() or !Entity.Outputs then return 0 end
+	
+	local Data = Entity.Outputs[Index]
+	if !Data then return "" end
+	
+	return Data.Value
+end)
+
+E_A:RegisterOperator("set", "wlss", "", function(self, ValueA, ValueB, ValueC)
+	local Entity, Index, Value = ValueA(self), ValueB(self), ValueC(self)
+	if !Entity or !Entity:IsValid() or !Entity.Outputs then return 0 end
+	
+	WireLib.TriggerInput(Entity, Index, Value)
+end)
+
+/*==============================================================================================
 	Section: Vairable operators
 ==============================================================================================*/
 E_A:SetCost(EA_COST_CHEAP)

@@ -36,6 +36,26 @@ E_A:WireModClass("number", "NORMAL", Input, Output)
 -- Note: With out Input function 'Number' would not be inputable, The same goes with Output.
 
 /*==============================================================================================
+	Wire Links
+==============================================================================================*/
+E_A:RegisterOperator("get", "wlsn", "n", function(self, ValueA, ValueB)
+	local Entity, Index = ValueA(self), ValueB(self)
+	if !Entity or !Entity:IsValid() or !Entity.Outputs then return 0 end
+	
+	local Data = Entity.Outputs[Index]
+	if !Data then return 0 end
+	
+	return Data.Value
+end)
+
+E_A:RegisterOperator("set", "wlsn", "", function(self, ValueA, ValueB, ValueC)
+	local Entity, Index, Value = ValueA(self), ValueB(self), ValueC(self)
+	if !Entity or !Entity:IsValid() or !Entity.Outputs then return 0 end
+	
+	WireLib.TriggerInput(Entity, Index, Value)
+end)
+
+/*==============================================================================================
 	Var Operators
 ==============================================================================================*/
 E_A:SetCost(EA_COST_CHEAP)
@@ -245,11 +265,11 @@ end)
 /********************************************************************************/
 
 E_A:RegisterFunction("toNumber", "s", "n", function(self, Value)
-	return tonumber(Value(self))
+	return tonumber(Value(self), nil) or 0
 end)
 
 E_A:RegisterFunction("toNumber", "s:", "n", function(self, Value)
-	return tonumber(Value(self))
+	return tonumber(Value(self), nil) or 0
 end)
 
 E_A:RegisterOperator("cast", "ns", "n", function(self, Value)

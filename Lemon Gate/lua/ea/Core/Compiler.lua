@@ -578,7 +578,7 @@ end
 	Purpose: These handel stuff like Delta, not and Neg
 	Creditors: Rusketh
 ==============================================================================================*/
-for Name, Symbol in pairs({negative = "-", ["not"] = "!", lenth = "#", delta = "~"}) do
+for Name, Symbol in pairs({negative = "-", ["not"] = "!", lenth = "#"}) do
 	
 	Compiler["Instr_" .. UpperStr(Name)] = function(self, Inst)
 		
@@ -591,6 +591,20 @@ for Name, Symbol in pairs({negative = "-", ["not"] = "!", lenth = "#", delta = "
 		
 		return self:Operator(Operator, Return, Perf, Value)
 	end
+end
+
+function Compiler:Instr_DELTA(Name)
+	-- Purpose: $Variable
+	
+	local Memory, Type = self:GetVar(Name)
+	if !Memory then self:Error("Variable %s does not exist", Name) end
+	
+	local Operator, Return, Perf = self:GetOperator("delta", Type)
+	if !Operator then self:Error("delta operator ($) does not support " .. GetLongType(Type)) end
+	
+	self:PushPerf(Perf)
+	
+	return self:Operator(Operator, Return, Perf, Memory)
 end
 
 /*==============================================================================================

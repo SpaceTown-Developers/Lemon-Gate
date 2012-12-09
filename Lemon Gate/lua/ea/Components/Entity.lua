@@ -10,7 +10,7 @@ local GetLongType = E_A.GetLongType
 /*==============================================================================================
 	Class & WireMod
 ==============================================================================================*/
-E_A:RegisterClass("entity", "e", Entity)
+E_A:RegisterClass("entity", "e", function() return Entity(-1) end)
 
 local function Input(self, Memory, Value)
 	-- Purpose: Used to set Memory via a wired input.
@@ -78,13 +78,6 @@ E_A:RegisterOperator("is", "e", "n", function(self, Value)
 	return (Entity and Entity:IsValid()) and 1 or 0
 end)
 
-E_A:RegisterOperator("is", "e", "n", function(self, Value)
-	-- Purpose: Is Valid
-	
-	local Entity = Value(self)
-	return (Entity and Entity:IsValid()) and 0 or 1
-end)
-
 E_A:RegisterOperator("or", "ee", "e", function(self, ValueA, ValueB)
 	-- Purpose: | Conditonal Operator
 	
@@ -124,12 +117,6 @@ end)
 E_A:RegisterFunction("isNPC", "e:", "n", function(self, Value)
 	local Entity = Value(self)
 	if Entity and Entity:IsValid() and Entity:IsNPC() then return 1 end
-	return 0
-end)
-
-E_A:RegisterFunction("isVehicle", "e:", "n", function(self, Value)
-	local Entity = Value(self)
-	if Entity and Entity:IsValid() and Entity:IsVehicle() then return 1 end
 	return 0
 end)
 
@@ -196,15 +183,126 @@ E_A:RegisterFunction("radius", "e:", "n", function(self, Value)
 end)
 
 /*==============================================================================================
-	Section: Vectors
+	Section: Vehicle Stuff
 ==============================================================================================*/
-E_A:RegisterFunction("pos", "e:", "v", function(self, Value)
+E_A:RegisterFunction("isVehicle", "e:", "n", function(self, Value)
+	local Entity = Value(self)
+	if Entity and Entity:IsValid() and Entity:IsVehicle() then return 1 end
+	return 0
+end)
+
+E_A:RegisterFunction("driver", "e:", "e", function(self, Value)
+	local entity = Value(self)
+	if entity and entity:IsValid() and entity:IsVehicle() then return entity:GetDriver() end
+	return Entity(0)
+end)
+
+E_A:RegisterFunction("driver", "e:", "e", function(self, Value)
+	local entity = Value(self)
+	if entity and entity:IsValid() and entity:IsVehicle() then return entity:GetPassenger() end
+	return Entity(0)
+end)
+
+/*==============================================================================================
+	Section: Mass
+==============================================================================================*/
+E_A:RegisterFunction("mass", "e:", "n", function(self, Value)
+	local Entity = Value(self)
+	if !Entity or !Entity:IsValid() then return 0 end
+	
+	local Phys = Entity:GetPhysicsObject()
+	if !Phys or !Phys:IsValid() then return 0 end
+	
+	return Phys:GetMass()
+end)
+
+E_A:RegisterFunction("massCenterWorld", "e:", "v", function(self, Value)
 	local Entity = Value(self)
 	if !Entity or !Entity:IsValid() then return {0, 0, 0} end
 	
-	local Pos = Entity:GetPos()
+	local Phys = Entity:GetPhysicsObject()
+	if !Phys or !Phys:IsValid() then return {0, 0, 0} end
 	
-	return {Pos.x, Pos,y, Pos.z}
+	local V = E:LocalToWorld(Phys:GetMassCenter())
+	return {V.x, V.y, V.z}
+end)
+
+E_A:RegisterFunction("massCenter", "e:", "v", function(self, Value)
+	local Entity = Value(self)
+	if !Entity or !Entity:IsValid() then return {0, 0, 0} end
+	
+	local Phys = Entity:GetPhysicsObject()
+	if !Phys or !Phys:IsValid() then return {0, 0, 0} end
+	
+	local V = Phys:GetMassCenter()
+	return {V.x, V.y, V.z}
+end)
+
+/*==============================================================================================
+	Section: OBB Box
+==============================================================================================*/
+E_A:RegisterFunction("boxSize", "e:", "v", function(self, Value)
+	local Entity = Value(self)
+	if !Entity or !Entity:IsValid() then return {0, 0, 0} end
+	
+	local V = Entity:OBBMaxs() - Entity:OBBMins()
+	return {V.x, V.y, V.z}
+end)
+
+E_A:RegisterFunction("boxCenter", "e:", "v", function(self, Value)
+	local Entity = Value(self)
+	if !Entity or !Entity:IsValid() then return {0, 0, 0} end
+	
+	local V = Entity:OBBCenter()
+	return {V.x, V.y, V.z}
+end)
+
+E_A:RegisterFunction("boxCenterWorld", "e:", "v", function(self, Value)
+	local Entity = Value(self)
+	if !Entity or !Entity:IsValid() then return {0, 0, 0} end
+	
+	local V = Entity:LocalToWorld(Entity:OBBCenter())
+	return {V.x, V.y, V.z}
+end)
+
+E_A:RegisterFunction("boxMax", "e:", "v", function(self, Value)
+	local Entity = Value(self)
+	if !Entity or !Entity:IsValid() then return {0, 0, 0} end
+	
+	local V = Entity:OBBMaxs()
+	return {V.x, V.y, V.z}
+end)
+
+E_A:RegisterFunction("boxMin", "e:", "v", function(self, Value)
+	local Entity = Value(self)
+	if !Entity or !Entity:IsValid() then return {0, 0, 0} end
+	
+	local V = Entity:OBBMins()
+	return {V.x, V.y, V.z}
+end)
+
+/******************************************************************************/
+
+E_A:RegisterFunction("aabbMin", "e:", "v", function(self, Value)
+	local Entity = Value(self)
+	if !Entity or !Entity:IsValid() then return {0, 0, 0} end
+	
+	local Phys = Entity:GetPhysicsObject()
+	if !Phys or !Phys:IsValid() then return {0, 0, 0} end
+	
+	local V = Phys:GetAABB()
+	return {V.x, V.y, V.z}
+end)
+
+E_A:RegisterFunction("aabbMax", "e:", "v", function(self, Value)
+	local Entity = Value(self)
+	if !Entity or !Entity:IsValid() then return {0, 0, 0} end
+	
+	local Phys = Entity:GetPhysicsObject()
+	if !Phys or !Phys:IsValid() then return {0, 0, 0} end
+	
+	local _, V Phys:GetAABB()
+	return {V.x, V.y, V.z}
 end)
 
 /*==============================================================================================
@@ -236,6 +334,69 @@ E_A:RegisterFunction("applyOffsetForce", "e:vv", "", function(self, ValueA, Valu
 	if Phys then
 		Phys:ApplyForceOffset(Vector(B[1], B[2], B[3]), Vector(C[1], C[2], C[3]))
 	end
+end)
+
+E_A:RegisterFunction("applyAngForce", "e:a", "", function(self, ValueA, ValueB)
+	local Entity, A = ValueA(self), ValueB(self)
+	
+	if !Entity or !Entity:IsValid() then return end
+	
+	if !E_A.IsOwner(self.Player, Entity) then return  end
+	
+	local Phys = Entity:GetPhysicsObject()
+	
+	if Phys then
+	
+		-- assign vectors
+		local Up = Entity:GetUp()
+		local Left = Entity:GetRight() * -1
+		local Forward = Entity:GetForward()
+
+		-- apply pitch force
+		if A[1] ~= 0 then
+			local Pitch = Up * (A[1] * 0.5)
+			Phys:ApplyForceOffset( Forward, Pitch )
+			Phys:ApplyForceOffset( Forward * -1, Pitch * -1 )
+		end
+
+		-- apply yaw force
+		if A[2] ~= 0 then
+			local Yaw = Forward * (A[2] * 0.5)
+			Phys:ApplyForceOffset( Left, Yaw )
+			Phys:ApplyForceOffset( Left * -1, Yaw * -1 )
+		end
+
+		-- apply roll force
+		if A[3] ~= 0 then
+			local Roll = Left * (A[3] * 0.5)
+			Phys:ApplyForceOffset( Up, Roll )
+			Phys:ApplyForceOffset( Up * -1, Roll * -1 )
+		end
+	end
+end)
+
+/*==============================================================================================
+	Section: Vectors
+==============================================================================================*/
+E_A:RegisterFunction("pos", "e:", "v", function(self, Value)
+	local Entity = Value(self)
+	if !Entity or !Entity:IsValid() then return {0, 0, 0} end
+	
+	local Pos = Entity:GetPos()
+	
+	return {Pos.x, Pos,y, Pos.z}
+end)
+
+/*==============================================================================================
+	Section: Angles
+==============================================================================================*/
+E_A:RegisterFunction("ang", "e:", "a", function(self, Value)
+	local Entity = Value(self)
+	if !Entity or !Entity:IsValid() then return {0, 0, 0} end
+	
+	local Ang = Entity:GetAngles()
+	
+	return {Ang.p, Ang,y, Ang.r}
 end)
 
 /*==============================================================================================

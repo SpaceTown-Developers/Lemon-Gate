@@ -49,7 +49,7 @@ net.Receive( "lemon_types", function()
 	
 	while Name ~= "" do
 		local Short = net.ReadString()
-		local Type = {Name, Short, nil, true, net.ReadBit() == 1, net.ReadBit() == 1}
+		local Type = {Name, Short, net.ReadBit() == 1, true, net.ReadBit() == 1, net.ReadBit() == 1}
 		E_A.TypeTable[Name] = Type
 		E_A.TypeShorts[Short] = Type
 		

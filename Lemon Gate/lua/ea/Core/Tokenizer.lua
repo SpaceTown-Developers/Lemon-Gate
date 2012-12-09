@@ -103,10 +103,8 @@ E_A:CreateOpToken("?", "qsm", "?")
 E_A:CreateOpToken(":", "col", "colon")
 -- E_A:CreateToken("?:", "def", "?:")
 E_A:CreateOpToken(",", "com", "comma")
--- E_A:CreateToken("$", "dol", "dolla")
-E_A:CreateOpToken("~", "dlt", "delta")
+E_A:CreateOpToken("$", "dlt", "delta")
 E_A:CreateOpToken("#", "len", "length")
--- E_A:CreateToken("->", "imp", "->")
 
 -- Brackets
 E_A:CreateOpToken("(", "lpa", "left parenthesis")

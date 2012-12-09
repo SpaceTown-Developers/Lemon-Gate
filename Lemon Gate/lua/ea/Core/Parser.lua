@@ -380,11 +380,11 @@ function Parser:ExpressionValue()
 		if !self:HasTokens() then self:Error("Lengh operator (#) must not be succeeded by whitespace") end
 		return self:Instruction("lenth", Trace, self:Expression())
 	
-	elseif self:AcceptToken("dlt") then -- dlt ~Num
+	elseif self:AcceptToken("dlt") then -- dlt $Num
 		if !self:HasTokens() then 
-			self:Error("Delta operator (~) must not be succeeded by whitespace")
+			self:Error("Delta operator ($) must not be succeeded by whitespace")
 		elseif !self:AcceptToken("var") then
-			self:Error("variabel expected, after Delta operator (~)")
+			self:Error("variabel expected, after Delta operator ($)")
 		end
 		
 		return self:Instruction("delta", Trace, self.TokenData)

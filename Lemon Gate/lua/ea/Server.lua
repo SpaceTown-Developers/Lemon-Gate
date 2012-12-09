@@ -142,6 +142,8 @@ function E_A:RegisterClass(Name, Short, Default)
 	Name = LowerStr(Name)
 	local Type = {[0] = API.CurrentComponent(), Name, LowerStr(Short)}
 	
+	MsgN("Default Value for " .. Name .. " is a " .. type(Default))
+	
 	if type(Default) == "function" then
 		Type[3] = Default
 	else
@@ -304,8 +306,8 @@ for I = 1, SizeF - 1 do
 		local Return = GetShortType( Function[3] )
 		
 		if !Return then
-			MsgN("Expression Advanced Skipping function '" .. Function[1] .. " in component " .. Function[0])
-			MsgN("Return type " .. tostring(Function[3]) " .. does not exist!")
+			MsgN("Expression Advanced Skipping function '" .. tostring(Function[1]) .. " in component " .. tostring(Function[0]))
+			MsgN("Return type " .. tostring(Function[3]) .. " does not exist!")
 			continue -- GM 13, Hell yes!
 		end
 		
@@ -319,7 +321,7 @@ for I = 1, SizeF - 1 do
 				
 				if !Short then
 					MsgN("Expression Advanced Skipping function '" .. Function[1] .. " in component " .. Function[0])
-					MsgN("Peramater type " .. tostring(Perams[I]) " .. does not exist!")
+					MsgN("Peramater type " .. tostring(Perams[I]) .. " does not exist!")
 					Valid = false; break
 				else
 					Signature = Signature .. Short
@@ -349,7 +351,7 @@ for I = 1, SizeO - 1 do
 		
 		if !Return then
 			MsgN("Expression Advanced Skipping function '" .. Operator[1] .. " in component " .. Operator[0])
-			MsgN("Return type " .. tostring(Operator[3]) " .. does not exist!")
+			MsgN("Return type " .. tostring(Operator[3]) .. " does not exist!")
 			continue -- GM 13, Hell yes!
 		end
 		
@@ -363,7 +365,7 @@ for I = 1, SizeO - 1 do
 				
 				if !Short then
 					MsgN("Expression Advanced Skipping operator '" .. Operator[1] .. " in component " .. Operator[0])
-					MsgN("Peramater type " .. tostring(Perams[I]) " .. does not exist!")
+					MsgN("Peramater type " .. tostring(Perams[I]) .. " does not exist!")
 					Valid = false; break
 				else
 					Signature = Signature .. Short
@@ -446,6 +448,7 @@ function E_A.SyncClient(Player)
 		for _, Class in pairs( E_A.TypeTable ) do
 			net.WriteString( Class[1] )
 			net.WriteString( Class[2] )
+			net.WriteBit( Class[3] ~= nil)
 			net.WriteBit( Class[5] ~= nil)
 			net.WriteBit( Class[6] ~= nil)
 		end
