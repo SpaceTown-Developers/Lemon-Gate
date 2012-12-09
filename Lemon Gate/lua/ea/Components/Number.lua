@@ -219,27 +219,38 @@ E_A:SetCost(EA_COST_NORMAL)
 E_A:RegisterOperator("is", "n", "n", function(self, Value)
 	-- Purpose: Is Valid
 	
-	if Value(self) > 0 then return 1 else return 0 end
+	local V = Value(self)
+	if V > Round or -V > Round then
+		return 1 else return 0
+	end
 end)
 
 E_A:RegisterOperator("not", "n", "n", function(self, Value)
-	-- Purpose: Is Valid
+	-- Purpose: Is Not Valid
 	
-	if Value(self) < 0 then return 1 else return 0 end
+	local V = Value(self)
+	if V > Round or -V > Round then
+		return 0 else return 1
+	end
 end)
 
 E_A:RegisterOperator("or", "nn", "n", function(self, ValueA, ValueB)
 	-- Purpose: | Conditonal Operator
 	
-	local A = ValueA(self)
-	if A > 0 then return A else return ValueB(self) end
+	local A, B = ValueA(self), ValueB(self)
+	
+	if A > Round or -A > Round then
+		return A else return B
+	end
 end)
 
 E_A:RegisterOperator("and", "nn", "n", function(self, ValueA, ValueB)
 	-- Purpose: & Conditonal Operator
 	
 	local A, B = ValueA(self), ValueB(self)
-	if A > 0 and B > 0 then return 1 else return 0 end
+	if A > Round or -A > Round and B > Round or -B > Round then
+		return 1 else return 0
+	end
 end)
 
 /*==============================================================================================

@@ -62,7 +62,7 @@ end)
 E_A:RegisterOperator("if", "", "", function(self, Condition, Statments, Else)
 	-- Purpose: If statments are cool
 	
-	if Condition(self) then -- Note: Op returns a bool =D
+	if Condition(self) > 0 then
 		Statments(self)
 		
 	elseif Else then

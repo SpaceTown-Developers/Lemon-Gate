@@ -48,8 +48,8 @@ function Lemon:Initialize()
 	self:SetMoveType(MOVETYPE_VPHYSICS)
 	self:SetSolid(SOLID_VPHYSICS)
 	
-	WireLib.CreateInputs(self, {})
-	WireLib.CreateOutputs(self, {})
+	self.Inputs = WireLib.CreateInputs(self, {})
+	self.Outputs = WireLib.CreateOutputs(self, {})
 	
 	self.Name = "LemonGate"
 	self.Errored = nil
@@ -171,7 +171,7 @@ function Lemon:RefreshMemory()
 		Memory[Cell] = Type[3](Context)
 	end
 	
-	WireLib.CreateInputs(self, InPuts, InTypes)
+	self.Inputs = WireLib.CreateSpecialInputs(self, InPuts, InTypes)
 	
 	local Outputs, OutTypes, I = {}, {}, 1 -- Header: Make the Outputs!
 	for Cell, Name in pairs( self.OutMemory ) do
@@ -194,7 +194,8 @@ function Lemon:RefreshMemory()
 		Memory[Cell] = Type[3](Context)
 	end
 	
-	WireLib.CreateOutputs(self, Outputs, OutTypes)
+	self.Outputs = WireLib.CreateSpecialOutputs(self, Outputs, OutTypes)
+	
 	self.PortLookUp = PortLookUp
 	
 	self.Name = "LemonGate"
