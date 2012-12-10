@@ -103,8 +103,8 @@ TableToLua = E_A.TableToLua
 /*==============================================================================================
 	Section: This is where we load the API!
 ==============================================================================================*/
-include("Core/API.lua")
-AddCSLuaFile("Core/API.lua")
+include("core/api.lua")
+AddCSLuaFile("core/api.lua")
 
 local API = E_A.API
 
