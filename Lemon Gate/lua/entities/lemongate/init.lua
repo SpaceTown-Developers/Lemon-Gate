@@ -150,7 +150,7 @@ function Lemon:RefreshMemory()
 	local Context, PortLookUp = self.Context, {}
 	local Memory, Delta, Types = Context.Memory, Context.Delta, Context.Types
 	
-	local InPuts, InTypes, I = {}, {}, 1 -- Header: Make the Inputs!
+	local InPuts, InTypes, I = {}, {}, 0 -- Header: Make the Inputs!
 	for Cell, Name in pairs( self.InMemory ) do
 		PortLookUp[Name] = Cell
 		
@@ -173,7 +173,7 @@ function Lemon:RefreshMemory()
 	
 	self.Inputs = WireLib.CreateSpecialInputs(self, InPuts, InTypes)
 	
-	local Outputs, OutTypes, I = {}, {}, 1 -- Header: Make the Outputs!
+	local Outputs, OutTypes, I = {}, {}, 0 -- Header: Make the Outputs!
 	for Cell, Name in pairs( self.OutMemory ) do
 		PortLookUp[Name] = Cell
 		
