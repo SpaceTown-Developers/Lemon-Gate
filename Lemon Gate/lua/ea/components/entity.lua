@@ -197,7 +197,7 @@ E_A:RegisterFunction("driver", "e:", "e", function(self, Value)
 	return Entity(0)
 end)
 
-E_A:RegisterFunction("driver", "e:", "e", function(self, Value)
+E_A:RegisterFunction("passenger", "e:", "e", function(self, Value)
 	local entity = Value(self)
 	if entity and entity:IsValid() and entity:IsVehicle() then return entity:GetPassenger() end
 	return Entity(0)

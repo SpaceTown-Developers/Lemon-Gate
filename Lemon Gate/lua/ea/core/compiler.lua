@@ -446,7 +446,7 @@ function Compiler:Instr_INCREMET(Name)
 	return self:Operator(Operator, Return, Perf, Memory)
 end
 
-function Compiler:Instr_DECREMET(Name)
+function Compiler:Instr_DECREMENT(Name)
 	-- Purpose: -- Math Operator.
 	
 	local Memory, Type = self:GetVar(Name)

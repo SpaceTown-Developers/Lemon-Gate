@@ -32,27 +32,6 @@ end
 E_A:WireModClass("angle", "ANGLE", Input, Output)
 
 /*==============================================================================================
-	Wire Links
-==============================================================================================*/
-E_A:RegisterOperator("get", "wlsa", "a", function(self, ValueA, ValueB)
-	local Entity, Index = ValueA(self), ValueB(self)
-	if !Entity or !Entity:IsValid() or !Entity.Outputs then return 0 end
-	
-	local Data = Entity.Outputs[Index]
-	if !Data then return {0, 0, 0} end
-	
-	local V = Data.Value
-	return {V.x, V.y, V.z}
-end)
-
-E_A:RegisterOperator("set", "wlsa", "", function(self, ValueA, ValueB, ValueC)
-	local Entity, Index, Value = ValueA(self), ValueB(self), ValueC(self)
-	if !Entity or !Entity:IsValid() or !Entity.Outputs then return 0 end
-	
-	WireLib.TriggerInput(Entity, Index, Angle(Value[1], Value[2], Value[3]))
-end)
-
-/*==============================================================================================
 	Section: Variable Operators
 ==============================================================================================*/
 E_A:SetCost(EA_COST_CHEAP)

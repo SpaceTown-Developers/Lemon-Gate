@@ -121,9 +121,15 @@ local Entitys = {}
 	
 API.Entitys = Entitys
 
-function API.AddGate(Entity) Entitys[ Entity ] = Entity end
+function API.AddGate(Entity)
+	Entitys[ Entity ] = Entity
+	API.CallHook("GateCreate", Entity)
+end
 
-function API.RemoveGate(Entity) Entitys[ Entity ] = nil end
+function API.RemoveGate(Entity)
+	Entitys[ Entity ] = nil
+	API.CallHook("GateRemove", Entity)
+end
 
 function API.GetGates() return Entitys end
 

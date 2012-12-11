@@ -97,6 +97,8 @@ end
 function Lemon:LoadScript(Script)
 	-- Purpose: Compile script into an executable.
 	
+	API.CallHook("LoadScript", self, Script)
+	
 	self.Script = Script
 	
 	local Check, Tokens = Tokenizer.Execute(Script)
@@ -129,7 +131,7 @@ function Lemon:LoadInstance(Instance)
 		Types = Instance.VarTypes,
 		Memory = {}, Delta = {}, Click = {},
 		Entity = self, Player = self.Player,
-		Events = {}, VariantTypes = {},
+		Events = {}, VariantTypes = {}, WireLinkQue = {},
 		Perf = MaxPerf:GetInt(),
 	}
 	
@@ -139,6 +141,8 @@ function Lemon:LoadInstance(Instance)
 	self.OutMemory = Instance.Outputs
 	
 	self:RefreshMemory()
+	
+	API.CallHook("BuildContext", self, Instance)
 end
 
 /*==============================================================================================
@@ -149,49 +153,69 @@ function Lemon:RefreshMemory()
 	
 	local Context, PortLookUp = self.Context, {}
 	local Memory, Delta, Types = Context.Memory, Context.Delta, Context.Types
+	local _Inputs, _Outputs = self.Inputs, self.Outputs
 	
-	local InPuts, InTypes, I = {}, {}, 0 -- Header: Make the Inputs!
+/*****************************************************************************/
+--	INPUTS:
+
+	local InPuts, InTypes, I = {}, {}, 0 
 	for Cell, Name in pairs( self.InMemory ) do
 		PortLookUp[Name] = Cell
 		
 		local Type = ShortTypes[Types[Cell]]
-		local WireName = Type[4] -- Note: Get the wiremod name.
+		local WireName = Type[4] -- Wiremod type name.
 		
 		if !WireName or !Type[5] then
 			self:SetColor(BadColor)
 			self:UpdateOverlay("Script Error")
 			WireLib.ClientError("Type '" .. Type[1] .. "' may not be used as input.", self.Player)
-			return
+			return -- This is a valid wire input type.
+		end
+		
+		local LastValue = _Inputs[Name] -- Restore input memory!
+		
+		if LastValue and LastValue.Type == WireName then
+			Type[5](Context, Cell, LastValue.Value)
+		else
+			Memory[Cell] = Type[3](Context)
 		end
 		
 		I = I + 1
 		InPuts[I] = Name
 		InTypes[I] = WireName
-		
-		Memory[Cell] = Type[3](Context)
 	end
 	
 	self.Inputs = WireLib.CreateSpecialInputs(self, InPuts, InTypes)
 	
-	local Outputs, OutTypes, I = {}, {}, 0 -- Header: Make the Outputs!
+	for Key, _Input in pairs(_Inputs)  do
+		local Input = self.Inputs[Key]
+		if Input and Input.Type == _Input.Type then
+			Input.Value = _Input.Value -- Restore input values.
+		end
+	end
+	
+/*****************************************************************************/
+--	OUTPUTS:
+
+	local Outputs, OutTypes, I = {}, {}, 0
 	for Cell, Name in pairs( self.OutMemory ) do
 		PortLookUp[Name] = Cell
 		
 		local Type = ShortTypes[Types[Cell]]
-		local WireName = Type[4] -- Note: Get the wiremod name.
+		local WireName = Type[4]
 		
 		if !WireName or !Type[6] then
 			self:SetColor(BadColor)
 			self:UpdateOverlay("Script Error")
 			WireLib.ClientError("Type '" .. Type[1] .. "' may not be used as output.", self.Player)
-			return
+			return -- This is a valid wire output type.
 		end
+		
+		Memory[Cell] = Type[3](Context)
 		
 		I = I + 1
 		Outputs[I] = Name
 		OutTypes[I] = WireName
-		
-		Memory[Cell] = Type[3](Context)
 	end
 	
 	self.Outputs = WireLib.CreateSpecialOutputs(self, Outputs, OutTypes)
@@ -245,6 +269,8 @@ function Lemon:TriggerOutputs()
 			Click[Cell] = false
 		end
 	end
+	
+	API.CallHook("TriggerOutputs", self)
 end
 
 /*==============================================================================================

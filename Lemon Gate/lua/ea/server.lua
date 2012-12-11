@@ -7,7 +7,10 @@ LemonGate = {
 	Tokenizer = {},
 	Parser = {},
 	Compiler = {},
-	API = {}
+	API = {},
+	
+	Context = {},
+	Operator ={},
 } -- General Table Completed!
 
 local E_A = LemonGate
@@ -515,8 +518,7 @@ end
 /*==============================================================================================
 	Section: Script Context
 ==============================================================================================*/
-local Context = {}
-E_A.Context = Context
+local Context = E_A.Context
 Context.__index = Context
 
 function Context:Throw(Exeption, ...)
@@ -533,8 +535,7 @@ end
 /*==============================================================================================
 	Section: Instruction Operators
 ==============================================================================================*/
-local Operator = {}
-E_A.Operator = Operator
+local Operator = E_A.Operator
 Operator.__index = Operator
 
 local setmetatable = setmetatable
