@@ -56,6 +56,18 @@ E_A.API.AddHook("BuildFunctions", function()
 end)
 
 /*==============================================================================================
+	Section: Conditional!
+==============================================================================================*/
+E_A:RegisterOperator("is", "f", "n", function(self, Value)
+	-- Purpose: Does a function exist.
+	
+	local V = Value(self)
+	if V and V[1] and V[2] and V[3] then
+		return 1 else return 0
+	end
+end)
+
+/*==============================================================================================
 	Section: Lambada Functions!
 ==============================================================================================*/
 E_A:RegisterClass("function", "f")

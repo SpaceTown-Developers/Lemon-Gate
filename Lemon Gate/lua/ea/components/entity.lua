@@ -51,7 +51,7 @@ end)
 /*==============================================================================================
 	Section: Comparason Operators
 ==============================================================================================*/
-E_A:SetCost(EA_COST_EXSPENSIVE)
+E_A:SetCost(EA_COST_NORMAL)
 
 
 E_A:RegisterOperator("negeq", "ee", "n", function(self, ValueA, ValueB)
@@ -69,7 +69,7 @@ end)
 /*==============================================================================================
 	Section: Conditonal Operators
 ==============================================================================================*/
-E_A:SetCost(EA_COST_ABNORMAL)
+E_A:SetCost(EA_COST_NORMAL)
 
 E_A:RegisterOperator("is", "e", "n", function(self, Value)
 	-- Purpose: Is Valid
@@ -206,6 +206,8 @@ end)
 /*==============================================================================================
 	Section: Mass
 ==============================================================================================*/
+E_A:SetCost(EA_COST_ABNORMAL)
+
 E_A:RegisterFunction("mass", "e:", "n", function(self, Value)
 	local Entity = Value(self)
 	if !Entity or !Entity:IsValid() then return 0 end
@@ -308,6 +310,8 @@ end)
 /*==============================================================================================
 	Section: Force
 ==============================================================================================*/
+E_A:SetCost(EA_COST_EXSPENSIVE)
+
 E_A:RegisterFunction("applyForce", "e:v", "", function(self, ValueA, ValueB)
 	local Entity, V = ValueA(self), ValueB(self)
 	
@@ -378,6 +382,8 @@ end)
 /*==============================================================================================
 	Section: Vectors
 ==============================================================================================*/
+E_A:SetCost(EA_COST_NORMAL)
+
 E_A:RegisterFunction("pos", "e:", "v", function(self, Value)
 	local Entity = Value(self)
 	if !Entity or !Entity:IsValid() then return {0, 0, 0} end
@@ -397,6 +403,63 @@ E_A:RegisterFunction("ang", "e:", "a", function(self, Value)
 	local Ang = Entity:GetAngles()
 	
 	return {Ang.p, Ang,y, Ang.r}
+end)
+
+/*==============================================================================================
+	Section: Constraints
+==============================================================================================*/
+E_A:SetCost(EA_COST_NORMAL)
+
+local constraint = constraint
+local HasConstraints = constraint.HasConstraints
+local GetAllConstrainedEntities = constraint.GetAllConstrainedEntities
+local ConstraintTable = constraint.GetTable
+local FindConstraint = constraint.FindConstraint
+
+E_A:RegisterFunction("hasConstraints", "e:", "n", function(self, Value)
+	local Entity = Value(self)
+	if !Entity or !Entity:IsValid() then return 0 end
+	
+	return #ConstraintTable(Entity)
+end)
+
+E_A:RegisterFunction("isConstrained", "e:", "n", function(self, Value)
+	local Entity = Value(self)
+	if !Entity or !Entity:IsValid() or !HasConstraints(Entity) then return 0 end
+	
+	return 1
+end)
+
+E_A:RegisterFunction("isWeldedTo", "e:", "e", function(self, Value)
+	local Entity = Value(self)
+	if !Entity or !Entity:IsValid() or !HasConstraints(Entity) then return Entity(-1) end
+	
+	local Constraint = FindConstraint(Entity, "Weld")
+	
+	if !Constraint then
+		return Entity(-1)
+	
+	elseif Constraint.Ent1 == Entity then
+		return Constraint.Ent2
+	else
+		return Constraint.Ent1 or Entity(-1)
+	end
+end)
+
+
+E_A:SetCost(EA_COST_EXSPENSIVE)
+
+E_A:RegisterFunction("getConstraints", "e:", "t", function(self, Value)
+	local Entity, Table = Value(self), E_A.NewTable()
+	if !Entity or !Entity:IsValid() or !HasConstraints(Entity) then return Table end
+	
+	for _, Constraint in pairs( GetAllConstrainedEntities(Entity) ) do
+		if Constraint and Constraint:IsValid() and Constraint ~= Entity then
+			Table:Insert(nil, "e", Constraint)
+		end
+	end
+	
+	return Table
 end)
 
 /*==============================================================================================

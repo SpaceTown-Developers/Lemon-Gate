@@ -300,7 +300,6 @@ end
 	Creditors: Rusketh
 ==============================================================================================*/
 function Parser:Expression()
-	
 	local Trace = self:TokenTrace()
 	
 	if !self:HasTokens() then
@@ -756,8 +755,7 @@ function Parser:Statment()
 	return self:FunctionStatment()	or
 		   self:EventStatment()		or
 		   self:VariableStatment()	or
-		   self:Expression()		or
-		   self:StatmentError() -- Error in statment!
+		   self:Expression()
 end
 
 function Parser:StatmentError()
@@ -844,69 +842,86 @@ end
 local AssigmentInstructions = {aadd = "addition", asub = "subtraction", amul = "multiply", adiv = "divide"}
 
 function Parser:VariableStatment(NoDec)
+	local Trace = self:TokenTrace()
+	
 	if self:AcceptToken("var") then
-		local Trace, Var = self:TokenTrace(), self.TokenData
+		local Var = self.TokenData
 		
-		if self:AcceptToken("inc") then -- Increment operator
+		if self:AcceptToken("inc") then
 			return self:Instruction("incremet", Trace, Var)
-			
-		elseif self:AcceptToken("dec") then -- Decrement operator
+		
+		elseif self:AcceptToken("dec") then
 			return self:Instruction("decrement", Trace, Var)
 			
-		elseif self:CheckToken("lsb") then -- Indexing operator
+		elseif self:CheckToken("lsb") then
 			self:PrevToken()
 			return self:IndexedStatment()
+			
+		elseif self:CheckToken("com") then
+			self:PrevToken()
+			return self:MultiVariableStatment() -- TODO
 		
-		else
-			
-			local Stmts, Vars, Index = {}, {Var}, 1
-			
-			while self:AcceptToken("com") do
-				if !self:AcceptToken("var") then
-					self:Error("Variable expected after comma (,)", Type)
-				else
-					Index = Index + 1
-					Vars[Index] = self.TokenData
-				end
+		elseif self:AcceptToken("ass") then
+			self:Instruction("assign", Trace, Var, self:Expression())
+		end
+		
+		for Token, Instruction in pairs( AssigmentInstructions ) do
+			if self:AcceptToken(Token) then
+				return self:Instruction(Instruction, Trace, Var, self:Expression())
 			end
-			
-			if self:AcceptToken("ass") then -- Assigmnet Operator
-				for I = 1, Index do
-					Stmts[I] = self:Instruction("assign", Trace, Vars[I], self:Expression())
-					
-					if I != Index and !self:AcceptToken("com") then self:Error("Assigment operator (=), value expected for variabel '%s'", Vars[I]) end
-				end
-				
-			else
-				local NextToken = self.NextTokenType
-				if NextToken then
-					local Instruction = AssigmentInstructions[NextToken]
-					
-					if Instruction then
-						
-						local Op, OpName = self.TokenData, self.TokenName
-						self:NextToken()
-						
-						for I = 1, Index do
-							local Var = Vars[I] -- Speed!
-							Stmts[I] = self:Instruction("assign", Trace, Var, self:Instruction(Instruction, Trace, self:Instruction("variabel", Trace, Var), self:Expression()))
-					
-							if I != Index and !self:AcceptToken("com") then self:Error("%s (%s), value expected for variabel '%s'", OpName, Op, Var) end
-						end
-					end
-				else
-					self:TokenError(Trace, "Assigment operator (=) expected, after Variable")
-				end
-			end
-			
-			return self:Instruction("sequence", Trace, Stmts)
 		end
 		
 		self:PrevToken()
 	end
 	
-	if !NoDec then
-		return self:VariableDeclaration()
+	if !NoDec then return self:VariableDeclaration() end
+end
+
+function Parser:MultiVariableStatment()
+	local Trace = self:TokenTrace()
+	
+	if self:AcceptToken("var") then
+		local Vars, Index = {self.TokenData}, 1
+		
+		while self:AcceptToken("com") do
+			if !self:AcceptToken("var") then
+				self:Error("Variable expected after comma (,)")
+			else
+				Index = Index + 1
+				Vars[Index] = self.TokenData
+			end
+		end
+		
+		local InstType
+		
+		if self:AcceptToken("ass") then
+			InstType = "assign"
+		else
+			for Token, Instruction in pairs( AssigmentInstructions ) do
+				if self:AcceptToken(Token) then
+					InstType = Instruction; break
+				end
+			end
+		end
+		
+		if !InstType then
+			self:Error("Assigment operator (=) expected after Variable list")
+		end
+		
+		local Stmts = {}
+		
+		for I = 1, Index do
+			Expr = self:Expression()
+			
+			if !Expr then self:Error("Value exspected for %s, in multi variable assigment", Vars[I]) end
+			Stmts[I] = self:Instruction(InstType, Trace, Vars[I], Expr)
+			
+			if I != Index and !self:AcceptToken("com") then
+				self:Error("Comma (,) expected after value for %s, in multi variable assigment", Vars[I + 1])
+			end
+		end
+		
+		return self:Instruction("sequence", Trace, Stmts)
 	end
 end
 

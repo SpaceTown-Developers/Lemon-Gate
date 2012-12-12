@@ -75,6 +75,8 @@ local Validate = Editor.Validate
 function Editor.Create()
 	if Editor.Instance then return end
 	
+	file.CreateDir("LemonGate")
+	
 	local Instance = vgui.Create("Expression2EditorFrame")
 	Instance:Setup("Expression Advanced Editor", "LemonGate", "EA")
 	Instance:SetSyntaxColorLine( SyntaxColorLine )

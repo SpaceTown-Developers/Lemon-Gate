@@ -55,8 +55,6 @@ net.Receive( "lemon_types", function()
 		
 		Name = net.ReadString()
 	end
-	
-	E_A.Editor.Validate()
 end)
 
 net.Receive( "lemon_functions", function()
@@ -67,8 +65,6 @@ net.Receive( "lemon_functions", function()
 		E_A.FunctionTable[Name] = {true, net.ReadString(), net.ReadFloat()}
 		Name = net.ReadString()
 	end
-	
-	E_A.Editor.Validate()
 end)
 
 net.Receive( "lemon_operators", function()
@@ -79,8 +75,6 @@ net.Receive( "lemon_operators", function()
 		E_A.OperatorTable[Name] = {true, net.ReadString(), net.ReadFloat()}
 		Name = net.ReadString()
 	end
-	
-	E_A.Editor.Validate()
 end)
 
 net.Receive( "lemon_events", function()
@@ -91,8 +85,6 @@ net.Receive( "lemon_events", function()
 		E_A.EventsTable[Name] = {net.ReadString(), net.ReadString()}
 		Name = net.ReadString()
 	end
-	
-	E_A.Editor.Validate()
 end)
 
 /*==============================================================================================
