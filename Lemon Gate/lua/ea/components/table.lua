@@ -240,7 +240,7 @@ E_A.API.AddHook("BuildFunctions", function()
 			
 			local tIndex = Table.Types[Index]
 			if !tIndex and Type == "t" then self:Error("Attempt to reach invalid table at index " .. tostring(Index) .. ".")
-			elseif !tIndex or tIndex != Type then return tTbale[3](self) end -- Default value!
+			elseif !tIndex or tIndex != Type then return tTable[3](self) end -- Default value!
 			
 			return Table.Data[Index]
 		end)
