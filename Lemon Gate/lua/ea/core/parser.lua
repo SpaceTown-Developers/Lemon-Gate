@@ -747,9 +747,15 @@ function Parser:Statment()
 		
 	elseif self:CheckToken("whl") then
 		return self:WhileLoop()
-	
+		
+	elseif self:CheckToken("each") then
+		return self:ForEachLoop()
+		
 	elseif self:CheckToken("brk") or self:CheckToken("cnt") or self:CheckToken("ret") then
 		return self:ExitStatment()
+	
+	elseif self:AcceptToken("try") then
+		return self:Instruction("try", self:TokenTrace(), self:Block("try block"), self:Catch(true))
 	end
 	
 	return self:FunctionStatment()	or
@@ -973,15 +979,61 @@ function Parser:IndexedStatment()
 end
 
 /*==============================================================================================
-	Section: If Statments
+	Section: If and Try Statments
 	Purpose: If this then do that.
 	Creditors: Rusketh
 ==============================================================================================*/
 function Parser:ElseIf()
 	if self:AcceptToken("eif") then
-		return self:Instruction("if", self:GetTokenTrace(), self:Condition(), self:Block("elseif condition"), self:ElseIf())
+		return self:Instruction("if", self:TokenTrace(), self:Condition(), self:Block("elseif condition"), self:ElseIf())
 	elseif self:AcceptToken("els") then
 		return self:Block("else")
+	end
+end
+
+function Parser:Catch(Reqired)
+	if self:AcceptToken("cth") then
+		
+		if !self:AcceptToken("lpa") then
+			self:Error("Left parenthesis (() missing, to start catch statment.")
+		end
+		
+		if !self:AcceptToken("fun") then
+			self:Error("exception type, expected for catch statment")
+		end
+		
+		local Exception = self.TokenData
+		
+		if !E_A.Exceptions[ Exception ] then
+			self:Error("invalid exception %s", Exception)
+		end
+		
+		local Exceptions = {[Exception] = true}
+		
+		while self:AcceptToken("com") do
+			if !self:AcceptToken("fun") then
+				self:Error("exception type expected after comma (,) for catch statment")
+			end
+			
+			local Exception = self.TokenData
+			
+			if Exceptions[Exception] then
+				self:Error("exception %s is already listed in catch statment", Exception)
+			elseif !E_A.Exceptions[ Exception ] then
+				self:Error("invalid exception %s", Exception)
+			end
+		
+			Exceptions[Exception] = true
+		end
+		
+		if !self:AcceptToken("rpa") then
+			self:Error("Right parenthesis ()) missing, to close function parameters")
+		end
+		
+		return self:Instruction("catch", self:TokenTrace(), Exceptions, self:Block("catch block"), self:Catch())
+		
+	elseif Required then
+		self:Error("catch statment required, after try")
 	end
 end
 
@@ -1071,6 +1123,7 @@ end
 function Parser:LambadaFunction()
 	-- Purpose: Creates a Lambada.
 	
+	local Trace = self:TokenTrace()
 	local Ret = self:AcceptToken("fun")
 	
 	if self:AcceptToken("func") then
@@ -1264,6 +1317,63 @@ function Parser:WhileLoop()
 		return self:Instruction("loop_while", Trace, Cond, Block)
 	end
 		
+end
+
+function Parser:ForEachLoop()
+	if self:AcceptToken("each") then
+		
+		local Trace = self:TokenTrace()
+		
+		if !self:AcceptToken("lpa") then
+			self:Error("Left parenthesis (() missing, after 'foreach'")
+		end
+		
+		local tValue, tKey = self:StrictType() or "n"
+		
+		if !self:AcceptToken("var") then
+			self:Error("Varaible expected, after left parenthesis (()")
+		end
+		
+		local Value, Key = self.TokenData
+		
+		if self:AcceptToken("com") then
+			Key, tKey = Value, tValue
+			
+			tValue = self:StrictType() or "n"
+			
+			if !self:AcceptToken("var") then
+				self:Error("Varaible expected, after comma (,)")
+			end
+			
+			Value = self.TokenData
+		end
+		
+		if !self:AcceptToken("col") then
+			self:Error("colon (:) expected, after Variable")
+		end
+		
+		local Var = self:Expression()
+		
+		if !Var then
+			self:Error("Varaible expected, after colon (:)")
+		end
+		
+		if !self:AcceptToken("rpa") then
+			self:Error("Right parenthesis ()) missing, in 'foreach'")
+		end
+		
+		self.LoopDepth = self.LoopDepth + 1
+		
+		local Block = self:Block("foreach loop")
+		
+		self.LoopDepth = self.LoopDepth - 1
+		
+		if Key then
+			return self:Instruction("loop_each2", Trace, Var, Key, tKey, Value, tValue, Block)
+		else
+			return self:Instruction("loop_each", Trace, Var, Value, tValue, Block)
+		end
+	end
 end
 
 function Parser:ExitStatment()

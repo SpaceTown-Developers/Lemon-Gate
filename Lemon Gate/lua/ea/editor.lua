@@ -12,16 +12,22 @@ local Editor = E_A.Editor
 	Home Screen
 ==============================================================================================*/
 local HomeScreen = [[/*===================================================
-Expression Advanced Alpha
-- Rusketh & Oskar94
+Expression Advanced Beta
+- Rusketh, Oskar94, Divran, Syranide
 
 For documentation and help visit out wiki.
 Wiki: https://github.com/SpaceTown-Developers/Lemon-Gate/wiki
 
-To report bugs like your meant to, visit out bug tracker.
+There are bugs you will find them, there are also ideas and you will have them.
+When you do please post them on your bug tracker to help development.
 Bug Tracker: https://github.com/SpaceTown-Developers/Lemon-Gate/issues
 
-Thank you for taking part in this Alpha!
+New Features:
+* Try and Catch statments.
+* Entity find functions.
+* Foreach loops.
+
+Thank you for taking part in this Beta!
 ===================================================*/]]
 
 /*==============================================================================================

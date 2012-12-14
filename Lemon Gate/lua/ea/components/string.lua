@@ -66,7 +66,7 @@ end)
 	Section: String Operators
 ==============================================================================================*/
 
-E_A:RegisterOperator("lengh", "s", "n", function(self, Value)
+E_A:RegisterOperator("lenth", "s", "n", function(self, Value)
 	-- Purpose: Gets the lengh of a string
 	
 	return #Value(self)
@@ -126,7 +126,7 @@ end)
 ==============================================================================================*/
 E_A:SetCost(EA_COST_NORMAL)
 
-E_A:RegisterFunction("length", "s:", "n", function(self, Value)
+E_A:RegisterFunction("lenth", "s:", "n", function(self, Value)
 	return #Value(self)
 end)
 
@@ -274,6 +274,8 @@ end)
 	Section: Explode / Matches
 ==============================================================================================*/
 E_A:SetCost(EA_COST_EXSPENSIVE)
+
+E_A:RegisterException("string")
 
 local RemoveTable = table.remove
 

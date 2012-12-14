@@ -18,6 +18,8 @@ E_A.API.NewComponent("Lambda", true)
 ==============================================================================================*/
 E_A:RegisterClass("variant", "?")
 
+E_A:RegisterException("cast")
+
 E_A:RegisterOperator("assign", "?", "", function(self, ValueOp, Memory)
 	local Val, Type = ValueOp(self)
 	
@@ -39,7 +41,7 @@ E_A.API.AddHook("BuildFunctions", function()
 				local Val, Typ = Value(self)
 				
 				if Type != Typ then
-					self:Throw("variant", "Tryed to cast a variant of " .. Typ .. " to a " .. Type)
+					self:Throw("cast", "Tryed to cast a variant of " .. Typ .. " to a " .. Type)
 				end
 				
 				return Val
@@ -72,6 +74,8 @@ end)
 ==============================================================================================*/
 E_A:RegisterClass("function", "f")
 
+E_A:RegisterException("invoke")
+
 E_A:RegisterOperator("funcvar", "f", "f", function(self, Memory)
 	-- Purpose: Returns a function.
 	
@@ -101,7 +105,7 @@ E_A:RegisterOperator("call", "f", "?", function(self, Value, pSig, Values)
 	local tPerams = #Perams
 	
 	if tPerams != #Values then
-		self:Throw("invoke", "Parameter missmatch (" .. Lambada[1] .. ") exspected got (" .. pSig .. ")")
+		self:Throw("invoke", "Parameter missmatch (" .. Lambada[1] .. ") expected got (" .. pSig .. ")")
 	end
 	
 	for I = 1, tPerams do

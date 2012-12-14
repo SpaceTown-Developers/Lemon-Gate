@@ -266,12 +266,12 @@ end)
 ==============================================================================================*/
 E_A:SetCost(EA_COST_NORMAL)
 
-E_A:RegisterOperator("lengh", "v", "n", function(self, Value)
+E_A:RegisterOperator("lenth", "v", "n", function(self, Value)
 	local V = Value(self)
 	return (V[1] * V[1] + V[2] * V[2] + V[3] * V[3]) ^ 0.5
 end)
 
-E_A:RegisterFunction("length", "v:", "n", function(self, Value)
+E_A:RegisterFunction("lenth", "v:", "n", function(self, Value)
 	local V = Value(self)
 	return (V[1] * V[1] + V[2] * V[2] + V[3] * V[3]) ^ 0.5
 end)

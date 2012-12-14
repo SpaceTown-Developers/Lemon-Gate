@@ -214,6 +214,18 @@ function E_A:RegisterEvent(Name, Params, Return)
 	SizeE = SizeE + 1
 end
 
+/*==============================================================================================
+	Section: Exception!
+==============================================================================================*/
+E_A.Exceptions = {}
+
+function E_A:RegisterException(Name)
+	CheckType(Name, "string", 1)
+	-- Purpose: Add an exception type.
+	
+	local Name = LowerStr(Name)
+	E_A.Exceptions[Name] = Name
+end
 
 /*==============================================================================================
 ************************************************************************************************
@@ -445,6 +457,7 @@ util.AddNetworkString( "lemon_types" )
 util.AddNetworkString( "lemon_functions" )
 util.AddNetworkString( "lemon_operators" )
 util.AddNetworkString( "lemon_events" )
+util.AddNetworkString( "lemon_exceptions" )
 
 function E_A.SyncClient(Player)
 	net.Start( "lemon_types" )
@@ -485,6 +498,12 @@ function E_A.SyncClient(Player)
 		net.WriteString( "" )
 	net.Send( Player )
 	
+	net.Start( "lemon_exceptions" )
+		for _, Name in pairs( E_A.Exceptions ) do
+			net.WriteString(  Name )
+		end
+		net.WriteString( "" )
+	net.Send( Player )
 end
 
 concommand.Add("lemon_sync", E_A.SyncClient)
@@ -524,6 +543,7 @@ Context.__index = Context
 function Context:Throw(Exeption, ...)
 	self.Exception = Exeption
 	self.ExceptionInfo = {...}
+	self.ExceptionTrace = self.StackTrace
 	error("Exception", 0)
 end
 
@@ -545,31 +565,29 @@ local pcall = pcall
 function E_A.CallOp(Op, self, Arg, ...)
 	-- Purpose: Makes Operators callable and handels runtime perf.
 	
-	local Perf = self.Perf - (Op[0] or EA_COST_NORMAL)
-	
-	self.Perf = Perf
-	
+	-- Perfomance Points.
+	local Perf = self.Perf - (Op[0] or EA_COST_NORMAL); self.Perf = Perf
 	if Perf < 0 then self:Throw("script", "Execution Limit Reached") end
 	
-	local Trace = self.Trace
+	-- Update Stack Trace
+	local StackTrace = self.StackTrace
+	StackTrace[#StackTrace + 1] = Op[4]
 	
-	self.Trace = Op[4] -- Replace parent trace with child trace.
+	-- Parameters
+	local Perams = Op[3]
+	if Arg then Perams = {Arg, ...} end
 	
-	local Perams, Res, Type = Op[3]
+	local Res, Type -- Call the operator.
+		if !Perams or #Perams == 0 then
+			Res, Type = Op[1](self)
+		elseif #Perams < 20 then -- Unpack is slow so lets avoid it!
+			Res, Type = Op[1](self, Perams[1], Perams[2], Perams[3], Perams[4], Perams[5], Perams[6], Perams[7], Perams[8], Perams[9], Perams[10], Perams[11], Perams[12], Perams[13], Perams[14], Perams[15], Perams[16], Perams[17], Perams[18], Perams[19], Perams[20])
+		else
+			Res, Type = Op[1](self, unpack(Perams)) -- More then 20 perams!
+		end
 	
-	if Arg then Perams = {Arg, ...} end -- Use custom peramaters!
-	
-	if !Perams or #Perams == 0 then
-		Res, Type = Op[1](self) -- No perams!
-	elseif #Perams < 20 then
-		-- Unpack is slow so lets avoid it!
-		local A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T = Perams[1], Perams[2], Perams[3], Perams[4], Perams[5], Perams[6], Perams[7], Perams[8], Perams[9], Perams[10], Perams[11], Perams[12], Perams[13], Perams[14], Perams[15], Perams[16], Perams[17], Perams[18], Perams[19], Perams[20]
-		Res, Type = Op[1](self, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T)
-	else
-		Res, Type = Op[1](self, unpack(Perams)) -- More then 20 perams!
-	end
-	
-	self.Trace = Trace
+	-- Reset Stack Trace
+	StackTrace[#StackTrace] = nil
 	
 	return Res, (Type or Op[2])
 end 
@@ -580,11 +598,15 @@ Operator.__call = E_A.CallOp
 function E_A.SafeCall(Op, self, ...)
 	-- Purpose: Calls the operator safly and handels exceptions.
 	
+	local StackTrace = self.StackTrace -- Back up trace!
+	self.StackTrace = { StackTrace[#StackTrace] }
+	
 	local Ok, Result, Type = pcall(CallOp, Op, self, ...)
+	self.StackTrace = StackTrace -- Restore last trace!
 	
 	if !Ok and Result == "Exception" then
 		return false, self.Exception, unpack(self.ExceptionInfo)
-	end -- We can return an exception here!
+	end
 	
 	return Ok, Result, Type
 end

@@ -463,6 +463,91 @@ E_A:RegisterFunction("getConstraints", "e:", "t", function(self, Value)
 end)
 
 /*==============================================================================================
+	Section: Finding
+==============================================================================================*/
+local Players = player.GetAll
+local FindByClass = ents.FindByClass
+local FindInSphere = ents.FindInSphere
+local FindInBox = ents.FindInBox
+local FindInCone = ents.FindInCone
+local FindByModel = ents.FindByModel
+
+local BanedEntitys = { -- E2 filters these.
+	["info_player_allies"] = true,
+	["info_player_axis"] = true,
+	["info_player_combine"] = true,
+	["info_player_counterterrorist"] = true,
+	["info_player_deathmatch"] = true,
+	["info_player_logo"] = true,
+	["info_player_rebel"] = true,
+	["info_player_start"] = true,
+	["info_player_terrorist"] = true,
+	["info_player_blu"] = true,
+	["info_player_red"] = true,
+	["prop_dynamic"] = true,
+	["physgun_beam"] = true,
+	["player_manager"] = true,
+	["predicted_viewmodel"] = true,
+	["gmod_ghost"] = true,
+}
+	
+local function FilterResults(Entitys)
+	local Table = E_A.NewTable()
+	
+	for _, Entity in pairs( Entitys ) do
+		if Entity:IsValid() and !BanedEntitys[  Entity:GetClass() ] then
+			Table:Insert(nil, "e", Entity)
+		end
+	end
+	
+	return Table
+end
+
+
+E_A:RegisterFunction("getPlayers", "", "t", function(self)
+	return E_A.NewResultTable(Players(), "e")
+end)
+
+E_A:RegisterFunction("findByClass", "s", "t", function(self, Value)
+	V = Value(self)
+	Ents = FindByClass(V)
+	
+	return FilterResults(Ents)
+end)
+
+E_A:RegisterFunction("findByModel", "s", "t", function(self, Value)
+	V = Value(self)
+	Ents = FindByModel(V)
+	
+	return FilterResults(Ents)
+end)
+
+E_A:RegisterFunction("findInSphere", "vn", "t", function(self, ValueA, ValueB)
+	local A, B = ValueA(self), ValueB(self)
+	local V = Vector(A[1], A[2], A[3])
+	
+	local Ents = FindInSphere(V, B)
+	return FilterResults(Ents)
+end)
+
+E_A:RegisterFunction("findInBox", "vv", "t", function(self, ValueA, ValueB)
+	local A, B = ValueA(self), ValueB(self)
+	local VA, VB = Vector(A[1], A[2], A[3]), Vector(B[1], B[2], B[3])
+	
+	local Ents = FindInBox(VA, VB)
+	return FilterResults(Ents)
+end)
+
+E_A:RegisterFunction("findInCone", "vvna", "t", function(self, ValueA, ValueB, ValueC, ValueD)
+	local A, B, C, D = ValueA(self), ValueB(self), ValueC(self), ValueD(self)
+	local VA, VB = Vector(A[1], A[2], A[3]), Vector(B[1], B[2], B[3])
+	local AD = Angle(D[1], D[2], D[3])
+	
+	local Ents = FindInCone(VA, VB, C, AD)
+	return FilterResults(Ents)
+end)
+
+/*==============================================================================================
 	Section: Casting and converting
 ==============================================================================================*/
 E_A:SetCost(EA_COST_ABNORMAL)

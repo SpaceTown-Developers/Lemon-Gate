@@ -81,6 +81,7 @@ function API.LoadComponents()
 		include("ea/components/selfaware.lua")
 		include("ea/components/function.lua")
 		include("ea/components/event.lua")
+		include("ea/components/timers.lua")
 	end
 	
 	MsgN("Expression Advanced: Loading Components!")

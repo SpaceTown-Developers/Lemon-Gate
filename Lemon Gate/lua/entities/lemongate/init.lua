@@ -74,6 +74,8 @@ function Lemon:Think()
 		end
 		
 		self:CallEvent("think")
+		
+		API.CallHook("GateThink", self)
 	end
 	
 	self.BaseClass.Think(self)
@@ -128,11 +130,11 @@ function Lemon:LoadInstance(Instance)
 	-- Purpose: Takes the important things from the instance.
 	
 	self.Context = {
-		Types = Instance.VarTypes,
+		Types = Instance.VarTypes, StackTrace = {},
 		Memory = {}, Delta = {}, Click = {},
 		Entity = self, Player = self.Player,
 		Events = {}, VariantTypes = {}, WireLinkQue = {},
-		Perf = MaxPerf:GetInt(),
+		Perf = MaxPerf:GetInt(), Timers = {},
 	}
 	
 	setmetatable(self.Context, E_A.Context)
@@ -367,8 +369,11 @@ function Lemon:LuaError(Message, Info, ...)
 end
 
 function Lemon:ScriptError(Message)
-	local Trace = self.Context.Trace
-		
+	local ExceptionTrace = self.Context.ExceptionTrace
+	local Trace = ExceptionTrace[#ExceptionTrace]
+	
+	if !Message then debug.Trace() end
+	
 	if Trace then
 		Message = Message .. " at Line " .. Trace[1] .. " Char " .. Trace[2]
 	end

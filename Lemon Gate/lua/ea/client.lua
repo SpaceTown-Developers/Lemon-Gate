@@ -87,6 +87,16 @@ net.Receive( "lemon_events", function()
 	end
 end)
 
+net.Receive( "lemon_exceptions", function()
+	E_A.Exceptions = {}
+	local Name = net.ReadString()
+	
+	while Name ~= "" do
+		E_A.Exceptions[Name] = Name
+		Name = net.ReadString()
+	end
+end)
+
 /*==============================================================================================
 	Section: Class Check Functions!
 ==============================================================================================*/

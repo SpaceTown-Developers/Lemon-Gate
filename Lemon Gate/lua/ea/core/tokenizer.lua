@@ -46,10 +46,12 @@ E_A:CreateToken("elseif", "eif", "else if")
 E_A:CreateToken("else", "els", "else")
 E_A:CreateToken("while", "whl", "while")
 E_A:CreateToken("for", "for", "for")
+E_A:CreateToken("foreach", "each", "foreach")
 E_A:CreateToken("function", "func", "function constructor")
 E_A:CreateToken("switch", "swh", "switch")
 E_A:CreateToken("event", "evt", "event constructor")
--- E_A:CreateToken("catch", "cth", "catch", E_A_Colour_KEYWORD) -- Unused!
+E_A:CreateToken("try", "try", "try")
+E_A:CreateToken("catch", "cth", "catch")
 
 -- Sub KeyWords
 E_A:CreateToken("break", "brk", "break")
@@ -296,31 +298,32 @@ function Toker:NextToken()
 	
 	
 	-- KeyWords
-	if self:IsToken("if", true) then
-	elseif self:IsToken("else if", true) then
-	elseif self:IsToken("else", true) then
-	elseif self:IsToken("while", true) then
-	elseif self:IsToken("for", true) then
-	elseif self:IsToken("function constructor", true) then
-	elseif self:IsToken("switch", true) then
-	elseif self:IsToken("catch", true) then
-	elseif self:IsToken("event constructor", true) then
-	
+	if self:IsToken("if", true) or
+	   self:IsToken("else if", true) or
+	   self:IsToken("else", true) or
+	   self:IsToken("while", true) or
+	   self:IsToken("foreach", true) or
+	   self:IsToken("for", true) or
+	   self:IsToken("function constructor", true) or
+	   self:IsToken("switch", true) or
+	   self:IsToken("catch", true) or
+	   self:IsToken("try", true) or
+	   self:IsToken("event constructor", true) then
+
 	-- Sub KeyWord
-	elseif self:IsToken("break", true) then
-	elseif self:IsToken("continue", true) then
-	elseif self:IsToken("return", true) then
-	elseif self:IsToken("error", true) then
+	elseif self:IsToken("break", true) or
+		   self:IsToken("continue", true) or
+		   self:IsToken("return", true) or
+		   self:IsToken("error", true) then
 	
 	-- Decleration Types
-	elseif self:IsToken("global", true) then
-	elseif self:IsToken("input", true) then
-	elseif self:IsToken("output", true) then
-	-- elseif self:IsToken("persistant", true) then
+	elseif self:IsToken("global", true) or
+		   self:IsToken("input", true) or
+		   self:IsToken("output", true) then
 	
 	-- Function / Variable
-	elseif self:IsToken("function") then
-	elseif self:IsToken("variable") then
+	elseif self:IsToken("function") or
+		   self:IsToken("variable") then
 	end
 	
 	if self.InfoToken then

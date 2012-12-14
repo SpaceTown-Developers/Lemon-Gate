@@ -160,7 +160,7 @@ end)
 	Purpose: Basic operations.
 	Creditors: Rusketh
 ==============================================================================================*/
-E_A:RegisterOperator("lengh", "t", "n", function(self, Value)
+E_A:RegisterOperator("lenth", "t", "n", function(self, Value)
 	-- Purpose: Gets the highest numric index
 	
 	local Data = Value(self).Data
@@ -194,7 +194,7 @@ E_A:RegisterFunction("count", "t:", "n", function(self, Value)
 	return Value(self).Count or 0
 end)
 
-E_A:RegisterFunction("lengh", "t:", "n", function(self, Value)
+E_A:RegisterFunction("lenth", "t:", "n", function(self, Value)
 	local Data = Value(self).Data
 	if !Data then return 0 else return #Data end
 end)
@@ -262,7 +262,6 @@ E_A.API.AddHook("BuildFunctions", function()
 		-- Set Number Index
 		E_A:RegisterOperator("set", "tn" .. Type, "", function(self, ValueA, ValueB, ValueC)
 			local Table, Index = ValueA(self), ValueB(self)
-			MsgN("Table is -> " .. tostring(Table))
 			if !Table.Data then self:Error("Attempt to index feild " .. tostring(Index) .. " on invalid table.") end
 			
 			if !Table:Set(Index, Type, ValueC(self)) then self:Error("Maxamum table size exceeded.") end
@@ -284,6 +283,153 @@ E_A.API.AddHook("BuildFunctions", function()
 			if !Table:Set(Index, Type, ValueC(self)) then self:Error("Maxamum table size exceeded.") end
 		end)
 		
+		/*****************************************************************************************************************************/
+		
+		E_A:RegisterOperator("foreach", "t" .. Type, "", function(self, Value, Memory, Assign, Block)
+			local Table = Value(self)
+			local Data = Table.Data
+			
+			if Table.Types then
+				for Index, tValue in pairs( Table.Types ) do
+					if tValue == Type or tValue == "?" then
+						
+						-- Assign the Value.
+							Assign(self, function() return Data[Index], Type end, Memory) 
+						
+						local Ok, Exception, Level = Block:SafeCall(self)
+						Level = tonumber(Level or 0)
+						
+						if !Ok then
+							if Exception == "break" then
+								if Level <= 0 then break else self:Throw("break", Level - 1) end
+							elseif Exception == "continue" then
+								if Level <= 0 then Step(self) else self:Throw("continue", Level - 1) end
+							else
+								error(Exception, 0)
+							end
+						end
+					end
+				end	
+			end
+		end)
+		
+		/*****************************************************************************************************************************/
+		
+		E_A:RegisterOperator("foreach", "tn" .. Type, "", function(self, Value, kMemory, kAssign, vMemory, vAssign, Block)
+			local Table = Value(self)
+			local Types, Data = Table.Types, Table.Data
+			
+			if Table.Types then
+				for Index, tValue in pairs( Table.Types ) do
+					if type(Index) == "number" and (tValue == Type or Type == "?") then
+						
+					-- Assign the Value.
+							kAssign(self, function() return Index, Type end, kMemory) 
+							vAssign(self, function() return Data[Index], Type end, vMemory) 
+						
+						local Ok, Exception, Level = Block:SafeCall(self)
+						Level = tonumber(Level or 0)
+						
+						if !Ok then
+							if Exception == "break" then
+								if Level <= 0 then break else self:Throw("break", Level - 1) end
+							elseif Exception == "continue" then
+								if Level <= 0 then Step(self) else self:Throw("continue", Level - 1) end
+							else
+								error(Exception, 0)
+							end
+						end
+					end
+				end	
+			end
+		end)
+		
+		E_A:RegisterOperator("foreach", "ts" .. Type, "", function(self, Value, kMemory, kAssign, vMemory, vAssign, Block)
+			local Table = Value(self)
+			local Types, Data = Table.Types, Table.Data
+			
+			if Table.Types then
+				for Index, tValue in pairs( Table.Types ) do
+					if type(Index) == "string" and (tValue == Type or Type == "?") then
+						
+					-- Assign the Value.
+							kAssign(self, function() return Index, Type end, kMemory) 
+							vAssign(self, function() return Data[Index], Type end, vMemory) 
+						
+						local Ok, Exception, Level = Block:SafeCall(self)
+						Level = tonumber(Level or 0)
+						
+						if !Ok then
+							if Exception == "break" then
+								if Level <= 0 then break else self:Throw("break", Level - 1) end
+							elseif Exception == "continue" then
+								if Level <= 0 then Step(self) else self:Throw("continue", Level - 1) end
+							else
+								error(Exception, 0)
+							end
+						end
+					end
+				end	
+			end
+		end)
+		
+		E_A:RegisterOperator("foreach", "te" .. Type, "", function(self, Value, kMemory, kAssign, vMemory, vAssign, Block)
+			local Table = Value(self)
+			local Types, Data = Table.Types, Table.Data
+			
+			if Table.Types then
+				for Index, tValue in pairs( Table.Types ) do
+					if type(Index) == "Entity" and (tValue == Type or Type == "?") then
+						
+					-- Assign the Value.
+							kAssign(self, function() return Index, Type end, kMemory) 
+							vAssign(self, function() return Data[Index], Type end, vMemory) 
+						
+						local Ok, Exception, Level = Block:SafeCall(self)
+						Level = tonumber(Level or 0)
+						
+						if !Ok then
+							if Exception == "break" then
+								if Level <= 0 then break else self:Throw("break", Level - 1) end
+							elseif Exception == "continue" then
+								if Level <= 0 then Step(self) else self:Throw("continue", Level - 1) end
+							else
+								error(Exception, 0)
+							end
+						end
+					end
+				end	
+			end
+		end)
+		
+		E_A:RegisterOperator("foreach", "t?" .. Type, "", function(self, Value, kMemory, kAssign, vMemory, vAssign, Block)
+			local Table = Value(self)
+			local Types, Data = Table.Types, Table.Data
+			
+			if Table.Types then
+				for Index, tValue in pairs( Table.Types ) do
+					if tValue == Type or Type == "?" then
+						
+					-- Assign the Value.
+							kAssign(self, function() return Index, Type end, kMemory) 
+							vAssign(self, function() return Data[Index], Type end, vMemory) 
+						
+						local Ok, Exception, Level = Block:SafeCall(self)
+						Level = tonumber(Level or 0)
+						
+						if !Ok then
+							if Exception == "break" then
+								if Level <= 0 then break else self:Throw("break", Level - 1) end
+							elseif Exception == "continue" then
+								if Level <= 0 then Step(self) else self:Throw("continue", Level - 1) end
+							else
+								error(Exception, 0)
+							end
+						end
+					end
+				end	
+			end
+		end)
 	end
 end)
 

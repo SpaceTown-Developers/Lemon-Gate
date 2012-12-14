@@ -91,20 +91,18 @@ function Compiler:CompileInst(Inst)
 	-- Purpose: Compiles an instuction.
 	
 	if !Inst then
+		MsgN("Compiler recived invalid instruction " .. tostring(Inst))
 		debug.Trace()
-		self:Error("[LUA] Compiler recived invalid instruction", 0)
 	end
 	
 	local Func = self["Instr_" .. UpperStr(Inst[1])]
 	
 	if Func then
-		local Trace = self.Trace -- Trace of parent operator
-		self.Trace = Inst[2] -- Trace for child Operator
+		local Trace = Inst[2]; Trace[3] = Inst[1]
+		local _Trace = self.Trace; self.Trace = Trace
 		
 		local Result, Type = Func(self, unpack(Inst[3]))
-		self.Trace = Trace -- Return parent trace.
-		
-		return Result, Type
+		self.Trace = _Trace; return Result, Type
 	else
 		self:Error("Compiler: Uknown Instruction '%s'", Inst[1])
 	end
@@ -114,24 +112,30 @@ function Compiler:GetOperator(Name, sType, ...)
 	-- Purpose: Grabs an operator.
 
 	local tArgs = {...}
-	
 	local Types = GetShortType( sType or "" )
 	
 	if #tArgs > 0 then 
-		for i=1,#tArgs do Types = Types .. GetShortType( tArgs[i] ) end
+		for I = 1, #tArgs do
+			Types = Types .. GetShortType( tArgs[I] )
+		end
 	end
 	
 	local Op = E_A.OperatorTable[ Name .. "(" .. Types .. ")" ]
-	if Op then return Op[1], Op[2], Op[3] end
+	if !Op then return end
+	
+	return Op[1], Op[2], Op[3]
 end
 
 function Compiler:Operator(Op, Type, Perf, ...)
 	-- Purpose: Creates an operation.
 	
-	if !Op and SERVER then debug.Trace(); self:Error("Internal Error: missing operator function") end
-	if !Type or Type == "" then Type = "void" end -- Nicer then nil!
+	local Trace, Type = self.Trace, GetShortType(Type)
 	
-	return setmetatable({Op, GetShortType(Type), {...}, self.Trace, [0] = (Perf or 0)}, E_A.Operator), Type
+	local Operator = { Op, Type, {...}, Trace }
+	
+	Operator[0] = (Perf or 0); Trace[4] = Operator
+	
+	return setmetatable(Operator, E_A.Operator), Type
 end
 
 /********************************************************************************************************************/
@@ -192,6 +196,9 @@ end
 ==============================================================================================*/
 function Compiler:LocalVar(Name, Type)
 	-- Purpose: Checks the memory for a Variable or creates a new Variable.
+	
+	print("Local Var:", Name, Type)
+	debug.Trace()
 	
 	Type = GetShortType(Type)
 	
@@ -677,6 +684,63 @@ function Compiler:Instr_LOOP_WHILE(Inst, Stmts)
 	return self:Operator(Operator, Return, Perf, IsOperator, Statments)
 end
 
+function Compiler:Instr_LOOP_EACH(Var, Value, tValue, Stmts)
+	
+	local Variable, tVariable = self:CompileInst(Var)
+	local ValueID = self:LocalVar(Value, tValue)
+	
+	self:PushScope()
+
+		self:PushScope()
+		
+		local Statments = self:CompileInst(Stmts)
+		
+		self:PopScope()
+		
+	self:PopScope()
+	
+	local Operator, Return, Perf = self:GetOperator("foreach", tVariable, tValue)
+	local vOperator = self:GetOperator("assign", tValue)
+	
+	if !Operator or !vOperator then
+		self:Error("no such loop 'foreach(%s : %s)'", GetLongType(tValue), GetLongType(tVariable) )
+	end
+	
+	self:PushPerf(Perf)
+	
+	return self:Operator(Operator, Return, Perf, Variable, ValueID, vOperator, Statments)
+
+end
+
+function Compiler:Instr_LOOP_EACH2(Var, Key, tKey, Value, tValue, Stmts)
+	
+	local Variable, tVariable = self:CompileInst(Var)
+	local ValueID = self:LocalVar(Value, tValue)
+	local KeyID = self:LocalVar(Key, tKey)
+	
+	self:PushScope()
+
+		self:PushScope()
+		
+		local Statments = self:CompileInst(Stmts)
+		
+		self:PopScope()
+		
+	self:PopScope()
+	
+	local Operator, Return, Perf = self:GetOperator("foreach", tVariable, tKey, tValue)
+	local kOperator = self:GetOperator("assign", tKey)
+	local vOperator = self:GetOperator("assign", tValue)
+	
+	if !Operator or !kOperator or !vOperator then
+		self:Error("no such loop 'foreach(%s, %s : %s)'", GetLongType(tKey), GetLongType(tValue), GetLongType(tVariable) )
+	end
+	
+	self:PushPerf(Perf)
+	
+	return self:Operator(Operator, Return, Perf, Variable, KeyID, kOperator, ValueID, vOperator, Statments)
+end
+
 /********************************************************************************************************************/
 
 function Compiler:Instr_BREAK(Depth)
@@ -941,7 +1005,6 @@ end
 ==============================================================================================*/
 function Compiler:Instr_CALL(Inst, Insts)
 	
-	MsgN("Compiler: Call -> " .. Inst[1])
 	local Value, tValue = self:CompileInst(Inst)
 	
 	local Operator, Return, Perf = self:GetOperator("call", tValue)
@@ -1016,4 +1079,37 @@ function Compiler:Instr_EVENT(Name, Sig, Params, tParams, Stmts, Return)
 	self:PushPerf(Perf)
 	
 	return self:Operator(Operator, Return, Perf, Name, Arguments, Statments)
+end
+
+/*==============================================================================================
+	Section: Try / Catch
+	Purpose: Catchs exceptions.
+	Creditors: Rusketh
+==============================================================================================*/
+function Compiler:Instr_TRY(Stmts, Inst)
+	-- Purpose: Its like pcall for EA.
+	
+	local Statments = self:CompileInst(Stmts)
+	local Catch = self:CompileInst(Inst)
+	
+	local Operator, Return, Perf = self:GetOperator("try")
+	
+	self:PushPerf(Perf)
+	
+	return self:Operator(Operator, Return, Perf, Statments, Catch)
+end
+
+function Compiler:Instr_CATCH(Exceptions, Stmts, Inst)
+	-- Purpose: Catches exceptions.
+	
+	local Statments = self:CompileInst(Stmts)
+	local Catch
+	
+	if Inst then Catch = self:CompileInst(Inst) end
+	
+	local Operator, Return, Perf = self:GetOperator("catch")
+	
+	self:PushPerf(Perf)
+	
+	return self:Operator(Operator, Return, Perf, Exceptions, Statments, Catch)
 end
