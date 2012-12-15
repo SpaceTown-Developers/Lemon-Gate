@@ -57,7 +57,7 @@ E_A:RegisterFunction("eyeTrace", "e:", "t", function(self, Value)
 	local Entity, Table = Value(self), E_A.NewTable()
 	
 	if Entity and Entity:IsValid() and Entity:IsPlayer() then
-		TraceToTable( Entity:GetEyeTraceNoCursor() )
+		return TraceToTable( Entity:GetEyeTraceNoCursor() )
 	end
 end)
 
