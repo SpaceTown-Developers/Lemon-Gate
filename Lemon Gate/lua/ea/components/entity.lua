@@ -108,12 +108,6 @@ end)
 /*==============================================================================================
 	Section: Entity is somthing
 ==============================================================================================*/
-E_A:RegisterFunction("isPlayer", "e:", "n", function(self, Value)
-	local Entity = Value(self)
-	if Entity and Entity:IsValid() and Entity:IsPlayer() then return 1 end
-	return 0
-end)
-
 E_A:RegisterFunction("isNPC", "e:", "n", function(self, Value)
 	local Entity = Value(self)
 	if Entity and Entity:IsValid() and Entity:IsNPC() then return 1 end
