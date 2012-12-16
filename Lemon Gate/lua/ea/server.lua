@@ -145,8 +145,6 @@ function E_A:RegisterClass(Name, Short, Default)
 	Name = LowerStr(Name)
 	local Type = {[0] = API.CurrentComponent(), Name, LowerStr(Short)}
 	
-	MsgN("Default Value for " .. Name .. " is a " .. type(Default))
-	
 	if type(Default) == "function" then
 		Type[3] = Default
 	else

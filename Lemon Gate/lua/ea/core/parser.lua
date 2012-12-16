@@ -494,48 +494,46 @@ function Parser:GetValue()
 		Instr = self:GetNumber()
 		
 	elseif self:AcceptToken("str") then -- Create a string from a string token.
-		
 		Instr = self:Instruction("string", Trace, self.TokenData)
 	
 	elseif self:AcceptToken("var") then -- Grab a var from a var token.
 		Instr = self:Instruction("variabel", Trace, self.TokenData)
 	elseif self:AcceptToken("fun") then -- We are going to getting a function.
 		
-		local Function = self.TokenData
+			local Function = self.TokenData
+			
+		-- FUNCTION CALL, function()
 		
-	-- FUNCTION CALL, function()
-	
-		if self:AcceptToken("lpa") then
-			
-			local Permaters, Index = {}, 1
-			
-			if !self:CheckToken("rpa") then
-				Permaters[1] = self:Expression() 
+			if self:AcceptToken("lpa") then
+				local Permaters, Index = {}, 1
 				
-				while self:AcceptToken("com") do
-					Index = Index + 1
-					Permaters[Index] = self:Expression()
+				if !self:CheckToken("rpa") then
+					Permaters[1] = self:Expression() 
+					
+					while self:AcceptToken("com") do
+						Index = Index + 1
+						Permaters[Index] = self:Expression()
+					end
 				end
-			end
+				
+				if !self:AcceptToken("rpa") then
+					self:Error("Right parenthesis ()) missing, to close function parameters")
+				end
+				
+				Instr = self:Instruction("function", Trace, Function, Permaters)
 			
-			if !self:AcceptToken("rpa") then
-				self:Error("Right parenthesis ()) missing, to close function parameters")
-			end
-			
-			Instr = self:Instruction("function", Trace, Function, Permaters)
 		
-	
-	-- RETURNABLE LAMBADA FUNCTION, type function() {}
-	
-		elseif self:CheckToken("func") then
-			self:PrevToken()
-			Instr = self:LambadaFunction()
-			
-	-- FUNCTION VAR, func
-	
-		else
-			Instr = self:Instruction("funcvar", Trace, self.TokenData)
-		end
+		-- RETURNABLE LAMBADA FUNCTION, type function() {}
+		
+			elseif self:CheckToken("func") then
+				self:PrevToken()
+				Instr = self:LambadaFunction()
+				
+		-- FUNCTION VAR, func
+		
+			else
+				Instr = self:Instruction("funcvar", Trace, self.TokenData)
+			end
 		
 -- LAMBADA FUNCTION, function() {}
 	
@@ -868,7 +866,7 @@ function Parser:VariableStatment(NoDec)
 			return self:MultiVariableStatment() -- TODO
 		
 		elseif self:AcceptToken("ass") then
-			self:Instruction("assign", Trace, Var, self:Expression())
+			return self:Instruction("assign", Trace, Var, self:Expression())
 		end
 		
 		for Token, Instruction in pairs( AssigmentInstructions ) do

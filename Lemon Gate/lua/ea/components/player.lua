@@ -5,6 +5,8 @@
 ==============================================================================================*/
 local E_A = LemonGate
 
+local NULL_ENTITY = Entity(-1)
+
 /*==============================================================================================
 	Section: Player Stuff
 ==============================================================================================*/
@@ -62,14 +64,14 @@ E_A:RegisterFunction("eyeAngles", "e:", "a", function(self, Value)
 end)
 
 E_A:RegisterFunction("aimEntity", "e:", "e", function(self, Value)
-	local entity = Value(self)
+	local Entity = Value(self)
 	
-	if entity and entity:IsValid() and entity:IsPlayer() then
-		local Ent = entity:GetEyeTraceNoCursor().Entity
+	if Entity and Entity:IsValid() and Entity:IsPlayer() then
+		local Ent = Entity:GetEyeTraceNoCursor().Entity
 		if Ent and Ent:IsValid() then return Ent end
 	end
 	
-	return Entity(-1)
+	return NULL_ENTITY
 end)
 
 E_A:RegisterFunction("aimPos", "e:", "v", function(self, Value)
@@ -132,12 +134,12 @@ E_A:RegisterFunction("timeConnected", "e:", "n", function(self, Value)
 end)
 
 E_A:RegisterFunction("vehicle", "e:", "e", function(self, Value)
-	local entity = Value(self)
-	if entity and entity:IsValid() and entity:IsPlayer() then
-		return entity:GetVehicle()
+	local Entity = Value(self)
+	if Entity and Entity:IsValid() and Entity:IsPlayer() then
+		return Entity:GetVehicle()
 	end
 	
-	return Entity(-1)
+	return NULL_ENTITY
 end)
 
 E_A:RegisterFunction("inVehicle", "e:", "n", function(self, Value)

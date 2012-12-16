@@ -7,10 +7,12 @@ local E_A = LemonGate
 
 local GetLongType = E_A.GetLongType
 
+local NULL_ENTITY = Entity(-1)
+
 /*==============================================================================================
 	Class & WireMod
 ==============================================================================================*/
-E_A:RegisterClass("entity", "e", function() return Entity(-1) end)
+E_A:RegisterClass("entity", "e", function() return NULL_ENTITY end)
 
 local function Input(self, Memory, Value)
 	-- Purpose: Used to set Memory via a wired input.
@@ -186,15 +188,15 @@ E_A:RegisterFunction("isVehicle", "e:", "n", function(self, Value)
 end)
 
 E_A:RegisterFunction("driver", "e:", "e", function(self, Value)
-	local entity = Value(self)
-	if entity and entity:IsValid() and entity:IsVehicle() then return entity:GetDriver() end
-	return Entity(0)
+	local Entity = Value(self)
+	if Entity and Entity:IsValid() and Entity:IsVehicle() then return Entity:GetDriver() end
+	return NULL_ENTITY
 end)
 
 E_A:RegisterFunction("passenger", "e:", "e", function(self, Value)
-	local entity = Value(self)
-	if entity and entity:IsValid() and entity:IsVehicle() then return entity:GetPassenger() end
-	return Entity(0)
+	local Entity = Value(self)
+	if Entity and Entity:IsValid() and Entity:IsVehicle() then return Entity:GetPassenger() end
+	return NULL_ENTITY
 end)
 
 /*==============================================================================================
@@ -426,17 +428,17 @@ end)
 
 E_A:RegisterFunction("isWeldedTo", "e:", "e", function(self, Value)
 	local Entity = Value(self)
-	if !Entity or !Entity:IsValid() or !HasConstraints(Entity) then return Entity(-1) end
+	if !Entity or !Entity:IsValid() or !HasConstraints(Entity) then return NULL_ENTITY end
 	
 	local Constraint = FindConstraint(Entity, "Weld")
 	
 	if !Constraint then
-		return Entity(-1)
+		return NULL_ENTITY
 	
 	elseif Constraint.Ent1 == Entity then
 		return Constraint.Ent2
 	else
-		return Constraint.Ent1 or Entity(-1)
+		return Constraint.Ent1 or NULL_ENTITY
 	end
 end)
 

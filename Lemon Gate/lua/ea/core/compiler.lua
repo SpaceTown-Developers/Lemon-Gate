@@ -197,9 +197,6 @@ end
 function Compiler:LocalVar(Name, Type)
 	-- Purpose: Checks the memory for a Variable or creates a new Variable.
 	
-	print("Local Var:", Name, Type)
-	debug.Trace()
-	
 	Type = GetShortType(Type)
 	
 	local Cur = self.Scope[Name]
@@ -928,7 +925,7 @@ end
 function Compiler:Instr_FUNCASS(Global, Name, Inst)
 	-- Purpose: Grabe a function var.
 	
-	local Function, tFunction = self:CompileInst(Insts[I])
+	local Function, tFunction = self:CompileInst(Inst)
 	if tFunction ~= "f" then self:Error("Can not assign %q as 'function'", GetLongType(tFunction)) end
 	
 	local VarID, Scope
