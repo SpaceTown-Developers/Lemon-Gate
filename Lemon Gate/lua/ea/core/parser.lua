@@ -615,6 +615,8 @@ end
 
 
 function Parser:CallOperator(Instr)
+	local Trace = self:TokenTrace()
+	
 	if self:AcceptToken("lpa") then
 		local Permaters, Index = {}, 1
 		

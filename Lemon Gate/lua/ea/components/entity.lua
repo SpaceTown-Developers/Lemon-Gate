@@ -386,7 +386,7 @@ E_A:RegisterFunction("pos", "e:", "v", function(self, Value)
 	
 	local Pos = Entity:GetPos()
 	
-	return {Pos.x, Pos,y, Pos.z}
+	return {Pos.x, Pos.y, Pos.z}
 end)
 
 /*==============================================================================================
@@ -398,7 +398,7 @@ E_A:RegisterFunction("ang", "e:", "a", function(self, Value)
 	
 	local Ang = Entity:GetAngles()
 	
-	return {Ang.p, Ang,y, Ang.r}
+	return {Ang.p, Ang.y, Ang.r}
 end)
 
 /*==============================================================================================

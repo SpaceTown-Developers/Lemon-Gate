@@ -177,6 +177,14 @@ end)
 
 /**********************************************************************************************/
 
+E_A:RegisterFunction( "angnorm", "a", "a", function( self, ValueA ) 
+	local Ang, tValueA = ValueA( self )
+ 
+	return {(Ang[1] + 180) % 360 - 180,(Ang[2] + 180) % 360 - 180,(Ang[3] + 180) % 360 - 180}
+end ) 
+
+/**********************************************************************************************/
+
 E_A:RegisterFunction("setPitch", "a:n", "", function(self, ValueA, ValueB)
 	ValueA(self)[1] = ValueB(self)
 end)

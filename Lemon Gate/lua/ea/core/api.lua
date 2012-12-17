@@ -84,6 +84,7 @@ function API.LoadComponents()
 		include("ea/components/event.lua")
 		include("ea/components/timers.lua")
 		include("ea/components/trace.lua")
+        include("ea/components/sound.lua")
 	end
 	
 	MsgN("Expression Advanced: Loading Components!")

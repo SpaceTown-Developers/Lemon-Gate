@@ -117,6 +117,8 @@ end)
 	Section: Contex
 ==============================================================================================*/
 E_A.API.AddHook("GateThink", function(Entity)
+	if !Entity or !Entity.Context then return end
+	
 	local Context, CurTime, Update = Entity.Context, CurTime()
 	
 	for Key, Timer in pairs( Context.Timers ) do
