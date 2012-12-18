@@ -416,7 +416,7 @@ end
 	Purpose: Does math stuffs?
 	Creditors: Rusketh
 ==============================================================================================*/
-for Name, Symbol in pairs({exponent = "^", multiply = "*", divide = "/", modulus = "%", addition = "+", subtraction = "-"}) do
+for Name, Symbol in pairs({exponent = "^", multiply = "*", division = "/", modulus = "%", addition = "+", subtraction = "-"}) do
 
 	Compiler["Instr_" .. UpperStr(Name)] = function(self, InstA, InstB)
 		

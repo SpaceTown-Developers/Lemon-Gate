@@ -101,16 +101,17 @@ end)
 	Section: Class Check Functions!
 ==============================================================================================*/
 function E_A.IsType( Type )
-	CheckType( Type, "string", 1 ); Type = LowerStr( Type )
+	CheckType( Type, "string", 1 ); Type = LowerStr( Type or "" )
 
 	local Out = E_A.TypeTable[Type] or E_A.TypeShorts[Type] or nil 
 	return Out and true or false
 end
 
 function E_A.GetShortType( Type )
-	CheckType( Type, "string", 1 ); Type = LowerStr( Type )
+	CheckType( Type, "string", 1, true)
 	
 	if !Type or Type == "" or Type == "void" then return "" end
+	Type = LowerStr( Type or "" )
 	
 	local Out = E_A.TypeTable[Type] or E_A.TypeShorts[Type] or nil 
 	
@@ -118,9 +119,10 @@ function E_A.GetShortType( Type )
 end
 
 function E_A.GetLongType( Type )
-	CheckType( Type, "string", 1 ); Type = LowerStr( Type )
+	CheckType( Type, "string", 1, true )
 	
-	if !Type or Type == "" or Type == "void" then return "" end
+	if !Type or Type == "" or Type == "void" then return "void" end
+	Type = LowerStr( Type )
 	
 	local Out = E_A.TypeTable[Type] or E_A.TypeShorts[Type] or nil 
 	

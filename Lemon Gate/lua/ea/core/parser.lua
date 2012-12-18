@@ -404,7 +404,7 @@ function Parser:Operators(Expr)
 		return self:Instruction("multiply", self:TokenTrace(), Expr, self:Expression())
 		
 	elseif self:AcceptToken("div") then -- div \ Divide
-		return self:Instruction("divide", self:TokenTrace(), Expr, self:Expression())
+		return self:Instruction("division", self:TokenTrace(), Expr, self:Expression())
 		
 	elseif self:AcceptToken("mod") then -- mod % Modulus
 		return self:Instruction("modulus", self:TokenTrace(), Expr, self:Expression())
@@ -845,7 +845,7 @@ end
 	Example: Var = 10, Var += 10, Var -= 10, Var++, var-- (etc)
 	Creditors: Rusketh
 ==============================================================================================*/
-local AssigmentInstructions = {aadd = "addition", asub = "subtraction", amul = "multiply", adiv = "divide"}
+local AssigmentInstructions = {aadd = "addition", asub = "subtraction", amul = "multiply", adiv = "division"}
 
 function Parser:VariableStatment(NoDec)
 	local Trace = self:TokenTrace()

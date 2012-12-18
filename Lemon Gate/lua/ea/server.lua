@@ -271,7 +271,7 @@ end
 	Section: Class Util Functions
 ==============================================================================================*/
 function E_A.IsType( Type )
-	CheckType( Type, "string", 1 ); Type = LowerStr( Type )
+	CheckType( Type, "string", 1 ); Type = LowerStr( Type or "" )
 
 	local Out = E_A.TypeTable[Type] or E_A.TypeShorts[Type] or nil 
 	return Out and true or false
