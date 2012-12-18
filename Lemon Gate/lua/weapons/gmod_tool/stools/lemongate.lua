@@ -186,7 +186,7 @@ if CLIENT then
 		local W, H = Panel:GetSize()
 		local Editor = E_A.Editor.GetInstance()
 		
-		-- Todo: Model Select & Friendwrite!
+		-- Todo: Model Select & Friend write!
 		-- Add a Wiki Link?
 		
 		local FileBrowser = vgui.Create("wire_expression2_browser" , Panel)

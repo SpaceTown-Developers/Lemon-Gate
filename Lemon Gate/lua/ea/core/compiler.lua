@@ -33,7 +33,7 @@ local GetShortType = E_A.GetShortType
 	Util Functions
 ==============================================================================================*/
 local function UpcaseStr(Str)
-	-- Purpose: Makes the first letter uppercase the rest wil be lowercased.
+	-- Purpose: Makes the first letter uppercase the rest will be lowercased.
 	
 	return UpperStr(SubStr(Str, 1, 1)) .. LowerStr(SubStr(Str, 2))
 end
@@ -83,15 +83,15 @@ function Compiler:Error(Message, Info, ...)
 end
 
 /*==============================================================================================
-	Section: Instruction Convershion
+	Section: Instruction Conversion
 	Purpose: Functions to find instructions and convert them to operators.
 	Creditors: Rusketh
 ==============================================================================================*/
 function Compiler:CompileInst(Inst)
-	-- Purpose: Compiles an instuction.
+	-- Purpose: Compiles an instruction.
 	
 	if !Inst then
-		MsgN("Compiler recived invalid instruction " .. tostring(Inst))
+		MsgN("Compiler received invalid instruction " .. tostring(Inst))
 		debug.Trace()
 	end
 	
@@ -104,7 +104,7 @@ function Compiler:CompileInst(Inst)
 		local Result, Type = Func(self, unpack(Inst[3]))
 		self.Trace = _Trace; return Result, Type
 	else
-		self:Error("Compiler: Uknown Instruction '%s'", Inst[1])
+		self:Error("Compiler: Unknown Instruction '%s'", Inst[1])
 	end
 end
 
@@ -158,11 +158,11 @@ end
 
 /*==============================================================================================
 	Section: Scopes
-	Purpose: Handels the levels at witch Variables run.
+	Purpose: Handel's the levels at witch Variables run.
 	Creditors: Rusketh
 ==============================================================================================*/
 function Compiler:InitScopes()
-	-- Purpose: Creates the inital scope enviroments.
+	-- Purpose: Creates the initial scope environments.
 	
 	local Global, Current = {}, {}
 	self.Scopes = {[0] = Global, [1] = Current}
@@ -258,7 +258,7 @@ end
 /********************************************************************************************************************/
 
 function Compiler:AssignVar(Type, Name, Special)
-	-- Purpose: Handels variable assigments properly and sorts special cases.
+	-- Purpose: Handel's variable assignments properly and sorts special cases.
 	
 	if !Special or Special == "local" then
 		return self:LocalVar(Name, Type)
@@ -266,7 +266,7 @@ function Compiler:AssignVar(Type, Name, Special)
 	elseif Special == "global" then
 		return self:SetVar(Name, Type)
 		
-	elseif self.ScopeID != 1 then -- They can not be declaired here!
+	elseif self.ScopeID != 1 then -- They can not be declared here!
 		self:Error("%s can not be declared outside of code body.", UpcaseStr(Special) .. "'s")
 	
 	else
@@ -294,14 +294,14 @@ end
 	Creditors: Rusketh
 ==============================================================================================*/
 function Compiler:Instr_SEQUENCE(Smts)
-	local Statments = {}
+	local Statements = {}
 	
 	for I = 1, #Smts do
-		Statments[I] = self:CompileInst(Smts[I])
+		Statements[I] = self:CompileInst(Smts[I])
 	end
 	
 	local Operator, Return = self:GetOperator("sequence")
-	return self:Operator(Operator, Return, 0, Statments, #Statments)
+	return self:Operator(Operator, Return, 0, Statements, #Statements)
 end
 
 /*==============================================================================================
@@ -320,7 +320,7 @@ function Compiler:Instr_STRING(String)
 end
 
 /*==============================================================================================
-	Section: Assigment Operators
+	Section: Assignment Operators
 	Purpose: Assigns Values to Variables
 	Creditors: Rusketh
 ==============================================================================================*/
@@ -329,17 +329,17 @@ function Compiler:Instr_ASSIGN_DEFAULT(Name, Type, Special)
 	
 	local Operator, Return, Perf = self:GetOperator("assign", Type)
 	
-	if !Operator then self:Error("Assigment operator (=) does not support '%s'", GetLongType(Type)) end
+	if !Operator then self:Error("Assignment operator (=) does not support '%s'", GetLongType(Type)) end
 	
 	local VarID, Scope = self:AssignVar(Type, Name, Special) -- Create the Var
 	
-	-- Note: Inputs can not be assigned so registering them is enogh.
+	-- Note: Inputs can not be assigned so registering them is enough.
 	if self.Inputs[VarID] then return self:Operator(function() end) end
 	
 	self:PushPerf(Perf)
 	
 	local Default = E_A.TypeShorts[Type][3]
-	if !Default then self:Error("Assigment operator (=) can not auto assign default value '%s'", GetLongType(Type)) end
+	if !Default then self:Error("Assignment operator (=) can not auto assign default value '%s'", GetLongType(Type)) end
 	
 	return self:Operator(Operator, Return, Perf, self:Operator(Default, Type, 0), VarID)
 end
@@ -350,7 +350,7 @@ function Compiler:Instr_ASSIGN_DECLARE(Name, Expr, Type, Special)
 	-- Purpose: Declares a value
 	
 	local Operator, Return, Perf = self:GetOperator("assign", Type)
-	if !Operator then self:Error("Assigment operator (=) does not support '%s'", GetLongType(Type)) end
+	if !Operator then self:Error("Assignment operator (=) does not support '%s'", GetLongType(Type)) end
 	
 	local Value, tValue = self:CompileInst(Expr, true)
 	if tValue != Type and Type ~= "?" then
@@ -361,7 +361,7 @@ function Compiler:Instr_ASSIGN_DECLARE(Name, Expr, Type, Special)
 	local VarID, Scope = self:AssignVar(Type, Name, Special)
 	
 	if self.Inputs[VarID] then -- Note: You can not assign an input!
-		self:Error("Assigment operator (=) does not support input Variables")
+		self:Error("Assignment operator (=) does not support input Variables")
 	end
 	
 	self:PushPerf(Perf)
@@ -378,11 +378,11 @@ function Compiler:Instr_ASSIGN(Name, Expr)
 	if !VarID then self:Error("variable %s does not exist", Name) end
 	
 	if self.Inputs[VarID] then -- Note: You can not assign an input!
-		self:Error("Assigment operator (=) does not support input Variables")
+		self:Error("Assignment operator (=) does not support input Variables")
 	end
 	
 	local Operator, Return, Perf = self:GetOperator("assign", Type)
-	if !Operator then self:Error("Assigment operator (=) does not support '%s'", GetLongType(Type)) end
+	if !Operator then self:Error("Assignment operator (=) does not support '%s'", GetLongType(Type)) end
 	
 	local Value, tValue = self:CompileInst(Expr)
 	if tValue != Type  and Type ~= "?" then
@@ -398,7 +398,7 @@ end
 /********************************************************************************************************************/
 
 function Compiler:Instr_VARIABLE(Name)
-	-- Purpose: Retrive variable.
+	-- Purpose: Retrieve variable.
 	
 	local VarID, Type = self:GetVar(Name)
 	if !VarID then self:Error("variable %s does not exist", Name) end
@@ -412,7 +412,7 @@ function Compiler:Instr_VARIABLE(Name)
 end
 
 /*==============================================================================================
-	Section: Mathmatical Operators
+	Section: Mathematical Operators
 	Purpose: Does math stuffs?
 	Creditors: Rusketh
 ==============================================================================================*/
@@ -440,10 +440,10 @@ function Compiler:Instr_INCREMET(Name)
 	local Memory, Type = self:GetVar(Name)
 	if !Memory then self:Error("Variable %s does not exist", Name) end
 	
-	if self.Inputs[Memory] then self:Error("incremet operator (--) will not accept input %s", Name) end
+	if self.Inputs[Memory] then self:Error("increment operator (--) will not accept input %s", Name) end
 	
-	local Operator, Return, Perf = self:GetOperator("incremet", Type)
-	if !Operator then self:Error("incremet operator (++) does not support '%s++'", Type) end
+	local Operator, Return, Perf = self:GetOperator("increment", Type)
+	if !Operator then self:Error("increment operator (++) does not support '%s++'", Type) end
 	
 	self:PushPerf(Perf)
 	
@@ -456,10 +456,10 @@ function Compiler:Instr_DECREMENT(Name)
 	local Memory, Type = self:GetVar(Name)
 	if !Memory then self:Error("Variable %s does not exist", Name) end
 	
-	if self.Inputs[Memory] then self:Error("decremet operator (--) will not accept input %s", Name) end
+	if self.Inputs[Memory] then self:Error("decrement operator (--) will not accept input %s", Name) end
 	
-	local Operator, Return, Perf = self:GetOperator("decremet", Type)
-	if !Operator then self:Error("decremet operator (--) does not support '%s++'", Type) end
+	local Operator, Return, Perf = self:GetOperator("decrement", Type)
+	if !Operator then self:Error("decrement operator (--) does not support '%s++'", Type) end
 	
 	self:PushPerf(Perf)
 	
@@ -467,7 +467,7 @@ function Compiler:Instr_DECREMENT(Name)
 end
 
 /*==============================================================================================
-	Section: Comparsion Operators
+	Section: Comparison Operators
 	Purpose: Compare Values =D
 	Creditors: Rusketh
 ==============================================================================================*/
@@ -478,7 +478,7 @@ for Name, Symbol in pairs({greater = ">", less = "<", eqgreater = ">=", eqless =
 		local ValueB, TypeB = self:CompileInst(InstB)
 		
 		local Operator, Return, Perf = self:GetOperator(Name, TypeA, TypeB)
-		if !Operator then self:Error("comparsion operator (%s) does not support '%s > %s'", Symbol, GetLongType(TypeA), GetLongType(TypeB)) end
+		if !Operator then self:Error("Comparison operator (%s) does not support '%s > %s'", Symbol, GetLongType(TypeA), GetLongType(TypeB)) end
 		
 		self:PushPerf(Perf)
 		
@@ -487,7 +487,7 @@ for Name, Symbol in pairs({greater = ">", less = "<", eqgreater = ">=", eqless =
 end
 
 /*==============================================================================================
-	Section: If Stamtment
+	Section: If Statement
 	Purpose: If Condition Then Do This
 	Creditors: Rusketh
 ==============================================================================================*/
@@ -495,13 +495,13 @@ function Compiler:Instr_IF(InstA, InstB, InstC)
 	
 	local Value, tValue = self:CompileInst(InstA) -- Condition
 	local Operator, Return, aPerf = self:GetOperator("is", tValue)
-	if !Operator or Return ~= "n" then self:Error("if stament conditions do not support '%s'", GetLongType(tValue)) end
+	if !Operator or Return ~= "n" then self:Error("if statement conditions do not support '%s'", GetLongType(tValue)) end
 	
 	local Condition = self:Operator(Operator, Return, Perf, Value)
 	
 	self:PushScope()
 	
-	local Statments = self:CompileInst(InstB)
+	local Statements = self:CompileInst(InstB)
 	
 	self:PopScope()
 	
@@ -509,18 +509,18 @@ function Compiler:Instr_IF(InstA, InstB, InstC)
 	
 	self:PushPerf(aPerf + bPerf)
 	
-	if !InstC then -- No elseif or else statment
-		return self:Operator(Operator, Retutrn, bPerf, Condition, Statments)
+	if !InstC then -- No elseif or else statement
+		return self:Operator(Operator, Retutrn, bPerf, Condition, Statements)
 	end
 	
 	local Else = self:CompileInst(InstC)
-	return self:Operator(Operator, Return, bPerf, Condition, Statments, Else)
+	return self:Operator(Operator, Return, bPerf, Condition, Statements, Else)
 end
 
 /********************************************************************************************************************/
 
 function Compiler:Instr_OR(InstA, InstB)
-	-- Purpose: || conditonal Operator.
+	-- Purpose: || Conditional Operator.
 	
 	local ValueA, TypeA = self:CompileInst(InstA)
 	local ValueB, TypeB = self:CompileInst(InstB)
@@ -552,7 +552,7 @@ function Compiler:Instr_OR(InstA, InstB)
 end
 
 function Compiler:Instr_AND(InstA, InstB)
-	-- Purpose: && conditonal Operator.
+	-- Purpose: && Conditional Operator.
 	
 	local ValueA, TypeA = self:CompileInst(InstA)
 	local ValueB, TypeB = self:CompileInst(InstB)
@@ -579,10 +579,10 @@ end
 
 /*==============================================================================================
 	Section: Value Prefixes
-	Purpose: These handel stuff like Delta, not and Neg
+	Purpose: These handle stuff like Delta, not and Neg
 	Creditors: Rusketh
 ==============================================================================================*/
-for Name, Symbol in pairs({negative = "-", ["not"] = "!", lenth = "#"}) do
+for Name, Symbol in pairs({negative = "-", ["not"] = "!", length = "#"}) do
 	
 	Compiler["Instr_" .. UpperStr(Name)] = function(self, Inst)
 		
@@ -648,7 +648,7 @@ function Compiler:Instr_LOOP_FOR(InstA, InstB, InstC, Stmts)
 		local IsOperator = self:Operator(Operator, Return, Perf, Condition)
 		
 		local Step = self:CompileInst(InstC)
-		local Statments = self:CompileInst(Stmts)
+		local Statements = self:CompileInst(Stmts)
 	
 	self:PopScope()
 	
@@ -656,7 +656,7 @@ function Compiler:Instr_LOOP_FOR(InstA, InstB, InstC, Stmts)
 	
 	self:PushPerf(Perf)
 	
-	return self:Operator(Operator, Return, Perf, Variable, IsOperator, Step, Statments)
+	return self:Operator(Operator, Return, Perf, Variable, IsOperator, Step, Statements)
 end
 
 function Compiler:Instr_LOOP_WHILE(Inst, Stmts)
@@ -670,7 +670,7 @@ function Compiler:Instr_LOOP_WHILE(Inst, Stmts)
 		if !Operator or tCondition ~= "n" then self:Error("for loop conditions do not support '%s'", GetLongType(tCondition)) end
 		
 		local IsOperator = self:Operator(Operator, Return, Perf, Condition)
-		local Statments = self:CompileInst(Stmts)
+		local Statements = self:CompileInst(Stmts)
 		
 	self:PopScope()	
 		
@@ -678,7 +678,7 @@ function Compiler:Instr_LOOP_WHILE(Inst, Stmts)
 	
 	self:PushPerf(Perf)
 	
-	return self:Operator(Operator, Return, Perf, IsOperator, Statments)
+	return self:Operator(Operator, Return, Perf, IsOperator, Statements)
 end
 
 function Compiler:Instr_LOOP_EACH(Var, Value, tValue, Stmts)
@@ -690,7 +690,7 @@ function Compiler:Instr_LOOP_EACH(Var, Value, tValue, Stmts)
 
 		self:PushScope()
 		
-		local Statments = self:CompileInst(Stmts)
+		local Statements = self:CompileInst(Stmts)
 		
 		self:PopScope()
 		
@@ -705,7 +705,7 @@ function Compiler:Instr_LOOP_EACH(Var, Value, tValue, Stmts)
 	
 	self:PushPerf(Perf)
 	
-	return self:Operator(Operator, Return, Perf, Variable, ValueID, vOperator, Statments)
+	return self:Operator(Operator, Return, Perf, Variable, ValueID, vOperator, Statements)
 
 end
 
@@ -719,7 +719,7 @@ function Compiler:Instr_LOOP_EACH2(Var, Key, tKey, Value, tValue, Stmts)
 
 		self:PushScope()
 		
-		local Statments = self:CompileInst(Stmts)
+		local Statements = self:CompileInst(Stmts)
 		
 		self:PopScope()
 		
@@ -735,7 +735,7 @@ function Compiler:Instr_LOOP_EACH2(Var, Key, tKey, Value, tValue, Stmts)
 	
 	self:PushPerf(Perf)
 	
-	return self:Operator(Operator, Return, Perf, Variable, KeyID, kOperator, ValueID, vOperator, Statments)
+	return self:Operator(Operator, Return, Perf, Variable, KeyID, kOperator, ValueID, vOperator, Statements)
 end
 
 /********************************************************************************************************************/
@@ -865,7 +865,7 @@ function Compiler:CallFunction(Name, Operators, Sig)
 		
 		for I = #Operators, 1, -1 do
 			if Sig[#Sig] == ":" then
-				break -- Hit the meta peramater, abort!
+				break -- Hit the meta parameter, abort!
 			else
 				Sig = SubStr(Sig, 1, #Sig - #Operators[I][2])
 				Function = Functions[Name .. "(" .. Sig .. "...)"]
@@ -909,7 +909,7 @@ end
 	Creditors: Rusketh
 ==============================================================================================*/
 function Compiler:Instr_FUNCVAR(Name)
-	-- Purpose: Grabe a function var.
+	-- Purpose: Grab a function var.
 	
 	local VarID, Type = self:GetVar(Name)
 	if !VarID then self:Error("function %s does not exist", Name) end
@@ -923,7 +923,7 @@ function Compiler:Instr_FUNCVAR(Name)
 end
 
 function Compiler:Instr_FUNCASS(Global, Name, Inst)
-	-- Purpose: Grabe a function var.
+	-- Purpose: Grab a function var.
 	
 	local Function, tFunction = self:CompileInst(Inst)
 	if tFunction ~= "f" then self:Error("Can not assign %q as 'function'", GetLongType(tFunction)) end
@@ -966,7 +966,7 @@ function Compiler:BuildFunction(Sig, Params, tParams, Stmts, Return)
 				local Val, tVal = Value(self)
 				
 				if tVal ~= Type and Type ~= "?" then
-					self:Throw("invoke", "Peramater missmatch #" .. I .. " " .. GetLongType(Type) .. " exspected got " .. GetLongType(tVal))
+					self:Throw("invoke", "Parameter mismatch #" .. I .. " " .. GetLongType(Type) .. " expected got " .. GetLongType(tVal))
 				end
 				
 				Operator[1](self, function() return Val, tVal end, VarID)
@@ -976,7 +976,7 @@ function Compiler:BuildFunction(Sig, Params, tParams, Stmts, Return)
 	
 		self:PushScope()
 		
-			local Statments = self:CompileInst(Stmts)
+			local Statements = self:CompileInst(Stmts)
 		
 		self:PopScope()
 		
@@ -984,17 +984,17 @@ function Compiler:BuildFunction(Sig, Params, tParams, Stmts, Return)
 	
 	self:PopReturnType()
 	
-	return Arguments, Statments
+	return Arguments, Statements
 end
 
 function Compiler:Instr_LAMBDA(Sig, Params, tParams, Stmts, Return)
-	local Arguments, Statments = self:BuildFunction(Sig, Params, tParams, Stmts, Return)
+	local Arguments, Statements = self:BuildFunction(Sig, Params, tParams, Stmts, Return)
 	
 	local Operator, _Return, Perf = self:GetOperator("lambada")
 	
 	self:PushPerf(Perf)
 	
-	return self:Operator(Operator, _Return, Perf, Sig, Arguments, Statments, Return)
+	return self:Operator(Operator, _Return, Perf, Sig, Arguments, Statements, Return)
 end
 
 /*==============================================================================================
@@ -1069,37 +1069,37 @@ end
 function Compiler:Instr_EVENT(Name, Sig, Params, tParams, Stmts, Return)
 	-- Purpose: This instruction Will create function variables.
 	
-	local Arguments, Statments = self:BuildFunction(Sig, Params, tParams, Stmts, Return)
+	local Arguments, Statements = self:BuildFunction(Sig, Params, tParams, Stmts, Return)
 	
 	local Operator, _Return, Perf = self:GetOperator("event")
 	
 	self:PushPerf(Perf)
 	
-	return self:Operator(Operator, Return, Perf, Name, Arguments, Statments)
+	return self:Operator(Operator, Return, Perf, Name, Arguments, Statements)
 end
 
 /*==============================================================================================
 	Section: Try / Catch
-	Purpose: Catchs exceptions.
+	Purpose: Catches exceptions.
 	Creditors: Rusketh
 ==============================================================================================*/
 function Compiler:Instr_TRY(Stmts, Inst)
 	-- Purpose: Its like pcall for EA.
 	
-	local Statments = self:CompileInst(Stmts)
+	local Statements = self:CompileInst(Stmts)
 	local Catch = self:CompileInst(Inst)
 	
 	local Operator, Return, Perf = self:GetOperator("try")
 	
 	self:PushPerf(Perf)
 	
-	return self:Operator(Operator, Return, Perf, Statments, Catch)
+	return self:Operator(Operator, Return, Perf, Statements, Catch)
 end
 
 function Compiler:Instr_CATCH(Exceptions, Stmts, Inst)
 	-- Purpose: Catches exceptions.
 	
-	local Statments = self:CompileInst(Stmts)
+	local Statements = self:CompileInst(Stmts)
 	local Catch
 	
 	if Inst then Catch = self:CompileInst(Inst) end
@@ -1108,5 +1108,5 @@ function Compiler:Instr_CATCH(Exceptions, Stmts, Inst)
 	
 	self:PushPerf(Perf)
 	
-	return self:Operator(Operator, Return, Perf, Exceptions, Statments, Catch)
+	return self:Operator(Operator, Return, Perf, Exceptions, Statements, Catch)
 end

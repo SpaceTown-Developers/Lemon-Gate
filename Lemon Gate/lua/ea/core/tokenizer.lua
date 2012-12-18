@@ -68,14 +68,14 @@ E_A:CreateToken("persist", "per", "persist")
 -- Maths
 E_A:CreateOpToken("+", "add", "addition")
 E_A:CreateOpToken("-", "sub", "subtract")
-E_A:CreateOpToken("*", "mul", "multiplyer")
+E_A:CreateOpToken("*", "mul", "multiplier")
 E_A:CreateOpToken("/", "div", "division")
 E_A:CreateOpToken("%", "mod", "modulus")
 E_A:CreateOpToken("^", "exp", "power")
 E_A:CreateOpToken("=", "ass", "assign")
 E_A:CreateOpToken("+=", "aadd", "increase")
 E_A:CreateOpToken("-=", "asub", "decrease")
-E_A:CreateOpToken("*=", "amul", "multiplyer")
+E_A:CreateOpToken("*=", "amul", "multiplier")
 E_A:CreateOpToken("/=", "adiv", "division")
 E_A:CreateOpToken("++", "inc", "increment")
 E_A:CreateOpToken("--", "dec", "decrement")
@@ -116,7 +116,7 @@ E_A:CreateOpToken("}", "rcb", "right curly bracket")
 E_A:CreateOpToken("[", "lsb", "left square bracket")
 E_A:CreateOpToken("]", "rsb", "right square bracket")
 
-E_A.API.CallHook("BuildTokens") -- Exts create there own tokens!
+E_A.API.CallHook("BuildTokens") -- Extensions can create there own tokens!
 
 -- Lets sort the tokens!
 table.sort(OpTokens, function(Token, Token2) return #Token[1] > #Token2[1] end)
@@ -316,7 +316,7 @@ function Toker:NextToken()
 		   self:IsToken("return", true) or
 		   self:IsToken("error", true) then
 	
-	-- Decleration Types
+	-- Declaration Types
 	elseif self:IsToken("global", true) or
 		   self:IsToken("input", true) or
 		   self:IsToken("output", true) then

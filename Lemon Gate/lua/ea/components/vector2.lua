@@ -101,7 +101,7 @@ E_A:RegisterOperator("negeq", "v2v2", "n", function(self, ValueA, ValueB)
 end)
 
 /*==============================================================================================
-	Section: Conditonal Operators
+	Section: Conditional Operators
 ==============================================================================================*/
 E_A:RegisterOperator("is", "v2", "n", function(self, Value)
 	-- Purpose: Is Valid
@@ -124,7 +124,7 @@ E_A:RegisterOperator("not", "v2", "n", function(self, Value)
 end)
 
 /*==============================================================================================
-	Co-ords
+	Coordinates
 ==============================================================================================*/
 E_A:RegisterFunction("vec2", "nn", "v2", function(self, ValueA, ValueB)
 	return {ValueA(self), ValueB(self)}
@@ -166,7 +166,7 @@ E_A:RegisterFunction("setY", "v2:n", "", function(self, ValueA, ValueB)
 end)
 
 /*==============================================================================================
-	Section: Vector Mathmatical Operators
+	Section: Vector Mathematical Operators
 ==============================================================================================*/
 E_A:SetCost(EA_COST_NORMAL)
 
@@ -221,7 +221,7 @@ E_A:RegisterOperator("negative", "v2", "v2", function(self, Value)
 end)
 
 /*==============================================================================================
-	Section: Number Mathmatical Operators
+	Section: Number Mathematical Operators
 ==============================================================================================*/
 E_A:RegisterOperator("exponent", "v2n", "v2", function(self, ValueA, ValueB)
 	-- Purpose: ^ Math Operator
@@ -266,7 +266,7 @@ E_A:RegisterOperator("subtraction", "v2n", "v2", function(self, ValueA, ValueB)
 end)
 
 /*==============================================================================================
-	Lenth and Distance
+	length and Distance
 ==============================================================================================*/
 E_A:SetCost(EA_COST_NORMAL)
 

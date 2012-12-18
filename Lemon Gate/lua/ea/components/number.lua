@@ -1,7 +1,7 @@
 /*==============================================================================================
 	Expression Advanced: Numbers.
 	Purpose: Numbers do maths and stuffs.
-	Note: Basicaly just E2's number ext converted over.
+	Note: Basically just E2's number ext converted over.
 	Creditors: Rusketh
 ==============================================================================================*/
 local E_A = LemonGate
@@ -57,11 +57,11 @@ E_A:RegisterOperator("variable", "n", "n", function(self, Memory)
 end)
 
 /*==============================================================================================
-	Section: Self Arithmatic Operators
+	Section: Self Arithmetic Operators
 ==============================================================================================*/
 E_A:SetCost(EA_COST_CHEAP)
 
-E_A:RegisterOperator("incremet", "n", "n", function(self, Memory)
+E_A:RegisterOperator("increment", "n", "n", function(self, Memory)
 	-- Purpose: ++ Math Operator
 	
 	self.Delta[Memory] = self.Memory[Memory]
@@ -71,7 +71,7 @@ E_A:RegisterOperator("incremet", "n", "n", function(self, Memory)
 	self.Click[Memory] = true
 end)
 
-E_A:RegisterOperator("decremet", "n", "n", function(self, Memory)
+E_A:RegisterOperator("decrement", "n", "n", function(self, Memory)
 	-- Purpose: -- Math Operator
 	
 	self.Delta[Memory] = self.Memory[Memory]
@@ -88,7 +88,7 @@ E_A:RegisterOperator("delta", "n", "n", function(self, Memory)
 end)
 
 /*==============================================================================================
-	Section: Mathmatical Operators
+	Section: Mathematical Operators
 ==============================================================================================*/
 E_A:SetCost(EA_COST_NORMAL)
 
@@ -135,10 +135,10 @@ E_A:RegisterOperator("negative", "n", "n", function(self, Value)
 end)
 
 /*==============================================================================================
-	Section: Comparsion Operators
+	Section: Comparison Operators
 ==============================================================================================*/
 E_A:RegisterOperator("greater", "nn", "n", function(self, ValueA, ValueB)
-	-- Purpose: > Comparsion Operator
+	-- Purpose: > Comparison Operator
 	
 	local Res = ValueA(self) - ValueB(self)
 	if Res > Round then
@@ -147,7 +147,7 @@ E_A:RegisterOperator("greater", "nn", "n", function(self, ValueA, ValueB)
 end)
 
 E_A:RegisterOperator("less", "nn", "n", function(self, ValueA, ValueB)
-	-- Purpose: < Comparsion Operator
+	-- Purpose: < Comparison Operator
 	
 	local Res = ValueA(self) - ValueB(self)
 	if -Res > Round then
@@ -156,7 +156,7 @@ E_A:RegisterOperator("less", "nn", "n", function(self, ValueA, ValueB)
 end)
 
 E_A:RegisterOperator("eqgreater", "nn", "n", function(self, ValueA, ValueB)
-	-- Purpose: <= Comparsion Operator
+	-- Purpose: <= Comparison Operator
 	
 	local Res = ValueA(self) - ValueB(self)
 	if -Res <= Round then
@@ -165,7 +165,7 @@ E_A:RegisterOperator("eqgreater", "nn", "n", function(self, ValueA, ValueB)
 end)
 
 E_A:RegisterOperator("eqless", "nn", "n", function(self, ValueA, ValueB)
-	-- Purpose: <= Comparsion Operator
+	-- Purpose: <= Comparison Operator
 	
 	local Res = ValueA(self) - ValueB(self)
 	if Res <= Round then
@@ -174,7 +174,7 @@ E_A:RegisterOperator("eqless", "nn", "n", function(self, ValueA, ValueB)
 end)
 
 E_A:RegisterOperator("negeq", "nn", "n", function(self, ValueA, ValueB)
-	-- Purpose: != Comparsion Operator
+	-- Purpose: != Comparison Operator
 	
 	local Res = ValueA(self) - ValueB(self)
 	if Res > Round and -Res < Round then
@@ -183,7 +183,7 @@ E_A:RegisterOperator("negeq", "nn", "n", function(self, ValueA, ValueB)
 end)
 
 E_A:RegisterOperator("eq", "nn", "n", function(self, ValueA, ValueB)
-	-- Purpose: == Comparsion Operator
+	-- Purpose: == Comparison Operator
 	
 	local Res = ValueA(self) - ValueB(self)
 	if Res <= Round and -Res <= Round then
@@ -192,7 +192,7 @@ E_A:RegisterOperator("eq", "nn", "n", function(self, ValueA, ValueB)
 end)
 
 /*==============================================================================================
-	Section: Conditonal Operators
+	Section: Conditional Operators
 ==============================================================================================*/
 E_A:SetCost(EA_COST_NORMAL)
 
@@ -215,7 +215,7 @@ E_A:RegisterOperator("not", "n", "n", function(self, Value)
 end)
 
 E_A:RegisterOperator("or", "nn", "n", function(self, ValueA, ValueB)
-	-- Purpose: | Conditonal Operator
+	-- Purpose: | Conditional Operator
 	
 	local A, B = ValueA(self), ValueB(self)
 	
@@ -225,7 +225,7 @@ E_A:RegisterOperator("or", "nn", "n", function(self, ValueA, ValueB)
 end)
 
 E_A:RegisterOperator("and", "nn", "n", function(self, ValueA, ValueB)
-	-- Purpose: & Conditonal Operator
+	-- Purpose: & Conditional Operator
 	
 	local A, B = ValueA(self), ValueB(self)
 	if (A > Round or -A > Round) and (B > Round or -B > Round) then
@@ -264,11 +264,11 @@ E_A:RegisterFunction("toNumber", "s:", "n", function(self, Value)
 end)
 
 E_A:RegisterOperator("cast", "ns", "n", function(self, Value)
-	return tonumber(Value(self), nil) or 0 -- The nill is required or the type of Value will become arg 2!
+	return tonumber(Value(self), nil) or 0 -- The nil is required or the type of Value will become argument 2!
 end)
 
 /*==============================================================================================
-	Section: Min Max Funtions
+	Section: Min Max Functions
 ==============================================================================================*/
 E_A:SetCost(EA_COST_NORMAL)
 

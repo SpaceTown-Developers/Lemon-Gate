@@ -1,6 +1,6 @@
 /*==============================================================================================
 	Expression Advanced: Traces.
-	Purpose: Entitys are stuffs.
+	Purpose: Entities are stuffs.
 	Creditors: Rusketh
 ==============================================================================================*/
 local E_A = LemonGate

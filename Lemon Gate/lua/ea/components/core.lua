@@ -34,7 +34,7 @@ E_A:RegisterFunction("exit", "", "", function(self)
 end)
 
 E_A:RegisterOperator("return", "", "", function(self, Value)
-	local Value, Type = Value(self) -- We can error check the statment before using it!
+	local Value, Type = Value(self) -- We can error check the statement before using it!
 	self:Throw("return", function() return Value, Type end)
 end)
 
@@ -47,23 +47,23 @@ E_A:RegisterFunction("print", "...", "", function(self, ...)
 end)
 
 /*==============================================================================================
-	Section: Statment Executers
-	Purpose: Runs statments.
+	Section: Statement Executers
+	Purpose: Runs statements.
 	Creditors: Rusketh
 ==============================================================================================*/
-E_A:RegisterOperator("sequence", "", "", function(self, Statments, Count)
-	-- Purpose: Runs a set of statments, know as a sequence.
+E_A:RegisterOperator("sequence", "", "", function(self, Statements, Count)
+	-- Purpose: Runs a set of statements, know as a sequence.
 	
-	for I = 1, Count or #Statments do -- Note: Count is used for speed.
-		Statments[I](self)
+	for I = 1, Count or #Statements do -- Note: Count is used for speed.
+		Statements[I](self)
 	end
 end)
 
-E_A:RegisterOperator("if", "", "", function(self, Condition, Statments, Else)
-	-- Purpose: If statments are cool
+E_A:RegisterOperator("if", "", "", function(self, Condition, Statements, Else)
+	-- Purpose: If statements are cool
 	
 	if Condition(self) > 0 then
-		Statments(self)
+		Statements(self)
 		
 	elseif Else then
 		Else(self)
@@ -78,9 +78,9 @@ end)
 E_A:RegisterOperator("for", "", "", function(self, Assign, Condition, Step, Block)
 	-- Purpose: Runs a for loop
 	
-	Assign(self) -- Note: Run assigment
+	Assign(self) -- Note: Run assignment
 	
-	while Condition(self) == 1 do -- Note: loop untill condition is met.
+	while Condition(self) == 1 do -- Note: loop until condition is met.
 		local Ok, Exception, Level = Block:SafeCall(self)
 		Level = tonumber(Level or 0)
 		
@@ -101,7 +101,7 @@ end)
 E_A:RegisterOperator("while", "", "", function(self, Condition, Block)
 	-- Purpose: Runs a for loop
 	
-	while Condition(self) == 1 do -- Note: loop untill condition is met.
+	while Condition(self) == 1 do -- Note: loop until condition is met.
 		local Ok, Exception, Level = Block:SafeCall(self)
 		Level = tonumber(Level or 0)
 		
@@ -125,7 +125,7 @@ end)
 E_A:SetCost(EA_COST_ABNORMAL)
 
 E_A:RegisterOperator("try", "", "", function(self, Block, Catch)
-	-- Purpose: Safly run somthing.
+	-- Purpose: Safely run something.
 	
 	local Ok, Exception, Message = Block:SafeCall(self)
 	
@@ -213,7 +213,7 @@ end)
 
 /*==============================================================================================
 	Section: Debug
-	Purpose: funcs good for debuging.
+	Purpose: functions good for debugging.
 	Creditors: Rusketh
 ==============================================================================================*/
 E_A:SetCost(EA_COST_ABNORMAL)

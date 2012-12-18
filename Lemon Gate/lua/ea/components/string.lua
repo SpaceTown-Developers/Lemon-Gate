@@ -1,7 +1,7 @@
 /*==============================================================================================
 	Expression Advanced: Strings.
 	Purpose: Strings and such.
-	Note: Mostly just a convershion of E2's String Ext!
+	Note: Mostly just a conversion of E2's String Ext!
 	Creditors: Rusketh
 ==============================================================================================*/
 local E_A = LemonGate
@@ -18,7 +18,7 @@ local TrimStr = string.Trim -- Speed
 local MatchStr = string.match -- Speed
 local GsubStr = string.gsub -- Speed
 
--- Sanitize input for use with Lua pattern functions
+-- Sanitize input for use with lua pattern functions
 local function sanitize( str )
 	return (gsub( str, "[%-%^%$%(%)%%%.%[%]%*%+%?]", "%%%1" ))
 end
@@ -46,7 +46,7 @@ end
 E_A:WireModClass("string", "STRING", Input, Output)
 
 /*==============================================================================================
-	Section: Vairable operators
+	Section: Variable operators
 ==============================================================================================*/
 E_A:SetCost(EA_COST_CHEAP)
 
@@ -66,14 +66,14 @@ end)
 	Section: String Operators
 ==============================================================================================*/
 
-E_A:RegisterOperator("lenth", "s", "n", function(self, Value)
-	-- Purpose: Gets the lengh of a string
+E_A:RegisterOperator("length", "s", "n", function(self, Value)
+	-- Purpose: Gets the length of a string
 	
 	return #Value(self)
 end)
 
 E_A:RegisterOperator("get", "sn", "s", function(self, Value, Index)
-	-- Purpose: Gets the lengh of a string
+	-- Purpose: Gets the length of a string
 	
 	local I = Index(self)
 
@@ -95,7 +95,7 @@ E_A:RegisterOperator("addition", "ns", "s", Operator)
 E_A:RegisterOperator("addition", "sn", "s", Operator)
 
 /*==============================================================================================
-	Section: Comparsion Operators
+	Section: Comparison Operators
 ==============================================================================================*/
 E_A:RegisterOperator("is", "s", "n", function(self, Value)
 	-- Purpose: Is Valid
@@ -110,13 +110,13 @@ E_A:RegisterOperator("not", "s", "n", function(self, Value)
 end)
 
 E_A:RegisterOperator("negeq", "ss", "n", function(self, ValueA, ValueB)
-	-- Purpose: != Comparsion Operator
+	-- Purpose: != Comparison Operator
 	
 	if ValueA(self) ~= ValueB(self) then return 1 else return 0 end
 end)
 
 E_A:RegisterOperator("eq", "ss", "n", function(self, ValueA, ValueB)
-	-- Purpose: == Comparsion Operator
+	-- Purpose: == Comparison Operator
 	
 	if ValueA(self) == ValueB(self) then return 1 else return 0 end
 end)
@@ -126,7 +126,7 @@ end)
 ==============================================================================================*/
 E_A:SetCost(EA_COST_NORMAL)
 
-E_A:RegisterFunction("lenth", "s:", "n", function(self, Value)
+E_A:RegisterFunction("length", "s:", "n", function(self, Value)
 	return #Value(self)
 end)
 

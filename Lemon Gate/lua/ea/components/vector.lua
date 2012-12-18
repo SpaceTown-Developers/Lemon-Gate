@@ -102,7 +102,7 @@ E_A:RegisterOperator("negeq", "vv", "n", function(self, ValueA, ValueB)
 end)
 
 /*==============================================================================================
-	Section: Conditonal Operators
+	Section: Conditional Operators
 ==============================================================================================*/
 E_A:RegisterOperator("is", "v", "n", function(self, Value)
 	-- Purpose: Is Valid
@@ -127,7 +127,7 @@ E_A:RegisterOperator("not", "v", "n", function(self, Value)
 end)
 
 /*==============================================================================================
-	Co-ords
+	Coordinateness
 ==============================================================================================*/
 E_A:RegisterFunction("vec", "nnn", "v", function(self, ValueA, ValueB, ValueC)
 	return {ValueA(self), ValueB(self), ValueC(self)}
@@ -162,7 +162,7 @@ E_A:RegisterFunction("setZ", "v:n", "", function(self, ValueA, ValueB)
 end)
 
 /*==============================================================================================
-	Section: Vector Mathmatical Operators
+	Section: Vector Mathematical Operators
 ==============================================================================================*/
 E_A:SetCost(EA_COST_NORMAL)
 
@@ -217,7 +217,7 @@ E_A:RegisterOperator("negative", "v", "v", function(self, Value)
 end)
 
 /*==============================================================================================
-	Section: Number Mathmatical Operators
+	Section: Number Mathematical Operators
 ==============================================================================================*/
 E_A:RegisterOperator("exponent", "vn", "v", function(self, ValueA, ValueB)
 	-- Purpose: ^ Math Operator
@@ -262,16 +262,16 @@ E_A:RegisterOperator("subtraction", "vn", "v", function(self, ValueA, ValueB)
 end)
 
 /*==============================================================================================
-	Lenth and Distance
+	length and Distance
 ==============================================================================================*/
 E_A:SetCost(EA_COST_NORMAL)
 
-E_A:RegisterOperator("lenth", "v", "n", function(self, Value)
+E_A:RegisterOperator("length", "v", "n", function(self, Value)
 	local V = Value(self)
 	return (V[1] * V[1] + V[2] * V[2] + V[3] * V[3]) ^ 0.5
 end)
 
-E_A:RegisterFunction("lenth", "v:", "n", function(self, Value)
+E_A:RegisterFunction("length", "v:", "n", function(self, Value)
 	local V = Value(self)
 	return (V[1] * V[1] + V[2] * V[2] + V[3] * V[3]) ^ 0.5
 end)

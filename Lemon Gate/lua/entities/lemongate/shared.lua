@@ -1,7 +1,7 @@
 ENT.Type            = "anim"
 ENT.Base            = "base_wire_entity"
 
-ENT.PrintName       = "Expresson Advanced"
+ENT.PrintName       = "Expression Advanced"
 ENT.Author          = "Rusketh"
 ENT.Contact         = "WM/FacePunch"
 ENT.Purpose         = ""

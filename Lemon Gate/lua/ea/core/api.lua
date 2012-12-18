@@ -1,6 +1,6 @@
 /*==============================================================================================
-	Expression Advanced: Awkward Programable Interface.
-	Purpose: Allows Exts to do some cool stuff, (Eventually).
+	Expression Advanced: Awkward Programmable Interface.
+	Purpose: Allows extensions to do some cool stuff, (Eventually).
 	Creditors: Rusketh
 ==============================================================================================*/
 local E_A = LemonGate
@@ -27,7 +27,7 @@ function API.Component(Name)
 end
 
 function API.CurrentComponent()
-	if !LEMONGATE_COMPONENT then error("Expression Advanced: Uknown component\n\tHave you called API.NewComponent(Name) yet?") end
+	if !LEMONGATE_COMPONENT then error("Expression Advanced: Unknown component\n\tHave you called API.NewComponent(Name) yet?") end
 	return LEMONGATE_COMPONENT
 end
 
@@ -125,19 +125,19 @@ if CLIENT then return end
 	Purpose: Easily know what gates exist!.
 	Creditors: Rusketh
 ==============================================================================================*/
-local Entitys = {}
+local Entities = {}
 	
-API.Entitys = Entitys
+API.Entities = Entities
 
 function API.AddGate(Entity)
-	Entitys[ Entity ] = Entity
+	Entities[ Entity ] = Entity
 	API.CallHook("GateCreate", Entity)
 end
 
 function API.RemoveGate(Entity)
-	Entitys[ Entity ] = nil
+	Entities[ Entity ] = nil
 	API.CallHook("GateRemove", Entity)
 end
 
-function API.GetGates() return Entitys end
+function API.GetGates() return Entities end
 

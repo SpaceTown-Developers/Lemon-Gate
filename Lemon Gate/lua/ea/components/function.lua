@@ -1,5 +1,5 @@
 /*==============================================================================================
-	Expression Advanced: LambdaFunctions.
+	Expression Advanced: Lambda Functions.
 	Purpose: First Class Functions!.
 	Creditors: Rusketh
 ==============================================================================================*/
@@ -41,7 +41,7 @@ E_A.API.AddHook("BuildFunctions", function()
 				local Val, Typ = Value(self)
 				
 				if Type != Typ then
-					self:Throw("cast", "Tryed to cast a variant of " .. Typ .. " to a " .. Type)
+					self:Throw("cast", "Tried to cast a variant of " .. Typ .. " to a " .. Type)
 				end
 				
 				return Val
@@ -88,15 +88,15 @@ E_A:RegisterOperator("funcass", "f", "", function(self, Value, Memory)
 	self.Memory[Memory] = Value(self)
 end)
 
-E_A:RegisterOperator("lambada", "", "f", function(self, Sig, Perams, Statments, Return)
-	-- Purpose: Creates a lambdafunction.
+E_A:RegisterOperator("lambada", "", "f", function(self, Sig, Perams, Statements, Return)
+	-- Purpose: Creates a lambda function.
 	
-	return {Sig, Perams, Statments, Return}
+	return {Sig, Perams, Statements, Return}
 end)
 
 
 E_A:RegisterOperator("call", "f", "?", function(self, Value, pSig, Values)
-	-- Purpose: Calls a lambdafunction.
+	-- Purpose: Calls a lambda function.
 	
 	local Lambda= Value(self)
 	
@@ -105,7 +105,7 @@ E_A:RegisterOperator("call", "f", "?", function(self, Value, pSig, Values)
 	local tPerams = #Perams
 	
 	if tPerams != #Values then
-		self:Throw("invoke", "Parameter missmatch (" .. Lambada[1] .. ") expected got (" .. pSig .. ")")
+		self:Throw("invoke", "Parameter mismatch (" .. Lambada[1] .. ") expected got (" .. pSig .. ")")
 	end
 	
 	for I = 1, tPerams do

@@ -1,6 +1,6 @@
 /*==============================================================================================
 	Expression Advanced: Editor.
-	Purpose: We where gona make our own but meh.
+	Purpose: We where gonna make our own but meh.
 	Creditors: Rusketh
 ==============================================================================================*/
 local E_A = LemonGate
@@ -23,7 +23,7 @@ When you do please post them on your bug tracker to help development.
 Bug Tracker: https://github.com/SpaceTown-Developers/Lemon-Gate/issues
 
 New Features:
-* Try and Catch statments.
+* Try and Catch statements.
 * Entity find functions.
 * Foreach loops.
 
@@ -31,11 +31,11 @@ Thank you for taking part in this Beta!
 ===================================================*/]]
 
 /*==============================================================================================
-	Syntax Hilighting
+	Syntax Highlighting
 ==============================================================================================*/
 local function SyntaxColorLine(self, Row)
 	return {{self.Rows[Row], { Color(255, 255, 255, 255), false}}}
-end -- TODO: Try and make a syntax hilighter!
+end -- TODO: Try and make a syntax highlighter!
 
 /*==============================================================================================
 	Validator
@@ -115,7 +115,7 @@ function Editor.Create()
 		if !Error then
 			Panel:SetBGColor(0, 128, 0, 180)
 			Panel:SetFGColor(255, 255, 255, 128)
-			Panel:SetText( "Valadation Sucessful!" )
+			Panel:SetText( "Validation Successful!" )
 		else
 			Panel:SetBGColor(128, 0, 0, 180)
 			Panel:SetFGColor(255, 255, 255, 128)

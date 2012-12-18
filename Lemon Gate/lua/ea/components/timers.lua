@@ -1,6 +1,6 @@
 /*==============================================================================================
 	Expression Advanced: Callback Timers.
-	Purpose: Based on garrs Lua timers =D
+	Purpose: Based on Garry's lua timers =D
 	Creditors: Rusketh
 ==============================================================================================*/
 local E_A = LemonGate
@@ -41,7 +41,7 @@ E_A:RegisterFunction("timerCreate", "snnf", "", function(self, ValueA, ValueB, V
 	local P, R = D[1], D[4]
 	
 	if P and P ~= "" then -- TODO: VarArgs
-		self:Throw("invoke", "Timer callbacks can not take peramaters.")
+		self:Throw("invoke", "Timer callbacks can not take parameters.")
 	elseif R and R ~= "" then
 		self:Throw("invoke", "Timer callback return type  must be number")
 	end
@@ -114,7 +114,7 @@ E_A:RegisterFunction("timerStatus", "s", "n", function(self, Value)
 end)
 
 /*==============================================================================================
-	Section: Contex
+	Section: Context
 ==============================================================================================*/
 E_A.API.AddHook("GateThink", function(Entity)
 	if !Entity or !Entity.Context then return end

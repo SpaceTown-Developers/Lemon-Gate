@@ -1,5 +1,5 @@
 /*==============================================================================================
-	Expression Advanced: WireLink.
+	Expression Advanced: Wirelink.
 	Purpose: Like wiring a thousands things at once.
 	Creditors: Rusketh
 ==============================================================================================*/
@@ -48,25 +48,25 @@ end)
 
 
 /*==============================================================================================
-	Section: Comparsion Operators
+	Section: Comparison Operators
 ==============================================================================================*/
 E_A:SetCost(EA_COST_EXPENSIVE)
 
 
 E_A:RegisterOperator("negeq", "wlwl", "n", function(self, ValueA, ValueB)
-	-- Purpose: != Comparsion Operator
+	-- Purpose: != Comparison Operator
 	
 	return (ValueA(self) == ValueB(self)) and 0 or 1
 end)
 
 E_A:RegisterOperator("eq", "wlwl", "n", function(self, ValueA, ValueB)
-	-- Purpose: == Comparsion Operator
+	-- Purpose: == Comparison Operator
 	
 	return (ValueA(self) == ValueB(self)) and 1 or 0
 end)
 
 /*==============================================================================================
-	Section: Conditonal Operators
+	Section: Conditional Operators
 ==============================================================================================*/
 E_A:SetCost(EA_COST_ABNORMAL)
 
@@ -104,7 +104,7 @@ E_A:RegisterOperator("set", {"wirelink", "string", "string"}, "", function(self,
 end)
 
 /*==============================================================================================
-	Entitys
+	Entities
 ==============================================================================================*/
 E_A:RegisterOperator("get", {"wirelink", "string", "entity"} , "n", function(self, ValueA, ValueB)
 	local A, B = ValueA(self), ValueB(self)
@@ -117,7 +117,7 @@ E_A:RegisterOperator("set", {"wirelink", "string", "entity"}, "", function(self,
 end)
 
 /*==============================================================================================
-	Entitys
+	Entities
 ==============================================================================================*/
 E_A:RegisterOperator("get", {"wirelink", "string", "vector"} , "n", function(self, ValueA, ValueB)
 	local A, B = ValueA(self), ValueB(self)

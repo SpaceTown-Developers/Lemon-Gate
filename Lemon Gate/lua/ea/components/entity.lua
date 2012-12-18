@@ -1,6 +1,6 @@
 /*==============================================================================================
-	Expression Advanced: Entitys.
-	Purpose: Entitys are stuffs.
+	Expression Advanced: Entity's.
+	Purpose: Entity's are stuffs.
 	Creditors: Rusketh
 ==============================================================================================*/
 local E_A = LemonGate
@@ -51,25 +51,25 @@ E_A:RegisterOperator("variable", "e", "e", function(self, Memory)
 end)
 
 /*==============================================================================================
-	Section: Comparsion Operators
+	Section: Comparison Operators
 ==============================================================================================*/
 E_A:SetCost(EA_COST_NORMAL)
 
 
 E_A:RegisterOperator("negeq", "ee", "n", function(self, ValueA, ValueB)
-	-- Purpose: != Comparsion Operator
+	-- Purpose: != Comparison Operator
 	
 	return (ValueA(self) == ValueB(self)) and 0 or 1
 end)
 
 E_A:RegisterOperator("eq", "ee", "n", function(self, ValueA, ValueB)
-	-- Purpose: == Comparsion Operator
+	-- Purpose: == Comparison Operator
 	
 	return (ValueA(self) == ValueB(self)) and 1 or 0
 end)
 
 /*==============================================================================================
-	Section: Conditonal Operators
+	Section: Conditional Operators
 ==============================================================================================*/
 E_A:SetCost(EA_COST_NORMAL)
 
@@ -81,14 +81,14 @@ E_A:RegisterOperator("is", "e", "n", function(self, Value)
 end)
 
 E_A:RegisterOperator("or", "ee", "e", function(self, ValueA, ValueB)
-	-- Purpose: | Conditonal Operator
+	-- Purpose: | Conditional Operator
 	
 	local Entity = ValueA(self)
 	return (Entity and Entity:IsValid()) and Entity or ValueB(self)
 end)
 
 E_A:RegisterOperator("and", "ee", "n", function(self, ValueA, ValueB)
-	-- Purpose: & Conditonal Operator
+	-- Purpose: & Conditional Operator
 	
 	local A, B = ValueA(self), ValueB(self)
 	return (A and B and A:IsValid() and B:IsValid()) and 1 or 0
@@ -108,7 +108,7 @@ E_A:RegisterOperator("cast", "se", "s", function(self, Value, ConvertType)
 end)
 
 /*==============================================================================================
-	Section: Entity is somthing
+	Section: Entity is something
 ==============================================================================================*/
 E_A:RegisterFunction("isNPC", "e:", "n", function(self, Value)
 	local Entity = Value(self)
@@ -468,7 +468,7 @@ local FindInBox = ents.FindInBox
 local FindInCone = ents.FindInCone
 local FindByModel = ents.FindByModel
 
-local BanedEntitys = { -- E2 filters these.
+local BanedEntities = { -- E2 filters these.
 	["info_player_allies"] = true,
 	["info_player_axis"] = true,
 	["info_player_combine"] = true,
@@ -487,11 +487,11 @@ local BanedEntitys = { -- E2 filters these.
 	["gmod_ghost"] = true,
 }
 	
-local function FilterResults(Entitys)
+local function FilterResults(Entities)
 	local Table = E_A.NewTable()
 	
-	for _, Entity in pairs( Entitys ) do
-		if Entity:IsValid() and !BanedEntitys[  Entity:GetClass() ] then
+	for _, Entity in pairs( Entities ) do
+		if Entity:IsValid() and !BanedEntities[  Entity:GetClass() ] then
 			Table:Insert(nil, "e", Entity)
 		end
 	end

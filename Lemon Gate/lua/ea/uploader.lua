@@ -49,7 +49,7 @@ if SERVER then
 	util.AddNetworkString( "lemon_upload_confirm" )
 	util.AddNetworkString( "lemon_upload_request" )
 	
-	function Uploader.Rec_Chunk( Lenth, Player )
+	function Uploader.Rec_Chunk( length, Player )
 		local PlyID = Player:UniqueID()
 		local EntID = net.ReadUInt( 16 )
 		local ChunkID = net.ReadUInt( 16 )
@@ -91,7 +91,7 @@ if SERVER then
 			
 			net.Start( "lemon_upload_confirm" )
 				net.WriteUInt( EntID, 16 )
-			net.Send( Player ) -- Tell the player we have recived this!
+			net.Send( Player ) -- Tell the player we have received this!
 		end
 	end
 	
@@ -99,7 +99,7 @@ if SERVER then
 		if Entity and Entity:IsValid() and Entity:GetClass() == "lemongate" then
 			net.Start( "lemon_upload_request" )
 				net.WriteUInt( Entity:EntIndex(), 16 )
-			net.Send( Player ) -- Tell the player we have recived this!
+			net.Send( Player ) -- Tell the player we have received this!
 		end
 	end
 	
@@ -117,7 +117,7 @@ if CLIENT then
 		
 		if type(Entity) == "Entity" then
 			if !Entity or !Entity:IsValid() or Entity:GetClass() ~= "lemongate" then -- Check if the entity is a lemongate.
-				LocalPlayer():PrintMessage( HUD_PRINTTALK, "Either its out of lemons or its not a Lemongate." ) -- Todo: use a better herpderp message then this for cleint!
+				LocalPlayer():PrintMessage( HUD_PRINTTALK, "Either its out of lemons or its not a Lemongate." ) -- Todo: use a better herpderp message then this for client!
 				return
 			end
 			
@@ -125,7 +125,7 @@ if CLIENT then
 		end
 		
 		if Uploads[EntID] then -- Check if this entity already has an upload.
-			LocalPlayer():PrintMessage( HUD_PRINTTALK, "Already fuleing that with lemon juice." )
+			LocalPlayer():PrintMessage( HUD_PRINTTALK, "Already fueling that with lemon juice." )
 			return
 		end
 		
@@ -187,7 +187,7 @@ if SERVER then
 	function Downloader.Send_Script( Player, Script )
 		
 		if Downloads[ Player:UniqueID() ] then
-			Player:PrintMessage( HUD_PRINTTALK, "Unable to comply, Juicing in progress!" ) -- CNC refrence.
+			Player:PrintMessage( HUD_PRINTTALK, "Unable to comply, Juicing in progress!" ) -- CNC reference.
 			return
 		end
 		
@@ -215,7 +215,7 @@ end
 ==============================================================================================*/
 if CLIENT then
 	
-	function Downloader.Rec_Chunk( Lengh )
+	function Downloader.Rec_Chunk( length )
 		local ChunkID = net.ReadUInt( 16 )
 		local Chunks = net.ReadUInt( 16 )
 		local Data = net.ReadString()
@@ -236,7 +236,7 @@ if CLIENT then
 			Downloads = nil
 			
 			net.Start( "lemon_download_confirm" )
-			net.SendToServer( Player ) -- Tell the player we have recived this!
+			net.SendToServer( Player ) -- Tell the player we have received this!
 		end
 	end
 	

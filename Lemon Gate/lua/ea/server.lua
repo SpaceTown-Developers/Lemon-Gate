@@ -37,13 +37,13 @@ MsgN("Expression Advanced: Pre Loading!")
 local _type = type
 
 local function type(Value)
-	-- Purpose: Basicaly this replaces type but lowercased.
+	-- Purpose: Basically this replaces type but lowercased.
 	
 	return LowerStr( _type(Value) )
 end
 
 function E_A.CheckType(Value, Type, I, AllowNil)
-	-- Purpose: Checks the type of a function peramater. This prevents bad code from breaking E_As core!
+	-- Purpose: Checks the type of a function parameter. This prevents bad code from breaking E_As core!
 	
 	if !(AllowNil and Value == nil) and type(Value) ~= Type then
 		error( FormatStr("Invalid argument #%i (%s) expected got (%s)", I, Type, type(Value)),3)
@@ -55,8 +55,8 @@ local CheckType = E_A.CheckType
 /*==============================================================================================
 	Section: Lua Builder
 ==============================================================================================*/
-local Cahce, SizeC, TableToLua = {}, 0
-E_A.Cahce = Cahce -- Make it acessible!
+local Cache, SizeC, TableToLua = {}, 0
+E_A.Cache = Cache -- Make it accessible!
 
 function E_A.ValueToLua(Value, NoTables)
 	if !Value then return "NULL" end
@@ -72,8 +72,8 @@ function E_A.ValueToLua(Value, NoTables)
 	elseif Type == "table" and !NoTables then
 		return E_A.TableToLua(Value)
 	elseif Type == "function" and !NoTables then
-		SizeC = SizeC + 1; Cahce[SizeC] = Value
-		return "LemonGate.Cahce[" .. SizeC .. "]"
+		SizeC = SizeC + 1; Cache[SizeC] = Value
+		return "LemonGate.Cache[" .. SizeC .. "]"
 	end
 end
 
@@ -112,7 +112,7 @@ AddCSLuaFile("core/api.lua")
 local API = E_A.API
 
 /*==============================================================================================
-	Section: Token Preload Functions!
+	Section: Token preload Functions!
 ==============================================================================================*/
 local Tokens, OpTokens, SizeT -- Used by E_A.BuildTokens()
 
@@ -159,7 +159,7 @@ local WireTypes = {}
 
 function E_A:WireModClass(Class, Name, In, Out)
 	CheckType(Class, "string", 1); CheckType(Name, "string", 2); CheckType(In, "function", 3, true); CheckType(Out, "function", 4, true)
-	-- Purpose: Makes a class compatable with wiremod.
+	-- Purpose: Makes a class compatible with wiremod.
 	
 	WireTypes[Class] = {UpperStr(Name), In, Out}
 end
@@ -234,7 +234,7 @@ end
 ************************************************************************************************
 ==============================================================================================*/
 
-MsgN("Expression Advanced: Pre Loading Complete!")
+MsgN("Expression Advanced: Preloaded!")
 
 API.LoadComponents()
 	
@@ -334,7 +334,7 @@ for I = 1, SizeF - 1 do
 				
 				if !Short then
 					MsgN("Expression Advanced Skipping function '" .. Function[1] .. " in component " .. Function[0])
-					MsgN("Peramater type " .. tostring(Perams[I]) .. " does not exist!")
+					MsgN("Parameter type " .. tostring(Perams[I]) .. " does not exist!")
 					Valid = false; break
 				else
 					Signature = Signature .. Short
@@ -378,7 +378,7 @@ for I = 1, SizeO - 1 do
 				
 				if !Short then
 					MsgN("Expression Advanced Skipping operator '" .. Operator[1] .. " in component " .. Operator[0])
-					MsgN("Peramater type " .. tostring(Perams[I]) .. " does not exist!")
+					MsgN("Parameter type " .. tostring(Perams[I]) .. " does not exist!")
 					Valid = false; break
 				else
 					Signature = Signature .. Short
@@ -422,7 +422,7 @@ for I = 1, SizeE - 1 do
 				
 				if !Short then
 					MsgN("Expression Advanced Ignoring event '" .. Event[1] .. " in component " .. Event[0])
-					MsgN("Peramater type " .. tostring(Perams[I]) " .. does not exist!")
+					MsgN("Parameter type " .. tostring(Perams[I]) " .. does not exist!")
 					Valid = false; break
 				else
 					Signature = Signature .. Short
@@ -449,7 +449,7 @@ Operators = nil
 Events = nil
 
 /*==============================================================================================
-	Section: Sync Clinet
+	Section: Sync Client
 ==============================================================================================*/
 util.AddNetworkString( "lemon_types" )
 util.AddNetworkString( "lemon_functions" )
@@ -561,9 +561,9 @@ local unpack = unpack
 local pcall = pcall
 
 function E_A.CallOp(Op, self, Arg, ...)
-	-- Purpose: Makes Operators callable and handels runtime perf.
+	-- Purpose: Makes Operators callable and handles runtime perf.
 	
-	-- Perfomance Points.
+	-- Performance Points.
 	local Perf = self.Perf - (Op[0] or EA_COST_NORMAL); self.Perf = Perf
 	if Perf < 0 then self:Throw("script", "Execution Limit Reached") end
 	
@@ -581,7 +581,7 @@ function E_A.CallOp(Op, self, Arg, ...)
 		elseif #Perams < 20 then -- Unpack is slow so lets avoid it!
 			Res, Type = Op[1](self, Perams[1], Perams[2], Perams[3], Perams[4], Perams[5], Perams[6], Perams[7], Perams[8], Perams[9], Perams[10], Perams[11], Perams[12], Perams[13], Perams[14], Perams[15], Perams[16], Perams[17], Perams[18], Perams[19], Perams[20])
 		else
-			Res, Type = Op[1](self, unpack(Perams)) -- More then 20 perams!
+			Res, Type = Op[1](self, unpack(Perams)) -- More then 20 parameters!
 		end
 	
 	-- Reset Stack Trace
@@ -594,7 +594,7 @@ local CallOp = E_A.CallOp
 Operator.__call = E_A.CallOp
 
 function E_A.SafeCall(Op, self, ...)
-	-- Purpose: Calls the operator safly and handels exceptions.
+	-- Purpose: Calls the operator safely and handles exceptions.
 	
 	local StackTrace = self.StackTrace -- Back up trace!
 	self.StackTrace = { StackTrace[#StackTrace] }

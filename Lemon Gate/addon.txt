@@ -1,8 +1,8 @@
 "AddonInfo"
 {
-	"name"        "ExpressonAdvanced"
+	"name"        "Expression Advanced"
 	"version"     "git"
-	"author_name" "Rusketh, Oskar49"
+	"author_name" "Rusketh, Oskar94"
 	"author_url"  ""
 	"info"        "LEMONS."
 	"override"    "0"

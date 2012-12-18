@@ -165,7 +165,7 @@ end)
 E_A:RegisterOperator("cast", "eh", "e", function(self, Value)
 	-- Purpose: Assigns a number to memory
 	
-	return Value(self) -- They are entitys anyway.
+	return Value(self) -- They are entities anyway.
 end)
 
 E_A:RegisterOperator("cast", "he", "h", function(self, Value)
@@ -187,13 +187,13 @@ E_A:RegisterOperator("is", "e", "n", function(self, Value)
 end)
 
 E_A:RegisterOperator("negeq", "hh", "n", function(self, ValueA, ValueB)
-	-- Purpose: != Comparsion Operator
+	-- Purpose: != Comparison Operator
 	
 	return (ValueA(self) == ValueB(self)) and 0 or 1
 end)
 
 E_A:RegisterOperator("eq", "hh", "n", function(self, ValueA, ValueB)
-	-- Purpose: == Comparsion Operator
+	-- Purpose: == Comparison Operator
 	
 	return (ValueA(self) == ValueB(self)) and 1 or 0
 end)
@@ -239,7 +239,7 @@ local function CreateHolo2(self, Value)
 	
 	if !Model then
 		Holo:Remove()
-		self:Throw("hologram", "unknow hologram model used")
+		self:Throw("hologram", "unknown hologram model used")
 	end
 	
 	Holo:SetModel("models/Holograms" .. Model .. ".mdl")
@@ -285,7 +285,7 @@ E_A:RegisterFunction("setModel", "h:s", "", function(self, ValueA, ValueB)
 	local Model = ModelList[ ValueB(self) ]
 	
 	if !Model then
-		self:Throw("hologram", "unknow hologram model used")
+		self:Throw("hologram", "unknown hologram model used")
 	end
 	
 	if Holo and Holo:IsValid() and Holo.Player == self.Player then
@@ -411,11 +411,11 @@ E_A:RegisterFunction("shading", "h:n", "", function(self, ValueA, ValueB)
 	end
 end)
 
-E_A:RegisterFunction("visable", "h:n", "", function(self, ValueA, ValueB)
+E_A:RegisterFunction("visible", "h:n", "", function(self, ValueA, ValueB)
 	local Holo, B = ValueA(self), ValueB(self)
 	
 	if Holo and Holo:IsValid() and Holo.Player == self.Player then
-		if Holo:SetVisable(B >= 1) then
+		if Holo:SetVisible(B >= 1) then
 			Queue[Holo] = true
 			NeedsSync = true
 		end
@@ -558,7 +558,7 @@ hook.Add( "PlayerInitialSpawn", "Lemon_Holograms", function( Player )
 		for Gate, Holos in pairs( Holograms ) do
 			for _, Holo in pairs( Holos ) do
 				if Holo and Holo:IsValid() and !Queue[Holo] then
-					Holo:Sync( true ) -- We wont force sync whats in the que!
+					Holo:Sync( true ) -- We wont force sync whats in the queue!
 				end
 			end
 		end

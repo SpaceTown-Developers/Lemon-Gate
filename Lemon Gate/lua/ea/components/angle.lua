@@ -130,7 +130,7 @@ E_A:RegisterOperator("greater", "aa", "n", function(self, ValueA, ValueB)
 end)
 
 /*==============================================================================================
-	Section: Conditonal Operators
+	Section: Conditional Operators
 ==============================================================================================*/
 E_A:RegisterOperator("is", "a", "n", function(self, Value)
 	-- Purpose: Is Valid
@@ -198,7 +198,7 @@ E_A:RegisterFunction("setRoll", "a:n", "", function(self, ValueA, ValueB)
 end)
 
 /*==============================================================================================
-	Section: Directonal
+	Section: Directional
 ==============================================================================================*/
 E_A:RegisterFunction("forward", "a:", "v", function(self, Value)
 	local A = Value(self)
@@ -219,7 +219,7 @@ E_A:RegisterFunction("up", "a:", "v", function(self, Value)
 end)
 
 /*==============================================================================================
-	Section: Angle Mathmatical Operators
+	Section: Angle Mathematical Operators
 ==============================================================================================*/
 E_A:SetCost(EA_COST_NORMAL)
 
@@ -274,7 +274,7 @@ E_A:RegisterOperator("negative", "a", "a", function(self, Value)
 end)
 
 /*==============================================================================================
-	Section: Number Mathmatical Operators
+	Section: Number Mathematical Operators
 ==============================================================================================*/
 E_A:RegisterOperator("exponent", "an", "a", function(self, ValueA, ValueB)
 	-- Purpose: ^ Math Operator

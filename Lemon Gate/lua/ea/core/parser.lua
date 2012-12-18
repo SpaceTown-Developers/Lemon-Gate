@@ -12,7 +12,7 @@
 			1: ""
 			2: "s1 q1", "s1, q2"
 		
-		Statment:
+		Statement:
 			1: [input, output, global] type var[, ...] = e1[, ...]
 			2: if e1 { q1 } i1
 			3: var++, var--
@@ -71,7 +71,7 @@ function Parser:Run(Tokens)
 	self.Pos = -1
 	self:NextToken()
 	
-	return self:GetStatments()
+	return self:GetStatements()
 end
 
 local FormatStr = string.format -- Speed
@@ -169,7 +169,7 @@ function Parser:TokenTrace()
 end
 
 function Parser:ThisToken(Name)
-	-- Purpose: Checks the curent token.
+	-- Purpose: Checks the current token.
 	
 	local Token = self.Token
 	if !Token then return false end
@@ -203,7 +203,7 @@ function Parser:RequireToken(Name, Message, ...)
 end
 
 function Parser:ExcludeToken(Name, Message, ...)
-	-- Purpose: Error if this token is avalible.
+	-- Purpose: Error if this token is available.
 
 	if self:AcceptToken(Name) then
 		self:Error(Message, ...)
@@ -223,19 +223,19 @@ end
 
 /*==============================================================================================
 	Section: Util Functions
-	Purpose: These are here to make my life easyer.
+	Purpose: These are here to make my life easier.
 	Creditors: Rusketh
 ==============================================================================================*/
 function Parser:StrictType(Message)
 	-- Purpose: Gets a variable type for use in function arguments and indexing operators
 	
 	if !self:AcceptToken("fun") and !self:AcceptToken("func") then
-		if !Message then return end -- We didnt supply an error message we assume this is not needed.
+		if !Message then return end -- We didn't supply an error message we assume this is not needed.
 		self:Error(Message)
 	end
 	
 	local Type = E_A.TypeTable[ self.TokenData ]
-	if !Type then self:Error("Uknown variable type (%s)", self.TokenData) end
+	if !Type then self:Error("Unknown variable type (%s)", self.TokenData) end
 	
 	return Type[2], Type
 end
@@ -265,7 +265,7 @@ function Parser:IndexingList()
 end
 
 function Parser:SpoofToken(Token, Trace)
-	-- Purpose: Tricks the compiler into thinking we are using a differnt token.
+	-- Purpose: Tricks the compiler into thinking we are using a different token.
 	
 	self.RealToken = self.Token -- We Backs this up!
 	
@@ -284,7 +284,7 @@ function Parser:SpoofToken(Token, Trace)
 end
 
 function Parser:UnspoofToken()
-	-- Purpose: Untricks the compiler and restors the real token.
+	-- Purpose: Untricks the compiler and restores the real token.
 	
 	local Token = self.RealToken
 	
@@ -308,7 +308,7 @@ function Parser:Expression()
 	elseif self:AcceptToken("var") then
 		-- Lets strip out bad operators
 		
-		self:ExcludeToken("ass", "Assigment operator (=), can't be part of Expression")
+		self:ExcludeToken("ass", "Assignment operator (=), can't be part of Expression")
 		self:ExcludeToken("aadd", "Additive assignment operator (+=), can't be part of Expression")
 		self:ExcludeToken("asub", "Subtractive assignment operator (-=), can't be part of Expression")
 		self:ExcludeToken("amul", "Multiplicative assignment operator (*=), can't be part of Expression")
@@ -376,8 +376,8 @@ function Parser:ExpressionValue()
 		return self:Instruction("not", Trace, self:Expression())
 		
 	elseif self:AcceptToken("len") then -- len #String
-		if !self:HasTokens() then self:Error("Lengh operator (#) must not be succeeded by whitespace") end
-		return self:Instruction("lenth", Trace, self:Expression())
+		if !self:HasTokens() then self:Error("length operator (#) must not be succeeded by whitespace") end
+		return self:Instruction("length", Trace, self:Expression())
 	
 	elseif self:AcceptToken("dlt") then -- dlt $Num
 		if !self:HasTokens() then 
@@ -395,7 +395,7 @@ end
 /********************************************************************************************************************/
 
 function Parser:Operators(Expr)
-	-- Purpose: Get and use operators for arithmatic, comparsion, binary.
+	-- Purpose: Get and use operators for arithmetic, Comparison, binary.
 	
 	if self:AcceptToken("exp") then -- exp ^ Power
 		return self:Instruction("exponent", self:TokenTrace(), Expr, self:Expression())
@@ -702,13 +702,13 @@ function Parser:Condition()
 end
 
 /*==============================================================================================
-	Section: Statments
-	Purpose: Statments do stuffs.
+	Section: Statements
+	Purpose: Statements do stuffs.
 	Creditors: Rusketh
 ==============================================================================================*/
-function Parser:GetStatments(ExitToken)
-	local Statments, Index = {}, 0
-	local Instruction = self:Instruction("sequence", self:TokenTrace(), Statments)
+function Parser:GetStatements(ExitToken)
+	local Statements, Index = {}, 0
+	local Instruction = self:Instruction("sequence", self:TokenTrace(), Statements)
 
 	if ExitToken and self:AcceptToken(ExitToken) then
 		self:PrevToken()
@@ -721,7 +721,7 @@ function Parser:GetStatments(ExitToken)
 		if self:AcceptToken("com") then self:Error("Separator (,) must not appear twice.") end
 	
 		Index = Index + 1
-		Statments[Index] = self:Statment() 
+		Statements[Index] = self:Statement() 
 		
 		if ExitToken and self:AcceptToken(ExitToken) then
 			self:PrevToken()
@@ -738,7 +738,7 @@ function Parser:GetStatments(ExitToken)
 	return Instruction
 end
 
-function Parser:Statment()
+function Parser:Statement()
 	if self:AcceptToken("if") then
 		return self:Instruction("if", self:TokenTrace(), self:Condition(), self:Block("if condition"), self:ElseIf())
 	
@@ -752,33 +752,33 @@ function Parser:Statment()
 		return self:ForEachLoop()
 		
 	elseif self:CheckToken("brk") or self:CheckToken("cnt") or self:CheckToken("ret") then
-		return self:ExitStatment()
+		return self:ExitStatement()
 	
 	elseif self:AcceptToken("try") then
 		return self:Instruction("try", self:TokenTrace(), self:Block("try block"), self:Catch(true))
 	end
 	
-	return self:FunctionStatment()	or
-		   self:EventStatment()		or
-		   self:VariableStatment()	or
+	return self:FunctionStatement()	or
+		   self:EventStatement()		or
+		   self:VariableStatement()	or
 		   self:Expression()
 end
 
-function Parser:StatmentError()
+function Parser:StatementError()
 	if self:HasTokens() then
-		self:ExcludeToken("num", "Number must be part of statment or expression")
-		self:ExcludeToken("str", "String must be part of statment or expression")
-		self:ExcludeToken("var", "Variable must be part of statment or expression")
+		self:ExcludeToken("num", "Number must be part of statement or expression")
+		self:ExcludeToken("str", "String must be part of statement or expression")
+		self:ExcludeToken("var", "Variable must be part of statement or expression")
 
 		self:Error("Unexpected token found (%s)", self.NextTokenName)
 	else
-		self:TokenError(self.ExprTrace, "Further input required at end of code, incomplete statment/expression")
+		self:TokenError(self.ExprTrace, "Further input required at end of code, incomplete statement / expression")
 	end
 end
 
 /*==============================================================================================
 	Section: Variable Declaration
-	Purpose: We can declair variables here =D.
+	Purpose: We can declare variables here =D.
 	Example: input number Var1, Var2, Var3 = 1, 2 -- Note: 3 is missing =D
 	Creditors: Rusketh
 ==============================================================================================*/
@@ -803,7 +803,7 @@ function Parser:VariableDeclaration()
 		if Type then
 			
 			if !self:AcceptToken("var") then
-				self:Error("Variable expected after type (%s), for variable decleration", Type)
+				self:Error("Variable expected after type (%s), for variable declaration", Type)
 			end
 			
 			local Vars, Index = {self.TokenData}, 1
@@ -840,38 +840,38 @@ function Parser:VariableDeclaration()
 end
 
 /*==============================================================================================
-	Section: Variable Statment
-	Purpose: If we have an operator that is prefixed by a variable then we handel that here.
+	Section: Variable Statement
+	Purpose: If we have an operator that is prefixed by a variable then we handle that here.
 	Example: Var = 10, Var += 10, Var -= 10, Var++, var-- (etc)
 	Creditors: Rusketh
 ==============================================================================================*/
-local AssigmentInstructions = {aadd = "addition", asub = "subtraction", amul = "multiply", adiv = "division"}
+local AssignmentInstructions = {aadd = "addition", asub = "subtraction", amul = "multiply", adiv = "division"}
 
-function Parser:VariableStatment(NoDec)
+function Parser:VariableStatement(NoDec)
 	local Trace = self:TokenTrace()
 	
 	if self:AcceptToken("var") then
 		local Var = self.TokenData
 		
 		if self:AcceptToken("inc") then
-			return self:Instruction("incremet", Trace, Var)
+			return self:Instruction("increment", Trace, Var)
 		
 		elseif self:AcceptToken("dec") then
 			return self:Instruction("decrement", Trace, Var)
 			
 		elseif self:CheckToken("lsb") then
 			self:PrevToken()
-			return self:IndexedStatment()
+			return self:IndexedStatement()
 			
 		elseif self:CheckToken("com") then
 			self:PrevToken()
-			return self:MultiVariableStatment() -- TODO
+			return self:MultiVariableStatement() -- TODO
 		
 		elseif self:AcceptToken("ass") then
 			return self:Instruction("assign", Trace, Var, self:Expression())
 		end
 		
-		for Token, Instruction in pairs( AssigmentInstructions ) do
+		for Token, Instruction in pairs( AssignmentInstructions ) do
 			if self:AcceptToken(Token) then
 				return self:Instruction(Instruction, Trace, Var, self:Expression())
 			end
@@ -883,7 +883,7 @@ function Parser:VariableStatment(NoDec)
 	if !NoDec then return self:VariableDeclaration() end
 end
 
-function Parser:MultiVariableStatment()
+function Parser:MultiVariableStatement()
 	local Trace = self:TokenTrace()
 	
 	if self:AcceptToken("var") then
@@ -903,7 +903,7 @@ function Parser:MultiVariableStatment()
 		if self:AcceptToken("ass") then
 			InstType = "assign"
 		else
-			for Token, Instruction in pairs( AssigmentInstructions ) do
+			for Token, Instruction in pairs( AssignmentInstructions ) do
 				if self:AcceptToken(Token) then
 					InstType = Instruction; break
 				end
@@ -911,7 +911,7 @@ function Parser:MultiVariableStatment()
 		end
 		
 		if !InstType then
-			self:Error("Assigment operator (=) expected after Variable list")
+			self:Error("Assignment operator (=) expected after Variable list")
 		end
 		
 		local Stmts = {}
@@ -919,11 +919,11 @@ function Parser:MultiVariableStatment()
 		for I = 1, Index do
 			Expr = self:Expression()
 			
-			if !Expr then self:Error("Value exspected for %s, in multi variable assigment", Vars[I]) end
+			if !Expr then self:Error("Value expected for %s, in multi variable assignment", Vars[I]) end
 			Stmts[I] = self:Instruction(InstType, Trace, Vars[I], Expr)
 			
 			if I != Index and !self:AcceptToken("com") then
-				self:Error("Comma (,) expected after value for %s, in multi variable assigment", Vars[I + 1])
+				self:Error("Comma (,) expected after value for %s, in multi variable assignment", Vars[I + 1])
 			end
 		end
 		
@@ -932,12 +932,12 @@ function Parser:MultiVariableStatment()
 end
 
 /*==============================================================================================
-	Section: Indexed Statment
-	Purpose: Allows us to run Assigment operators on array indexs =D
+	Section: Indexed Statement
+	Purpose: Allows us to run Assignment operators on array indexes =D
 	Example: Array[i, number] = 10, Array[i, number] += 10
 	Creditors: Rusketh
 ==============================================================================================*/
-function Parser:IndexedStatment()
+function Parser:IndexedStatement()
 	if self:AcceptToken("var") then
 		local Trace = self:TokenTrace()
 		local Get = self:Instruction("variable", Trace, self.TokenData)
@@ -956,18 +956,18 @@ function Parser:IndexedStatment()
 		
 			if self:AcceptToken("ass") then -- Assignment operator
 				Inst = self:Expression()
-			elseif self:AcceptToken("aadd") then -- Additon Assignment operator
+			elseif self:AcceptToken("aadd") then -- Addition Assignment operator
 				Inst = self:Instruction("addition", Trace, Inst, self:Expression())
-			elseif self:AcceptToken("asub") then -- Subraction Assignment operator
+			elseif self:AcceptToken("asub") then -- Subtraction Assignment operator
 				Inst = self:Instruction("subtract", Trace, Inst, self:Expression())
 			elseif self:AcceptToken("amul") then -- Multiplication Assignment operator
 				Inst = self:Instruction("multiply", Trace, Inst, self:Expression())
-			elseif self:AcceptToken("adiv") then -- Divishion Assignment operator
+			elseif self:AcceptToken("adiv") then -- Division Assignment operator
 				Inst = self:Instruction("dividie", Trace, Inst, self:Expression())
 			elseif self:CheckToken("lpa") then -- Call operator
 				return self:CallOperator(Inst)
 			else
-				return -- This will/should error
+				return -- This will / should error
 			end
 			
 			return self:Instruction("set", Data[3], Get, Data[1], Inst, Data[2])
@@ -979,7 +979,7 @@ function Parser:IndexedStatment()
 end
 
 /*==============================================================================================
-	Section: If and Try Statments
+	Section: If and Try Statements
 	Purpose: If this then do that.
 	Creditors: Rusketh
 ==============================================================================================*/
@@ -995,11 +995,11 @@ function Parser:Catch(Reqired)
 	if self:AcceptToken("cth") then
 		
 		if !self:AcceptToken("lpa") then
-			self:Error("Left parenthesis (() missing, to start catch statment.")
+			self:Error("Left parenthesis (() missing, to start catch statement.")
 		end
 		
 		if !self:AcceptToken("fun") then
-			self:Error("exception type, expected for catch statment")
+			self:Error("exception type, expected for catch statement")
 		end
 		
 		local Exception = self.TokenData
@@ -1012,13 +1012,13 @@ function Parser:Catch(Reqired)
 		
 		while self:AcceptToken("com") do
 			if !self:AcceptToken("fun") then
-				self:Error("exception type expected after comma (,) for catch statment")
+				self:Error("exception type expected after comma (,) for catch statement")
 			end
 			
 			local Exception = self.TokenData
 			
 			if Exceptions[Exception] then
-				self:Error("exception %s is already listed in catch statment", Exception)
+				self:Error("exception %s is already listed in catch statement", Exception)
 			elseif !E_A.Exceptions[ Exception ] then
 				self:Error("invalid exception %s", Exception)
 			end
@@ -1033,7 +1033,7 @@ function Parser:Catch(Reqired)
 		return self:Instruction("catch", self:TokenTrace(), Exceptions, self:Block("catch block"), self:Catch())
 		
 	elseif Required then
-		self:Error("catch statment required, after try")
+		self:Error("catch statement required, after try")
 	end
 end
 
@@ -1046,7 +1046,7 @@ function Parser:Block(Name)
 		self:Error("Left curly bracket ({) expected after %s", Name or "condition")
 	end
 
-	local Stmts = self:GetStatments("rcb")
+	local Stmts = self:GetStatements("rcb")
 	
 	if !self:AcceptToken("rcb") then
 		self:Error("Right curly bracket (}) missing, to close %s", Name or "condition")
@@ -1064,7 +1064,7 @@ function Parser:BuildParams(BlockType)
 	-- Purpose: Creates he perams of a ud function.
 	
 	if !self:AcceptToken("lpa") then
-		self:Error("Left parenthesis (() missing, to start %s", BlockType or "peramaters")
+		self:Error("Left parenthesis (() missing, to start %s", BlockType or "parameters")
 	end
 
 	local Params, Types, Listed, Index = {}, {}, "", 0
@@ -1074,16 +1074,16 @@ function Parser:BuildParams(BlockType)
 		
 		while true do
 			if self:AcceptToken("com") then
-				self:Error("parameter seperator (,) must not appear twice")
+				self:Error("parameter separator (,) must not appear twice")
 			elseif !self:HasTokens() then
-				self:Error("parameter seperator (,) must not be succeeded by whitespace")
+				self:Error("parameter separator (,) must not be succeeded by whitespace")
 			end
 			
 			local Type
 			
 			if self:CheckToken("fun") then
 				Type = self:StrictType()
-				if !Type then self:Error("variable expected, after parameter seperator (,)") end
+				if !Type then self:Error("variable expected, after parameter separator (,)") end
 				
 				if !self:AcceptToken("var") then
 					self:Error("variable expected, after parameter type (%s)", GetLongType(Type))
@@ -1092,14 +1092,14 @@ function Parser:BuildParams(BlockType)
 				Type = "n"
 				
 				if !self:AcceptToken("var") then
-					self:Error("variable expected, after parameter seperator (,)")
+					self:Error("variable expected, after parameter separator (,)")
 				end
 			end
 			
 			local Var = self.TokenData
 			
 			if Types[Var] then -- Note: Parameter conflict.
-				self:Error("Parameter %s already exists, inside %s", BlockType or "peramaters")
+				self:Error("Parameter %s already exists, inside %s", BlockType or "parameters")
 			end
 			
 			Index = Index + 1
@@ -1112,7 +1112,7 @@ function Parser:BuildParams(BlockType)
 	end
 
 	if !self:AcceptToken("rpa") then
-		self:Error("Right parenthesis ()) missing, to close %s", BlockType or "peramaters")
+		self:Error("Right parenthesis ()) missing, to close %s", BlockType or "parameters")
 	end
 	
 	return Params, Types, Listed
@@ -1137,7 +1137,7 @@ function Parser:LambadaFunction()
 			self:NextToken() -- Forward past func
 		end
 		
-		local Params, Types, Sig = self:BuildParams("function peramaters")
+		local Params, Types, Sig = self:BuildParams("function parameters")
 		
 		local InFunc = self.InFunc; self.InFunc = true
 		local Block = self:Block("function body")
@@ -1151,7 +1151,7 @@ function Parser:LambadaFunction()
 end
 
 
-function Parser:FunctionStatment()
+function Parser:FunctionStatement()
 	local Trace = self:TokenTrace()
 		
 	local Global = self:AcceptToken("glob")
@@ -1162,7 +1162,7 @@ function Parser:FunctionStatment()
 			
 			local Name = self.TokenData
 			
-			if self:AcceptToken("ass") then -- Function Assigment, func = func, func = function() {}
+			if self:AcceptToken("ass") then -- Function Assignment, func = func, func = function() {}
 				return self:Instruction("funcass", Trace, Global, Name, self:GetValue())
 			end
 		
@@ -1188,7 +1188,7 @@ function Parser:FunctionStatment()
 				self:NextToken() -- Name
 			end
 			
-			local Params, Types, Sig = self:BuildParams("function peramaters")
+			local Params, Types, Sig = self:BuildParams("function parameters")
 		
 			local InFunc = self.InFunc; self.InFunc = true
 			local Block = self:Block("function body")
@@ -1208,7 +1208,7 @@ end
 	Creditors: Rusketh
 ==============================================================================================*/
 
-function Parser:EventStatment()
+function Parser:EventStatement()
 	if self:AcceptToken("evt") then
 		local Trace = self:TokenTrace()
 		
@@ -1221,10 +1221,10 @@ function Parser:EventStatment()
 		local ValidEvent = E_A.EventsTable[Event]
 		if !ValidEvent then self:Error("invalid event %q", Event) end
 		
-		local Params, Types, Sig = self:BuildParams("event peramaters")
+		local Params, Types, Sig = self:BuildParams("event parameters")
 		
 		if Sig != ValidEvent[1] then
-			self:Error("parameter mismach for event %q", Event)
+			self:Error("parameter mismatch for event %q", Event)
 		end
 		
 		return self:Instruction("event", Trace, Event, Sig, Params, Types, self:Block("event body"), ValidEvent[2])
@@ -1248,12 +1248,12 @@ function Parser:ForLoop()
 		end
 		
 		if !self:AcceptToken("var") then
-			self:Error("Varaible assigment expected, after left parenthesis (()")
+			self:Error("Variable assignment expected, after left parenthesis (()")
 		end
 		
 		local VarName, Ass = self.TokenData
 		 
-		if self:AcceptToken("ass") then -- Note: We allow a syntax for deafult vars.
+		if self:AcceptToken("ass") then -- Note: We allow a syntax for default vars.
 			Ass = self:Instruction("assign_declare", Trace, VarName, self:Expression(), "n", "local")
 		else
 			Ass = self:Instruction("assign_default", Trace, VarName, "n", "local")
@@ -1261,7 +1261,7 @@ function Parser:ForLoop()
 		end
 		
 		if !self:AcceptToken("com") then
-			self:Error("Comma (,) expected, after for loop assigment.")
+			self:Error("Comma (,) expected, after for loop assignment.")
 		end
 		
 		local Cond = self:Expression()
@@ -1272,10 +1272,10 @@ function Parser:ForLoop()
 			self:Error("Comma (,) expected, after for loop condition.")
 		end
 		
-		local Step = self:VariableStatment(true)
+		local Step = self:VariableStatement(true)
 		
 		if !Step and self:AcceptToken("var") then
-			self:Error("Inavlid step expression, after (,) in for loop.")
+			self:Error("Invalid step expression, after (,) in for loop.")
 		elseif !Step then
 			self:Error("Step expression expected, after (,) in for loop.")
 		elseif !self:AcceptToken("rpa") then
@@ -1331,7 +1331,7 @@ function Parser:ForEachLoop()
 		local tValue, tKey = self:StrictType() or "n"
 		
 		if !self:AcceptToken("var") then
-			self:Error("Varaible expected, after left parenthesis (()")
+			self:Error("Variable expected, after left parenthesis (()")
 		end
 		
 		local Value, Key = self.TokenData
@@ -1342,7 +1342,7 @@ function Parser:ForEachLoop()
 			tValue = self:StrictType() or "n"
 			
 			if !self:AcceptToken("var") then
-				self:Error("Varaible expected, after comma (,)")
+				self:Error("Variable expected, after comma (,)")
 			end
 			
 			Value = self.TokenData
@@ -1355,7 +1355,7 @@ function Parser:ForEachLoop()
 		local Var = self:Expression()
 		
 		if !Var then
-			self:Error("Varaible expected, after colon (:)")
+			self:Error("Variable expected, after colon (:)")
 		end
 		
 		if !self:AcceptToken("rpa") then
@@ -1376,7 +1376,7 @@ function Parser:ForEachLoop()
 	end
 end
 
-function Parser:ExitStatment()
+function Parser:ExitStatement()
 	local Depth, Level = self.LoopDepth
 	
 	if self:AcceptToken("brk") then
@@ -1413,7 +1413,7 @@ end
 
 /*==============================================================================================
 	Section: Table Syntax
-	Purpose: Cus we makes a table
+	Purpose: Because we makes a table
 	Creditors: Rusketh
 ==============================================================================================*/
 function Parser:BuildTable()
@@ -1426,9 +1426,9 @@ function Parser:BuildTable()
 		if !self:CheckToken("rcb") then
 			while true do
 				if self:AcceptToken("com") then
-					self:Error("parameter seperator (,) must not appear twice")
+					self:Error("parameter separator (,) must not appear twice")
 				elseif !self:HasTokens() then
-					self:Error("parameter seperator (,) must not be succeeded by whitespace")
+					self:Error("parameter separator (,) must not be succeeded by whitespace")
 				end
 				
 				Index = Index + 1
@@ -1446,7 +1446,7 @@ function Parser:BuildTable()
 		end
 		
 		if !self:AcceptToken("rcb") then
-			self:Error("Left curly bracket ({) exspected, after table contents")
+			self:Error("Left curly bracket ({) expected, after table contents")
 		end
 		
 		return self:Instruction("table", Trace, Keys, Values)

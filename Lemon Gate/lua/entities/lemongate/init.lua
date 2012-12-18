@@ -55,7 +55,7 @@ function Lemon:Initialize()
 	self.Errored = nil
 	self.LastPerf = 0
 	
-	self:SetOverlayText("LemonGate\nExpresson Advanced\nOffline: 0%")
+	self:SetOverlayText("LemonGate\nExpression Advanced\nOffline: 0%")
 	
 	API.AddGate(self) -- Let the api know this gate exists!
 end
@@ -148,7 +148,7 @@ function Lemon:LoadInstance(Instance)
 end
 
 /*==============================================================================================
-	Section: Memory Handelers.
+	Section: Memory Handlers.
 ==============================================================================================*/
 function Lemon:RefreshMemory()
 	-- Purpose: Clears and recreates the memory of the entire chip.

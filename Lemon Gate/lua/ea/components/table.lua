@@ -47,14 +47,14 @@ function Table:Set(Index, Type, Value)
 	
 	if OldVal and OldTyp == "t" then
 		Size = Size - OldVal:GetSize()
-	end -- Allows us to unallocate memory used up by old tables.
+	end -- Allows us to free memory used up by old tables.
 	
 	if Type == "t" then
 		Size = Size + Value.Size
 	end
 	
 	if !OldVal then
-		Size = Size + 1 -- Update the meory and index count!
+		Size = Size + 1 -- Update the memory and index count!
 		Count = Count + 1
 	end
 	
@@ -160,22 +160,22 @@ end)
 	Purpose: Basic operations.
 	Creditors: Rusketh
 ==============================================================================================*/
-E_A:RegisterOperator("lenth", "t", "n", function(self, Value)
-	-- Purpose: Gets the highest numric index
+E_A:RegisterOperator("length", "t", "n", function(self, Value)
+	-- Purpose: Gets the highest numeric index
 	
 	local Data = Value(self).Data
 	if !Data then return 0 else return #Data end
 end)
 
 E_A:RegisterOperator("is", "t", "n", function(self, Value)
-	-- Purpose: Gets the highest numric index
+	-- Purpose: Gets the highest numeric index
 	
 	local Data = Value(self).Data
 	if !Data or #Data == 0 then return 0 else return 1 end
 end)
 
 E_A:RegisterOperator("not", "t", "n", function(self, Value)
-	-- Purpose: Gets the highest numric index
+	-- Purpose: Gets the highest numeric index
 	
 	local Data = Value(self).Data
 	if !Data or #Data == 0 then return 1 else return 0 end
@@ -194,7 +194,7 @@ E_A:RegisterFunction("count", "t:", "n", function(self, Value)
 	return Value(self).Count or 0
 end)
 
-E_A:RegisterFunction("lenth", "t:", "n", function(self, Value)
+E_A:RegisterFunction("length", "t:", "n", function(self, Value)
 	local Data = Value(self).Data
 	if !Data then return 0 else return #Data end
 end)
@@ -208,7 +208,7 @@ E_A:RegisterFunction("copy", "t:", "t", function(self, Value)
 		Data = TableCopy( Table.Data ),
 		Types = TableCopy( Table.Types ),
 		Size = Table.Size, Count = Table.Count },
-	Table) -- We copyed the table!
+	Table) -- We copied the table!
 end)
 
 /*==============================================================================================
@@ -224,7 +224,7 @@ E_A.API.AddHook("BuildFunctions", function()
 		-- Get Number Index
 		E_A:RegisterOperator("get", "tn" .. Type, Type, function(self, ValueA, ValueB)
 			local Table, Index = ValueA(self), ValueB(self)
-			if !Table.Data then self:Error("Attempt to index feild " .. tostring(Index) .. " on invalid table.") end
+			if !Table.Data then self:Error("Attempt to index field " .. tostring(Index) .. " on invalid table.") end
 			
 			local tIndex = Table.Types[Index]
 			if !tIndex and Type == "t" then self:Error("Attempt to reach invalid table at index " .. tostring(Index) .. ".")
@@ -236,7 +236,7 @@ E_A.API.AddHook("BuildFunctions", function()
 		-- Get String Index
 		E_A:RegisterOperator("get", "ts" .. Type, Type, function(self, ValueA, ValueB)
 			local Table, Index = ValueA(self), ValueB(self)
-			if !Table.Data then self:Error("Attempt to index feild " .. tostring(Index) .. " on invalid table.") end
+			if !Table.Data then self:Error("Attempt to index field " .. tostring(Index) .. " on invalid table.") end
 			
 			local tIndex = Table.Types[Index]
 			if !tIndex and Type == "t" then self:Error("Attempt to reach invalid table at index " .. tostring(Index) .. ".")
@@ -248,7 +248,7 @@ E_A.API.AddHook("BuildFunctions", function()
 		-- Get Entity Index
 		E_A:RegisterOperator("get", "te" .. Type, Type, function(self, ValueA, ValueB)
 			local Table, Index = ValueA(self), ValueB(self)
-			if !Table.Data then self:Error("Attempt to index feild " .. tostring(Index) .. " on invalid table.") end
+			if !Table.Data then self:Error("Attempt to index field " .. tostring(Index) .. " on invalid table.") end
 			
 			local tIndex = Table.Types[Index]
 			if !tIndex and Type == "t" then self:Error("Attempt to reach invalid table at index " .. tostring(Index) .. ".")
@@ -262,25 +262,25 @@ E_A.API.AddHook("BuildFunctions", function()
 		-- Set Number Index
 		E_A:RegisterOperator("set", "tn" .. Type, "", function(self, ValueA, ValueB, ValueC)
 			local Table, Index = ValueA(self), ValueB(self)
-			if !Table.Data then self:Error("Attempt to index feild " .. tostring(Index) .. " on invalid table.") end
+			if !Table.Data then self:Error("Attempt to index field " .. tostring(Index) .. " on invalid table.") end
 			
-			if !Table:Set(Index, Type, ValueC(self)) then self:Error("Maxamum table size exceeded.") end
+			if !Table:Set(Index, Type, ValueC(self)) then self:Error("Maximum table size exceeded.") end
 		end)
 		
 		-- Set String Index
 		E_A:RegisterOperator("set", "ts" .. Type, "", function(self, ValueA, ValueB, ValueC)
 			local Table, Index = ValueA(self), ValueB(self)
-			if !Table.Data then self:Error("Attempt to index feild " .. tostring(Index) .. " on invalid table.") end
+			if !Table.Data then self:Error("Attempt to index field " .. tostring(Index) .. " on invalid table.") end
 			
-			if !Table:Set(Index, Type, ValueC(self)) then self:Error("Maxamum table size exceeded.") end
+			if !Table:Set(Index, Type, ValueC(self)) then self:Error("Maximum table size exceeded.") end
 		end)
 		
 		-- Set Entity Index
 		E_A:RegisterOperator("set", "te" .. Type, "", function(self, ValueA, ValueB, ValueC)
 			local Table, Index = ValueA(self), ValueB(self)
-			if !Table.Data then self:Error("Attempt to index feild " .. tostring(Index) .. " on invalid table.") end
+			if !Table.Data then self:Error("Attempt to index field " .. tostring(Index) .. " on invalid table.") end
 			
-			if !Table:Set(Index, Type, ValueC(self)) then self:Error("Maxamum table size exceeded.") end
+			if !Table:Set(Index, Type, ValueC(self)) then self:Error("Maximum table size exceeded.") end
 		end)
 		
 		/*****************************************************************************************************************************/
@@ -440,9 +440,9 @@ end)
 ==============================================================================================*/
 local function GetVariant(self, ValueA, ValueB)
 	local Table, Index = ValueA(self), ValueB(self)
-	if !Table.Data then self:Error("Attempt to index feild " .. tostring(Index) .. " on invalid table.") end
+	if !Table.Data then self:Error("Attempt to index field " .. tostring(Index) .. " on invalid table.") end
 			
-	if !Table.Types[Index] then self:Error("Attempt to index feild " .. tostring(Index) .. " a void value.") end
+	if !Table.Types[Index] then self:Error("Attempt to index field " .. tostring(Index) .. " a void value.") end
 	return Table.Data[Index]
 end
 

@@ -25,13 +25,13 @@ local LowerStr = string.lower -- Speed
 local FormatStr = string.format -- Speed
 
 local function type(Value)
-	-- Purpose: Basicaly this replaces type but lowercased.
+	-- Purpose: Basically this replaces type but lowercased.
 	
 	return LowerStr( _type(Value) )
 end
 
 function E_A.CheckType(Value, Type, I, AllowNil)
-	-- Purpose: Checks the type of a function peramater. This prevents bad code from breaking E_As core!
+	-- Purpose: Checks the type of a function parameter. This prevents bad code from breaking E_As core!
 	
 	if !(AllowNil and Value == nil) and type(Value) ~= Type then
 		error( FormatStr("Invalid argument #%i (%s) expected got (%s)", I, Type, type(Value)),3)
@@ -41,7 +41,7 @@ end
 local CheckType = E_A.CheckType
 
 /*==============================================================================================
-	Section: Sync Clinet
+	Section: Sync Client
 ==============================================================================================*/
 net.Receive( "lemon_types", function()
 	E_A.TypeTable = {}; E_A.TypeShorts = {}

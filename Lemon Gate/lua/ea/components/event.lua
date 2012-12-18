@@ -1,6 +1,6 @@
 /*==============================================================================================
 	Expression Advanced: Event Manager.
-	Purpose: Events make E-A Tick (litteraly).
+	Purpose: Events make E-A Tick (literary).
 	Creditors: Rusketh
 ==============================================================================================*/
 local E_A = LemonGate
@@ -15,10 +15,10 @@ local Entity = Entity
 	Purpose: Functions that Create and Remove events.
 	Creditors: Rusketh
 ==============================================================================================*/
-E_A:RegisterOperator("event", "", "", function(self, Event, Arguments, Statments)
+E_A:RegisterOperator("event", "", "", function(self, Event, Arguments, Statements)
 	-- Purpose: Builds a Function.
 	
-	self.Events[Event] = {Arguments, Statments}
+	self.Events[Event] = {Arguments, Statements}
 end)
 
 /*==============================================================================================
