@@ -50,7 +50,7 @@ E_A:RegisterOperator("assign", "n", "", function(self, ValueOp, Memory)
 	self.Click[Memory] = true
 end)
 
-E_A:RegisterOperator("variabel", "n", "n", function(self, Memory)
+E_A:RegisterOperator("variable", "n", "n", function(self, Memory)
 	-- Purpose: Assigns a number to memory
 	
 	return self.Memory[Memory]
@@ -135,10 +135,10 @@ E_A:RegisterOperator("negative", "n", "n", function(self, Value)
 end)
 
 /*==============================================================================================
-	Section: Comparason Operators
+	Section: Comparsion Operators
 ==============================================================================================*/
 E_A:RegisterOperator("greater", "nn", "n", function(self, ValueA, ValueB)
-	-- Purpose: > Comparason Operator
+	-- Purpose: > Comparsion Operator
 	
 	local Res = ValueA(self) - ValueB(self)
 	if Res > Round then
@@ -147,7 +147,7 @@ E_A:RegisterOperator("greater", "nn", "n", function(self, ValueA, ValueB)
 end)
 
 E_A:RegisterOperator("less", "nn", "n", function(self, ValueA, ValueB)
-	-- Purpose: < Comparason Operator
+	-- Purpose: < Comparsion Operator
 	
 	local Res = ValueA(self) - ValueB(self)
 	if -Res > Round then
@@ -156,7 +156,7 @@ E_A:RegisterOperator("less", "nn", "n", function(self, ValueA, ValueB)
 end)
 
 E_A:RegisterOperator("eqgreater", "nn", "n", function(self, ValueA, ValueB)
-	-- Purpose: <= Comparason Operator
+	-- Purpose: <= Comparsion Operator
 	
 	local Res = ValueA(self) - ValueB(self)
 	if -Res <= Round then
@@ -165,7 +165,7 @@ E_A:RegisterOperator("eqgreater", "nn", "n", function(self, ValueA, ValueB)
 end)
 
 E_A:RegisterOperator("eqless", "nn", "n", function(self, ValueA, ValueB)
-	-- Purpose: <= Comparason Operator
+	-- Purpose: <= Comparsion Operator
 	
 	local Res = ValueA(self) - ValueB(self)
 	if Res <= Round then
@@ -174,7 +174,7 @@ E_A:RegisterOperator("eqless", "nn", "n", function(self, ValueA, ValueB)
 end)
 
 E_A:RegisterOperator("negeq", "nn", "n", function(self, ValueA, ValueB)
-	-- Purpose: != Comparason Operator
+	-- Purpose: != Comparsion Operator
 	
 	local Res = ValueA(self) - ValueB(self)
 	if Res > Round and -Res < Round then
@@ -183,7 +183,7 @@ E_A:RegisterOperator("negeq", "nn", "n", function(self, ValueA, ValueB)
 end)
 
 E_A:RegisterOperator("eq", "nn", "n", function(self, ValueA, ValueB)
-	-- Purpose: == Comparason Operator
+	-- Purpose: == Comparsion Operator
 	
 	local Res = ValueA(self) - ValueB(self)
 	if Res <= Round and -Res <= Round then

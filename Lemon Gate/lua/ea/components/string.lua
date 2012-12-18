@@ -56,7 +56,7 @@ E_A:RegisterOperator("assign", "s", "", function(self, Value, Memory)
 	self.Memory[Memory] = Value(self)
 end)
 
-E_A:RegisterOperator("variabel", "s", "s", function(self, Memory)
+E_A:RegisterOperator("variable", "s", "s", function(self, Memory)
 	-- Purpose: Assigns a string to memory
 	
 	return self.Memory[Memory]
@@ -95,7 +95,7 @@ E_A:RegisterOperator("addition", "ns", "s", Operator)
 E_A:RegisterOperator("addition", "sn", "s", Operator)
 
 /*==============================================================================================
-	Section: Comparason Operators
+	Section: Comparsion Operators
 ==============================================================================================*/
 E_A:RegisterOperator("is", "s", "n", function(self, Value)
 	-- Purpose: Is Valid
@@ -110,13 +110,13 @@ E_A:RegisterOperator("not", "s", "n", function(self, Value)
 end)
 
 E_A:RegisterOperator("negeq", "ss", "n", function(self, ValueA, ValueB)
-	-- Purpose: != Comparason Operator
+	-- Purpose: != Comparsion Operator
 	
 	if ValueA(self) ~= ValueB(self) then return 1 else return 0 end
 end)
 
 E_A:RegisterOperator("eq", "ss", "n", function(self, ValueA, ValueB)
-	-- Purpose: == Comparason Operator
+	-- Purpose: == Comparsion Operator
 	
 	if ValueA(self) == ValueB(self) then return 1 else return 0 end
 end)
@@ -249,7 +249,7 @@ E_A:RegisterFunction("replace", "s:ss", "s", function(self, ValueA, ValueB, Valu
 	return ReplaceStr( ValueA(self), ValueB(self), ValueC(self) )
 end)
 
-E_A:SetCost(EA_COST_EXSPENSIVE)
+E_A:SetCost(EA_COST_EXPENSIVE)
 
 -- Regex functions
 E_A:RegisterFunction("findPattern", "s:s", "n", function(self, ValueA, ValueB)
@@ -273,7 +273,7 @@ end)
 /*==============================================================================================
 	Section: Explode / Matches
 ==============================================================================================*/
-E_A:SetCost(EA_COST_EXSPENSIVE)
+E_A:SetCost(EA_COST_EXPENSIVE)
 
 E_A:RegisterException("string")
 

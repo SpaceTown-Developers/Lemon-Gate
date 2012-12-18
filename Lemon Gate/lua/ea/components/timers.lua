@@ -33,7 +33,7 @@ end)
 /*==============================================================================================
 	Section: Timers
 ==============================================================================================*/
-E_A:SetCost(EA_COST_EXSPENSIVE)
+E_A:SetCost(EA_COST_EXPENSIVE)
 
 E_A:RegisterFunction("timerCreate", "snnf", "", function(self, ValueA, ValueB, ValueC, ValueD)
 	local A, B, C, D = ValueA(self), ValueB(self), ValueC(self), ValueD(self)

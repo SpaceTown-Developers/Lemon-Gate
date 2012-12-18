@@ -51,7 +51,7 @@ end
 /*==============================================================================================
 	Section: Player Trace
 ==============================================================================================*/
-E_A:SetCost(EA_COST_EXSPENSIVE)
+E_A:SetCost(EA_COST_EXPENSIVE)
 
 E_A:RegisterFunction("eyeTrace", "e:", "t", function(self, Value)
 	local Entity, Table = Value(self), E_A.NewTable()

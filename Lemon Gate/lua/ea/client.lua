@@ -15,7 +15,7 @@ local E_A = LemonGate
 EA_COST_CHEAP = 0.5
 EA_COST_NORMAL = 1
 EA_COST_ABNORMAL = 2.5
-EA_COST_EXSPENSIVE = 5
+EA_COST_EXPENSIVE = 5
 
 /*==============================================================================================
 	Section: Util Zone

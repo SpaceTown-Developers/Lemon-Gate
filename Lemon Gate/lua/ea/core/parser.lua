@@ -235,7 +235,7 @@ function Parser:StrictType(Message)
 	end
 	
 	local Type = E_A.TypeTable[ self.TokenData ]
-	if !Type then self:Error("Uknown variabel type (%s)", self.TokenData) end
+	if !Type then self:Error("Uknown variable type (%s)", self.TokenData) end
 	
 	return Type[2], Type
 end
@@ -247,7 +247,7 @@ function Parser:IndexingList()
 		local Expression = self:Expression()
 
 		if self:AcceptToken("com") then
-			local Type = self:StrictType("variabel type expected after comma (,) in indexing operator, got (%s)")
+			local Type = self:StrictType("variable type expected after comma (,) in indexing operator, got (%s)")
 			if !Type then
 				self:Error("Indexing operator ([]) requires a lower case type [Index,type]")
 			elseif !self:AcceptToken("rsb") then
@@ -383,7 +383,7 @@ function Parser:ExpressionValue()
 		if !self:HasTokens() then 
 			self:Error("Delta operator ($) must not be succeeded by whitespace")
 		elseif !self:AcceptToken("var") then
-			self:Error("variabel expected, after Delta operator ($)")
+			self:Error("variable expected, after Delta operator ($)")
 		end
 		
 		return self:Instruction("delta", Trace, self.TokenData)
@@ -395,7 +395,7 @@ end
 /********************************************************************************************************************/
 
 function Parser:Operators(Expr)
-	-- Purpose: Get and use operators for arithmatic, comparason, binary.
+	-- Purpose: Get and use operators for arithmatic, comparsion, binary.
 	
 	if self:AcceptToken("exp") then -- exp ^ Power
 		return self:Instruction("exponent", self:TokenTrace(), Expr, self:Expression())
@@ -497,7 +497,7 @@ function Parser:GetValue()
 		Instr = self:Instruction("string", Trace, self.TokenData)
 	
 	elseif self:AcceptToken("var") then -- Grab a var from a var token.
-		Instr = self:Instruction("variabel", Trace, self.TokenData)
+		Instr = self:Instruction("variable", Trace, self.TokenData)
 	elseif self:AcceptToken("fun") then -- We are going to getting a function.
 		
 			local Function = self.TokenData
@@ -523,7 +523,7 @@ function Parser:GetValue()
 				Instr = self:Instruction("function", Trace, Function, Permaters)
 			
 		
-		-- RETURNABLE LAMBADA FUNCTION, type function() {}
+		-- RETURNABLE LAMBDA FUNCTION, type function() {}
 		
 			elseif self:CheckToken("func") then
 				self:PrevToken()
@@ -535,7 +535,7 @@ function Parser:GetValue()
 				Instr = self:Instruction("funcvar", Trace, self.TokenData)
 			end
 		
--- LAMBADA FUNCTION, function() {}
+-- LAMBDA FUNCTION, function() {}
 	
 	elseif self:CheckToken("func") then
 		Instr = self:LambadaFunction()
@@ -803,7 +803,7 @@ function Parser:VariableDeclaration()
 		if Type then
 			
 			if !self:AcceptToken("var") then
-				self:Error("Variable expected after type (%s), for variabel decleration", Type)
+				self:Error("Variable expected after type (%s), for variable decleration", Type)
 			end
 			
 			local Vars, Index = {self.TokenData}, 1
@@ -940,7 +940,7 @@ end
 function Parser:IndexedStatment()
 	if self:AcceptToken("var") then
 		local Trace = self:TokenTrace()
-		local Get = self:Instruction("variabel", Trace, self.TokenData)
+		local Get = self:Instruction("variable", Trace, self.TokenData)
 		
 		if self:CheckToken("lsb") then
 			local List = { self:IndexingList() } -- {{1:Expr 2:Type 3:Trace}, ...}
@@ -1083,16 +1083,16 @@ function Parser:BuildParams(BlockType)
 			
 			if self:CheckToken("fun") then
 				Type = self:StrictType()
-				if !Type then self:Error("variabel expected, after parameter seperator (,)") end
+				if !Type then self:Error("variable expected, after parameter seperator (,)") end
 				
 				if !self:AcceptToken("var") then
-					self:Error("variabel expected, after parameter type (%s)", GetLongType(Type))
+					self:Error("variable expected, after parameter type (%s)", GetLongType(Type))
 				end
 			else
 				Type = "n"
 				
 				if !self:AcceptToken("var") then
-					self:Error("variabel expected, after parameter seperator (,)")
+					self:Error("variable expected, after parameter seperator (,)")
 				end
 			end
 			
@@ -1194,7 +1194,7 @@ function Parser:FunctionStatment()
 			local Block = self:Block("function body")
 			self.InFunc = InFunc
 			
-			local Lambada = self:Instruction("lambada", Trace, Sig, Params, Types, Block, Return)
+			local Lambda= self:Instruction("lambada", Trace, Sig, Params, Types, Block, Return)
 			return self:Instruction("funcass", Trace, Global, Name, Lambada)
 
 	elseif Global then

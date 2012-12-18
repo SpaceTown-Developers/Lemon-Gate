@@ -44,26 +44,26 @@ E_A:RegisterOperator("assign", "e", "", function(self, ValueOp, Memory)
 	self.Click[Memory] = true
 end)
 
-E_A:RegisterOperator("variabel", "e", "e", function(self, Memory)
+E_A:RegisterOperator("variable", "e", "e", function(self, Memory)
 	-- Purpose: Assigns a number to memory
 	
 	return self.Memory[Memory]
 end)
 
 /*==============================================================================================
-	Section: Comparason Operators
+	Section: Comparsion Operators
 ==============================================================================================*/
 E_A:SetCost(EA_COST_NORMAL)
 
 
 E_A:RegisterOperator("negeq", "ee", "n", function(self, ValueA, ValueB)
-	-- Purpose: != Comparason Operator
+	-- Purpose: != Comparsion Operator
 	
 	return (ValueA(self) == ValueB(self)) and 0 or 1
 end)
 
 E_A:RegisterOperator("eq", "ee", "n", function(self, ValueA, ValueB)
-	-- Purpose: == Comparason Operator
+	-- Purpose: == Comparsion Operator
 	
 	return (ValueA(self) == ValueB(self)) and 1 or 0
 end)
@@ -306,7 +306,7 @@ end)
 /*==============================================================================================
 	Section: Force
 ==============================================================================================*/
-E_A:SetCost(EA_COST_EXSPENSIVE)
+E_A:SetCost(EA_COST_EXPENSIVE)
 
 E_A:RegisterFunction("applyForce", "e:v", "", function(self, ValueA, ValueB)
 	local Entity, V = ValueA(self), ValueB(self)
@@ -443,7 +443,7 @@ E_A:RegisterFunction("isWeldedTo", "e:", "e", function(self, Value)
 end)
 
 
-E_A:SetCost(EA_COST_EXSPENSIVE)
+E_A:SetCost(EA_COST_EXPENSIVE)
 
 E_A:RegisterFunction("getConstraints", "e:", "t", function(self, Value)
 	local Entity, Table = Value(self), E_A.NewTable()

@@ -184,7 +184,7 @@ E_A:RegisterFunction("exceptionTrace", "n", "t", function(self, Value)
 	return Table
 end)
 
-E_A:SetCost(EA_COST_EXSPENSIVE)
+E_A:SetCost(EA_COST_EXPENSIVE)
 
 E_A:RegisterFunction("exceptionTrace", "", "t", function(self)
 	local Table = E_A.NewTable()
@@ -233,7 +233,7 @@ E_A:RegisterFunction("debugTrace", "n", "t", function(self, Value)
 	return Table
 end)
 
-E_A:SetCost(EA_COST_EXSPENSIVE)
+E_A:SetCost(EA_COST_EXPENSIVE)
 
 E_A:RegisterFunction("debugTrace", "", "t", function(self)
 	local Table = E_A.NewTable()

@@ -111,6 +111,10 @@ if SERVER then
 			return false
 		end
 		
+		if Entity and Entity:IsValid() or Entity:IsPlayer() then
+			return false
+		end
+		
 		local Model = self:GetModel()
 		local Pos = Trace.HitPos
 		local Ang = Trace.HitNormal:Angle()

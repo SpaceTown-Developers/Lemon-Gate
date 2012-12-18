@@ -40,7 +40,7 @@ E_A:RegisterOperator("assign", "wl", "", function(self, ValueOp, Memory)
 	self.Click[Memory] = true
 end)
 
-E_A:RegisterOperator("variabel", "wl", "wl", function(self, Memory)
+E_A:RegisterOperator("variable", "wl", "wl", function(self, Memory)
 	-- Purpose: Assigns a number to memory
 	
 	return self.Memory[Memory]
@@ -48,19 +48,19 @@ end)
 
 
 /*==============================================================================================
-	Section: Comparason Operators
+	Section: Comparsion Operators
 ==============================================================================================*/
-E_A:SetCost(EA_COST_EXSPENSIVE)
+E_A:SetCost(EA_COST_EXPENSIVE)
 
 
 E_A:RegisterOperator("negeq", "wlwl", "n", function(self, ValueA, ValueB)
-	-- Purpose: != Comparason Operator
+	-- Purpose: != Comparsion Operator
 	
 	return (ValueA(self) == ValueB(self)) and 0 or 1
 end)
 
 E_A:RegisterOperator("eq", "wlwl", "n", function(self, ValueA, ValueB)
-	-- Purpose: == Comparason Operator
+	-- Purpose: == Comparsion Operator
 	
 	return (ValueA(self) == ValueB(self)) and 1 or 0
 end)

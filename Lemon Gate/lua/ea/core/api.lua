@@ -85,6 +85,10 @@ function API.LoadComponents()
 		include("ea/components/timers.lua")
 		include("ea/components/trace.lua")
         include("ea/components/sound.lua")
+        include("ea/components/hologram.lua")
+        include("ea/components/egplib.lua")
+        include("ea/components/color.lua")
+        include("ea/components/vector2.lua")
 	end
 	
 	MsgN("Expression Advanced: Loading Components!")

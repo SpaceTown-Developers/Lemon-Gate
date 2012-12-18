@@ -46,7 +46,7 @@ E_A:RegisterOperator("assign", "a", "", function(self, ValueOp, Memory)
 	self.Click[Memory] = true
 end)
 
-E_A:RegisterOperator("variabel", "a", "a", function(self, Memory)
+E_A:RegisterOperator("variable", "a", "a", function(self, Memory)
 	-- Purpose: Assigns a number to memory
 	
 	return self.Memory[Memory]

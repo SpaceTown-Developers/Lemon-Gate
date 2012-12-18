@@ -1,5 +1,5 @@
 /*==============================================================================================
-	Expression Advanced: Lambada Functions.
+	Expression Advanced: LambdaFunctions.
 	Purpose: First Class Functions!.
 	Creditors: Rusketh
 ==============================================================================================*/
@@ -30,7 +30,7 @@ E_A:RegisterOperator("assign", "?", "", function(self, ValueOp, Memory)
 	self.Click[Memory] = true
 end)
 
-E_A:RegisterOperator("variabel", "?", "?", function(self, Memory)
+E_A:RegisterOperator("variable", "?", "?", function(self, Memory)
 	return self.Memory[Memory], self.VariantTypes[Memory]
 end)
 
@@ -70,7 +70,7 @@ E_A:RegisterOperator("is", "f", "n", function(self, Value)
 end)
 
 /*==============================================================================================
-	Section: Lambada Functions!
+	Section: LambdaFunctions!
 ==============================================================================================*/
 E_A:RegisterClass("function", "f")
 
@@ -89,16 +89,16 @@ E_A:RegisterOperator("funcass", "f", "", function(self, Value, Memory)
 end)
 
 E_A:RegisterOperator("lambada", "", "f", function(self, Sig, Perams, Statments, Return)
-	-- Purpose: Creates a lambada function.
+	-- Purpose: Creates a lambdafunction.
 	
 	return {Sig, Perams, Statments, Return}
 end)
 
 
 E_A:RegisterOperator("call", "f", "?", function(self, Value, pSig, Values)
-	-- Purpose: Calls a lambada function.
+	-- Purpose: Calls a lambdafunction.
 	
-	local Lambada = Value(self)
+	local Lambda= Value(self)
 	
 	local Perams, Return = Lambada[2], Lambada[4]
 	

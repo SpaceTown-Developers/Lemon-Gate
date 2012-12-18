@@ -35,7 +35,7 @@ E_A:CreateToken("^0x[%x]+", "num", "hex")
 E_A:CreateToken("^0b[01]+", "num", "bin")
 E_A:CreateToken("^%d+%.?%d*", "num", "real")
 
--- Function and variabels
+-- Function and variables
 E_A:CreateToken("^%u[%a%d_]*", "var", "variable")
 E_A:CreateToken("^%l[%a%d_]*", "fun", "function")
 E_A:CreateToken("", "str", "string")

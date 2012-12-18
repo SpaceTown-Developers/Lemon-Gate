@@ -375,7 +375,7 @@ function Compiler:Instr_ASSIGN(Name, Expr)
 	-- Purpose: Assign Default value.
 	
 	local VarID, Type = self:GetVar(Name)
-	if !VarID then self:Error("variabel %s does not exist", Name) end
+	if !VarID then self:Error("variable %s does not exist", Name) end
 	
 	if self.Inputs[VarID] then -- Note: You can not assign an input!
 		self:Error("Assigment operator (=) does not support input Variables")
@@ -397,14 +397,14 @@ end
 
 /********************************************************************************************************************/
 
-function Compiler:Instr_VARIABEL(Name)
-	-- Purpose: Retrive variabel.
+function Compiler:Instr_VARIABLE(Name)
+	-- Purpose: Retrive variable.
 	
 	local VarID, Type = self:GetVar(Name)
-	if !VarID then self:Error("variabel %s does not exist", Name) end
+	if !VarID then self:Error("variable %s does not exist", Name) end
 	
-	local Operator, Return = self:GetOperator("variabel", Type)
-	if !Operator then self:Error("Improbable Error: variabel operator does not support '%s'", Type) end
+	local Operator, Return = self:GetOperator("variable", Type)
+	if !Operator then self:Error("Improbable Error: variable operator does not support '%s'", Type) end
 	
 	self:PushPerf(EA_COST_CHEAP)
 	
@@ -467,7 +467,7 @@ function Compiler:Instr_DECREMENT(Name)
 end
 
 /*==============================================================================================
-	Section: Comparason Operators
+	Section: Comparsion Operators
 	Purpose: Compare Values =D
 	Creditors: Rusketh
 ==============================================================================================*/
@@ -478,7 +478,7 @@ for Name, Symbol in pairs({greater = ">", less = "<", eqgreater = ">=", eqless =
 		local ValueB, TypeB = self:CompileInst(InstB)
 		
 		local Operator, Return, Perf = self:GetOperator(Name, TypeA, TypeB)
-		if !Operator then self:Error("comparason operator (%s) does not support '%s > %s'", Symbol, GetLongType(TypeA), GetLongType(TypeB)) end
+		if !Operator then self:Error("comparsion operator (%s) does not support '%s > %s'", Symbol, GetLongType(TypeA), GetLongType(TypeB)) end
 		
 		self:PushPerf(Perf)
 		
@@ -904,7 +904,7 @@ end
 
 
 /*==============================================================================================
-	Section: Lambada Functions.
+	Section: LambdaFunctions.
 	Purpose: Function Objects, just 20% cooler!
 	Creditors: Rusketh
 ==============================================================================================*/
@@ -946,7 +946,7 @@ end
 /***********************************************************************************************/
 
 function Compiler:BuildFunction(Sig, Params, tParams, Stmts, Return)
-	-- Purpose: This instruction Will create function variabels.
+	-- Purpose: This instruction Will create function variables.
 	
 	self:PushReturnType(Return)
 	
@@ -987,7 +987,7 @@ function Compiler:BuildFunction(Sig, Params, tParams, Stmts, Return)
 	return Arguments, Statments
 end
 
-function Compiler:Instr_LAMBADA(Sig, Params, tParams, Stmts, Return)
+function Compiler:Instr_LAMBDA(Sig, Params, tParams, Stmts, Return)
 	local Arguments, Statments = self:BuildFunction(Sig, Params, tParams, Stmts, Return)
 	
 	local Operator, _Return, Perf = self:GetOperator("lambada")
@@ -1022,7 +1022,7 @@ function Compiler:CallLambada(Name, VarID, Insts)
 		
 		self:PushPerf(Perf)
 		
-		local Lambada = self:Operator(Operator, Return, Perf, VarID)
+		local Lambda= self:Operator(Operator, Return, Perf, VarID)
 	
 	-- CALL.
 	
@@ -1067,7 +1067,7 @@ end
 	Creditors: Rusketh
 ==============================================================================================*/
 function Compiler:Instr_EVENT(Name, Sig, Params, tParams, Stmts, Return)
-	-- Purpose: This instruction Will create function variabels.
+	-- Purpose: This instruction Will create function variables.
 	
 	local Arguments, Statments = self:BuildFunction(Sig, Params, tParams, Stmts, Return)
 	

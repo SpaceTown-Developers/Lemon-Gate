@@ -149,7 +149,7 @@ E_A:RegisterOperator("assign", "t", "", function(self, ValueOp, Memory)
 	self.Memory[Memory] = ValueOp(self)
 end)
 
-E_A:RegisterOperator("variabel", "t", "t", function(self, Memory)
+E_A:RegisterOperator("variable", "t", "t", function(self, Memory)
 	-- Purpose: Assigns a string to memory
 	
 	return self.Memory[Memory]

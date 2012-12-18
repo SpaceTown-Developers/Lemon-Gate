@@ -28,14 +28,14 @@ EA.API.AddHook("BuildContext", function(Entity)
 	Sounds[Entity] = {}
 end)
 
-EA:SetCost( EA_COST_CHEAP ) 
+EA:SetCost( EA_COST_CHEAP ) // TODO: Better costs!!
 
 EA:RegisterOperator("assign", "sd", "", function(self, ValueOp, Memory)
 	self.Memory[Memory] = ValueOp(self) 
 	self.Click[Memory] = true 
 end )
 
-EA:RegisterOperator("variabel", "sd", "sd", function(self, Memory)
+EA:RegisterOperator("variable", "sd", "sd", function(self, Memory)
 	return self.Memory[Memory] 
 end )
 
