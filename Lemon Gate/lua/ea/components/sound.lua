@@ -17,12 +17,14 @@ EA.API.AddHook("GateCreate", function(Entity)
 end)
 
 EA.API.AddHook("GateRemove", function(Entity)
-    for snd, ent in pairs( Sounds[Entity] ) do snd:Stop() end 
 	Sounds[Entity] = nil
 end)
 
 EA.API.AddHook("BuildContext", function(Entity)
-    for snd, ent in pairs( Sounds[Entity] ) do snd:Stop() end 
+    for snd, ent in pairs( Sounds[Entity] ) do 
+		if type(snd) ~= "CSoundPatch" then continue end // GM13 <3 
+		snd:Stop() 
+	end 
 	Sounds[Entity] = {}
 end)
 
@@ -43,6 +45,7 @@ EA:RegisterOperator("is", "sd", "n", function(self, Value)
 end )
 
 local function StopSound( ent, gate, snd ) 
+	if type(snd) ~= "CSoundPatch" or !IsValid( gate ) then return end 
 	snd:Stop()
 	Sounds[gate][snd] = nil 
 end 
@@ -53,14 +56,15 @@ local function createSound( path, ent, gate )
     if string.match( path, '["?]' ) then return end 
     path = string.gsub( path:Trim(), "\\", "/" ) 
     local snd = CreateSound( ent, path ) 
-	if ent ~= gate then ent:CallOnRemove( "StopEASound", StopSound, gate, snd ) end 
+	ent:CallOnRemove( "StopEASound", StopSound, gate, snd ) 
+	if ent != gate then gate:CallOnRemove( "StopEASound", StopSound, gate, snd ) end 
     Sounds[gate][ent] = snd
     return snd     
 end 
 
 EA:RegisterFunction("createSound", "es", "sd", function( self, ValueA, ValueB )
-    local ent = ValuesA( self )
-    local snd = ValuesB( self )
+    local ent = ValueA( self )
+    local snd = ValueB( self )
     return createSound( snd, ent, self.Entity )
 end )
 
