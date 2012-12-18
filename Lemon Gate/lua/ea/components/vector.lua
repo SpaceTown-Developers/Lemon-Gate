@@ -127,7 +127,7 @@ E_A:RegisterOperator("not", "v", "n", function(self, Value)
 end)
 
 /*==============================================================================================
-	Coordinateness
+	Coordinates
 ==============================================================================================*/
 E_A:RegisterFunction("vec", "nnn", "v", function(self, ValueA, ValueB, ValueC)
 	return {ValueA(self), ValueB(self), ValueC(self)}
