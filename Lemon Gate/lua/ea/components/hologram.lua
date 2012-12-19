@@ -392,7 +392,7 @@ end)
 /*==============================================================================================
 	Color
 ==============================================================================================*/
-E_A:RegisterFunction("color", "h:", "v", function(self, ValueA, ValueB)
+E_A:RegisterFunction("color", "h:v", "", function(self, ValueA, ValueB)
 	local Holo, B = ValueA(self), ValueB(self)
 	
 	if Holo and Holo:IsValid() and Holo.Player == self.Player then
@@ -400,7 +400,7 @@ E_A:RegisterFunction("color", "h:", "v", function(self, ValueA, ValueB)
 	end
 end)
 
-E_A:RegisterFunction("color", "h:", "vn", function(self, ValueA, ValueB, ValueC)
+E_A:RegisterFunction("color", "h:vn", "n", function(self, ValueA, ValueB, ValueC)
 	local Holo, B, C = ValueA(self), ValueB(self), ValueC(self)
 	
 	if Holo and Holo:IsValid() and Holo.Player == self.Player then
@@ -408,7 +408,7 @@ E_A:RegisterFunction("color", "h:", "vn", function(self, ValueA, ValueB, ValueC)
 	end
 end)
 
-E_A:RegisterFunction("alpha", "h:", "n", function(self, ValueA, ValueB)
+E_A:RegisterFunction("alpha", "h:n", "", function(self, ValueA, ValueB)
 	local Holo, B = ValueA(self), ValueB(self)
 	
 	if Holo and Holo:IsValid() and Holo.Player == self.Player then
@@ -514,7 +514,7 @@ E_A:RegisterFunction("getParent", "h:", "e", function(self, Value)
 	local Holo = Value(self)
 	
 	if Holo and Holo:IsValid() then
-		return holo:GetParent()
+		return holo:GetParent() or NULL_ENTITY
 	end
 end)
 
