@@ -550,6 +550,11 @@ function Context:Error(Message, Info, ...)
 	self:Throw("script", Message)
 end
 
+function Context:PushPerf(Perf)
+	local Perf = self.Perf - Perf; self.Perf = Perf
+	if Perf < 0 then self:Throw("script", "Execution Limit Reached") end
+end
+
 /*==============================================================================================
 	Section: Instruction Operators
 ==============================================================================================*/
@@ -564,8 +569,7 @@ function E_A.CallOp(Op, self, Arg, ...)
 	-- Purpose: Makes Operators callable and handles runtime perf.
 	
 	-- Performance Points.
-	local Perf = self.Perf - (Op[0] or EA_COST_NORMAL); self.Perf = Perf
-	if Perf < 0 then self:Throw("script", "Execution Limit Reached") end
+	self:PushPerf(Op[0] or EA_COST_NORMAL)
 	
 	-- Update Stack Trace
 	local StackTrace = self.StackTrace

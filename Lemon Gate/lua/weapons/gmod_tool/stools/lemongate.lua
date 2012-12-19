@@ -111,7 +111,7 @@ if SERVER then
 			return false
 		end
 		
-		if Entity and Entity:IsValid() or Entity:IsPlayer() then
+		if Entity and Entity:IsValid() and Entity:IsPlayer() then
 			return false
 		end
 		

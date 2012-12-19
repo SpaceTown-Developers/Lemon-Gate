@@ -434,7 +434,7 @@ end
 
 /********************************************************************************************************************/
 
-function Compiler:Instr_INCREMET(Name)
+function Compiler:Instr_INCREMENT(Name)
 	-- Purpose: ++ Math Operator.
 	
 	local Memory, Type = self:GetVar(Name)
@@ -990,7 +990,7 @@ end
 function Compiler:Instr_LAMBDA(Sig, Params, tParams, Stmts, Return)
 	local Arguments, Statements = self:BuildFunction(Sig, Params, tParams, Stmts, Return)
 	
-	local Operator, _Return, Perf = self:GetOperator("lambada")
+	local Operator, _Return, Perf = self:GetOperator("lambda")
 	
 	self:PushPerf(Perf)
 	

@@ -209,7 +209,6 @@ else
 				end
 			end
 			
-			MsgN("Clipped -> " .. Total)
 		-- RENDER.
 		
 			if !self.Shading then

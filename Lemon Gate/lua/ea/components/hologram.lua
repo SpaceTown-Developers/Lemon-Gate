@@ -18,6 +18,24 @@ E_A.HologramOwners = { }
 local Owners = E_A.HologramOwners
 local Recent = { }
 
+local function RemoveHolos(Entity)
+	local Holos = Holograms[Entity]
+	
+	if Holos then
+		local Count = Owners[Entity.Player] or 0
+		
+		for _, Holo in pairs( Holograms[Entity] ) do
+			Count = Count - 1
+			Holo:Remove()
+		end
+		
+		if Count < 0 then Count = 0 end -- Should never happen!
+		
+		Owners[Entity.Player] = Count
+		Holograms[Entity] = { }
+	end
+end
+
 local Queue, NeedsSync = { }, false
 
 function API.QueueHologram( Entity )
@@ -32,13 +50,11 @@ API.AddHook("GateCreate", function(Entity)
 end)
 
 API.AddHook("BuildContext", function(Entity)
-	for _, Holo in pairs( Holograms[Entity] ) do Holo:Remove() end
-	Holograms[Entity] = { }
+	RemoveHolos(Entity)
 end)
 
 API.AddHook("GateRemove", function(Entity)
-	for _, Holo in pairs( Holograms[Entity] ) do Holo:Remove() end
-	Holograms[Entity] = nil
+	RemoveHolos(Entity)
 end)
 
 /*==============================================================================================
@@ -204,13 +220,18 @@ end)
 local function CreateHolo(self)
 	local Ent, Owner = self.Entity, self.Player
 	
-	if !Recent[Ent] then Recent[Ent] = 0 end
-	if Recent[Ent] > _Rate:GetInt( ) then
+	local Burst = Recent[Ent]
+	if !Burst then
+		Burst = 0
+	elseif Burst > _Rate:GetInt( ) then
 		self:Throw("hologram", "too many holograms made at once")
 	end
 	
-	if !Owners[Owner] then Owners[Owner] = { } end
-	if Count( Owners[Owner] ) >= _Max:GetInt( ) then
+	local Count = Owners[Owner]
+	
+	if !Count then
+		Count = 0
+	elseif Count >= _Max:GetInt( ) then
 		self:Throw("hologram", "hologram limit reached")
 	end
 	
@@ -221,8 +242,8 @@ local function CreateHolo(self)
 	
 	Holo.Player = Owner
 	
-	Recent[Ent] = Recent[Ent] + 1
-	Owners[Owner][Holo] = true
+	Recent[Ent] = Burst + 1
+	Owners[Owner] = Count + 1
 	Holograms[Ent][Holo] = Holo
 	
 	Holo:SetModel("models/Holograms/sphere.mdl")
@@ -242,7 +263,7 @@ local function CreateHolo2(self, Value)
 		self:Throw("hologram", "unknown hologram model used")
 	end
 	
-	Holo:SetModel("models/Holograms" .. Model .. ".mdl")
+	Holo:SetModel("models/Holograms/" .. Model .. ".mdl")
 	return Holo
 end
 

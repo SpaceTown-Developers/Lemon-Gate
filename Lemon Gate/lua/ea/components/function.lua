@@ -88,7 +88,7 @@ E_A:RegisterOperator("funcass", "f", "", function(self, Value, Memory)
 	self.Memory[Memory] = Value(self)
 end)
 
-E_A:RegisterOperator("lambada", "", "f", function(self, Sig, Perams, Statements, Return)
+E_A:RegisterOperator("lambda", "", "f", function(self, Sig, Perams, Statements, Return)
 	-- Purpose: Creates a lambda function.
 	
 	return {Sig, Perams, Statements, Return}

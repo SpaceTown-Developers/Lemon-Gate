@@ -245,8 +245,11 @@ function Parser:IndexingList()
 	if self:AcceptToken("lsb") then
 		local Trace = self:TokenTrace()
 		local Expression = self:Expression()
-
-		if self:AcceptToken("com") then
+		
+		if !Expression then
+			self:Error("value expected as index for indexing operaotr ([Index, type])")
+			
+		elseif self:AcceptToken("com") then
 			local Type = self:StrictType("variable type expected after comma (,) in indexing operator, got (%s)")
 			if !Type then
 				self:Error("Indexing operator ([]) requires a lower case type [Index,type]")
@@ -257,7 +260,7 @@ function Parser:IndexingList()
 			return {Expression, Type, Trace}, self:IndexingList()
 
 		elseif self:AcceptToken("rsb") then
-			return {exp, nil, Trace}
+			return {Expression, nil, Trace}
 		else
 			self:Error("Indexing operator ([]) must not be preceded by whitespace")
 		end
@@ -487,7 +490,6 @@ end
 
 function Parser:GetValue()
 	-- Purpose: Gets a build up of instructions that will become a value.
-	
 	local Trace, Instr = self:TokenTrace()
 	
 	if self:CheckToken("num") then
@@ -498,6 +500,7 @@ function Parser:GetValue()
 	
 	elseif self:AcceptToken("var") then -- Grab a var from a var token.
 		Instr = self:Instruction("variable", Trace, self.TokenData)
+		
 	elseif self:AcceptToken("fun") then -- We are going to getting a function.
 		
 			local Function = self.TokenData
@@ -527,7 +530,7 @@ function Parser:GetValue()
 		
 			elseif self:CheckToken("func") then
 				self:PrevToken()
-				Instr = self:LambadaFunction()
+				Instr = self:LambdaFunction()
 				
 		-- FUNCTION VAR, func
 		
@@ -538,7 +541,7 @@ function Parser:GetValue()
 -- LAMBDA FUNCTION, function() {}
 	
 	elseif self:CheckToken("func") then
-		Instr = self:LambadaFunction()
+		Instr = self:LambdaFunction()
 		
 -- TABLE CONSTRUCTOR, {A, B, C, D}
 
@@ -555,7 +558,9 @@ function Parser:GetValue()
 			if self:AcceptToken("col") then
 				local Trace = self:TokenTrace() 
 				
-				if !self:AcceptToken("fun") then self:Error("Method operator (:) must be followed by method name") end
+				if !self:AcceptToken("fun") then
+					self:Error("Method operator (:) must be followed by method name")
+				end
 				
 				local Function = self.TokenData
 				
@@ -1120,7 +1125,7 @@ end
 
 /********************************************************************************************************************/
 
-function Parser:LambadaFunction()
+function Parser:LambdaFunction()
 	-- Purpose: Creates a Lambada.
 	
 	local Trace = self:TokenTrace()
@@ -1143,7 +1148,7 @@ function Parser:LambadaFunction()
 		local Block = self:Block("function body")
 		self.InFunc = InFunc
 		
-		return self:Instruction("lambada", Trace, Sig, Params, Types, Block, Return)
+		return self:Instruction("lambda", Trace, Sig, Params, Types, Block, Return)
 		
 	elseif Ret then
 		self:PrevToken()
@@ -1194,7 +1199,7 @@ function Parser:FunctionStatement()
 			local Block = self:Block("function body")
 			self.InFunc = InFunc
 			
-			local Lambda= self:Instruction("lambada", Trace, Sig, Params, Types, Block, Return)
+			local Lambda= self:Instruction("lambda", Trace, Sig, Params, Types, Block, Return)
 			return self:Instruction("funcass", Trace, Global, Name, Lambada)
 
 	elseif Global then

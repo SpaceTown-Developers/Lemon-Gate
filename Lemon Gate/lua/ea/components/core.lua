@@ -81,6 +81,8 @@ E_A:RegisterOperator("for", "", "", function(self, Assign, Condition, Step, Bloc
 	Assign(self) -- Note: Run assignment
 	
 	while Condition(self) == 1 do -- Note: loop until condition is met.
+		self:PushPerf(EA_COST_CHEAP)
+		
 		local Ok, Exception, Level = Block:SafeCall(self)
 		Level = tonumber(Level or 0)
 		
@@ -102,6 +104,8 @@ E_A:RegisterOperator("while", "", "", function(self, Condition, Block)
 	-- Purpose: Runs a for loop
 	
 	while Condition(self) == 1 do -- Note: loop until condition is met.
+		self:PushPerf(EA_COST_CHEAP)
+		
 		local Ok, Exception, Level = Block:SafeCall(self)
 		Level = tonumber(Level or 0)
 		

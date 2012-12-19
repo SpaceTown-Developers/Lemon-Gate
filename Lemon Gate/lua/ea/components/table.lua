@@ -379,6 +379,8 @@ E_A.API.AddHook("BuildFunctions", function()
 			
 			if Table.Types then
 				for Index, tValue in pairs( Table.Types ) do
+					self:PushPerf(EA_COST_ABNORMAL)
+					
 					if type(Index) == "Entity" and (tValue == Type or Type == "?") then
 						
 					-- Assign the Value.
@@ -408,6 +410,8 @@ E_A.API.AddHook("BuildFunctions", function()
 			
 			if Table.Types then
 				for Index, tValue in pairs( Table.Types ) do
+					self:PushPerf(EA_COST_ABNORMAL)
+					
 					if tValue == Type or Type == "?" then
 						
 					-- Assign the Value.
