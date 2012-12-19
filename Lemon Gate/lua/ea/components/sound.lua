@@ -36,7 +36,7 @@ EA:RegisterOperator("assign", "sd", "", function(self, ValueOp, Memory)
 end )
 
 EA:RegisterOperator("variable", "sd", "sd", function(self, Memory)
-	return self.Memory[Memory] 
+	return self.Memory[Memory]
 end )
 
 EA:RegisterOperator("is", "sd", "n", function(self, Value)
@@ -62,13 +62,13 @@ local function createSound( path, ent, gate )
     return snd     
 end 
 
-EA:RegisterFunction("createSound", "es", "sd", function( self, ValueA, ValueB )
+EA:RegisterFunction("sound", "es", "sd", function( self, ValueA, ValueB )
     local ent = ValueA( self )
     local snd = ValueB( self )
     return createSound( snd, ent, self.Entity )
 end )
 
-EA:RegisterFunction("createSound", "s", "sd", function( self, Value )
+EA:RegisterFunction("sound", "s", "sd", function( self, Value )
     local snd = Value( self )
     return createSound( snd, self.Entity, self.Entity )
 end )
@@ -87,14 +87,14 @@ EA:RegisterFunction("play", "sd:nn", "", function( self, ValueA, ValueB, ValueC 
     snd:PlayEx( math.Clamp( volume, 0, 1 ), math.Clamp( pitch, 0, 255 ) ) 
 end )
 
-EA:RegisterFunction("changeVolume", "sd:n", "", function( self, ValueA, ValueB ) 
+EA:RegisterFunction("volume", "sd:n", "", function( self, ValueA, ValueB ) 
     local snd = ValueA(self) 
     if type(snd) ~= "CSoundPatch" then return end 
     local volume = ValueB(self) 
     snd:ChangeVolume( math.Clamp( volume, 0, 1 ), 0 )
 end )
 
-EA:RegisterFunction("changeVolume", "sd:nn", "", function( self, ValueA, ValueB, ValueC ) 
+EA:RegisterFunction("volume", "sd:nn", "", function( self, ValueA, ValueB, ValueC ) 
     local snd = ValueA(self) 
     if type(snd) ~= "CSoundPatch" then return end 
     local volume = ValueB(self) 
@@ -102,14 +102,14 @@ EA:RegisterFunction("changeVolume", "sd:nn", "", function( self, ValueA, ValueB,
     snd:ChangeVolume( math.Clamp( volume, 0, 1 ), fadetime )
 end )
 
-EA:RegisterFunction("changePitch", "sd:n", "", function( self, ValueA, ValueB ) 
+EA:RegisterFunction("pitch", "sd:n", "", function( self, ValueA, ValueB ) 
     local snd = ValueA(self) 
     if type(snd) ~= "CSoundPatch" then return end 
     local pitch = ValueB(self) 
     snd:ChangePitch( math.Clamp( pitch, 0, 255 ), 0 ) 
 end )
 
-EA:RegisterFunction("changePitch", "sd:nn", "", function( self, ValueA, ValueB, ValueC ) 
+EA:RegisterFunction("pitch", "sd:nn", "", function( self, ValueA, ValueB, ValueC ) 
     local snd = ValueA(self) 
     if type(snd) ~= "CSoundPatch" then return end 
     local pitch = ValueB(self) 
@@ -117,7 +117,7 @@ EA:RegisterFunction("changePitch", "sd:nn", "", function( self, ValueA, ValueB, 
     snd:ChangePitch( math.Clamp( pitch, 0, 255 ), fadetime ) 
 end )
 
-EA:RegisterFunction("changeSoundLevel", "sd:n", "", function( self, ValueA, ValueB ) 
+EA:RegisterFunction("soundLevel", "sd:n", "", function( self, ValueA, ValueB ) 
 	local snd = ValueA(self)
     if type(snd) ~= "CSoundPatch" then return end 
 	local level = ValueB(self)

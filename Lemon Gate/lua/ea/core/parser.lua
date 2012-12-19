@@ -1126,7 +1126,7 @@ end
 /********************************************************************************************************************/
 
 function Parser:LambdaFunction()
-	-- Purpose: Creates a Lambada.
+	-- Purpose: Creates a Lambda.
 	
 	local Trace = self:TokenTrace()
 	local Ret = self:AcceptToken("fun")
@@ -1199,8 +1199,8 @@ function Parser:FunctionStatement()
 			local Block = self:Block("function body")
 			self.InFunc = InFunc
 			
-			local Lambda= self:Instruction("lambda", Trace, Sig, Params, Types, Block, Return)
-			return self:Instruction("funcass", Trace, Global, Name, Lambada)
+			local Lambda = self:Instruction("lambda", Trace, Sig, Params, Types, Block, Return)
+			return self:Instruction("funcass", Trace, Global, Name, Lambda)
 
 	elseif Global then
 		self:PrevToken()

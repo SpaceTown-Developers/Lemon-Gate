@@ -100,19 +100,19 @@ E_A:RegisterOperator("call", "f", "?", function(self, Value, pSig, Values)
 	
 	local Lambda= Value(self)
 	
-	local Perams, Return = Lambada[2], Lambada[4]
+	local Perams, Return = Lambda[2], Lambda[4]
 	
 	local tPerams = #Perams
 	
 	if tPerams != #Values then
-		self:Throw("invoke", "Parameter mismatch (" .. Lambada[1] .. ") expected got (" .. pSig .. ")")
+		self:Throw("invoke", "Parameter mismatch (" .. Lambda[1] .. ") expected got (" .. pSig .. ")")
 	end
 	
 	for I = 1, tPerams do
 		Perams[I](self, Values[I])
 	end
 	
-	local Ok, Exception, RetValue = Lambada[3]:SafeCall(self)
+	local Ok, Exception, RetValue = Lambda[3]:SafeCall(self)
 	
 	if (Ok and Return and Return ~= "") or (!Ok and Exception == "return") then
 		if RetValue then

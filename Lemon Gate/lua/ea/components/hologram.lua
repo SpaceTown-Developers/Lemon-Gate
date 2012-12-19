@@ -175,7 +175,7 @@ end)
 E_A:RegisterOperator("variable", "h", "h", function(self, Memory)
 	-- Purpose: Assigns a number to memory
 	
-	return self.Memory[Memory]
+	return self.Memory[Memory] or NULL_ENTITY
 end)
 
 E_A:RegisterOperator("cast", "eh", "e", function(self, Value)
