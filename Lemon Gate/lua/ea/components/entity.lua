@@ -375,6 +375,23 @@ E_A:RegisterFunction("applyAngForce", "e:a", "", function(self, ValueA, ValueB)
 	end
 end)
 
+E_A:RegisterFunction("vel", "e:", "v", function(self, Value)
+	local Entity = Value(self)
+	if !Entity or !Entity:IsValid() then return {0, 0, 0} end
+	local Phys = Entity:GetPhysicsObject()
+	
+	if Phys then return Entity:GetVelocity() end
+	return {0, 0, 0}
+end)
+
+E_A:RegisterFunction("angVel", "e:", "A", function(self, Value)
+	local Entity = Value(self)
+	if !Entity or !Entity:IsValid() then return {0, 0, 0} end
+	
+	if Phys then return Entity:GetAngleVelocity() end
+	return {0, 0, 0}
+end)
+
 /*==============================================================================================
 	Section: Vectors
 ==============================================================================================*/
