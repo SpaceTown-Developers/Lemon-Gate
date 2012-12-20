@@ -874,21 +874,21 @@ end )
 
 EA:SetCost(10)
 
-EA:RegisterFunction( "egpScrSize", "ne", "v2", function( self, ValueA ) 
+EA:RegisterFunction( "egpScrSize", "e", "v2", function( self, ValueA ) 
     local ply, tValueA = ValueA( self )
 
     if (!ply or !ply:IsValid() or !ply:IsPlayer() or !EGP.ScrHW[ply]) then return {-1,-1} end
     return EGP.ScrHW[ply]
 end )
 
-EA:RegisterFunction( "egpScrW", "ne", "n", function( self, ValueA ) 
+EA:RegisterFunction( "egpScrW", "e", "n", function( self, ValueA ) 
     local ply, tValueA = ValueA( self )
 
     if (!ply or !ply:IsValid() or !ply:IsPlayer() or !EGP.ScrHW[ply]) then return -1 end
     return EGP.ScrHW[ply][1]
 end )
 
-EA:RegisterFunction( "egpScrH", "ne", "n", function( self, ValueA ) 
+EA:RegisterFunction( "egpScrH", "e", "n", function( self, ValueA ) 
     local ply, tValueA = ValueA( self )
 
     if (!ply or !ply:IsValid() or !ply:IsPlayer() or !EGP.ScrHW[ply]) then return -1 end
