@@ -98,7 +98,7 @@ end)
 E_A:RegisterOperator("call", "f", "?", function(self, Value, pSig, Values)
 	-- Purpose: Calls a lambda function.
 	
-	local Lambda= Value(self)
+	local Lambda = Value(self)
 	
 	local Perams, Return = Lambda[2], Lambda[4]
 	

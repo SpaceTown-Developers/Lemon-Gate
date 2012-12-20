@@ -25,8 +25,15 @@ local function RemoveHolos(Entity)
 		local Count = Owners[Entity.Player] or 0
 		
 		for _, Holo in pairs( Holograms[Entity] ) do
-			Count = Count - 1
-			Holo:Remove()
+			if Holo:IsValid() then
+                if table.Count( Holo.Clips ) > 0 then 
+                    net.Start( "lemon_hologram_remove_clips" )
+                        net.WriteUInt( Holo:EntIndex( ), 16 )
+                    net.Broadcast( )
+                end 
+				Count = Count - 1
+				Holo:Remove()
+			end
 		end
 		
 		if Count < 0 then Count = 0 end -- Should never happen!
@@ -152,9 +159,10 @@ end
 	Convars
 ==============================================================================================*/
 local _Max = CreateConVar( "lemon_holograms_max", "128" )
-local _Rate = CreateConVar( "lemon_holograms_per_second", "10" )
+local _Rate = CreateConVar( "lemon_holograms_per_tick", "10" )
 local _Clips = CreateConVar( "lemon_holograms_max_clips", "5" )
 local _Size = CreateConVar( "lemon_holograms_max_size", "50" )
+local _Model = CreateConVar( "lemon_holograms_model_any", "0" )
 
 /*==============================================================================================
 	Class and Operators
@@ -251,20 +259,33 @@ local function CreateHolo(self)
 	Holo:Spawn()
 	Holo:Activate()
 	
+    Holo.NeedsUpdate = true 
+    Queue[Holo] = true
+    NeedsSync = true
+    
 	return Holo
 end
 
+local IsValidModel = util.IsValidModel
+
 local function CreateHolo2(self, Value)
 	local Holo = CreateHolo(self)
-	local Model = ModelList[ Value(self) ]
+	local ModelS =  Value(self)
+	local ValidModel = ModelList[ ModelS ]
 	
-	if !Model then
-		Holo:Remove()
-		self:Throw("hologram", "unknown hologram model used")
+	if ValidModel then
+		Holo:SetModel("models/Holograms/" .. ValidModel .. ".mdl")
+		Holo.ModelAny = false
+		return Holo
+	
+	elseif _Model:GetInt() >= 1 and IsValidModel(ModelS) then
+		Holo:SetModel( Model(ModelS) )
+		Holo.ModelAny = true
+		return Holo
 	end
 	
-	Holo:SetModel("models/Holograms/" .. Model .. ".mdl")
-	return Holo
+	Holo:Remove()
+	self:Throw("hologram", "unknown hologram model used")
 end
 
 /***************************************************************************/
@@ -303,14 +324,20 @@ end)
 ==============================================================================================*/
 E_A:RegisterFunction("setModel", "h:s", "", function(self, ValueA, ValueB)
 	local Holo = ValueA(self)
-	local Model = ModelList[ ValueB(self) ]
-	
-	if !Model then
-		self:Throw("hologram", "unknown hologram model used")
-	end
+	local ModelS =  ValueB(self)
 	
 	if Holo and Holo:IsValid() and Holo.Player == self.Player then
-		Holo:SetModel("models/Holograms" .. Model .. ".mdl")
+		local ValidModel = ModelList[ ModelS ]
+		
+		if ValidModel then
+			Holo:SetModel("models/Holograms/" .. ValidModel .. ".mdl")
+			Holo.ModelAny = false
+		elseif _Model:GetInt() >= 1 and IsValidModel(ModelS) then
+			Holo:SetModel( Model(ModelS) )
+			Holo.ModelAny = true
+		else
+			self:Throw("hologram", "unknown hologram model used")
+		end
 	end
 end)
 
@@ -354,15 +381,46 @@ end)
 /*==============================================================================================
 	Scale
 ==============================================================================================*/
+local function RescaleAny(X, Y, Z, Max, Size)
+	TestMax = Max * 12
+	
+	local TextX = X * Size.x
+	if TextX > TestMax or TextX < -TestMax then
+		local Val = Size.x * TestMax
+		X = math.Clamp(Max / Size.x, -Val, Val)
+	end
+	
+	local TextY = Y * Size.y
+	if TextY > TestMax or TextY < -TestMax then
+		local Val = Size.y * TestMax
+		Y = math.Clamp(Max / Size.y, -Val, Val)
+	end
+	
+	local TextZ = Z * Size.z
+	if TextZ > TestMax or TextZ < -TestMax then
+		local Val = Size.z * TestMax
+		Z = math.Clamp(Max / Size.z, -Val, Val)
+	end
+	
+	return X, Y, Z
+end
+	
+	
 E_A:RegisterFunction("scale", "h:v", "", function(self, ValueA, ValueB)
 	local Holo, B = ValueA(self), ValueB(self)
 	
 	if Holo and Holo:IsValid() and Holo.Player == self.Player then
 		local Max = _Size:GetInt()
+		local X, Y, Z
 		
-		local X = math.Clamp(-Max, Max, B[1])
-		local Y = math.Clamp(-Max, Max, B[2])
-		local Z = math.Clamp(-Max, Max, B[3])
+		if !Holo.ModelAny then
+			X = math.Clamp(B[1], -Max, Max)
+			Y = math.Clamp(B[2], -Max, Max)
+			Z = math.Clamp(B[3], -Max, Max)
+		else
+			local Size = Holo:OBBMaxs() - Holo:OBBMins()
+			X, Y, Z = RescaleAny(B[1], B[2], B[3], Max * 12, Size)
+		end
 		
 		if Holo:SetScale(X, Y, Z) then
 			Queue[Holo] = true
@@ -375,12 +433,16 @@ E_A:RegisterFunction("scaleUnits", "h:v", "", function(self, ValueA, ValueB)
 	local Holo, B = ValueA(self), ValueB(self)
 	
 	if Holo and Holo:IsValid() and Holo.Player == self.Player then
-		local Size = Holo:OBBMaxs() - Holo:OBBMins()
+		local Scale = Holo:OBBMaxs() - Holo:OBBMins()
 		local Max = _Size:GetInt()
+			
+			X = math.Clamp(B[1] / Scale.x, -Max, Max)
+			Y = math.Clamp(B[2] / Scale.y, -Max, Max)
+			Z = math.Clamp(B[3] / Scale.z, -Max, Max)
 		
-		local X = math.Clamp(-Max, Max, B[1] * Size.x)
-		local Y = math.Clamp(-Max, Max, B[2] * Size.y)
-		local Z = math.Clamp(-Max, Max, B[3] * Size.z)
+		if Holo.ModelAny then
+			X, Y, Z = RescaleAny(X, Y, Z, Max * 12, Scale)
+		end
 		
 		if Holo:SetScale(X, Y, Z) then
 			Queue[Holo] = true
@@ -392,27 +454,12 @@ end)
 /*==============================================================================================
 	Color
 ==============================================================================================*/
-E_A:RegisterFunction("color", "h:v", "", function(self, ValueA, ValueB)
+E_A:RegisterFunction("color", "h:c", "", function(self, ValueA, ValueB)
 	local Holo, B = ValueA(self), ValueB(self)
 	
 	if Holo and Holo:IsValid() and Holo.Player == self.Player then
-		Holo:SetColor(Color( B[1], B[2], B[3] ) )
-	end
-end)
-
-E_A:RegisterFunction("color", "h:vn", "n", function(self, ValueA, ValueB, ValueC)
-	local Holo, B, C = ValueA(self), ValueB(self), ValueC(self)
-	
-	if Holo and Holo:IsValid() and Holo.Player == self.Player then
-		Holo:SetColor(Color( B[1], B[2], B[3], C ) )
-	end
-end)
-
-E_A:RegisterFunction("alpha", "h:n", "", function(self, ValueA, ValueB)
-	local Holo, B = ValueA(self), ValueB(self)
-	
-	if Holo and Holo:IsValid() and Holo.Player == self.Player then
-		Holo:SetAlpha(B)
+        Holo:SetColor( Color( B[1], B[2], B[3], B[4] ) )
+        Holo:SetRenderMode(B[4] == 255 and RENDERMODE_NORMAL or RENDERMODE_TRANSALPHA)
 	end
 end)
 
@@ -448,7 +495,7 @@ end)
 ==============================================================================================*/
 E_A:SetCost(EA_COST_NORMAL)
 
-E_A:RegisterFunction("pushClip", "h:nvv", "", function(self, ValueA, ValueB, CalueC, ValueD)
+E_A:RegisterFunction("pushClip", "h:nvv", "", function(self, ValueA, ValueB, ValueC, ValueD)
 	local Holo, B, C, D = ValueA(self), ValueB(self), ValueC(self), ValueD(self)
 	
 	if Holo and Holo:IsValid() and Holo.Player == self.Player then
@@ -490,7 +537,7 @@ end)
 /*==============================================================================================
 	Parent
 ==============================================================================================*/
-E_A:RegisterFunction("setParent", "h:e", "", function(self, ValueA, ValueB)
+E_A:RegisterFunction("parent", "h:e", "", function(self, ValueA, ValueB)
 	local Holo, B = ValueA(self), ValueB(self)
 	
 	if Holo and Holo:IsValid() and Holo.Player == self.Player then
@@ -500,7 +547,7 @@ E_A:RegisterFunction("setParent", "h:e", "", function(self, ValueA, ValueB)
 	end
 end)
 
-E_A:RegisterFunction("setParent", "h:h", "", function(self, ValueA, ValueB)
+E_A:RegisterFunction("parent", "h:h", "", function(self, ValueA, ValueB)
 	local Holo, B = ValueA(self), ValueB(self)
 	
 	if Holo and Holo:IsValid() and Holo.Player == self.Player then
@@ -510,11 +557,31 @@ E_A:RegisterFunction("setParent", "h:h", "", function(self, ValueA, ValueB)
 	end
 end)
 
-E_A:RegisterFunction("getParent", "h:", "e", function(self, Value)
+E_A:RegisterFunction("getParent", "h:", "h", function(self, Value)
 	local Holo = Value(self)
 	
 	if Holo and Holo:IsValid() then
-		return holo:GetParent() or NULL_ENTITY
+		local Parent = holo:GetParent()
+		
+		if Parent and Parent:IsValid() and Parent.IsHologram then
+			return Parent
+		end
+		
+		return NULL_ENTITY
+	end
+end)
+
+E_A:RegisterFunction("getParentE", "h:", "e", function(self, Value)
+	local Holo = Value(self)
+	
+	if Holo and Holo:IsValid() then
+		local Parent = holo:GetParent()
+		
+		if Parent and Parent:IsValid() then
+			return Parent
+		end
+		
+		return NULL_ENTITY
 	end
 end)
 
@@ -554,9 +621,10 @@ end)
 ==============================================================================================*/
 local net = net
 util.AddNetworkString( "lemon_hologram" )
+util.AddNetworkString( "lemon_hologram_remove_clips" )
 
-timer.Create( "Lemon_Holograms", 1, 0, function( )
-	
+--timer.Create( "Lemon_Holograms", 1, 0, function( )
+hook.Add("Tick", "Lemon_Holograms", function()
 	if NeedsSync then
 		net.Start("lemon_hologram")
 		
@@ -566,6 +634,7 @@ timer.Create( "Lemon_Holograms", 1, 0, function( )
 				end
 			end
 			
+            net.WriteUInt( 0, 16 )
 		net.Broadcast()
 	end
 	
@@ -584,5 +653,6 @@ hook.Add( "PlayerInitialSpawn", "Lemon_Holograms", function( Player )
 			end
 		end
 		
+        net.WriteUInt( 0, 16 )
 	net.Send( Player )
 end)

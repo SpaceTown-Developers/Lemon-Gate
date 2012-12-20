@@ -1032,7 +1032,7 @@ function Compiler:CallLambada(Name, VarID, Insts)
 		
 		self:PushPerf(Perf)
 		
-	return self:Operator(Operator, Return, Perf, Lambada, Sig, Operators)
+	return self:Operator(Operator, Return, Perf, Lambda, Sig, Operators)
 end
 
 /*==============================================================================================

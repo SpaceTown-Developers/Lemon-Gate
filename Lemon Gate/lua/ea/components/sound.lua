@@ -12,6 +12,8 @@ local Sounds = EA.Sounds
 
 EA:RegisterClass( "sound", "sd" )
 
+EA:RegisterException( "sound" )
+
 EA.API.AddHook("GateCreate", function(Entity)
 	Sounds[Entity] = {}
 end)
@@ -46,8 +48,8 @@ end )
 
 local function StopSound( ent, gate, snd ) 
 	if type(snd) ~= "CSoundPatch" or !IsValid( gate ) then return end 
+    if Sounds[gate] and Sounds[gate][snd] then Sounds[gate][snd] = nil end 
 	snd:Stop()
-	Sounds[gate][snd] = nil 
 end 
 
 local maxSounds = 10 // Temp!!! 
@@ -65,6 +67,7 @@ end
 EA:RegisterFunction("sound", "es", "sd", function( self, ValueA, ValueB )
     local ent = ValueA( self )
     local snd = ValueB( self )
+    if !IsValid( ent ) then self:Throw( "sound", "Invalid entity" ) end 
     return createSound( snd, ent, self.Entity )
 end )
 

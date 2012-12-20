@@ -37,7 +37,7 @@ function Orange:Initialize( )
 	
 	self.Scale = Vector(1, 1, 1)
 	
-	self.IsVisable = true
+	self.IsVisible = true
 	self.Shading = true
 	self.Clips = {}
 	self.Count = 0
@@ -50,9 +50,9 @@ if SERVER then
 	Orange.IsHologram = true
 	Orange.NeedsUpdate = false
 	
-	function Orange:SetVisable( Bool )
-		if self.IsVisable != Bool then
-			self.IsVisable = Bool
+	function Orange:SetVisible( Bool )
+		if self.IsVisible != Bool then
+			self.IsVisible = Bool
 			
 			Orange.NeedsUpdate = true
 			return true
@@ -68,7 +68,7 @@ if SERVER then
 		end
 	end
 	
-	function Orange:PushClip( Index, Normal, Origin )
+	function Orange:PushClip( Index, Origin, Normal )
 		local Clips = self.Clips
 		local Clip = self.Clips[Index]
 		
@@ -77,19 +77,29 @@ if SERVER then
 			self.Count = self.Count + 1
 		end
 		
-		if !Clip.Enabled or (!Clip.Normal or !Clip.Origin) or
-		   Clip.Normal ~= Normal or Clip.Origin ~= Origin then
-			
-			Clip.Enabled = true
-			Clip.Normal = Normal
-			Clip.Origin = Origin
-			
-			self.Clips[Index] = Clip
-			self.Que[Index] = Clip
-			
-			Orange.NeedsUpdate = true
-			return true
-		end
+        if !Clip.Enabled then return false end 
+        
+        local Change = false 
+        
+        if !Clip.Normal or Clip.Normal ~= Normal then 
+            Clip.Normal = Normal
+            Change = true
+        end 
+        
+        if !Clip.Origin or Clip.Origin ~= Origin then 
+            Clip.Origin = Origin
+            Change = true
+        end 
+        
+        if Change then 
+            self.Clips[Index] = Clip
+            self.Que[Index] = Clip 
+            
+            Orange.NeedsUpdate = true 
+            return true
+        end 
+        
+        return false
 	end
 	
 	function Orange:RemoveClip( Index )
@@ -120,7 +130,7 @@ if SERVER then
 		if self.Clips[Index] then
 			return true
 		else 
-			return self.Count >= Max
+			return self.Count < Max
 		end
 	end
 	
@@ -135,40 +145,42 @@ if SERVER then
 	end
 	
 	function Orange:Sync( Force )
-		if self.NeedsUpdate or Force then
-			net.WriteUInt( self:EntIndex(), 16)
-			net.WriteBit( self.IsVisable )
-			net.WriteBit( self.Shading )
-			net.WriteVector( self.Scale )
+		if self.NeedsUpdate or Force then 
+			net.WriteUInt( self:EntIndex( ), 16 ) 
+			net.WriteBit( self.IsVisible ) 
+			net.WriteBit( self.Shading ) 
+			net.WriteVector( self.Scale ) 
 			
-			local Que = self.Que
-			if Force then Que = self.Clips end
+			local Queue = Force and self.Clips or self.Que 
 			
-			local QueSize = Count( Que )
-			net.WriteUInt( QueSize, 16)
-			
-			if QueSize > 0 then
-				for Index, Clip in pairs( Que ) do
-					
-					net.WriteUInt( Index, 16)
-					net.WriteBit( Clip.Enabled )
-					
-					if Clip.Enabled then
-						net.WriteVector( Clip.Normal )
-						net.WriteVector( Clip.Origin )
-					elseif Clip.Remove then
-						self.Clips[Index] = nil
-					end
-				end
-				
-				self.Que = { }
-			end
-			
+            local cnt = Count( Queue ) 
+            net.WriteUInt( cnt, 16 )
+            
+            if cnt > 0 then 
+                for Index, Clip in pairs( Queue ) do
+                    net.WriteUInt( Index, 16 )
+                    net.WriteBit( Clip.Enabled ) 
+                    
+                    if Clip.Enabled then 
+                        net.WriteVector( Clip.Normal )
+                        net.WriteVector( Clip.Origin )
+                    elseif Clip.Remove then 
+                        net.WriteBit( 1 )
+                        self.Clips[Index] = nil 
+                    else 
+                        net.WriteBit( 0 )
+                    end 
+                end
+            end 
+            
+			self.Que = { }
 			self.NeedsUpdate = false
-		end
-	end
+		end 
+	end 
 	
 else
+	local SyncBuffer = {}
+	
 	Orange.RenderGroup = RENDERGROUP_BOTH
 	
 	local EnableClipping = render.EnableClipping
@@ -177,10 +189,12 @@ else
 	local SuppressEngineLighting = render.SuppressEngineLighting
 	
 	function Orange:Draw( )
-		if self.IsVisable then
+		local Index = self:EntIndex()
+		local Buffer = SyncBuffer[ Index ] 
+		if Buffer and Buffer.IsVisible then
 		-- SCALE.
 			
-			local Scale = self.Scale
+			local Scale = Buffer.Scale
 			local Neo = Matrix( ) -- He He :D
 			Neo:Scale( Scale )
 			self:EnableMatrix( "RenderMultiply", Neo )
@@ -190,7 +204,7 @@ else
 			
 		-- CLIPPING.
 		
-			local Clips = self.Clips
+			local Clips = Buffer.Clips
 			local Total, Clipped = 0, false
 			
 			for _, Clip in pairs( Clips ) do
@@ -201,7 +215,7 @@ else
 						Clipped = true
 					end
 					
-					local Normal = self:LocalToWorld( Clip.Normal )
+					local Normal = self:LocalToWorld( Clip.Normal ) - self:GetPos() 
 					local Origin = self:LocalToWorld( Clip.Origin )
 					PushCustomClipPlane( Normal, Normal:Dot( Origin ) )
 					
@@ -229,39 +243,43 @@ else
 		end
 	end
 	
-	function Orange:Sync( )
-		self.IsVisable = ( net.ReadBit( ) == 1 ) and 1 or 0
-		self.Shading   = ( net.ReadBit( ) == 1 ) and 1 or 0
-		self.Scale     = net.ReadVector( )
+	local function Sync( self )
+		self.IsVisible = net.ReadBit( ) == 1 
+		self.Shading = net.ReadBit( ) == 1
+		self.Scale = net.ReadVector( )
 		
-		local Clips = self.Clips
-		local QueSize  = net.ReadUInt( 16 )
-		for I = 1, QueSize do
-			local Index = net.ReadUInt( 16 )
+		self.Clips = self.Clips or { }
+		
+		local cnt = net.ReadUInt( 16 ) 
+		for I = 1, cnt do 
+			local Index = net.ReadUInt( 16 ) 
+			local Clip = self.Clips[Index] or { } 
 			
-			local Clip = { }
-			Clip.Enabled = ( net.ReadBit( ) == 1 ) and 1 or 0
+			Clip.Enabled = net.ReadBit( ) == 1 
+			if Clip.Enabled then 
+				Clip.Normal = net.ReadVector( )
+				Clip.Origin = net.ReadVector( )
+			elseif net.ReadBit( ) == 1 then 
+				Clip = nil 
+			end 
 			
-			if Clip.Enabled then
-				Clip.Normal = net.ReadVector()
-				Clip.Origin = net.ReadVector()
-				Clips[Index] = Clip
-			else
-				Clips[Index] = nil
-			end
-		end
+			self.Clips[Index] = Clip 
+		end 
 	end
-	
-	net.Receive("lemon_hologram", function( Len )
+    
+	net.Receive( "lemon_hologram", function( Len )
 		local Index = net.ReadUInt( 16 )
 		
 		while Index ~= 0 do
-			local Holo = Entity( Index )
-			if Holo and Holo:IsValid() and Holo.Sync then
-				Holo:Sync( )
-			end
-			
+			SyncBuffer[Index] = SyncBuffer[Index] or { }
+			Sync( SyncBuffer[Index] ) 
 			Index = net.ReadUInt( 16 )
 		end
-	end)
+	end )
+    
+    net.Receive( "lemon_hologram_remove_clips", function( Len ) 
+        local Index = net.ReadUInt( 16 )
+        if SyncBuffer[Index] then SyncBuffer[Index] = nil end 
+    end )
 end
+
