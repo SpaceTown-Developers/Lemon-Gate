@@ -558,7 +558,7 @@ function Compiler:Instr_AND(InstA, InstB)
 	local ValueB, TypeB = self:CompileInst(InstB)
 	
 	local aOperator, aReturn, aPerf = self:GetOperator("is", TypeA)
-	local bOperator, bReturn, bPerf = self:GetOperator("is", TypeA)
+	local bOperator, bReturn, bPerf = self:GetOperator("is", TypeB)
 	
 	if aOperator and bOperator then
 		local Operator, Return, Perf = self:GetOperator("and", aReturn, bReturn)

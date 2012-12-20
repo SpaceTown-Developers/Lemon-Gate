@@ -203,7 +203,7 @@ E_A:RegisterOperator("cast", "he", "h", function(self, Value)
 	return Holo
 end)
 
-E_A:RegisterOperator("is", "e", "n", function(self, Value)
+E_A:RegisterOperator("is", "h", "n", function(self, Value)
 	-- Purpose: Is Valid
 	
 	local Holo = Value(self)
