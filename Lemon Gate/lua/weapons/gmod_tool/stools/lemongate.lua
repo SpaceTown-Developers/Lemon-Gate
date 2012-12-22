@@ -36,7 +36,7 @@ if SERVER then
 	function E_A.MakeLemonGate(Player, Pos, Ang, Model, Script)
 		if Player:CheckLimit("lemongates") then
 			local Entity = ents.Create("lemongate")
-			
+            
 			if Entity and Entity:IsValid() then 
 				Entity:SetModel(Model)
 				Entity:SetAngles(Ang)
@@ -161,7 +161,7 @@ if CLIENT then
 	language.Add("Cleaned_lemongates", "You blew up all the lemons!" )
 	
 	local Ninty = Angle(90,0,0)
-	local Wooo = Color(255, 255, 255, 10)
+	local Wooo = Color(255, 255, 255, 200)
 	
 	function Lemon:Think()
 		local Ghost = self.GhostEntity
@@ -170,6 +170,7 @@ if CLIENT then
 		
 		if !Ghost or !Ghost:IsValid() then
 			self.GhostEntity = ents.CreateClientProp(self:GetModel())
+            self.GhostEntity:SetRenderMode( RENDERMODE_TRANSALPHA )
 			self.GhostEntity:SetColor(Wooo)
 		elseif Ghost:GetModel() != self:GetModel() then
 			Ghost:SetModel( self:GetModel() )

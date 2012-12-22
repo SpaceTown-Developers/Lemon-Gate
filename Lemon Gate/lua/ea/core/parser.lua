@@ -870,15 +870,16 @@ function Parser:VariableStatement(NoDec)
 			
 		elseif self:CheckToken("com") then
 			self:PrevToken()
-			return self:MultiVariableStatement() -- TODO
-		
+			return self:MultiVariableStatement()
 		elseif self:AcceptToken("ass") then
 			return self:Instruction("assign", Trace, Var, self:Expression())
 		end
 		
 		for Token, Instruction in pairs( AssignmentInstructions ) do
 			if self:AcceptToken(Token) then
-				return self:Instruction(Instruction, Trace, Var, self:Expression())
+				local GetVar = self:Instruction("variable", Trace, Var)
+				local Math = self:Instruction(Instruction, Trace, GetVar, self:Expression())
+				return self:Instruction("assign", Trace, Var, Math)
 			end
 		end
 		
@@ -903,18 +904,37 @@ function Parser:MultiVariableStatement()
 			end
 		end
 		
-		local InstType
-		
+	-- Multi Assign
 		if self:AcceptToken("ass") then
-			InstType = "assign"
-		else
-			for Token, Instruction in pairs( AssignmentInstructions ) do
-				if self:AcceptToken(Token) then
-					InstType = Instruction; break
+			local Stmts = {}
+			
+			for I = 1, Index do
+				Expr = self:Expression()
+				if !Expr then
+					self:Error("Value expected for %s, in multi variable assignment", Vars[I])
+				end
+				
+				Stmts[I] = self:Instruction("assign", Trace, Vars[I], Expr)
+				
+				if I != Index and !self:AcceptToken("com") then
+					self:Error("Comma (,) expected after value for %s, in multi variable assignment", Vars[I + 1])
 				end
 			end
+			
+			return self:Instruction("sequence", Trace, Stmts)
 		end
+	
+	
+	-- Multi Assign
+		local InstType
 		
+		for Token, Instruction in pairs( AssignmentInstructions ) do
+			if self:AcceptToken(Token) then
+				InstType = Instruction
+				break
+			end
+		end
+			
 		if !InstType then
 			self:Error("Assignment operator (=) expected after Variable list")
 		end
@@ -923,9 +943,13 @@ function Parser:MultiVariableStatement()
 		
 		for I = 1, Index do
 			Expr = self:Expression()
+			if !Expr then
+				self:Error("Value expected for %s, in multi variable assignment", Vars[I])
+			end
 			
-			if !Expr then self:Error("Value expected for %s, in multi variable assignment", Vars[I]) end
-			Stmts[I] = self:Instruction(InstType, Trace, Vars[I], Expr)
+			local GetVar = self:Instruction("variable", Trace, Vars[I])
+			local Math = self:Instruction(Instruction, Trace, GetVar, self:Expression())
+			Stmts[I] = self:Instruction("assign", Trace, Vars[I], Math)
 			
 			if I != Index and !self:AcceptToken("com") then
 				self:Error("Comma (,) expected after value for %s, in multi variable assignment", Vars[I + 1])

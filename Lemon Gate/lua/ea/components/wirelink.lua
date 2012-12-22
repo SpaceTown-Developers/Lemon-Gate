@@ -50,7 +50,7 @@ end)
 /*==============================================================================================
 	Section: Comparison Operators
 ==============================================================================================*/
-E_A:SetCost(EA_COST_EXPENSIVE)
+E_A:SetCost(EA_COST_NORMAL)
 
 
 E_A:RegisterOperator("negeq", "wlwl", "n", function(self, ValueA, ValueB)
@@ -68,7 +68,7 @@ end)
 /*==============================================================================================
 	Section: Conditional Operators
 ==============================================================================================*/
-E_A:SetCost(EA_COST_ABNORMAL)
+E_A:SetCost(EA_COST_NORMAL)
 
 E_A:RegisterOperator("is", "wl", "n", function(self, Value)
 	-- Purpose: Is Valid
@@ -80,6 +80,7 @@ end)
 /*==============================================================================================
 	Numbers
 ==============================================================================================*/
+E_A:SetCost(EA_COST_ABNORMAL)
 E_A:RegisterOperator("get", {"wirelink", "string", "number"} , "n", function(self, ValueA, ValueB)
 	local A, B = ValueA(self), ValueB(self)
 	return self:GetWL("NORMAL", A, B) or 0
@@ -141,16 +142,243 @@ E_A:RegisterFunction("entity", "wl:", "e", function(self, ValueA)
 end)
 
 E_A:RegisterFunction("hasInput", "wl:s", "n", function(self, ValueA, ValueB)
-	local A, B = ValueA(self), ValueB(self)
+	local Entity, B = ValueA(self), ValueB(self)
 	if !Entity or !Entity:IsValid() or !Entity.Inputs then return 0 end
 	if !Entity.Inputs[B] then return 0 else return 1 end
 end)
 
 E_A:RegisterFunction("hasOutput", "wl:s", "n", function(self, ValueA, ValueB)
-	local A, B = ValueA(self), ValueB(self)
+	local Entity, B = ValueA(self), ValueB(self)
 	if !Entity or !Entity:IsValid() or !Entity.Outputs then return 0 end
 	if !Entity.Outputs[B] then return 0 else return 1 end
 end)
+
+E_A:RegisterFunction("inputType", "wl:s", "s", function(self, ValueA, ValueB)
+	local Entity, B = ValueA(self), ValueB(self)
+	if !Entity or !Entity:IsValid() or !Entity.Inputs then return "" end
+	
+	local Input = Entity.Inputs[B]
+	if !Input then return "" end
+	return string.lower(Input.Type or "")
+end)
+
+E_A:RegisterFunction("outputType", "wl:s", "s", function(self, ValueA, ValueB)
+	local Entity, B = ValueA(self), ValueB(self)
+	if !Entity or !Entity:IsValid() or !Entity.Outputs then return "" end
+	
+	local Outputs = Entity.Outputs[B]
+	if !Output then return "" end
+	return string.lower(Outputs.Type or "")
+end)
+
+E_A:RegisterFunction("isHiSpeed", "wl:", "n", function(self, ValueA)
+	local Entity, B = ValueA(self), ValueB(self)
+	if !Entity or !Entity:IsValid() then return 0 end
+	
+	if Entity.WriteCell or Entity.ReadCell then return 1 else return 0 end
+end)
+
+
+
+/*==============================================================================================
+	Cell Writing
+==============================================================================================*/
+E_A:SetCost(EA_COST_EXPENSIVE)
+
+E_A:RegisterFunction("writeCell", "wl:nn", "n", function(self, ValueA, ValueB, ValueC)
+	local Entity, B, C = ValueA(self), ValueB(self), ValueC(self)
+	if !Entity or !Entity:IsValid() or !Entity.WriteCell then return 0 end
+	
+	if Entity:WriteCell(B, C) then return 1 else return 0 end
+end)
+
+E_A:RegisterFunction("readCell", "wl:n", "n", function(self, ValueA, ValueB)
+	local Entity, B = ValueA(self), ValueB(self)
+	if !Entity or !Entity:IsValid() or !Entity.ReadCell then return 0 end
+	
+	return Entity:ReadCell(B) or 0
+end)
+
+E_A:RegisterFunction("readArray", "wl:nn", "t", function(self, ValueA, ValueB, ValueC)
+	local Entity, B, C = ValueA(self), ValueB(self), ValueC(self)
+	if !Entity or !Entity:IsValid() or !Entity.ReadCell then return 0 end
+	
+	self:PushPerf(EA_COST_CHEAP * C)
+	
+	local Table = E_A.NewTable( )
+	
+	for I = B, B + C do
+		Table:Insert( nil, "n", Entity:ReadCell(B) or 0 )
+	end
+	
+	return Table
+end)
+
+/*==============================================================================================
+	Indexing
+==============================================================================================*/
+
+-- NUMBER
+E_A:RegisterOperator("set", "wlnn", "", function(self, ValueA, ValueB, ValueC)
+	local Entity, B, C = ValueA(self), ValueB(self), ValueC(self)
+	if !Entity or !Entity:IsValid() or !Entity.WriteCell then return 0 end
+	
+	Entity:WriteCell(B, C)
+end)
+
+E_A:RegisterOperator("get", "wlnn", "n", function(self, ValueA, ValueB)
+	local Entity, B = ValueA(self), ValueB(self)
+	if !Entity or !Entity:IsValid() or !Entity.ReadCell then return 0 end
+	
+	return Entity:ReadCell(B) or 0
+end)
+
+E_A:RegisterOperator("get", "wln", "n", function(self, ValueA, ValueB)
+	local Entity, B = ValueA(self), ValueB(self)
+	if !Entity or !Entity:IsValid() or !Entity.ReadCell then return 0 end
+	
+	return Entity:ReadCell(B) or 0
+end)
+
+-- VECTOR
+E_A:RegisterOperator("set", "wlnv", "", function(self, ValueA, ValueB, ValueC)
+	local Entity, B, C = ValueA(self), ValueB(self), ValueC(self)
+	if !Entity or !Entity:IsValid() or !Entity.WriteCell then return 0 end
+	
+	Entity:WriteCell(B, C[1])
+	Entity:WriteCell(B + 1, C[2])
+	Entity:WriteCell(B + 2, C[3])
+end)
+
+E_A:RegisterOperator("get", "wlnv", "v", function(self, ValueA, ValueB)
+	local Entity, B = ValueA(self), ValueB(self)
+	if !Entity or !Entity:IsValid() or !Entity.ReadCell then return 0 end
+	
+	return {
+		Entity:ReadCell(B) or 0,
+		Entity:ReadCell(B + 1) or 0,
+		Entity:ReadCell(B + 2) or 0
+	}
+end)
+
+-- STRING
+E_A:RegisterOperator("set", "wlns", "", function(self, ValueA, ValueB, ValueC)
+	local Entity, B, C = ValueA(self), ValueB(self), ValueC(self)
+	if !Entity or !Entity:IsValid() or !Entity.WriteCell then return 0 end
+	
+	if not Entity:WriteCell(B + #C, 0) then return 0 end
+
+	for I = 1, #C do
+		local Byte = string.byte(C, I)
+		if not Entity:WriteCell(B + I - 1, Byte) then return 0 end
+	end
+end)
+
+local Floor = math.floor
+local Char = string.char
+
+E_A:RegisterOperator("get", "wlns", "s", function(self, ValueA, ValueB)
+	local Entity, B = ValueA(self), ValueB(self)
+	if !Entity or !Entity:IsValid() or !Entity.ReadCell then return 0 end
+	
+	local Buffer, Byte = ""
+	
+	for I = B, B + 16384 do
+		Byte = Entity:ReadCell(I, Byte)
+		if !Byte then
+			return ""
+		elseif Byte < 1 then
+			break
+		elseif byte >= 256 then
+			Byte = 32
+		end
+		
+		Buffer = Buffer .. Char( Floor( Byte ) )
+	end
+	
+	return Buffer
+end)
+
+/*==============================================================================================
+	Console Screens
+==============================================================================================*/
+local Clamp = math.Clamp
+local ToByte = string.byte
+
+local function ToColor( Col )
+	local R = Clamp( Floor(Col[1] / 28), 0, 9 )
+	local G = Clamp( Floor(Col[2] / 28), 0, 9 )
+	local B = Clamp( Floor(Col[3] / 28), 0, 9 )
+	return Floor(R) * 100 + Floor(G) * 10 + Floor(B)
+end
+
+-- Function from E2
+local function WriteString(self, ValueA, ValueB, ValueC, ValueD, ValueE, ValueF)
+	local Entity, String, X, Y = ValueA(self), ValueB(self), ValueC(self)
+	local Col, tCol, BG, tBG, Flash = 999, "n", 0, "n", 0
+	
+	if ValueD then
+		Col, tCol = ValueD(self)
+		if tCol ~= "n" then Col = ToColor( Col ) end
+		
+		if ValueE then
+			BG, tBG = ValueE(self)
+			if tBG ~= "n" then BG = ToColor( BG ) end
+			
+			if ValueF then
+				Flash = ValueF(self)
+			end
+		end
+	end
+	
+	Col = Clamp( Floor( Col ), 0, 999 )
+	BG = Clamp( Floor( BG ), 0, 999 )
+	Flash = Flash >= 0 and 1 or 0
+	
+	local Params = Flash * 1000000 + BG * 1000 + Col
+
+	local Xorig = X
+	
+	for I = 1, #String do
+	
+		local Byte = ToByte(String, I)
+		
+		if Byte == 10 then
+			Y = Y + 1
+			X = Xorig -- shouldn't this be 0 as well? would be more consistent.
+		else
+			if X >= 30 then
+				X = 0
+				Y = Y + 1
+			end
+			
+			local Address = 2 * (Y * 30 + (X))
+			X = X + 1 
+			
+			if Address >= 1080 or Address < 0 then return end
+			
+			Entity:WriteCell(Address, Byte)
+			Entity:WriteCell(Address + 1, Params)
+		end
+	end
+end
+
+E_A:SetCost(EA_COST_EXPENSIVE * 1.5)
+
+E_A:RegisterFunction("writeString", "wl:snn", "", WriteString)
+
+E_A:RegisterFunction("writeString", "wl:snnn", "", WriteString)
+E_A:RegisterFunction("writeString", "wl:snnv", "", WriteString)
+
+E_A:RegisterFunction("writeString", "wl:snnnn", "", WriteString)
+E_A:RegisterFunction("writeString", "wl:snnvv", "", WriteString)
+E_A:RegisterFunction("writeString", "wl:snnvn", "", WriteString)
+E_A:RegisterFunction("writeString", "wl:snnnv", "", WriteString)
+
+E_A:RegisterFunction("writeString", "wl:snnnnn", "", WriteString)
+E_A:RegisterFunction("writeString", "wl:snnvvn", "", WriteString)
+E_A:RegisterFunction("writeString", "wl:snnvnn", "", WriteString)
+E_A:RegisterFunction("writeString", "wl:snnnvn", "", WriteString)
 
 /*==============================================================================================
 	Context Stuffs

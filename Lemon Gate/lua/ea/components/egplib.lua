@@ -1,8 +1,8 @@
 /*==============================================================================================
 	Expression Advanced: EGP Library
 	Purpose: Manipulating a EGP screen.
-    Note: Basicaly just E2's egp ext converted over.
-    Credits: Oskar, E2's Authors.
+    Note: E2's egp ext converted over.
+    Credits: Oskar, The author of the E2 library.
 ==============================================================================================*/
 local EA = LemonGate
 

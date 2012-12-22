@@ -8,6 +8,14 @@ local E_A = LemonGate
 
 local Round = 0.0000001000000
 
+local function AngNum( N )
+	return (N + 180) % 360 - 180
+end
+
+local function NewAng( P, Y, R )
+	return { AngNum( P ), AngNum( Y ), AngNum( R ) }
+end
+
 /*==============================================================================================
 	Class & WireMod
 ==============================================================================================*/
@@ -18,7 +26,7 @@ local function Input(self, Memory, Value)
 	
 	self.Delta[Memory] = self.Memory[Memory]
 	
-	self.Memory[Memory] = {Value.p, Value.y, Value.r}
+	self.Memory[Memory] = NewAng(Value.p, Value.y, Value.r)
 end
 
 local function Output(self, Memory)
@@ -177,24 +185,24 @@ end)
 
 /**********************************************************************************************/
 
-E_A:RegisterFunction( "angnorm", "a", "a", function( self, ValueA ) 
-	local Ang, tValueA = ValueA( self )
+-- E_A:RegisterFunction( "angnorm", "a", "a", function( self, ValueA ) 
+	-- local Ang, tValueA = ValueA( self )
  
-	return {(Ang[1] + 180) % 360 - 180,(Ang[2] + 180) % 360 - 180,(Ang[3] + 180) % 360 - 180}
-end ) 
+	-- return {(Ang[1] + 180) % 360 - 180,(Ang[2] + 180) % 360 - 180,(Ang[3] + 180) % 360 - 180}
+-- end ) 
 
 /**********************************************************************************************/
 
 E_A:RegisterFunction("setPitch", "a:n", "", function(self, ValueA, ValueB)
-	ValueA(self)[1] = ValueB(self)
+	ValueA(self)[1] = AngNum( ValueB(self) )
 end)
 
 E_A:RegisterFunction("setYaw", "a:n", "", function(self, ValueA, ValueB)
-	ValueA(self)[2] = ValueB(self)
+	ValueA(self)[2] = AngNum( ValueB(self) )
 end)
 
 E_A:RegisterFunction("setRoll", "a:n", "", function(self, ValueA, ValueB)
-	ValueA(self)[3] = ValueB(self)
+	ValueA(self)[3] = AngNum( ValueB(self) )
 end)
 
 /*==============================================================================================
@@ -203,19 +211,19 @@ end)
 E_A:RegisterFunction("forward", "a:", "v", function(self, Value)
 	local A = Value(self)
 	local V = Angle(A[1], A[2], A[3]):Forward()
-	return {V.x, V.y, V.z}
+	return NewAng(V.x, V.y, V.z)
 end)
 
 E_A:RegisterFunction("right", "a:", "v", function(self, Value)
 	local A = Value(self)
 	local V = Angle(A[1], A[2], A[3]):Right()
-	return {V.x, V.y, V.z}
+	return NewAng(V.x, V.y, V.z)
 end)
 
 E_A:RegisterFunction("up", "a:", "v", function(self, Value)
 	local A = Value(self)
 	local V = Angle(A[1], A[2], A[3]):Up()
-	return {V.x, V.y, V.z}
+	return NewAng(V.x, V.y, V.z)
 end)
 
 /*==============================================================================================
@@ -227,42 +235,42 @@ E_A:RegisterOperator("exponent", "aa", "a", function(self, ValueA, ValueB)
 	-- Purpose: ^ Math Operator
 	
 	local A, B = ValueA(self), ValueB(self)
-	return {A[1] ^ B[1], A[2] ^ B[2], A[3] ^ B[3]}
+	return NewAng(A[1] ^ B[1], A[2] ^ B[2], A[3] ^ B[3])
 end)
 
 E_A:RegisterOperator("multiply", "aa", "a", function(self, ValueA, ValueB)
 	-- Purpose: * Math Operator
 	
 	local A, B = ValueA(self), ValueB(self)
-	return {A[1] * B[1], A[2] * B[2], A[3] * B[3]}
+	return NewAng(A[1] * B[1], A[2] * B[2], A[3] * B[3])
 end)
 
 E_A:RegisterOperator("division", "aa", "a", function(self, ValueA, ValueB)
 	-- Purpose: / Math Operator
 	
 	local A, B = ValueA(self), ValueB(self)
-	return {A[1] / B[1], A[2] / B[2], A[3] / B[3]}
+	return NewAng(A[1] / B[1], A[2] / B[2], A[3] / B[3])
 end)
 
 E_A:RegisterOperator("modulus", "aa", "a", function(self, ValueA, ValueB)
 	-- Purpose: % Math Operator
 	
 	local A, B = ValueA(self), ValueB(self)
-	return {A[1] % B[1], A[2] % B[2], A[3] % B[3]}
+	return NewAng(A[1] % B[1], A[2] % B[2], A[3] % B[3])
 end)
 
 E_A:RegisterOperator("addition", "aa", "a", function(self, ValueA, ValueB)
 	-- Purpose: + Math Operator
 	
 	local A, B = ValueA(self), ValueB(self)
-	return {A[1] + B[1], A[2] + B[2], A[3] + B[3]}
+	return NewAng(A[1] + B[1], A[2] + B[2], A[3] + B[3])
 end)
 
 E_A:RegisterOperator("subtraction", "aa", "a", function(self, ValueA, ValueB)
 	-- Purpose: - Math Operator
 	
 	local A, B = ValueA(self), ValueB(self)
-	return {A[1] - B[1], A[2] - B[2], A[3] - B[3]}
+	return NewAng(A[1] - B[1], A[2] - B[2], A[3] - B[3])
 end)
 
 E_A:RegisterOperator("negative", "a", "a", function(self, Value)
@@ -270,7 +278,7 @@ E_A:RegisterOperator("negative", "a", "a", function(self, Value)
 	
 	local V = Value(self)
 	
-	return {-V[1], -V[2], -V[3]}
+	return NewAng(-V[1], -V[2], -V[3])
 end)
 
 /*==============================================================================================
@@ -280,42 +288,42 @@ E_A:RegisterOperator("exponent", "an", "a", function(self, ValueA, ValueB)
 	-- Purpose: ^ Math Operator
 	
 	local A, B = ValueA(self), ValueB(self)
-	return {A[1] ^ B, A[2] ^ B, A[3] ^ B}
+	return NewAng(A[1] ^ B, A[2] ^ B, A[3] ^ B)
 end)
 
 E_A:RegisterOperator("multiply", "an", "a", function(self, ValueA, ValueB)
 	-- Purpose: * Math Operator
 	
 	local A, B = ValueA(self), ValueB(self)
-	return {A[1] * B, A[2] * B, A[3] * B}
+	return NewAng(A[1] * B, A[2] * B, A[3] * B)
 end)
 
 E_A:RegisterOperator("division", "an", "a", function(self, ValueA, ValueB)
 	-- Purpose: / Math Operator
 	
 	local A, B = ValueA(self), ValueB(self)
-	return {A[1] / B, A[2] / B, A[3] / B}
+	return NewAng(A[1] / B, A[2] / B, A[3] / B)
 end)
 
 E_A:RegisterOperator("modulus", "an", "a", function(self, ValueA, ValueB)
 	-- Purpose: % Math Operator
 	
 	local A, B = ValueA(self), ValueB(self)
-	return {A[1] % B, A[2] % B, A[3] % B}
+	return NewAng(A[1] % B, A[2] % B, A[3] % B)
 end)
 
 E_A:RegisterOperator("addition", "an", "a", function(self, ValueA, ValueB)
 	-- Purpose: + Math Operator
 	
 	local A, B = ValueA(self), ValueB(self)
-	return {A[1] + B, A[2] + B, A[3] + B}
+	return NewAng(A[1] + B, A[2] + B, A[3] + B)
 end)
 
 E_A:RegisterOperator("subtraction", "an", "a", function(self, ValueA, ValueB)
 	-- Purpose: - Math Operator
 	
 	local A, B = ValueA(self), ValueB(self)
-	return {A[1] - B, A[2] - B, A[3] - B}
+	return NewAng(A[1] - B, A[2] - B, A[3] - B)
 end)
 
 /*==============================================================================================

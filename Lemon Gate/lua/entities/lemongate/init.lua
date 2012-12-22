@@ -7,6 +7,7 @@ local E_A = LemonGate
 local API = E_A.API
 
 local Lemon = ENT
+Lemon.IsLemonGate = true 
 
 local ShortTypes = E_A.TypeShorts
 local Operators = E_A.OperatorTable

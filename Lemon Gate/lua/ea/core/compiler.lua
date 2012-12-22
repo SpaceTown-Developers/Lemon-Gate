@@ -91,8 +91,8 @@ function Compiler:CompileInst(Inst)
 	-- Purpose: Compiles an instruction.
 	
 	if !Inst then
-		MsgN("Compiler received invalid instruction " .. tostring(Inst))
 		debug.Trace()
+		self:Error("Lua: Invalid Instruction '%s'", type(Inst))
 	end
 	
 	local Func = self["Instr_" .. UpperStr(Inst[1])]
@@ -104,7 +104,8 @@ function Compiler:CompileInst(Inst)
 		local Result, Type = Func(self, unpack(Inst[3]))
 		self.Trace = _Trace; return Result, Type
 	else
-		self:Error("Compiler: Unknown Instruction '%s'", Inst[1])
+		debug.Trace()
+		self:Error("Lua: Unknown Instruction '%s'", Inst[1])
 	end
 end
 

@@ -167,14 +167,14 @@ end)
 E_A:SetCost(EA_COST_ABNORMAL)
 
 E_A:RegisterFunction("repeat", "s:n", "s", function(self, ValueA, ValueB)
-	return RepStr( ValueA(self), ValueB(self) )
+	return RepStr( ValueA(self), ValueB(self), nil )
 end)
 
 E_A:RegisterFunction("trim", "s:", "s", function(self, Value)
 	return TrimStr( Value(self) )
 end)
 
-E_A:RegisterFunction("trim", "s:s", "s", function(self, Value)
+E_A:RegisterFunction("trim", "s:s", "s", function(self, ValueA, ValueB)
 	return TrimStr( ValueA(self), sanitize(ValueB(self)) )
 end)
 
