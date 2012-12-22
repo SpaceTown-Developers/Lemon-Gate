@@ -428,4 +428,22 @@ end
 /*==============================================================================================
 	Section: Duplication
 ==============================================================================================*/
--- TODO?
+function ENT:BuildDupeInfo( )
+	local DupeTable = self.BaseClass.BuildDupeInfo( self )
+	
+	DupeTable.Script = self.Script
+	
+	API.CallHook("BuildDupeInfo", self, DupeTable)
+	
+	return DupeTable
+end
+
+function ENT:ApplyDupeInfo(Player, Entity, DupeTable, FromID)
+	self.BaseClass.ApplyDupeInfo(self, Player, Entity, DupeTable, FromID)
+	self.Player = Player
+	
+	self:LoadScript( DupeTable.Script or "" )
+	self:Execute( )
+	
+	API.CallHook("ApplyDupeInfo", self, DupeTable, FromID)
+end

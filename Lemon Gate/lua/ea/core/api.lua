@@ -18,7 +18,7 @@ local Comps = {}
 function API.NewComponent(Name, Enabled)
 	CheckType(Name, "string", 1); CheckType(Enabled, "boolean", 2)
 	
-	if Name == "" or Name == "core" then error("Invalid component name: " .. tostring(Name)) end
+	if Name == "" or Name == "core" then error("Invalid component name: " .. tostring(Name), 0) end
 	Comps[Name] = Enabled; LEMONGATE_COMPONENT = Name
 end
 
@@ -27,7 +27,9 @@ function API.Component(Name)
 end
 
 function API.CurrentComponent()
-	if !LEMONGATE_COMPONENT then error("Expression Advanced: Unknown component\n\tHave you called API.NewComponent(Name) yet?") end
+	if !LEMONGATE_COMPONENT then
+		error("Expression Advanced: Unknown component\n\tHave you called API.NewComponent(Name) yet?")
+	end
 	return LEMONGATE_COMPONENT
 end
 
@@ -47,18 +49,22 @@ function API.AddHook(Hook, Function)
 		HookTable[Hook] = Table
 	end
 	
-	Table[LEMONGATE_COMPONENT] = Function
+	Table[ API.CurrentComponent() ] = Function
 end
 
 function API.CallHook(Hook, ...)
 	local Table = HookTable[Hook]
+	local CurrentComponent = LEMONGATE_COMPONENT
 	
 	if Table then
-		for _,Function in pairs(Table) do -- Hate unpack so we have a max 26 return values!
+		for Component,Function in pairs(Table) do -- Hate unpack so we have a max 26 return values!
+			LEMONGATE_COMPONENT = Component
 			local A, B, C, D, E, F, H, H, I, J, K, L, M, N, O, P, Q, R, S ,T, U, V, W, X, Y, Z = Function(...)
 			if A != nil then return A, B, C, D, E, F, H, H, I, J, K, L, M, N, O, P, Q, R, S ,T, U, V, W, X, Y, Z end
 		end
 	end
+	
+	LEMONGATE_COMPONENT = CurrentComponent
 end
 
 /*==============================================================================================
@@ -97,7 +103,7 @@ function API.LoadComponents()
 	API.CallHook("PreLoadComponents")
 
 	for _, fName in pairs( file.Find( "ea/components/custom/*.lua", "LUA" ) ) do
-		local File = "ea/components/" .. fName
+		local File = "ea/components/custom/" .. fName
 		LEMONGATE_COMPONENT = nil
 		
 		if fName:match( "^cl_" ) then

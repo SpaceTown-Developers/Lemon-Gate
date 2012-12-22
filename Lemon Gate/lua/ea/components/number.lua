@@ -351,7 +351,7 @@ end)
 E_A:RegisterFunction("round", "nn", "n", function(self, ValueA, ValueB)
 	local A, B = ValueA(self), ValueB(self)
 	local Shift = 10 ^ MathFloor(B + 0.5)
-	return MathFloor(A * shf+0.5) / Shift
+	return MathFloor(A * Shift+0.5) / Shift
 end)
 
 

@@ -66,7 +66,7 @@ E_A:SetCost(EA_COST_ABNORMAL)
 
 local Types = { "n", "s", "v", "a", "e" }
 
-E_A.API.AddHook("BuildFunctions", function()
+API.AddHook("BuildFunctions", function()
 	
 	local GetLongType = E_A.GetLongType
 	
@@ -172,4 +172,57 @@ E_A:RegisterFunction("send", "b:se", "", function(self, ValueA, ValueB, ValueC)
 	self:PushPerf( Buff.W * EA_COST_CHEAP )
 	
 	QueDataStream(self.Entity, Entity, String, Buff)
+end)
+
+/*==============================================================================================
+	Section: Dupe Save
+==============================================================================================*/
+API.NewComponent("duplicator", true)
+
+E_A:RegisterEvent("saveDupeBuffer", "", "b")
+
+E_A:RegisterEvent("loadDupeBuffer", "b")
+
+API.AddHook("BuildDupeInfo", function(Gate, DupeTable)
+	local Result = Gate:CallEvent("saveDupeBuffer")
+	
+	if Result then
+		local Buffer = { R = 0, W = Result.W, T = Copy( Result.T ), D = Copy( Result.D ) }
+		
+	-- Replace all entitys with an entity index!
+		
+		for I = 1, Buffer.W do
+			if Buffer.T[I] == "e" then
+				local Entity = Buffer.D[I]
+				if !Entity or !Entity:IsValid() then
+					Buffer.D[I] = -1
+				else
+					Buffer.D[I] = Entity:EntIndex()
+				end
+			end
+		end
+		
+		DupeTable.Buffer = Buffer
+	end
+end)
+
+API.AddHook("ApplyDupeInfo", function(Gate, DupeTable, FromID)
+	local Buffer = DupeTable.Buffer
+	if Buffer then
+		
+	-- Convert entity indexs back to entitys!
+	
+		for I = 1, Buffer.W do
+			if Buffer.T[I] == "e" then
+				local Ent = FromID( Buffer.D[I] )
+				if Ent and Ent:IsValid() then
+					Buffer.D[I] = Ent
+				else
+					Buffer.D[I] = Entity(-1)
+				end
+			end
+		end
+		
+		Gate:CallEvent("loadDupeBuffer", function() return Buffer, "b" end)
+	end
 end)
