@@ -40,7 +40,7 @@ end
 -- Save
 -------------
 
-EA:SetCost(15)
+EA:SetCost(1.5)
 
 EA:RegisterFunction( "egpSaveFrame", "wl:s", "", function( self, ValueA, ValueB ) 
     local this, tValueA = ValueA( self )
@@ -74,7 +74,7 @@ end )
 -- Load
 -------------
 
-EA:SetCost(15)
+EA:SetCost(1.5)
 
 EA:RegisterFunction( "egpLoadFrame", "wl:s", "", function( self, ValueA, ValueB ) 
     local this, tValueA = ValueA( self )
@@ -139,7 +139,7 @@ EA:RegisterFunction( "egpOrder", "wl:n", "n", function( self, ValueA, ValueB )
     return 0
 end )
 
-EA:SetCost(15)
+EA:SetCost(1.5)
 
 --------------------------------------------------------
 -- Box
@@ -235,7 +235,7 @@ EA:RegisterFunction( "egpTextLayout", "wl:nsv2v2", "", function( self, ValueA, V
     if (bool) then EGP:DoAction( this, { player = self.Player, entity = self.Entity, prf = 0 }, "SendObject", obj ) Update(self,this) end
 end )
 
-EA:SetCost(10)
+EA:SetCost(EA_COST_NORMAL)
 
 ----------------------------
 -- Set Text
@@ -322,7 +322,7 @@ EA:RegisterFunction( "egpFont", "wl:nsn", "", function( self, ValueA, ValueB, Va
     end
 end )
 
-EA:SetCost(15)
+EA:SetCost(1.5)
 
 --------------------------------------------------------
 -- Line
@@ -437,7 +437,7 @@ EA:RegisterFunction( "egp3DTracker", "wl:nv2", "", function( self, ValueA, Value
     if (bool) then EGP:DoAction( this, { player = self.Player, entity = self.Entity, prf = 0 }, "SendObject", obj ) Update(self,this) end
 end )
 
-EA:SetCost(10)
+EA:SetCost(EA_COST_NORMAL)
 
 EA:RegisterFunction( "egpPos", "wl:nv2", "", function( self, ValueA, ValueB, ValueC ) 
     local this, tValueA = ValueA( self )
@@ -455,7 +455,7 @@ end )
 -- Set functions
 --------------------------------------------------------
 
-EA:SetCost(10)
+EA:SetCost(EA_COST_NORMAL)
 
 ----------------------------
 -- Size
@@ -733,7 +733,7 @@ end )
 -- Get functions
 --------------------------------------------------------
 
-EA:SetCost(5)
+EA:SetCost(EA_COST_CHEAP)
 
 EA:RegisterFunction( "egpPos", "wl:n", "v2", function( self, ValueA, ValueB ) 
     local this, tValueA = ValueA( self )
@@ -748,7 +748,7 @@ EA:RegisterFunction( "egpPos", "wl:n", "v2", function( self, ValueA, ValueB )
     return {-1,-1}
 end )
 
-EA:SetCost(5)
+EA:SetCost(EA_COST_CHEAP)
 
 EA:RegisterFunction( "egpSize", "wl:n", "v2", function( self, ValueA, ValueB ) 
     local this, tValueA = ValueA( self )
@@ -846,7 +846,7 @@ end )
 -- Additional Functions
 --------------------------------------------------------
 
-EA:SetCost(15)
+EA:SetCost(1.5)
 
 EA:RegisterFunction( "egpCopy", "wl:nn", "", function( self, ValueA, ValueB, ValueC ) 
     local this, tValueA = ValueA( self )
@@ -863,7 +863,7 @@ EA:RegisterFunction( "egpCopy", "wl:nn", "", function( self, ValueA, ValueB, Val
     end
 end )
 
-EA:SetCost(20)
+EA:SetCost(2)
 
 EA:RegisterFunction( "egpCursor", "wl:e", "v2", function( self, ValueA, ValueB ) 
     local this, tValueA = ValueA( self )
@@ -872,7 +872,7 @@ EA:RegisterFunction( "egpCursor", "wl:e", "v2", function( self, ValueA, ValueB )
     return EGP:EGPCursor( this, ply )
 end )
 
-EA:SetCost(10)
+EA:SetCost(EA_COST_NORMAL)
 
 EA:RegisterFunction( "egpScrSize", "e", "v2", function( self, ValueA ) 
     local ply, tValueA = ValueA( self )
@@ -895,7 +895,7 @@ EA:RegisterFunction( "egpScrH", "e", "n", function( self, ValueA )
     return EGP.ScrHW[ply][2]
 end )
 
-EA:SetCost(15)
+EA:SetCost(1.5)
 
 EA:RegisterFunction( "egpHasObject", "wl:n", "n", function( self, ValueA, ValueB ) 
     local this, tValueA = ValueA( self )
@@ -905,7 +905,7 @@ EA:RegisterFunction( "egpHasObject", "wl:n", "n", function( self, ValueA, ValueB
     return bool and 1 or 0
 end )
 
-EA:SetCost(10)
+EA:SetCost(EA_COST_NORMAL)
 
 local function errorcheck( x, y )
     local xMul = x[2]-x[1]
@@ -959,7 +959,7 @@ local function ScalePoint( this, x, y )
 end
 
 
-EA:SetCost(20)
+EA:SetCost(2)
 EA:RegisterFunction( "egpToWorld", "wl:v2", "v", function( self, ValueA, ValueB ) 
     local this, tValueA = ValueA( self )
     local pos, tValueB = ValueB( self )
@@ -997,7 +997,7 @@ EA:RegisterFunction( "egpToWorld", "wl:v2", "v", function( self, ValueA, ValueB 
 end )
 
 local antispam = {}
-EA:SetCost(25)
+EA:SetCost(EA_COST_ABNORMAL)
 EA:RegisterFunction( "egpHudToggle", "wl:", "", function( self, ValueA ) 
     local this, tValueA = ValueA( self )
 
@@ -1015,7 +1015,7 @@ end )
 -- ConVars
 -----------------------------
 
-EA:SetCost(10)
+EA:SetCost(EA_COST_NORMAL)
 
 EA:RegisterFunction( "egpNumObjects", "wl:", "n", function( self, ValueA ) 
     local this, tValueA = ValueA( self )
@@ -1034,7 +1034,7 @@ EA:RegisterFunction( "egpMaxUmsgPerSecond", "", "n", function( self )
     return EGP.ConVars.MaxPerSec:GetInt()
 end )
 
-EA:SetCost(5)
+EA:SetCost(EA_COST_CHEAP)
 
 EA:RegisterFunction( "egpCanSendUmsg", "", "n", function( self )
 
@@ -1055,7 +1055,7 @@ EA:RegisterFunction( "egpClearQueue", "", "n", function( self )
     return 0
 end )
 
-EA:SetCost(10)
+EA:SetCost(EA_COST_NORMAL)
 
 -- Returns the amount of items in your queue
 EA:RegisterFunction( "egpQueue", "", "n", function( self )
