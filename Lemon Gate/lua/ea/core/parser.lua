@@ -551,6 +551,11 @@ function Parser:GetValue()
 	
 	if !Instr then self:ExpressionError() end
 	
+	return self:AppendValue( Instr )
+end
+
+function Parser:AppendValue( Instr )
+
 	while true do
 		
 		-- METHOD CHECK, Var:method(...)
@@ -996,7 +1001,7 @@ function Parser:IndexedStatement()
 			elseif self:CheckToken("lpa") then -- Call operator
 				return self:CallOperator(Inst)
 			else
-				return -- This will / should error
+				return self:AppendValue( Inst )
 			end
 			
 			return self:Instruction("set", Data[3], Get, Data[1], Inst, Data[2])
@@ -1090,7 +1095,7 @@ end
 	Creditors: Rusketh
 ==============================================================================================*/
 function Parser:BuildParams(BlockType)
-	-- Purpose: Creates he perams of a ud function.
+	-- Purpose: Creates the perams of a lambda function.
 	
 	if !self:AcceptToken("lpa") then
 		self:Error("Left parenthesis (() missing, to start %s", BlockType or "parameters")
@@ -1098,7 +1103,7 @@ function Parser:BuildParams(BlockType)
 
 	local Params, Types, Listed, Index = {}, {}, "", 0
 	
-	if self:AcceptToken("var") or self:AcceptToken("fun") then
+	if self:AcceptToken("var") or self:AcceptToken("fun") or self:AcceptToken("func") then
 		self:PrevToken()
 		
 		while true do
@@ -1110,11 +1115,16 @@ function Parser:BuildParams(BlockType)
 			
 			local Type
 			
-			if self:CheckToken("fun") then
+			if self:CheckToken("fun") or self:CheckToken("func") then
 				Type = self:StrictType()
-				if !Type then self:Error("variable expected, after parameter separator (,)") end
 				
-				if !self:AcceptToken("var") then
+				if !Type then
+					self:Error("variable expected, after parameter separator (,)")
+					
+				elseif Type == "f" and !self:AcceptToken("fun") then
+					self:Error("function variable expected, after parameter type (%s)", GetLongType(Type))
+				
+				elseif !self:AcceptToken("var") and Type ~= "f" then
 					self:Error("variable expected, after parameter type (%s)", GetLongType(Type))
 				end
 			else

@@ -957,9 +957,17 @@ function Compiler:BuildFunction(Sig, Params, tParams, Stmts, Return)
 		for I = 1, #Params do
 			local Name = Params[I]
 			local Type = tParams[Name]
+			local Operator
 			
-			local Operator = E_A.OperatorTable["assign(" .. Type .. ")"]
-			if !Operator then self:Error("type %s, can not be used in function parameters.", Type) end
+			if Type == "f" then
+				Operator = E_A.OperatorTable["funcass(" .. Type .. ")"]
+			else
+				Operator = E_A.OperatorTable["assign(" .. Type .. ")"]
+			end
+			
+			if !Operator then
+				self:Error("type %s, can not be used in function parameters.", Type)
+			end
 			
 			local VarID, Scope = self:LocalVar(Name, Type)
 			
@@ -974,7 +982,6 @@ function Compiler:BuildFunction(Sig, Params, tParams, Stmts, Return)
 			end
 		end
 		
-	
 		self:PushScope()
 		
 			local Statements = self:CompileInst(Stmts)
