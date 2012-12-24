@@ -367,21 +367,41 @@ function Parser:ExpressionValue()
 	local Trace = self:TokenTrace()
 	
 	if self:AcceptToken("add") then -- add +Num
-		if !self:HasTokens() then self:Error("Identity operator (+) must not be succeeded by whitespace") end
-		return self:Expression()
+		if !self:HasTokens() then
+			self:Error("Identity operator (+) must not be succeeded by whitespace")
+		elseif self:CheckToken("lpa") then
+			return self:Expression()
+		else
+			return self:GetValue()
+		end
 		
 	elseif self:AcceptToken("sub") then -- sub -Num
-		if !self:HasTokens() then self:Error("Negation operator (-) must not be succeeded by whitespace") end
-		return self:Instruction("negative", Trace, self:Expression())
-	
+		if !self:HasTokens() then
+			self:Error("Negation operator (-) must not be succeeded by whitespace")
+		elseif self:CheckToken("lpa") then
+			return self:Instruction("negative", Trace, self:Expression())
+		else
+			return self:Instruction("negative", Trace, self:GetValue())
+		end
+		
 	elseif self:AcceptToken("not") then -- not !Num
-		if !self:HasTokens() then self:Error("Logical not operator (!) must not be succeeded by whitespace") end
-		return self:Instruction("not", Trace, self:Expression())
+		if !self:HasTokens() then
+			self:Error("Logical not operator (!) must not be succeeded by whitespace")
+		elseif self:CheckToken("lpa") then
+			return self:Instruction("not", Trace, self:Expression())
+		else
+			return self:Instruction("not", Trace, self:GetValue())
+		end
 		
 	elseif self:AcceptToken("len") then -- len #String
-		if !self:HasTokens() then self:Error("length operator (#) must not be succeeded by whitespace") end
-		return self:Instruction("length", Trace, self:Expression())
-	
+		if !self:HasTokens() then
+			self:Error("length operator (#) must not be succeeded by whitespace")
+		elseif self:CheckToken("lpa") then
+			return self:Instruction("length", Trace, self:Expression())
+		else
+			return self:Instruction("length", Trace, self:GetValue())
+		end
+		
 	elseif self:AcceptToken("dlt") then -- dlt $Num
 		if !self:HasTokens() then 
 			self:Error("Delta operator ($) must not be succeeded by whitespace")
