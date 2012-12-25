@@ -47,6 +47,10 @@ E_A.API.AddHook("BuildFunctions", function()
 				return Val
 			end)
 			
+			E_A:RegisterOperator("cast", "?" .. Type, "?", function(self, Value)
+				return Value(self)
+			end)
+			
 			E_A:RegisterFunction("type", Type, "s", function(self, Value)
 				local Val, tVal = Value(self)
 				

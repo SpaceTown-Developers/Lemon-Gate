@@ -7,6 +7,14 @@ local E_A = LemonGate
 
 local GetLongType = E_A.GetLongType
 
+local Abs = math.abs
+local Atan2 = math.atan2
+local Sqrt = math.sqrt
+local Asin = math.asin
+local Clamp = math.Clamp
+
+local Round = 0.0000001000000
+local Rad2Deg = 180 / math.pi
 local NULL_ENTITY = Entity(-1)
 
 /*==============================================================================================
@@ -138,6 +146,33 @@ E_A:RegisterFunction("isValid", "e:", "n", function(self, Value)
 	local Entity = Value(self)
 	if Entity and Entity:IsValid() then return 1 end
 	return 0
+end)
+
+E_A:RegisterFunction("isPlayerHolding", "e:", "n", function(self, Value)
+	local Entity = Value(self)
+	if Entity and Entity:IsValid() and Entity:IsPlayerHolding() then return 1 end
+	return 0
+end)
+
+E_A:RegisterFunction("isOnFire", "e:", "n", function(self, Value)
+	local Entity = Value(self)
+	if Entity and Entity:IsValid() and Entity:IsOnFire() then return 1 end
+	return 0
+end)
+
+E_A:RegisterFunction("isWeapon", "e:", "n", function(self, Value)
+	local Entity = Value(self)
+	if Entity and Entity:IsValid() and Entity:IsWeapon() then return 1 end
+	return 0
+end)
+
+E_A:RegisterFunction("isFrozen", "e:", "n", function(self, Value)
+	local Entity = Value(self)
+	if !Entity or !Entity:IsValid() then return 0 end
+	
+	local Phys = Entity:GetPhysicsObject()
+	if !Phys or !Phys:IsValid() or !Phys:IsMoveable() then return 0 end
+	return 1
 end)
 
 /*==============================================================================================
@@ -473,6 +508,43 @@ E_A:RegisterFunction("getConstraints", "e:", "t", function(self, Value)
 	end
 	
 	return Table
+end)
+
+/*==============================================================================================
+	Section: Finding
+==============================================================================================*/
+E_A:SetCost(EA_COST_ABNORMAL)
+
+E_A:RegisterFunction("bearing", "e:v", "n", function(self, ValueA, ValueB)
+	local Entity, B = ValueA(self), ValueB(self)
+	if !Entity or !Entity:IsValid() then return 0 end
+	
+	local Pos = Entity:WorldToLocal(Vector(B[1], B[2], B[3]))
+	return Rad2Deg * -Atan2(Pos.y, Pos.x)
+end)
+
+E_A:RegisterFunction("elevation", "e:v", "n", function(self, ValueA, ValueB)
+	local Entity, B = ValueA(self), ValueB(self)
+	if !Entity or !Entity:IsValid() then return 0 end
+	
+	local Pos = Entity:WorldToLocal(Vector(B[1], B[2], B[3]))
+	
+	local Len = Pos:Length()
+	if Len < Round then return 0 end
+	
+	return Rad2Deg * Asin(Pos.z / Len)
+end)
+
+E_A:RegisterFunction("heading", "e:v", "a", function(self, ValueA, ValueB)
+	local Entity, B = ValueA(self), ValueB(self)
+	if !Entity or !Entity:IsValid() then return {0, 0, 0} end
+	
+	local Pos = Entity:WorldToLocal(Vector(B[1], B[2], B[3]))
+	local Bearing = Rad2Deg * -Atan2(Pos.y, Pos.x)
+	
+	local Len = Pos:Length()
+	if Len < Round then return { 0, Bearing, 0 } end
+	return { Rad2Deg * Asin(Pos.z / Len), Bearing , 0 }
 end)
 
 /*==============================================================================================

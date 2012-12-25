@@ -13,7 +13,7 @@ local function AngNum( N )
 end
 
 local function NewAng( P, Y, R )
-	return { AngNum( P ), AngNum( Y ), AngNum( R ) }
+	return { P, Y, R }
 end
 
 /*==============================================================================================
@@ -185,24 +185,24 @@ end)
 
 /**********************************************************************************************/
 
--- E_A:RegisterFunction( "angnorm", "a", "a", function( self, ValueA ) 
-	-- local Ang, tValueA = ValueA( self )
+E_A:RegisterFunction( "angnorm", "a", "a", function( self, ValueA ) 
+	local Ang, tValueA = ValueA( self )
  
-	-- return {(Ang[1] + 180) % 360 - 180,(Ang[2] + 180) % 360 - 180,(Ang[3] + 180) % 360 - 180}
--- end ) 
+	return {(Ang[1] + 180) % 360 - 180,(Ang[2] + 180) % 360 - 180,(Ang[3] + 180) % 360 - 180}
+end ) 
 
 /**********************************************************************************************/
 
 E_A:RegisterFunction("setPitch", "a:n", "", function(self, ValueA, ValueB)
-	ValueA(self)[1] = AngNum( ValueB(self) )
+	ValueA(self)[1] = ValueB(self)
 end)
 
 E_A:RegisterFunction("setYaw", "a:n", "", function(self, ValueA, ValueB)
-	ValueA(self)[2] = AngNum( ValueB(self) )
+	ValueA(self)[2] = ValueB(self) 
 end)
 
 E_A:RegisterFunction("setRoll", "a:n", "", function(self, ValueA, ValueB)
-	ValueA(self)[3] = AngNum( ValueB(self) )
+	ValueA(self)[3] = ValueB(self)
 end)
 
 /*==============================================================================================

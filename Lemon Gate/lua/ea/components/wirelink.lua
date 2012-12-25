@@ -335,7 +335,7 @@ local function WriteString(self, ValueA, ValueB, ValueC, ValueD, ValueE, ValueF,
 	
 	Col = Clamp( Floor( Col ), 0, 999 )
 	BG = Clamp( Floor( BG ), 0, 999 )
-	Flash = Flash >= 0 and 1 or 0
+	Flash = Flash >= 1 and 1 or 0
 	
 	local Params = Flash * 1000000 + BG * 1000 + Col
 
