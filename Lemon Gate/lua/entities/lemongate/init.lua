@@ -54,7 +54,6 @@ function Lemon:Initialize()
 	
 	self.Name = "LemonGate"
 	self.Errored = nil
-	self.LastPerf = 0
 	
 	self:SetOverlayText("LemonGate\nExpression Advanced\nOffline: 0%")
 	
@@ -66,10 +65,10 @@ function Lemon:Think()
 	
 	local Time = CurTime()
 	
-	if !self.Errored then
-		local PerfTime = self.PerfTime
-		if self.Context and (!PerfTime or PerfTime > Time) then
+	if !self.Errored and self.Context then
+		if Time > self.PerfTime then
 			self.PerfTime = Time + 1
+			
 			local _, _, Percent = self:CaculatePerf()
 			self:UpdateOverlay("Online: %i%%", Percent)
 		end
@@ -80,8 +79,8 @@ function Lemon:Think()
 	end
 	
 	self.BaseClass.Think(self)
+	self:NextThink(Time + 0.1)
 	
-	self:NextThink(Time + 0.01)
 	return true
 end
 
@@ -142,6 +141,9 @@ function Lemon:LoadInstance(Instance)
 	
 	self.InMemory = Instance.Inputs
 	self.OutMemory = Instance.Outputs
+	
+	self.LastPerf = 0
+	self.PerfTime = 0
 	
 	self:RefreshMemory()
 	

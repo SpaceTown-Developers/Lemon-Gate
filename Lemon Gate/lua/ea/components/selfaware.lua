@@ -5,6 +5,7 @@
 ==============================================================================================*/
 local E_A = LemonGate
 
+local MathCeil = math.ceil
 local GetConVarNumber = GetConVarNumber
 
 /*==============================================================================================
@@ -41,6 +42,10 @@ end)
 ==============================================================================================*/
 E_A:RegisterFunction("perf", "", "n", function(self)
 	return self.Perf
+end)
+
+E_A:RegisterFunction("perfAvailable", "", "n", function(self)
+	return GetConVarNumber("lemongate_perf") - self.Perf
 end)
 
 E_A:RegisterFunction("maxPerf", "", "n", function(self)

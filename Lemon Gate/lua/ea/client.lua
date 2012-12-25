@@ -82,7 +82,7 @@ net.Receive( "lemon_events", function()
 	local Name = net.ReadString()
 	
 	while Name ~= "" do
-		E_A.EventsTable[Name] = {net.ReadString(), net.ReadString()}
+		E_A.EventsTable[Name] = {net.ReadString(), net.ReadString(), 0}
 		Name = net.ReadString()
 	end
 end)

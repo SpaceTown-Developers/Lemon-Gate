@@ -186,29 +186,24 @@ end
 
 /***************************************************************/
 
--- NEW FUNCTION
-function Toker:SkipChar( )
-	local PrevChar = self.Char
+function Toker:SkipChar()
+	-- Purpose: Skip this Char
 	
-	if self.Len < self.Pos then
-		self.Char = nil
-		return PrevChar
+	if self.Len >= self.Pos then
+		if self.Char == "\n" then
+			-- New Line Char
+			self.ReadLine = self.ReadLine + 1
+			self.ReadChar = 1
+			
+		else
+			self.ReadChar = self.ReadChar + 1
+		end
 		
-	elseif self.Char == "\n" then
-		self.ReadLine = self.ReadLine + 1
-		self.ReadChar = 1
+		self.Pos = self.Pos + 1
+		self.Char = self.Buffer:sub(self.Pos, self.Pos)
 	else
-		self.ReadChar = self.ReadChar + 1
+		self.Char = nil
 	end
-	
-	self.Pos = self.Pos + 1
-	self.Char = self.Buffer[self.Pos]
-	
-	return PrevChar
-end
-
-function Toker:NextChar( )
-	self.ReadData = self.ReadData .. self:SkipChar( )
 end
 
 function Toker:NextChar()
@@ -253,7 +248,7 @@ function Toker:SkipComments( )
 			end
 			
 			self.ReadData = ""
-			self:NextChar()
+			-- self:NextChar()
 		end
 end
 

@@ -1074,13 +1074,15 @@ end
 	Purpose: Events do stuff.
 	Creditors: Rusketh
 ==============================================================================================*/
-function Compiler:Instr_EVENT(Name, Sig, Params, tParams, Stmts, Return)
+function Compiler:Instr_EVENT(Name, Sig, Params, tParams, Stmts, Return, EventPerf)
 	-- Purpose: This instruction Will create function variables.
 	
 	local Arguments, Statements = self:BuildFunction(Sig, Params, tParams, Stmts, Return)
 	
 	local Operator, _Return, Perf = self:GetOperator("event")
 	
+	Perf = Perf + EventPerf
+	 
 	self:PushPerf(Perf)
 	
 	return self:Operator(Operator, Return, Perf, Name, Arguments, Statements)

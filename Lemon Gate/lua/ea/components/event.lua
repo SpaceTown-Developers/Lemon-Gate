@@ -15,6 +15,7 @@ local Entity = Entity
 	Purpose: Functions that Create and Remove events.
 	Creditors: Rusketh
 ==============================================================================================*/
+E_A:SetCost(EA_COST_CHEAP)
 E_A:RegisterOperator("event", "", "", function(self, Event, Arguments, Statements)
 	-- Purpose: Builds a Function.
 	
@@ -24,13 +25,17 @@ end)
 /*==============================================================================================
 	Section: Entity events.
 ==============================================================================================*/
+E_A:SetCost(EA_COST_ABNORMAL)
 E_A:RegisterEvent("think")
+
+E_A:SetCost(EA_COST_NORMAL)
 E_A:RegisterEvent("final")
 E_A:RegisterEvent("trigger", "s")
 
 /*==============================================================================================
 	Section: Tick Event
 ==============================================================================================*/
+E_A:SetCost(EA_COST_EXPENSIVE)
 E_A:RegisterEvent("tick")
 
 hook.Add("Tick", "LemonGate", function()

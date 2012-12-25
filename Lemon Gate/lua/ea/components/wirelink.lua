@@ -313,20 +313,22 @@ local function ToColor( Col )
 end
 
 -- Function from E2
-local function WriteString(self, ValueA, ValueB, ValueC, ValueD, ValueE, ValueF)
-	local Entity, String, X, Y = ValueA(self), ValueB(self), ValueC(self)
+local function WriteString(self, ValueA, ValueB, ValueC, ValueD, ValueE, ValueF, ValueG)
+	local Entity, String, X, Y = ValueA(self), ValueB(self), ValueC(self), ValueD(self)
 	local Col, tCol, BG, tBG, Flash = 999, "n", 0, "n", 0
 	
-	if ValueD then
-		Col, tCol = ValueD(self)
+	if !Entity or !Entity:IsValid() then return end
+	
+	if ValueE then
+		Col, tCol = ValueE(self)
 		if tCol ~= "n" then Col = ToColor( Col ) end
 		
-		if ValueE then
-			BG, tBG = ValueE(self)
+		if ValueF then
+			BG, tBG = ValueF(self)
 			if tBG ~= "n" then BG = ToColor( BG ) end
 			
-			if ValueF then
-				Flash = ValueF(self)
+			if ValueG then
+				Flash = ValueG(self)
 			end
 		end
 	end
@@ -368,17 +370,17 @@ E_A:SetCost(EA_COST_EXPENSIVE * 1.5)
 E_A:RegisterFunction("writeString", "wl:snn", "", WriteString)
 
 E_A:RegisterFunction("writeString", "wl:snnn", "", WriteString)
-E_A:RegisterFunction("writeString", "wl:snnv", "", WriteString)
+E_A:RegisterFunction("writeString", "wl:snnc", "", WriteString)
 
 E_A:RegisterFunction("writeString", "wl:snnnn", "", WriteString)
-E_A:RegisterFunction("writeString", "wl:snnvv", "", WriteString)
-E_A:RegisterFunction("writeString", "wl:snnvn", "", WriteString)
-E_A:RegisterFunction("writeString", "wl:snnnv", "", WriteString)
+E_A:RegisterFunction("writeString", "wl:snncc", "", WriteString)
+E_A:RegisterFunction("writeString", "wl:snncn", "", WriteString)
+E_A:RegisterFunction("writeString", "wl:snnnc", "", WriteString)
 
 E_A:RegisterFunction("writeString", "wl:snnnnn", "", WriteString)
-E_A:RegisterFunction("writeString", "wl:snnvvn", "", WriteString)
-E_A:RegisterFunction("writeString", "wl:snnvnn", "", WriteString)
-E_A:RegisterFunction("writeString", "wl:snnnvn", "", WriteString)
+E_A:RegisterFunction("writeString", "wl:snnccn", "", WriteString)
+E_A:RegisterFunction("writeString", "wl:snncnn", "", WriteString)
+E_A:RegisterFunction("writeString", "wl:snnncn", "", WriteString)
 
 /*==============================================================================================
 	Context Stuffs

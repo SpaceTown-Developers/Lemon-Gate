@@ -208,7 +208,7 @@ function E_A:RegisterEvent(Name, Params, Return)
 	CheckType(Name, "string", 1); CheckType(Return, "string", 3, true)
 	-- Purpose: Creates a new E_A event.
 	
-	Events[SizeE] = {[0] = API.CurrentComponent(), Name, Params or "", Return or ""}
+	Events[SizeE] = {[0] = API.CurrentComponent(), Name, Params or "", Return or "", COST}
 	SizeE = SizeE + 1
 end
 
@@ -430,7 +430,12 @@ for I = 1, SizeE - 1 do
 			end
 		end
 		
-		if Valid then EventsTable[ Event[1] ] = {Signature, Return} end
+		if Valid then
+			EventsTable[ Event[1] ] = {Signature, Return, Event[4]}
+			
+			MsgN( Event[1] )
+			PrintTable( {Signature, Return, Event[4]} )
+		end
 	end
 end
 

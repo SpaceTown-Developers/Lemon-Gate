@@ -1278,7 +1278,10 @@ function Parser:EventStatement()
 		local Event = self.TokenData
 		
 		local ValidEvent = E_A.EventsTable[Event]
-		if !ValidEvent then self:Error("invalid event %q", Event) end
+		
+		if !ValidEvent then
+			self:Error("invalid event %q", Event)
+		end
 		
 		local Params, Types, Sig = self:BuildParams("event parameters")
 		
@@ -1286,7 +1289,7 @@ function Parser:EventStatement()
 			self:Error("parameter mismatch for event %q", Event)
 		end
 		
-		return self:Instruction("event", Trace, Event, Sig, Params, Types, self:Block("event body"), ValidEvent[2])
+		return self:Instruction("event", Trace, Event, Sig, Params, Types, self:Block("event body"), ValidEvent[2], ValidEvent[3])
 	end
 end
 
