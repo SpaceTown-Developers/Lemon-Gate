@@ -30,19 +30,23 @@ local tostring = tostring
 E_A:SetCost(EA_COST_CHEAP)
 
 E_A:RegisterFunction("exit", "", "", function(self)
-	self:Throw("exit")
+	error("Exit", 0)
 end)
 
 E_A:RegisterOperator("return", "", "", function(self, Value)
-	local Value, Type = Value(self) -- We can error check the statement before using it!
-	self:Throw("return", function() return Value, Type end)
+	self.ReturnValue = Value
+	error("Return", 0)
 end)
 
 E_A:SetCost(EA_COST_ABNORMAL)
 
 E_A:RegisterFunction("print", "...", "", function(self, ...)
 	local Values, Message = { ... }, ""
-	for I = 1, #Values do  Message = Message .. tostring( Values[I](self) )  end
+	
+	for I = 1, #Values do 
+		Message = Message .. " " .. Values[I]:toString(self)
+	end
+	
 	self.Player:PrintMessage( HUD_PRINTTALK, StringLeft(Message, 249) )
 end)
 
@@ -83,16 +87,18 @@ E_A:RegisterOperator("for", "", "", function(self, Assign, Condition, Step, Bloc
 	while Condition(self) == 1 do -- Note: loop until condition is met.
 		self:PushPerf(EA_COST_CHEAP)
 		
-		local Ok, Exception, Level = Block:SafeCall(self)
-		Level = tonumber(Level or 0)
+		local Ok, Exit = Block:SafeCall(self)
 		
 		if !Ok then
-			if Exception == "break" then
-				if Level <= 0 then break else self:Throw("break", Level - 1) end
-			elseif Exception == "continue" then
-				if Level <= 0 then Step(self) else self:Throw("continue", Level - 1) end
+			local Depth = self.ExitDeph or 0
+			if Exit == "Break" then
+				if Depth > 0 then self.ExitDeph = Depth - 1; error("Break", 0) end
+				break
+			elseif Exit == "Continue" then
+				if Depth > 0 then self.ExitDeph = Depth - 1; error("Continue", 0) end
+				break
 			else
-				error(Exception, 0)
+				error(Exit, 0)
 			end
 		else	
 			Step(self) -- Note: Next Step
@@ -106,16 +112,18 @@ E_A:RegisterOperator("while", "", "", function(self, Condition, Block)
 	while Condition(self) == 1 do -- Note: loop until condition is met.
 		self:PushPerf(EA_COST_CHEAP)
 		
-		local Ok, Exception, Level = Block:SafeCall(self)
-		Level = tonumber(Level or 0)
+		local Ok, Exit = Block:SafeCall(self)
 		
 		if !Ok then
-			if Exception == "break" then
-				if Level <= 0 then break else self:Throw("break", Level - 1) end
-			elseif Exception == "continue" then
-				if Level <= 0 then Step(self) else self:Throw("continue", Level - 1) end
+			local Depth = self.ExitDeph or 0
+			if Exit == "Break" then
+				if Depth > 0 then self.ExitDeph = Depth - 1; error("Break", 0) end
+				break
+			elseif Exit == "Continue" then
+				if Depth > 0 then self.ExitDeph = Depth - 1; error("Continue", 0) end
+				break
 			else
-				error(Exception, 0)
+				error(Exit, 0)
 			end
 		end
 	end
@@ -129,27 +137,21 @@ end)
 E_A:SetCost(EA_COST_ABNORMAL)
 
 E_A:RegisterOperator("try", "", "", function(self, Block, Catch)
-	-- Purpose: Safely run something.
-	
-	local Ok, Exception, Message = Block:SafeCall(self)
-	
-	if Ok or ( self.Exception and Catch(self) ) then
+	local Ok, Exit = Block:SafeCall(self)
+	if !Ok and Exit == "Exception" and Catch(self) then
 		self.Exception = nil
-		self.ExceptionInfo = nil
-		self.ExceptionTrace = nil
-		return
+		return -- Clear the exception.
+	elseif !Ok then
+		error(Exit, 0)
 	end
-	
-	error(Exception, 0)
 end)
 
-E_A:RegisterOperator("catch", "", "", function(self, Exceptions, Block, Catch)
-	-- Purpose: Catch the exception.
+E_A:RegisterOperator("catch", "", "", function(self, Exceptions, Memory, Block, Catch)
+	local Exception = self.Exception
 	
-	if Exceptions[ self.Exception ] then
-		Block(self)
-		
-		return true
+	if Exception and Exceptions[ Exception.Type ] then
+		self.Memory[Memory] = self.Exception
+		return true, Block(self)
 	elseif Catch then
 		return Catch(self)
 	end
@@ -157,59 +159,79 @@ E_A:RegisterOperator("catch", "", "", function(self, Exceptions, Block, Catch)
 	return false
 end)
 
+/*==============================================================================================
+	Section: Exception Class
+	Purpose: Move Me!.
+	Creditors: Rusketh
+==============================================================================================*/
+E_A:RegisterClass("exception", "!")
+
 E_A:SetCost(EA_COST_CHEAP)
 
-E_A:RegisterFunction("exception", "", "s", function(self)
-	return self.Exception or ""
+E_A:RegisterOperator("assign", "!", "", function(self, ValueOp, Memory)
+	self.Memory[Memory] = ValueOp(self)
+	self.Click[Memory] = true
 end)
 
-E_A:RegisterFunction("exceptionMsg", "", "s", function(self)
-	if self.ExceptionInfo then
-		return self.ExceptionInfo[1] or ""
+E_A:RegisterOperator("variable", "!", "!", function(self, Memory)
+	return self.Memory[Memory]
+end)
+
+E_A:RegisterOperator("is", "!", "n", function(self, Value)
+	local Exception = Value(self)
+	if Exception and Exception.Type then
+		return 1 else return 0
 	end
-	
-	return ""
+end)
+
+E_A:RegisterFunction("type", "!:", "s", function(self, Value)
+	local Exception = Value(self)
+	if Exception and Exception.Type then return Exception.Type else return "" end
+end)
+
+E_A:RegisterFunction("message", "!:", "s", function(self, Value)
+	local Exception = Value(self)
+	if Exception and Exception.Msg then return Exception.Msg else return "" end
 end)
 
 E_A:SetCost(EA_COST_ABNORMAL)
 
-E_A:RegisterFunction("exceptionTrace", "n", "t", function(self, Value)
-	local V, Table = Value(self), E_A.NewTable()
-	if !self.ExceptionTrace or !self.ExceptionTrace[V] then
-		return Table
+E_A:RegisterFunction("trace", "!:n", "t", function(self, ValueA, ValueB)
+	local Exception, Index = ValueA(self), ValueB(self)
+	local Table = E_A.NewTable()
+	
+	if Exception and Exception.Trace then
+		local Trace = Exception.Trace[ Index ]
+		if Trace then
+			Table:Set("line", "n", Trace[1])
+			Table:Set("char", "n", Trace[2])
+			Table:Set("instr", "s", Trace[3])
+		end
 	end
-	
-	local Trace = self.ExceptionTrace[V]
-	
-	Table:Set("line", "n", Trace[1])
-	Table:Set("char", "n", Trace[2])
-	Table:Set("instr", "s", Trace[3])
 	
 	return Table
 end)
 
 E_A:SetCost(EA_COST_EXPENSIVE)
 
-E_A:RegisterFunction("exceptionTrace", "", "t", function(self)
+E_A:RegisterFunction("trace", "!:", "t", function(self, Value)
+	local Exception = Value(self)
 	local Table = E_A.NewTable()
-	local ExceptionTrace = self.ExceptionTrace
 	
-	if !ExceptionTrace or !ExceptionTrace[1] then
-		return Table
-	end
+	if Exception and Exception.Trace then
+		local Start = #Exception.Trace
+		if Start > 10 then Start = 10 end
 	
-	local Start = #ExceptionTrace
-	if Start > 10 then Start = 10 end
-	
-	for I = Start, 1, -1 do
-		local Trace = ExceptionTrace[I]
-		local sTable = E_A.NewTable()
-		
-		sTable:Set("line", "n", Trace[1])
-		sTable:Set("char", "n", Trace[2])
-		sTable:Set("instr", "s", Trace[3])
-		
-		Table:Insert(nil, "t", sTable)
+		for I = Start, 1, -1 do
+			local Trace = Exception.Trace[I]
+			local sTable = E_A.NewTable()
+			
+			sTable:Set("line", "n", Trace[1])
+			sTable:Set("char", "n", Trace[2])
+			sTable:Set("instr", "s", Trace[3])
+			
+			Table:Insert(nil, "t", sTable)
+		end
 	end
 	
 	return Table

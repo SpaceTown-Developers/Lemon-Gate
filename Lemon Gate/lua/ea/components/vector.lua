@@ -330,7 +330,7 @@ end)
 E_A:SetCost(EA_COST_ABNORMAL)
 
 E_A:RegisterFunction("toWorld", "vava", "v", function(self, ValueA, ValueB, ValueC, ValueD)
-	local A, B, B, C = ValueA(self), ValueB(self), ValueC(self), ValueD(self)
+	local A, B, C, D = ValueA(self), ValueB(self), ValueC(self), ValueD(self)
 	
 	local Av = Vector(A[1], A[2], A[3])
 	local Bv = Angle(B[1], B[2], B[3])
@@ -342,7 +342,7 @@ E_A:RegisterFunction("toWorld", "vava", "v", function(self, ValueA, ValueB, Valu
 end)
 
 E_A:RegisterFunction("toWorldAngle", "vava", "v", function(self, ValueA, ValueB, ValueC, ValueD)
-	local A, B, B, C = ValueA(self), ValueB(self), ValueC(self), ValueD(self)
+	local A, B, C, D = ValueA(self), ValueB(self), ValueC(self), ValueD(self)
 	
 	local Av = Vector(A[1], A[2], A[3])
 	local Bv = Angle(B[1], B[2], B[3])
@@ -356,7 +356,7 @@ end)
 /**********************************************************************************************/
 
 E_A:RegisterFunction("toLocal", "vava", "v", function(self, ValueA, ValueB, ValueC, ValueD)
-	local A, B, B, C = ValueA(self), ValueB(self), ValueC(self), ValueD(self)
+	local A, B, C, D = ValueA(self), ValueB(self), ValueC(self), ValueD(self)
 	
 	local Av = Vector(A[1], A[2], A[3])
 	local Bv = Angle(B[1], B[2], B[3])
@@ -368,7 +368,7 @@ E_A:RegisterFunction("toLocal", "vava", "v", function(self, ValueA, ValueB, Valu
 end)
 
 E_A:RegisterFunction("toLocalAngle", "vava", "a", function(self, ValueA, ValueB, ValueC, ValueD)
-	local A, B, B, C = ValueA(self), ValueB(self), ValueC(self), ValueD(self)
+	local A, B, C, D = ValueA(self), ValueB(self), ValueC(self), ValueD(self)
 	
 	local Av = Vector(A[1], A[2], A[3])
 	local Bv = Angle(B[1], B[2], B[3])
@@ -382,7 +382,7 @@ end)
 /******************************************************************************/
 
 E_A:RegisterFunction("bearing", "vav", "n", function(self, ValueA, ValueB, ValueC)
-	local A, B, B = ValueA(self), ValueB(self), ValueC(self)
+	local A, B, C = ValueA(self), ValueB(self), ValueC(self)
 	
 	local Av = Vector(A[1], A[2], A[3])
 	local Bv = Angle(B[1], B[2], B[3])
@@ -396,7 +396,7 @@ E_A:RegisterFunction("bearing", "vav", "n", function(self, ValueA, ValueB, Value
 end)
 
 E_A:RegisterFunction("elevation", "vav", "n", function(self, ValueA, ValueB, ValueC)
-	local A, B, B = ValueA(self), ValueB(self), ValueC(self)
+	local A, B, C = ValueA(self), ValueB(self), ValueC(self)
 	
 	local Av = Vector(A[1], A[2], A[3])
 	local Bv = Angle(B[1], B[2], B[3])
@@ -407,7 +407,7 @@ E_A:RegisterFunction("elevation", "vav", "n", function(self, ValueA, ValueB, Val
 end)
 
 E_A:RegisterFunction("heading", "vav", "n", function(self, ValueA, ValueB, ValueC)
-	local A, B, B = ValueA(self), ValueB(self), ValueC(self)
+	local A, B, C = ValueA(self), ValueB(self), ValueC(self)
 	
 	local Av = Vector(A[1], A[2], A[3])
 	local Bv = Angle(B[1], B[2], B[3])
@@ -419,6 +419,21 @@ E_A:RegisterFunction("heading", "vav", "n", function(self, ValueA, ValueB, Value
 	local Len = V:Length()
 	if (Len < Round) then return { 0, Bearing, 0 } end
 	return { Rad2Deg * Asin(V.z / Len), Bearing, 0 }
+end)
+
+/*==============================================================================================
+	Entity Helpers
+==============================================================================================*/
+E_A:RegisterFunction("toWorld", "e:v", "v", function(self, ValueA, ValueB)
+	local Entity, B = ValueA(self), ValueB(self)
+	if !Entity or !Entity:IsValid() then return {0, 0, 0} end
+	return Entity:LocalToWorld( Vector( B[1], B[2], B[3] ) )
+end)
+
+E_A:RegisterFunction("toLocal", "e:v", "v", function(self, ValueA, ValueB)
+	local Entity, B = ValueA(self), ValueB(self)
+	if !Entity or !Entity:IsValid() then return {0, 0, 0} end
+	return Entity:WorldToLocal( Vector( B[1], B[2], B[3] ) )
 end)
 
 /*==============================================================================================
@@ -440,6 +455,16 @@ E_A:RegisterFunction("toAngle", "v:v", "a", function(self, ValueA, ValueB)
 	local B, C = ValueA(self), ValueB(self)
 	local A = Vector(B[1], B[2], B[3]):AngleEx(Vector(C[1], C[2], C[3]))
 	return { A.p, A.y, A.r }
+end)
+
+/*==============================================================================================
+	Rotation
+==============================================================================================*/
+E_A:RegisterFunction("rotate", "v:a", "v", function(self, ValueA, ValueB)
+	local A, B = ValueA(self), ValueB(self)
+	local C = Vector(A[1], A[2], A[3])
+	C:Rotate( Angle(B[1], B[2], B[3]) )
+	return { C.x, C.y, C.z }
 end)
 
 /*==============================================================================================

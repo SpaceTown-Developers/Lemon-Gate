@@ -748,20 +748,23 @@ function Parser:GetStatements(ExitToken)
 	end
 	
 	while true do
-		if self:AcceptToken("com") then self:Error("Separator (,) must not appear twice.") end
+		if self:AcceptToken("com") then
+			self:Error("Separator (,) must not appear twice.")
+		end
 	
 		Index = Index + 1
 		Statements[Index] = self:Statement() 
 		
+		
 		if ExitToken and self:AcceptToken(ExitToken) then
 			self:PrevToken()
 			break -- Note: Exit because we have found out exit token
-			
 		elseif !self:HasTokens() then
 			break -- Note: No tokens left so exit
-			
 		elseif !self:AcceptToken("com") and self.NextLine == self.TokenLine then
 			self:Error("Statements must be separated by comma (,) or whitespace")
+		elseif self.ExitStatus then
+			self:Error("Unreachable code after %s", self.ExitStatus)
 		end
 	end
 	
@@ -1080,11 +1083,17 @@ function Parser:Catch(Reqired)
 			Exceptions[Exception] = true
 		end
 		
+		if !self:AcceptToken("var") then
+			self:Error("Variable expected after exception type")
+		end
+		
+		local Var = self.TokenData
+		
 		if !self:AcceptToken("rpa") then
 			self:Error("Right parenthesis ()) missing, to close function parameters")
 		end
 		
-		return self:Instruction("catch", self:TokenTrace(), Exceptions, self:Block("catch block"), self:Catch())
+		return self:Instruction("catch", self:TokenTrace(), Exceptions, Var, self:Block("catch block"), self:Catch())
 		
 	elseif Required then
 		self:Error("catch statement required, after try")
@@ -1095,7 +1104,10 @@ end
 
 function Parser:Block(Name)
 	local Trace = self:TokenTrace()
-
+	
+	local PrevExitStatus = self.ExitStatus
+	self.ExitStatus = nil -- Trust me.
+	
 	if !self:AcceptToken("lcb") then
 		self:Error("Left curly bracket ({) expected after %s", Name or "condition")
 	end
@@ -1106,7 +1118,10 @@ function Parser:Block(Name)
 		self:Error("Right curly bracket (}) missing, to close %s", Name or "condition")
 	end
 	
-	return Stmts
+	local ExitStatus = self.ExitStatus
+	self.ExitStatus = PrevExitStatus
+		
+	return Stmts, ExitStatus
 end
 
 /*==============================================================================================
@@ -1250,8 +1265,12 @@ function Parser:FunctionStatement()
 			local Params, Types, Sig = self:BuildParams("function parameters")
 		
 			local InFunc = self.InFunc; self.InFunc = true
-			local Block = self:Block("function body")
+			local Block, Exit = self:Block("function body")
 			self.InFunc = InFunc
+			
+			if Return and Return ~= "" and (!Exit or Exit ~= "return") then
+				self:TokenError( Trace, "function must return %s", GetLongType(Return) )
+			end
 			
 			local Lambda = self:Instruction("lambda", Trace, Sig, Params, Types, Block, Return)
 			return self:Instruction("funcass", Trace, Global, Name, Lambda)
@@ -1450,6 +1469,7 @@ function Parser:ExitStatement()
 			self:Error("break depth is to deep")
 		end
 		
+		self.ExitStatus = "break"
 		return self:Instruction("break", self:TokenTrace(), Level)
 	
 	elseif self:AcceptToken("cnt") then
@@ -1461,6 +1481,7 @@ function Parser:ExitStatement()
 			self:Error("continue depth is to deep")
 		end
 		
+		self.ExitStatus = "continue"
 		return self:Instruction("continue", self:TokenTrace(), Level)
 	
 	elseif self:AcceptToken("ret") then
@@ -1469,6 +1490,7 @@ function Parser:ExitStatement()
 			return self:Instruction("return", self:TokenTrace())
 		end
 		
+		self.ExitStatus = "return"
 		return self:Instruction("return", self:TokenTrace(), self:Expression())
 	end
 end

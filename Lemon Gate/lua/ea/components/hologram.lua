@@ -64,6 +64,10 @@ API.AddHook("GateRemove", function(Entity)
 	RemoveHolos(Entity)
 end)
 
+API.AddHook("ShutDown", function(Entity)
+	RemoveHolos(Entity)
+end)
+
 /*==============================================================================================
 	Models
 ==============================================================================================*/

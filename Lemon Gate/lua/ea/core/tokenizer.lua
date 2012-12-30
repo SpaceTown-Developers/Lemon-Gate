@@ -108,6 +108,7 @@ function Toker:Run( Code )
 	
 	while self.Char do
 		
+		self.SkipToken = false
 		local Token = self:NextToken( )
 		
 		if Token then
@@ -118,7 +119,7 @@ function Toker:Run( Code )
 			self.Char = nil
 		end
 		
-		if self.Char and !Token then
+		if self.Char and !Token and !self.SkipToken then
 			self:Error( "Unknown syntax found (%s)", 0, self.ReadData .. tostring(self.Char) )
 		end
 		
@@ -248,7 +249,8 @@ function Toker:SkipComments( )
 			end
 			
 			self.ReadData = ""
-			-- self:NextChar()
+			
+			self.SkipToken = true
 		end
 end
 
@@ -385,23 +387,24 @@ function Toker:NextToken( )
 		
 		self:SkipComments( )
 		
-		self:SkipSpaces( )
+		if !self.SkipToken then
 		
-		local Token = self:WordToken( ) or self:DataToken( )
-		
-		if Token then
-			return Token
-		else
-		
-			for I = 1, #Tokens do
-				local Token = Tokens[I]
-				
-				if self:NextPattern( Token[1], true ) then
-					return self:NewToken( Token[2], Token[3] )
-				end
-			end
+			local Token = self:WordToken( ) or self:DataToken( )
 			
-			return E_A.API.CallHook( "NextToken", self )
+			if Token then
+				return Token
+			else
+			
+				for I = 1, #Tokens do
+					local Token = Tokens[I]
+					
+					if self:NextPattern( Token[1], true ) then
+						return self:NewToken( Token[2], Token[3] )
+					end
+				end
+				
+				return E_A.API.CallHook( "NextToken", self )
+			end
 		end
 	end
 end

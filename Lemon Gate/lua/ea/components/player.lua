@@ -160,3 +160,16 @@ E_A:RegisterFunction("inNoclip", "e:", "n", function(self, Value)
 	return 0
 end)
 
+/*==============================================================================================
+	Section: Mouse Stuff
+==============================================================================================*/
+
+E_A:RegisterFunction( "leftClick", "e:", "n", function( self, Value ) 
+	local this = Value( self ) 
+	return ( IsValid( this ) and this:IsPlayer( ) and this:KeyDown( IN_ATTACK ) ) and 1 or 0 
+end )
+
+E_A:RegisterFunction( "leftClick", "e:", "n", function( self, Value ) 
+	local this = Value( self ) 
+	return ( IsValid( this ) and this:IsPlayer( ) and this:KeyDown( IN_ATTACK2 ) ) and 1 or 0 
+end )

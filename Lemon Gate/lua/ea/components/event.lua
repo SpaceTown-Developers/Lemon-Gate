@@ -83,3 +83,62 @@ hook.Add("PlayerSay", "LemonGate", function(Player, Text)
 	end
 end)
 
+/*==============================================================================================
+	Section: Player Input event.
+	Note: Taken from wired keyboard.
+==============================================================================================*/
+include("entities/gmod_wire_keyboard/remap.lua") -- ClientSide for WM Serverside for us!
+if !Wire_Keyboard_Remap then return MsgN("Wire Keyboard missing!") end
+local Wire_Keyboard_Remap = Wire_Keyboard_Remap
+
+E_A:SetCost( EA_COST_NORMAL )
+E_A:RegisterEvent( "keypress", "n" )
+E_A:RegisterEvent( "keyrelease", "n" )
+
+
+local function HookPlayer( Player )
+	for Emu = 1, 130 do
+		local EventKeys = { }
+		numpad.OnDown( Player, Emu, "Lemon.KeyEvent", Emu, true, EventKeys )
+		numpad.OnUp  ( Player, Emu, "Lemon.KeyEvent", Emu, false, EventKeys )
+	end
+end
+
+local KeyBoardType = CreateConVar( "lemon_keyboard_layout", "British" )
+
+numpad.Register( "Lemon.KeyEvent", function( Player, Emu, Pressed, EventKeys )
+	EventKeys[Emu] = Pressed and true or nil
+	
+	local Layout = Wire_Keyboard_Remap[ KeyBoardType:GetString() ] 
+	if !Layout or !Emu or Emu == 0 then return end
+	local Key
+		
+	for K, V in pairs( EventKeys ) do
+		if V and Layout[K] then
+			Key = Layout[K][Emu]
+		end
+	end
+	
+	if !Key then
+		Key = Layout.normal[Emu]
+		if !Key then return end
+	end
+	
+	if type(Key) == "string" then
+		Key = string.byte(Key)
+		if !Key then return end
+	end
+	
+	for _, Gate in pairs( API.GetGates( ) ) do
+		if Gate:IsValid( ) and Gate.Player == Player then
+			if Pressed then
+				Gate:CallEvent( "keypress", E_A.ValueToOp(Key, "n"))
+			else
+				Gate:CallEvent( "keyrelease", E_A.ValueToOp(Key, "n"))
+			end
+		end
+	end
+end)
+
+for _, Player in pairs( player.GetAll() ) do HookPlayer( Player ) end
+hook.Add( "PlayerInitialSpawn", "Lemon.KeyEvent", HookPlayer)

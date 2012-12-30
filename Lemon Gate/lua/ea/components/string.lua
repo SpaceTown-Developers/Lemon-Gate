@@ -296,7 +296,7 @@ E_A:RegisterFunction("explodePattern", "s:s", "t", function(self, ValueA, ValueB
 end)
 
 E_A:RegisterFunction("matchPattern", "s:s", "t", function(self, ValueA, ValueB)
-	local Results = { pcall( MatchStr, ValueA(self), ValueB(self) ) }
+	local Results = { pcall( MatchStr, ValueA(self), ValueB(self), 0 ) }
 	if !Results[1] then self:Throw("string", "Invalid string pattern.") end
 	
 	RemoveTable(Results, 1)
@@ -312,7 +312,7 @@ E_A:RegisterFunction("matchPattern", "s:sn", "t", function(self, ValueA, ValueB,
 end)
 
 E_A:RegisterFunction("matchFirst", "s:s", "s", function(self, ValueA, ValueB)
-	local Ok, Return = pcall(MachStr, ValueA(self), ValueB(self))
+	local Ok, Return = pcall(MachStr, ValueA(self), ValueB(self), 0 )
 	if !Ok or !Return then self:Throw("string", "Invalid string pattern.") end
 	return Return
 end)

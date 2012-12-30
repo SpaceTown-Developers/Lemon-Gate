@@ -7,15 +7,11 @@
 local E_A = LemonGate
 local MAX = 512
 
+local TableRemove = table.remove
 local TableInsert = table.insert
 local TableCopy = table.Copy
 
 local setmetatable = setmetatable
-
-/*==============================================================================================
-	Table Class
-==============================================================================================*/
-E_A:RegisterClass("table", "t", {})
 
 /*==============================================================================================
 	Table Builders
@@ -35,6 +31,13 @@ function E_A.NewResultTable(Values, Type)
 	for I = 1, Size do Types[I] = Type end
 	return Result
 end
+
+/*==============================================================================================
+	Table Class
+==============================================================================================*/
+E_A:RegisterClass("table", "t", NewTable )
+
+E_A:RegisterException("table")
 
 /*==============================================================================================
 	Table Metacore
@@ -211,6 +214,78 @@ E_A:RegisterFunction("copy", "t:", "t", function(self, Value)
 	Table) -- We copied the table!
 end)
 
+/***************************************************************************/
+
+E_A:RegisterFunction("remove", "t:n", "", function(self, ValueA, ValueB)
+	local Table, B = ValueA(self), ValueB(self)
+	
+	if Table and Table.Data then
+		Table:Remove( B )
+	end
+end)
+
+E_A:RegisterFunction("remove", "t:s", "", function(self, ValueA, ValueB)
+	local Table, B = ValueA(self), ValueB(self)
+	
+	if Table and Table.Data then
+		Table:Remove( B )
+	end
+end)
+
+E_A:RegisterFunction("remove", "t:e", "", function(self, ValueA, ValueB)
+	local Table, B = ValueA(self), ValueB(self)
+	
+	if Table and Table.Data then
+		Table:Remove( B )
+	end
+end)
+
+/***************************************************************************/
+
+E_A:RegisterFunction("type", "t:n", "", function(self, ValueA, ValueB)
+	local Table, B = ValueA(self), ValueB(self)
+	if Table and Table.Types then
+		return E_A.GetLongType(Table.Types[B] or "")
+	end; return "void"
+end)
+
+E_A:RegisterFunction("type", "t:s", "", function(self, ValueA, ValueB)
+	local Table, B = ValueA(self), ValueB(self)
+	if Table and Table.Types then
+		return E_A.GetLongType(Table.Types[B] or "")
+	end; return "void"
+end)
+
+E_A:RegisterFunction("type", "t:e", "", function(self, ValueA, ValueB)
+	local Table, B = ValueA(self), ValueB(self)
+	if Table and Table.Types then
+		return E_A.GetLongType(Table.Types[B] or "")
+	end; return "void"
+end)
+
+/***************************************************************************/
+
+E_A:RegisterFunction("exists", "t:n", "", function(self, ValueA, ValueB)
+	local Table, B = ValueA(self), ValueB(self)
+	if Table and Table.Types then
+		return (Table.Types[B] ~= nil and 1 or 0)
+	end; return 0
+end)
+
+E_A:RegisterFunction("exists", "t:s", "", function(self, ValueA, ValueB)
+	local Table, B = ValueA(self), ValueB(self)
+	if Table and Table.Types then
+		return (Table.Types[B] ~= nil and 1 or 0)
+	end; return 0
+end)
+
+E_A:RegisterFunction("exists", "t:e", "", function(self, ValueA, ValueB)
+	local Table, B = ValueA(self), ValueB(self)
+	if Table and Table.Types then
+		return (Table.Types[B] ~= nil and 1 or 0)
+	end; return 0
+end)
+
 /*==============================================================================================
 	Section: Indexing Operators
 	Purpose: Getters and Setters.
@@ -224,10 +299,10 @@ E_A.API.AddHook("BuildFunctions", function()
 		-- Get Number Index
 		E_A:RegisterOperator("get", "tn" .. Type, Type, function(self, ValueA, ValueB)
 			local Table, Index = ValueA(self), ValueB(self)
-			if !Table.Data then self:Error("Attempt to index field " .. tostring(Index) .. " on invalid table.") end
+			if !Table.Data then self:Throw("table", "Attempt to index field " .. tostring(Index) .. " on invalid table.") end
 			
 			local tIndex = Table.Types[Index]
-			if !tIndex and Type == "t" then self:Error("Attempt to reach invalid table at index " .. tostring(Index) .. ".")
+			if !tIndex and Type == "t" then self:Throw("table", "Attempt to reach invalid table at index " .. tostring(Index) .. ".")
 			elseif !tIndex or tIndex != Type then return tTable[3](self) end -- Default value!
 			
 			return Table.Data[Index]
@@ -236,10 +311,10 @@ E_A.API.AddHook("BuildFunctions", function()
 		-- Get String Index
 		E_A:RegisterOperator("get", "ts" .. Type, Type, function(self, ValueA, ValueB)
 			local Table, Index = ValueA(self), ValueB(self)
-			if !Table.Data then self:Error("Attempt to index field " .. tostring(Index) .. " on invalid table.") end
+			if !Table.Data then self:Throw("table", "Attempt to index field " .. tostring(Index) .. " on invalid table.") end
 			
 			local tIndex = Table.Types[Index]
-			if !tIndex and Type == "t" then self:Error("Attempt to reach invalid table at index " .. tostring(Index) .. ".")
+			if !tIndex and Type == "t" then self:Throw("table", "Attempt to reach invalid table at index " .. tostring(Index) .. ".")
 			elseif !tIndex or tIndex != Type then return tTable[3](self) end -- Default value!
 			
 			return Table.Data[Index]
@@ -248,10 +323,10 @@ E_A.API.AddHook("BuildFunctions", function()
 		-- Get Entity Index
 		E_A:RegisterOperator("get", "te" .. Type, Type, function(self, ValueA, ValueB)
 			local Table, Index = ValueA(self), ValueB(self)
-			if !Table.Data then self:Error("Attempt to index field " .. tostring(Index) .. " on invalid table.") end
+			if !Table.Data then self:Throw("table", "Attempt to index field " .. tostring(Index) .. " on invalid table.") end
 			
 			local tIndex = Table.Types[Index]
-			if !tIndex and Type == "t" then self:Error("Attempt to reach invalid table at index " .. tostring(Index) .. ".")
+			if !tIndex and Type == "t" then self:Throw("table", "Attempt to reach invalid table at index " .. tostring(Index) .. ".")
 			elseif !tIndex or tIndex != Type then return tTable[3](self) end -- Default value!
 			
 			return Table.Data[Index]
@@ -262,7 +337,7 @@ E_A.API.AddHook("BuildFunctions", function()
 		-- Set Number Index
 		E_A:RegisterOperator("set", "tn" .. Type, "", function(self, ValueA, ValueB, ValueC)
 			local Table, Index = ValueA(self), ValueB(self)
-			if !Table.Data then self:Error("Attempt to index field " .. tostring(Index) .. " on invalid table.") end
+			if !Table.Data then self:Throw("table", "Attempt to index field " .. tostring(Index) .. " on invalid table.") end
 			
 			if !Table:Set(Index, Type, ValueC(self)) then self:Error("Maximum table size exceeded.") end
 		end)
@@ -270,7 +345,7 @@ E_A.API.AddHook("BuildFunctions", function()
 		-- Set String Index
 		E_A:RegisterOperator("set", "ts" .. Type, "", function(self, ValueA, ValueB, ValueC)
 			local Table, Index = ValueA(self), ValueB(self)
-			if !Table.Data then self:Error("Attempt to index field " .. tostring(Index) .. " on invalid table.") end
+			if !Table.Data then self:Throw("table", "Attempt to index field " .. tostring(Index) .. " on invalid table.") end
 			
 			if !Table:Set(Index, Type, ValueC(self)) then self:Error("Maximum table size exceeded.") end
 		end)
@@ -278,9 +353,43 @@ E_A.API.AddHook("BuildFunctions", function()
 		-- Set Entity Index
 		E_A:RegisterOperator("set", "te" .. Type, "", function(self, ValueA, ValueB, ValueC)
 			local Table, Index = ValueA(self), ValueB(self)
-			if !Table.Data then self:Error("Attempt to index field " .. tostring(Index) .. " on invalid table.") end
+			if !Table.Data then self:Throw("table", "Attempt to index field " .. tostring(Index) .. " on invalid table.") end
 			
 			if !Table:Set(Index, Type, ValueC(self)) then self:Error("Maximum table size exceeded.") end
+		end)
+		
+		/*****************************************************************************************************************************/
+		
+		E_A:RegisterFunction("insert", "t:" .. Type, "", function(self, ValueA, ValueB)
+			local Table, Value, Type = ValueA(self), ValueB(self)
+			
+			if Table and Table.Data then
+				Table:Insert(nil, Type, Value)
+			end
+		end)
+		
+		E_A:RegisterFunction("insert", "t:" .. Type .. "n" , "", function(self, ValueA, ValueB, ValueC)
+			local Table, Index, Value, Type = ValueA(self), ValueC(self), ValueB(self) -- B comes last cus we get the type from it.
+			
+			if Table and Table.Data then
+				Table:Insert(Index, Type, Value)
+			end
+		end)
+		
+		E_A:RegisterFunction("insert", "t:" .. Type .. "s" , "", function(self, ValueA, ValueB, ValueC)
+			local Table, Index, Value, Type = ValueA(self), ValueC(self), ValueB(self) -- B comes last cus we get the type from it.
+			
+			if Table and Table.Data then
+				Table:Insert(Index, Type, Value)
+			end
+		end)
+		
+		E_A:RegisterFunction("insert", "t:" .. Type .. "e" , "", function(self, ValueA, ValueB, ValueC)
+			local Table, Index, Value, Type = ValueA(self), ValueC(self), ValueB(self) -- B comes last cus we get the type from it.
+			
+			if Table and Table.Data then
+				Table:Insert(Index, Type, Value)
+			end
 		end)
 		
 		/*****************************************************************************************************************************/
@@ -444,9 +553,9 @@ end)
 ==============================================================================================*/
 local function GetVariant(self, ValueA, ValueB)
 	local Table, Index = ValueA(self), ValueB(self)
-	if !Table.Data then self:Error("Attempt to index field " .. tostring(Index) .. " on invalid table.") end
+	if !Table.Data then self:Throw("Attempt to index field " .. tostring(Index) .. " on invalid table.") end
 			
-	if !Table.Types[Index] then self:Error("Attempt to index field " .. tostring(Index) .. " a void value.") end
+	if !Table.Types[Index] then self:Throw("Attempt to index field " .. tostring(Index) .. " a void value.") end
 	return Table.Data[Index]
 end
 

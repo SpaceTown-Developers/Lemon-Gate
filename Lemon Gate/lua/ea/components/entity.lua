@@ -352,35 +352,31 @@ E_A:RegisterFunction("applyForce", "e:v", "", function(self, ValueA, ValueB)
 	
 	local Phys = Entity:GetPhysicsObject()
 	
-	if Phys then
+	if Phys and Phys:IsValid() then
 		Phys:ApplyForceCenter(Vector(V[1], V[2], V[3]))
 	end
 end)
 
 E_A:RegisterFunction("applyOffsetForce", "e:vv", "", function(self, ValueA, ValueB, ValueC)
 	local Entity, B, C = ValueA(self), ValueB(self), ValueC(self)
-	
 	if !Entity or !Entity:IsValid() then return end
-	
 	if !E_A.IsOwner(self.Player, Entity) then return end
 	
 	local Phys = Entity:GetPhysicsObject()
 	
-	if Phys then
+	if Phys and Phys:IsValid() then
 		Phys:ApplyForceOffset(Vector(B[1], B[2], B[3]), Vector(C[1], C[2], C[3]))
 	end
 end)
 
 E_A:RegisterFunction("applyAngForce", "e:a", "", function(self, ValueA, ValueB)
 	local Entity, A = ValueA(self), ValueB(self)
-	
 	if !Entity or !Entity:IsValid() then return end
-	
-	if !E_A.IsOwner(self.Player, Entity) then return  end
+	if !E_A.IsOwner(self.Player, Entity) then return end
 	
 	local Phys = Entity:GetPhysicsObject()
 	
-	if Phys then
+	if Phys and Phys:IsValid() then
 	
 		-- assign vectors
 		local Up = Entity:GetUp()
@@ -388,21 +384,21 @@ E_A:RegisterFunction("applyAngForce", "e:a", "", function(self, ValueA, ValueB)
 		local Forward = Entity:GetForward()
 
 		-- apply pitch force
-		if A[1] ~= 0 then
+		if A[1] ~= 0 and A[1] < math.huge then
 			local Pitch = Up * (A[1] * 0.5)
 			Phys:ApplyForceOffset( Forward, Pitch )
 			Phys:ApplyForceOffset( Forward * -1, Pitch * -1 )
 		end
 
 		-- apply yaw force
-		if A[2] ~= 0 then
+		if A[2] ~= 0 and A[2] < math.huge then
 			local Yaw = Forward * (A[2] * 0.5)
 			Phys:ApplyForceOffset( Left, Yaw )
 			Phys:ApplyForceOffset( Left * -1, Yaw * -1 )
 		end
 
 		-- apply roll force
-		if A[3] ~= 0 then
+		if A[3] ~= 0 and A[3] < math.huge then
 			local Roll = Left * (A[3] * 0.5)
 			Phys:ApplyForceOffset( Up, Roll )
 			Phys:ApplyForceOffset( Up * -1, Roll * -1 )
@@ -415,7 +411,7 @@ E_A:RegisterFunction("vel", "e:", "v", function(self, Value)
 	if !Entity or !Entity:IsValid() then return {0, 0, 0} end
 	local Phys = Entity:GetPhysicsObject()
 	
-	if Phys then return Entity:GetVelocity() end
+	if Phys and Phys:IsValid() then return Entity:GetVelocity() end
 	return {0, 0, 0}
 end)
 
@@ -423,7 +419,7 @@ E_A:RegisterFunction("angVel", "e:", "A", function(self, Value)
 	local Entity = Value(self)
 	if !Entity or !Entity:IsValid() then return {0, 0, 0} end
 	
-	if Phys then return Entity:GetAngleVelocity() end
+	if Phys and Phys:IsValid() then return Entity:GetAngleVelocity() end
 	return {0, 0, 0}
 end)
 
@@ -511,40 +507,52 @@ E_A:RegisterFunction("getConstraints", "e:", "t", function(self, Value)
 end)
 
 /*==============================================================================================
-	Section: Finding
+	Section: Bearing & Elevation
 ==============================================================================================*/
 E_A:SetCost(EA_COST_ABNORMAL)
 
 E_A:RegisterFunction("bearing", "e:v", "n", function(self, ValueA, ValueB)
 	local Entity, B = ValueA(self), ValueB(self)
-	if !Entity or !Entity:IsValid() then return 0 end
 	
-	local Pos = Entity:WorldToLocal(Vector(B[1], B[2], B[3]))
-	return Rad2Deg * -Atan2(Pos.y, Pos.x)
+	if Entity and Entity:IsValid() then
+		local Pos = Entity:WorldToLocal( Vector(B[1], B[2], B[3]) )
+		return Rad2Deg * -Atan2(Pos.y, Pos.x)
+	end
+	
+	return 0
 end)
 
 E_A:RegisterFunction("elevation", "e:v", "n", function(self, ValueA, ValueB)
 	local Entity, B = ValueA(self), ValueB(self)
-	if !Entity or !Entity:IsValid() then return 0 end
 	
-	local Pos = Entity:WorldToLocal(Vector(B[1], B[2], B[3]))
+	if Entity and Entity:IsValid() then
+		local Pos = Entity:WorldToLocal( Vector(B[1], B[2], B[3]) )
+		local Len = Pos:Length()
+		if Len > Round then 
+			return Rad2Deg * Asin(Pos.z / Len)
+		end
+	end
 	
-	local Len = Pos:Length()
-	if Len < Round then return 0 end
-	
-	return Rad2Deg * Asin(Pos.z / Len)
+	return 0
 end)
 
 E_A:RegisterFunction("heading", "e:v", "a", function(self, ValueA, ValueB)
 	local Entity, B = ValueA(self), ValueB(self)
-	if !Entity or !Entity:IsValid() then return {0, 0, 0} end
 	
-	local Pos = Entity:WorldToLocal(Vector(B[1], B[2], B[3]))
-	local Bearing = Rad2Deg * -Atan2(Pos.y, Pos.x)
+	if Entity and Entity:IsValid() then
+		local Pos = Entity:WorldToLocal(Vector(B[1], B[2], B[3]))
+		local Bearing = Rad2Deg * -Atan2(Pos.y, Pos.x)
+		local Len = Pos:Length()
+		
+		if Len > Round then
+			local Elevation = Rad2Deg * Asin(Pos.z / Len)
+			return { Elevation, Bearing, 0 }
+		end
+		
+		return { 0, Bearing, 0 }
+	end
 	
-	local Len = Pos:Length()
-	if Len < Round then return { 0, Bearing, 0 } end
-	return { Rad2Deg * Asin(Pos.z / Len), Bearing , 0 }
+	return {0, 0, 0}
 end)
 
 /*==============================================================================================
@@ -588,10 +596,13 @@ local function FilterResults(Entities)
 	return Table
 end
 
+E_A:SetCost(EA_COST_ABNORMAL)
 
 E_A:RegisterFunction("getPlayers", "", "t", function(self)
 	return E_A.NewResultTable(Players(), "e")
 end)
+
+E_A:SetCost(EA_COST_EXPENSIVE)
 
 E_A:RegisterFunction("findByClass", "s", "t", function(self, Value)
 	V = Value(self)

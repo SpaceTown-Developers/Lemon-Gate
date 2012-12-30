@@ -327,6 +327,23 @@ E_A:RegisterOperator("subtraction", "an", "a", function(self, ValueA, ValueB)
 end)
 
 /*==============================================================================================
+	Entity Helpers
+==============================================================================================*/
+E_A:RegisterFunction("toWorld", "e:a", "a", function(self, ValueA, ValueB)
+	local Entity, B = ValueA(self), ValueB(self)
+	if !Entity or !Entity:IsValid() then return {0, 0, 0} end
+	local Ang = Entity:LocalToWorldAngles( Angle( B[1], B[2], B[3] ) )
+	return { Ang.p, Ang.y, Ang.r }
+end)
+
+E_A:RegisterFunction("toLocal", "e:a", "a", function(self, ValueA, ValueB)
+	local Entity, B = ValueA(self), ValueB(self)
+	if !Entity or !Entity:IsValid() then return {0, 0, 0} end
+	local Ang = Entity:WorldToLocalAngles( Angle( B[1], B[2], B[3] ) )
+	return { Ang.p, Ang.y, Ang.r }
+end)
+
+/*==============================================================================================
 	To String
 ==============================================================================================*/
 local FormatStr = string.format

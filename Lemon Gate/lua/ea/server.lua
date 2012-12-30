@@ -432,9 +432,6 @@ for I = 1, SizeE - 1 do
 		
 		if Valid then
 			EventsTable[ Event[1] ] = {Signature, Return, Event[4]}
-			
-			MsgN( Event[1] )
-			PrintTable( {Signature, Return, Event[4]} )
 		end
 	end
 end
@@ -543,11 +540,12 @@ end
 local Context = E_A.Context
 Context.__index = Context
 
-function Context:Throw(Exeption, ...)
-	self.Exception = Exeption
-	self.ExceptionInfo = {...}
-	self.ExceptionTrace = self.StackTrace
-	error("Exception", 0)
+function Context:Throw(Exeption, Message)
+	self.Exception = {
+		Type = Exeption, 
+		Msg = Message,
+		Trace = self.StackTrace
+	}; error("Exception", 0)
 end
 
 function Context:Error(Message, Info, ...)
@@ -560,6 +558,18 @@ function Context:PushPerf(Perf)
 	if Perf < 0 then self:Throw("script", "Execution Limit Reached") end
 end
 
+-- function Context:GetExeption()
+	-- if self.Exception then
+		-- return self.Exception.Type
+	-- end
+-- end
+
+-- function Context:GetMessage()
+	-- if self.Exception then
+		-- return self.Exception.Msg
+	-- end
+-- end
+
 /*==============================================================================================
 	Section: Instruction Operators
 ==============================================================================================*/
@@ -570,10 +580,7 @@ local setmetatable = setmetatable
 local unpack = unpack
 local pcall = pcall
 
-function E_A.CallOp(Op, self, Arg, ...)
-	-- Purpose: Makes Operators callable and handles runtime perf.
-	
-	-- Performance Points.
+local function CallOp(Op, self, Arg, ...)
 	self:PushPerf(Op[0] or EA_COST_NORMAL)
 	
 	-- Update Stack Trace
@@ -584,39 +591,46 @@ function E_A.CallOp(Op, self, Arg, ...)
 	local Perams = Op[3]
 	if Arg then Perams = {Arg, ...} end
 	
-	local Res, Type -- Call the operator.
-		if !Perams or #Perams == 0 then
-			Res, Type = Op[1](self)
-		elseif #Perams < 20 then -- Unpack is slow so lets avoid it!
-			Res, Type = Op[1](self, Perams[1], Perams[2], Perams[3], Perams[4], Perams[5], Perams[6], Perams[7], Perams[8], Perams[9], Perams[10], Perams[11], Perams[12], Perams[13], Perams[14], Perams[15], Perams[16], Perams[17], Perams[18], Perams[19], Perams[20])
-		else
-			Res, Type = Op[1](self, unpack(Perams)) -- More then 20 parameters!
-		end
+	local Res, Type
+	if !Perams or #Perams == 0 then
+		Res, Type = Op[1](self)
+	elseif #Perams < 20 then -- Unpack is slow so lets avoid it!
+		Res, Type = Op[1](self, Perams[1], Perams[2], Perams[3], Perams[4], Perams[5], Perams[6], Perams[7], Perams[8], Perams[9], Perams[10], Perams[11], Perams[12], Perams[13], Perams[14], Perams[15], Perams[16], Perams[17], Perams[18], Perams[19], Perams[20])
+	else
+		Res, Type = Op[1](self, unpack(Perams)) -- More then 20 parameters!
+	end
 	
-	-- Reset Stack Trace
 	StackTrace[#StackTrace] = nil
-	
 	return Res, (Type or Op[2])
 end 
 
-local CallOp = E_A.CallOp
-Operator.__call = E_A.CallOp
-
-function E_A.SafeCall(Op, self, ...)
-	-- Purpose: Calls the operator safely and handles exceptions.
-	
-	local StackTrace = self.StackTrace -- Back up trace!
-	self.StackTrace = { StackTrace[#StackTrace] }
+local function SafeCall(Op, self, ...)
+	local Trace = self.StackTrace
+	self.StackTrace = {Trace[#Trace]}
 	
 	local Ok, Result, Type = pcall(CallOp, Op, self, ...)
-	self.StackTrace = StackTrace -- Restore last trace!
 	
-	if !Ok and Result == "Exception" then
-		return false, self.Exception, unpack(self.ExceptionInfo)
-	end
-	
+	self.StackTrace = Trace
 	return Ok, Result, Type
 end
+
+E_A.CallOp = CallOp
+E_A.SafeCall = SafeCall
+Operator.__call = CallOp
+Operator.SafeCall = SafeCall
+
+/****************************************************************************/
+
+function E_A.OpToString(Op, self, ...)
+	local Value, Type = Op(self, ...)
+	local OpT = E_A.OperatorTable["cast(s" .. Type .. ")"]
+	
+	if !OpT then return tostring( Value ) end
+	
+	return OpT[1]( self, function() return Value, Type end) 
+end
+
+Operator.toString = E_A.OpToString
 
 function E_A.ValueToOp(Value, Type)
 	-- Purpose: Can instantly convert values to operator values.
@@ -624,4 +638,3 @@ function E_A.ValueToOp(Value, Type)
 	return setmetatable({function() return Value, Type end, [2] = Type}, Operator)
 end
 
-Operator.SafeCall = E_A.SafeCall

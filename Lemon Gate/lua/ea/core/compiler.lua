@@ -742,15 +742,13 @@ end
 /********************************************************************************************************************/
 
 function Compiler:Instr_BREAK(Depth)
-	-- Purpose: Breaks a loop.
-	
-	return function(self) self:Throw("break", Depth or 0) end
+	self.ExitDeph = Depth or 0
+	error("Break", 0)
 end
 
 function Compiler:Instr_CONTINUE(Depth)
-	-- Purpose: Continues a loop.
-	
-	return function(self) self:Throw("continue", Depth or 0) end
+	self.ExitDeph = Depth or 0
+	error("Continue", 0)
 end
 
 /*==============================================================================================
@@ -1106,11 +1104,12 @@ function Compiler:Instr_TRY(Stmts, Inst)
 	return self:Operator(Operator, Return, Perf, Statements, Catch)
 end
 
-function Compiler:Instr_CATCH(Exceptions, Stmts, Inst)
+function Compiler:Instr_CATCH(Exceptions, Var, Stmts, Inst)
 	-- Purpose: Catches exceptions.
 	
+	local VarID, Scope, Catch = self:LocalVar(Var, "!")
+	
 	local Statements = self:CompileInst(Stmts)
-	local Catch
 	
 	if Inst then Catch = self:CompileInst(Inst) end
 	
@@ -1118,5 +1117,5 @@ function Compiler:Instr_CATCH(Exceptions, Stmts, Inst)
 	
 	self:PushPerf(Perf)
 	
-	return self:Operator(Operator, Return, Perf, Exceptions, Statements, Catch)
+	return self:Operator(Operator, Return, Perf, Exceptions, VarID, Statements, Catch)
 end
