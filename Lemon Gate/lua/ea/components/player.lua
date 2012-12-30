@@ -169,7 +169,7 @@ E_A:RegisterFunction( "leftClick", "e:", "n", function( self, Value )
 	return ( IsValid( this ) and this:IsPlayer( ) and this:KeyDown( IN_ATTACK ) ) and 1 or 0 
 end )
 
-E_A:RegisterFunction( "leftClick", "e:", "n", function( self, Value ) 
+E_A:RegisterFunction( "rightClick", "e:", "n", function( self, Value ) 
 	local this = Value( self ) 
 	return ( IsValid( this ) and this:IsPlayer( ) and this:KeyDown( IN_ATTACK2 ) ) and 1 or 0 
 end )
