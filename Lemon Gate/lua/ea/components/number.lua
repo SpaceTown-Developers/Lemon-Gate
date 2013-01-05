@@ -18,16 +18,11 @@ local math = math
 E_A:RegisterClass("number", "n", 0)
 
 local function Input(self, Memory, Value)
-	-- Purpose: Used to set Memory via a wired input.
-	
 	self.Delta[Memory] = self.Memory[Memory]
-	
 	self.Memory[Memory] = Value
 end
 
 local function Output(self, Memory)
-	-- Purpose: Used to get Memory for a wired output.
-	
 	return self.Memory[Memory]
 end
 
@@ -41,12 +36,8 @@ E_A:WireModClass("number", "NORMAL", Input, Output)
 E_A:SetCost(EA_COST_CHEAP)
 
 E_A:RegisterOperator("assign", "n", "", function(self, ValueOp, Memory)
-	-- Purpose: Assigns a number to memory
-	
 	self.Delta[Memory] = self.Memory[Memory]
-	
 	self.Memory[Memory] = ValueOp(self)
-	
 	self.Click[Memory] = true
 end)
 
@@ -323,12 +314,15 @@ end)
 ==============================================================================================*/
 local MathFloor = math.floor -- Speed
 
+E_A:RegisterFunction("floor", "n", "n", function(self, Value)
+	local V = Value(self)
+	return MathFloor(V)
+end)
+
 E_A:RegisterFunction("abs", "n", "n", function(self, Value)
 	local V = Value(self)
 	if V >= 0 then return V else return -V end
 end)
-
-
 
 E_A:RegisterFunction("ceil", "n", "n", function(self, Value)
 	local V = Value(self)
@@ -341,8 +335,6 @@ E_A:RegisterFunction("ceil", "nn", "n", function(self, ValueA, ValueB)
 	return A - ((A * Shift) % -1) / Shift
 end)
 
-
-
 E_A:RegisterFunction("round", "n", "n", function(self, Value)
 	local V = Value(self)
 	return V - (V + 0.5) % 1 + 0.5
@@ -354,8 +346,6 @@ E_A:RegisterFunction("round", "nn", "n", function(self, ValueA, ValueB)
 	return MathFloor(A * Shift+0.5) / Shift
 end)
 
-
-
 E_A:RegisterFunction("int", "n", "n", function(self, Value)
 	local V = Value(self)
 	if V >= 0 then return V - V % 1 else return V - V % -1 end
@@ -366,7 +356,6 @@ E_A:RegisterFunction("frac", "n", "n", function(self, Value)
 	if V >= 0 then return V % 1 else return V % -1 end
 end)
 
-
 E_A:RegisterFunction("clamp", "nnn", "n", function(self, ValueA, ValueB, ValueC)
 	local A, B, C = ValueA(self), ValueB(self), ValueC(self)
 	if A < B then return B elseif A > C then return C else return A end
@@ -376,8 +365,6 @@ E_A:RegisterFunction("inrange", "nnn", "n", function(self, ValueA, ValueB, Value
 	local A, B, C = ValueA(self), ValueB(self), ValueC(self)
 	if A < B or A > C then return 0 else return 1 end
 end)
-
-
 
 E_A:RegisterFunction("sign", "n", "n", function(self, Value)
 	local V = Value(self)
@@ -622,4 +609,38 @@ end)
 
 E_A:RegisterFunction("log", "nn", "n", function(self, ValueA, ValueB)
 	return MathLog(ValueA(self)) / MathLog(ValueB(self))
+end)
+
+/*==============================================================================================
+	Section: BINARY
+==============================================================================================*/
+local rshift = bit.rshift
+local rshift = bit.lshift
+local bxor = bit.bxor
+local band = bit.band
+local bor = bit.bor
+
+E_A:RegisterOperator("binary_shift_right", "nn", "n", function(self, ValueA, ValueB)
+	local A, B = ValueA(self), ValueB(self)
+	return rshift(A, B)
+end)
+
+E_A:RegisterOperator("binary_shift_left", "nn", "n", function(self, ValueA, ValueB)
+	local A, B = ValueA(self), ValueB(self)
+	return lshift(A, B)
+end)
+
+E_A:RegisterOperator("binary_xor", "nn", "n", function(self, ValueA, ValueB)
+	local A, B = ValueA(self), ValueB(self)
+	return bxor(A, B)
+end)
+
+E_A:RegisterOperator("binary_and", "nn", "n", function(self, ValueA, ValueB)
+	local A, B = ValueA(self), ValueB(self)
+	return band(A, B)
+end)
+
+E_A:RegisterOperator("binary_or", "nn", "n", function(self, ValueA, ValueB)
+	local A, B = ValueA(self), ValueB(self)
+	return bor(A, B)
 end)

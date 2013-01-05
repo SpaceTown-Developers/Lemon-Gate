@@ -68,7 +68,7 @@ end)
 /*==============================================================================================
 	Section: LambdaFunctions!
 ==============================================================================================*/
-E_A:RegisterClass("function", "f")
+E_A:RegisterClass("function", "f", {})
 
 E_A:RegisterException("invoke")
 
@@ -86,17 +86,14 @@ end)
 
 
 E_A:RegisterOperator("call", "f", "?", function(self, Value, pSig, Values)
-	local Lambda = Value(self)
+	local Lambda, T = Value(self)
+	
+	if !Lambda or !Lambda[3] then self:Throw("invoke", "Tryed to call a void function") end
 	local Perams, Return = Lambda[2], Lambda[4]
-	local tPerams = #Perams
 	
 	self.ReturnValue  = nil
 	
-	if tPerams != #Values then
-		self:Throw("invoke", "Parameter mismatch (" .. Lambda[1] .. ") expected got (" .. pSig .. ")")
-	end
-	
-	for I = 1, tPerams do Perams[I]( self, Values[I] ) end
+	for I = 1, #Perams do Perams[I]( self, Values[I] ) end
 	
 	local Ok, Exit = Lambda[3]:SafeCall(self)
 	

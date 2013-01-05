@@ -302,6 +302,7 @@ end
 	Purpose: Performs equations and logic.
 	Creditors: Rusketh
 ==============================================================================================*/
+
 function Parser:Expression()
 	local Trace = self:TokenTrace()
 	
@@ -323,159 +324,111 @@ function Parser:Expression()
 		self:PrevToken()
 	end
 	
-	if !self:AcceptToken("lpa") then
-		
-		local ParentTrace = self.ExprTrace
-		self.ExprTrace = self:TokenTrace() -- The Child trace takes over!
-		
-		local Expression = self:Operators( self:ExpressionValue() ) -- Get a value
-		
-		self.ExprTrace = ParentTrace -- The parent trace returns.
-		
-		return Expression
-	
-	elseif self:AcceptToken("fun") or self:AcceptToken("func") then
-		if self:CheckToken("rpa") then
-			self:PrevToken() -- Note: Move back to the type token
-			
-			local Type = self:StrictType("type expected for casting operator ((type))")
-			self:NextToken() -- Note: Skipp the rpa token or it will kill the next Expression.
-			
-			return self:Instruction("cast", Trace, Type, self:Expression())
-		end
-		
-		self:PrevToken()
-	end
-	
-	-- Note: Grouped ( grouped equation )
-	
-	local Trace = self:TokenTrace()
-	local Expression = self:Expression()
-	
-	if !self:AcceptToken("rpa") then
-		self:TokenError(Trace, "Right parenthesis ()) missing, to close grouped equation")
-	end
-	
-	return self:Operators( Expression )
+	return self:NextOperator( 	"or", "and",
+								"bor", "band", "bxor",
+								"eq", "neq", "gth", "lth", "geq", "leq",
+								"bshr", "bshl",
+								"add", "sub", "mul", "div",
+								"mod", "exp"
+							)
 end
 
-/********************************************************************************************************************/
-
-function Parser:ExpressionValue()
-	-- Purpose: Gets a value checking for prefixed operators.
-	
+function Parser:ExpressionValue()	
 	local Trace = self:TokenTrace()
+	local ParentTrace = self.ExprTrace
+	self.ExprTrace = Trace -- Set Expr Location
+	
+	local Inst, Prefix, Cast
 	
 	if self:AcceptToken("add") then -- add +Num
-		if !self:HasTokens() then
-			self:Error("Identity operator (+) must not be succeeded by whitespace")
-		elseif self:CheckToken("lpa") then
-			return self:Expression()
-		else
-			return self:GetValue()
-		end
-		
+		if !self:HasTokens() then self:Error("Identity operator (+) must not be succeeded by whitespace") end
 	elseif self:AcceptToken("sub") then -- sub -Num
-		if !self:HasTokens() then
-			self:Error("Negation operator (-) must not be succeeded by whitespace")
-		elseif self:CheckToken("lpa") then
-			return self:Instruction("negative", Trace, self:Expression())
-		else
-			return self:Instruction("negative", Trace, self:GetValue())
-		end
-		
+		if !self:HasTokens() then self:Error("Negation operator (-) must not be succeeded by whitespace") end
+		Prefix = "negative"
+	
 	elseif self:AcceptToken("not") then -- not !Num
-		if !self:HasTokens() then
-			self:Error("Logical not operator (!) must not be succeeded by whitespace")
-		elseif self:CheckToken("lpa") then
-			return self:Instruction("not", Trace, self:Expression())
-		else
-			return self:Instruction("not", Trace, self:GetValue())
-		end
+		if !self:HasTokens() then self:Error("Logical not operator (!) must not be succeeded by whitespace") end
+		Prefix = "not"
 		
 	elseif self:AcceptToken("len") then -- len #String
-		if !self:HasTokens() then
-			self:Error("length operator (#) must not be succeeded by whitespace")
-		elseif self:CheckToken("lpa") then
-			return self:Instruction("length", Trace, self:Expression())
-		else
-			return self:Instruction("length", Trace, self:GetValue())
-		end
-		
-	elseif self:AcceptToken("dlt") then -- dlt $Num
-		if !self:HasTokens() then 
-			self:Error("Delta operator ($) must not be succeeded by whitespace")
-		elseif !self:AcceptToken("var") then
-			self:Error("variable expected, after Delta operator ($)")
-		end
-		
-		return self:Instruction("delta", Trace, self.TokenData)
+		if !self:HasTokens() then self:Error("length operator (#) must not be succeeded by whitespace") end
+		Prefix = "length"
 	end
 	
-	return self:GetValue()
+	if self:AcceptToken("lpa") then -- Castin (type) Value
+		if self:AcceptToken("fun") or self:AcceptToken("func") then
+			if self:CheckToken("rpa") then
+				self:PrevToken()
+				Cast = self:StrictType("type expected for casting operator ((type))")
+				self:NextToken()
+			else
+				self:PrevToken() -- Back to FUN
+				self:PrevToken() -- Back to LPA
+			end
+		else
+			self:PrevToken() -- Back to LPA
+		end
+	end
+	
+	if !self:AcceptToken("lpa") then
+		Inst = self:GetValue()
+	else
+		local Trace = self:TokenTrace()
+		Inst = self:Expression() -- Group Equation
+		
+		if !self:AcceptToken("rpa") then
+			self:TokenError(Trace, "Right parenthesis ()) missing, to close grouped equation")
+		end
+	end
+	
+	if !Inst then self:ExpressionError() end
+	
+	Inst = self:AppendValue( Inst )
+	
+	if Cast then
+		Inst = self:Instruction("cast", Trace, Cast, Inst)
+	end
+	
+	if Prefix then
+		Inst = self:Instruction(Prefix, Trace, Inst)
+	end
+
+	self.ExprTrace = ParentTrace
+	return Inst
 end
 
 /********************************************************************************************************************/
 
-function Parser:Operators(Expr)
-	-- Purpose: Get and use operators for arithmetic, Comparison, binary.
+local ExpressionOperators = {
+	["or"] = "or",
+	["and"] = "and",
+	["bor"] = "binary_or",
+	["band"] = "binary_and",
+	["bxor"] = "binary_xor",
+	["eq"] = "eq",
+	["neq"] = "negeq",
+	["gth"] = "greater",
+	["lth"] = "less",
+	["geq"] = "eqgreater",
+	["leq"] = "eqless",
+	["bshr"] = "binary_shift_right",
+	["bshl"] = "binary_shift_left",
+	["add"] = "addition",
+	["sub"] = "subtraction",
+	["mul"] = "multiply",
+	["div"] = "division",
+	["mod"] = "modulus",
+	["exp"] = "exponent",
+}
+
+function Parser:NextOperator( Token, ... )
+	if !Token then return self:ExpressionValue() end
 	
-	if self:AcceptToken("exp") then -- exp ^ Power
-		return self:Instruction("exponent", self:TokenTrace(), Expr, self:Expression())
-		
-	elseif self:AcceptToken("mul") then -- mul * Multiply
-		return self:Instruction("multiply", self:TokenTrace(), Expr, self:Expression())
-		
-	elseif self:AcceptToken("div") then -- div \ Divide
-		return self:Instruction("division", self:TokenTrace(), Expr, self:Expression())
-		
-	elseif self:AcceptToken("mod") then -- mod % Modulus
-		return self:Instruction("modulus", self:TokenTrace(), Expr, self:Expression())
-		
-	elseif self:AcceptToken("add") then -- add % Addition
-		return self:Instruction("addition", self:TokenTrace(), Expr, self:Expression())
-		
-	elseif self:AcceptToken("sub") then -- sub % Addition
-		return self:Instruction("subtraction", self:TokenTrace(), Expr, self:Expression())
-		
-	elseif self:AcceptToken("bshr") then -- bshr >>
-		return self:Instruction("binary_shift_right", self:TokenTrace(), Expr, self:Expression())
-		
-	elseif self:AcceptToken("bshl") then -- bshrl <<
-		return self:Instruction("binary_shift_left", self:TokenTrace(), Expr, self:Expression())
-		
-	elseif self:AcceptToken("gth") then -- gth >
-		return self:Instruction("greater", self:TokenTrace(), Expr, self:Expression())
-		
-	elseif self:AcceptToken("lth") then -- lth <
-		return self:Instruction("less", self:TokenTrace(), Expr, self:Expression())
-		
-	elseif self:AcceptToken("geq") then -- geq >=
-		return self:Instruction("eqgreater", self:TokenTrace(), Expr, self:Expression())
-		
-	elseif self:AcceptToken("leq") then -- leq <=
-		return self:Instruction("eqless", self:TokenTrace(), Expr, self:Expression())
-		
-	elseif self:AcceptToken("neq") then -- neq !=
-		return self:Instruction("negeq", self:TokenTrace(), Expr, self:Expression())
-		
-	elseif self:AcceptToken("eq") then -- eq ==
-		return self:Instruction("eq", self:TokenTrace(), Expr, self:Expression())
-		
-	elseif self:AcceptToken("bxor") then -- bxor ^^
-		return self:Instruction("binary_xor", self:TokenTrace(), Expr, self:Expression())
-		
-	elseif self:AcceptToken("band") then -- band &&
-		return self:Instruction("binary_and", self:TokenTrace(), Expr, self:Expression())
-		
-	elseif self:AcceptToken("bor") then -- bor ||
-		return self:Instruction("binary_or", self:TokenTrace(), Expr, self:Expression())
-		
-	elseif self:AcceptToken("and") then -- and &
-		return self:Instruction("and", self:TokenTrace(), Expr, self:Expression())
-		
-	elseif self:AcceptToken("or") then -- or |
-		return self:Instruction("or", self:TokenTrace(), Expr, self:Expression())
+	local Instr = ExpressionOperators[ Token ]
+	local Expr = self:NextOperator( ... )
+	
+	while self:AcceptToken( Token ) do
+		Expr = self:Instruction(Instr, self:TokenTrace(), Expr, self:NextOperator( Token, ... ) )
 	end
 	
 	return Expr
@@ -512,14 +465,23 @@ function Parser:GetValue()
 	-- Purpose: Gets a build up of instructions that will become a value.
 	local Trace, Instr = self:TokenTrace()
 	
-	if self:CheckToken("num") then
-		Instr = self:GetNumber()
+	if self:AcceptToken("dlt") then -- dlt $Num
+		if !self:HasTokens() then 
+			self:Error("Delta operator ($) must not be succeeded by whitespace")
+		elseif !self:AcceptToken("var") then
+			self:Error("variable expected, after Delta operator ($)")
+		end
+		
+		return self:Instruction("delta", Trace, self.TokenData)
+	
+	elseif self:CheckToken("num") then
+		return self:GetNumber()
 		
 	elseif self:AcceptToken("str") then -- Create a string from a string token.
-		Instr = self:Instruction("string", Trace, self.TokenData)
+		return self:Instruction("string", Trace, self.TokenData)
 	
 	elseif self:AcceptToken("var") then -- Grab a var from a var token.
-		Instr = self:Instruction("variable", Trace, self.TokenData)
+		return self:Instruction("variable", Trace, self.TokenData)
 		
 	elseif self:AcceptToken("fun") then -- We are going to getting a function.
 		
@@ -543,35 +505,31 @@ function Parser:GetValue()
 					self:Error("Right parenthesis ()) missing, to close function parameters")
 				end
 				
-				Instr = self:Instruction("function", Trace, Function, Permaters)
+				return self:Instruction("function", Trace, Function, Permaters)
 			
 		
 		-- RETURNABLE LAMBDA FUNCTION, type function() {}
 		
 			elseif self:CheckToken("func") then
 				self:PrevToken()
-				Instr = self:LambdaFunction()
+				return self:LambdaFunction()
 				
 		-- FUNCTION VAR, func
 		
 			else
-				Instr = self:Instruction("funcvar", Trace, self.TokenData)
+				return self:Instruction("funcvar", Trace, self.TokenData)
 			end
 		
 -- LAMBDA FUNCTION, function() {}
 	
 	elseif self:CheckToken("func") then
-		Instr = self:LambdaFunction()
+		return self:LambdaFunction()
 		
 -- TABLE CONSTRUCTOR, {A, B, C, D}
 
 	elseif self:CheckToken("lcb") then
-		Instr = self:BuildTable()
+		return self:BuildTable()
 	end
-	
-	if !Instr then self:ExpressionError() end
-	
-	return self:AppendValue( Instr )
 end
 
 function Parser:AppendValue( Instr )
@@ -818,7 +776,7 @@ end
 function Parser:VariableDeclaration()
 	local Trace, Special = self:TokenTrace()
 	
-	if self:AcceptToken("glob") then
+	if self:AcceptToken("glo") then
 		Special = "global" -- Global
 	elseif self:AcceptToken("in") then
 		Special = "input" -- Input
@@ -1021,8 +979,6 @@ function Parser:IndexedStatement()
 				Inst = self:Instruction("multiply", Trace, Inst, self:Expression())
 			elseif self:AcceptToken("adiv") then -- Division Assignment operator
 				Inst = self:Instruction("dividie", Trace, Inst, self:Expression())
-			elseif self:CheckToken("lpa") then -- Call operator
-				return self:CallOperator(Inst)
 			else
 				return self:AppendValue( Inst )
 			end
@@ -1228,7 +1184,7 @@ end
 function Parser:FunctionStatement()
 	local Trace = self:TokenTrace()
 		
-	local Global = self:AcceptToken("glob")
+	local Global = self:AcceptToken("glo")
 		
 	-- FUNCTION ASSIGN
 	
@@ -1237,7 +1193,7 @@ function Parser:FunctionStatement()
 			local Name = self.TokenData
 			
 			if self:AcceptToken("ass") then -- Function Assignment, func = func, func = function() {}
-				return self:Instruction("funcass", Trace, Global, Name, self:GetValue())
+				return self:Instruction("funcass", Trace, Global, Name, self:Expression())
 			end
 		
 			self:PrevToken() -- Not a funcass!
@@ -1275,7 +1231,9 @@ function Parser:FunctionStatement()
 			local Lambda = self:Instruction("lambda", Trace, Sig, Params, Types, Block, Return)
 			return self:Instruction("funcass", Trace, Global, Name, Lambda)
 
-	elseif Global then
+	end
+	
+	if Global then
 		self:PrevToken()
 	end
 end

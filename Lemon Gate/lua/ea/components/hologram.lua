@@ -178,9 +178,7 @@ E_A:RegisterException("hologram")
 E_A:RegisterOperator("assign", "h", "", function(self, ValueOp, Memory)
 	-- Purpose: Assigns a number to memory
 	
-	local Value, Type = ValueOp(self)
-	self.Memory[Memory] = Value
-	
+	self.Memory[Memory] = ValueOp(self)
 	self.Click[Memory] = true
 end)
 
@@ -191,9 +189,7 @@ E_A:RegisterOperator("variable", "h", "h", function(self, Memory)
 end)
 
 E_A:RegisterOperator("cast", "eh", "e", function(self, Value)
-	-- Purpose: Assigns a number to memory
-	
-	return Value(self) -- They are entities anyway.
+	return Value(self), "e" -- They are entities anyway.
 end)
 
 E_A:RegisterOperator("cast", "he", "h", function(self, Value)
@@ -307,17 +303,23 @@ E_A:RegisterFunction("hologram", "sv", "h", function(self, ValueA, ValueB)
 	return Holo
 end)
 
+E_A:RegisterFunction("isValid", "h:", "n", function(self, Value)
+	local Entity = Value(self)
+	if Entity and Entity:IsValid() then return 1 end
+	return 0
+end)
+
 /*==============================================================================================
 	Remove
 ==============================================================================================*/
 E_A:SetCost(EA_COST_NORMAL)
 
 E_A:RegisterFunction("remove", "h:", "", function(self, Value)
-	local Holo = ValueA(self)
+	local Holo = Value(self)
 	
 	if Holo and Holo:IsValid() and Holo.Player == self.Player then
 		local Ent, Owner = self.Entity, self.Player
-		Owners[Owner][Holo] = nil
+		Owners[Owner] = Owners[Owner] - 1
 		Holograms[Ent][Holo] = nil
 		Holo:Remove()
 	end
@@ -423,7 +425,7 @@ E_A:RegisterFunction("scale", "h:v", "", function(self, ValueA, ValueB)
 			Z = math.Clamp(B[3], -Max, Max)
 		else
 			local Size = Holo:OBBMaxs() - Holo:OBBMins()
-			X, Y, Z = RescaleAny(B[1], B[2], B[3], Max * 12, Size)
+			X, Y, Z = RescaleAny(B[1], B[2], B[3], Max, Size)
 		end
 		
 		if Holo:SetScale(X, Y, Z) then
@@ -445,7 +447,7 @@ E_A:RegisterFunction("scaleUnits", "h:v", "", function(self, ValueA, ValueB)
 			Z = math.Clamp(B[3] / Scale.z, -Max, Max)
 		
 		if Holo.ModelAny then
-			X, Y, Z = RescaleAny(X, Y, Z, Max * 12, Scale)
+			X, Y, Z = RescaleAny(X, Y, Z, Max, Scale)
 		end
 		
 		if Holo:SetScale(X, Y, Z) then
@@ -453,6 +455,17 @@ E_A:RegisterFunction("scaleUnits", "h:v", "", function(self, ValueA, ValueB)
 			NeedsSync = true
 		end
 	end
+end)
+
+E_A:RegisterFunction("getScale", "h:", "v", function(self, Value)
+	local Holo = Value(self)
+	
+	if Holo and Holo:IsValid() then
+		local S = Holo.Scale
+		return { S.x, S.y, S.z }
+	end
+	
+	return { 0, 0, 0 }
 end)
 
 /*==============================================================================================
@@ -465,6 +478,17 @@ E_A:RegisterFunction("color", "h:c", "", function(self, ValueA, ValueB)
         Holo:SetColor( Color( B[1], B[2], B[3], B[4] ) )
         Holo:SetRenderMode(B[4] == 255 and RENDERMODE_NORMAL or RENDERMODE_TRANSALPHA)
 	end
+end)
+
+E_A:RegisterFunction("getColor", "h:", "c", function(self, Value)
+	local Holo = Value(self)
+	
+	if Holo and Holo:IsValid() then
+		local C = Holo:GetColor( )
+        return { C.r, C.g, C.b, C.a }
+	end
+	
+	return { 0, 0, 0, 0 }
 end)
 
 /*==============================================================================================

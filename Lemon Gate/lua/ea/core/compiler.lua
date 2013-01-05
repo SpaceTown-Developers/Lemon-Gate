@@ -55,6 +55,7 @@ function Compiler:Run(Instr)
 	
 	self.Inputs = {}
 	self.Outputs = {}
+	self.IOPorts = { }
 	
 	self.VarIndex = 1
 	self.VarTypes = {}
@@ -238,7 +239,7 @@ function Compiler:SetVar(Name, Type, NoError)
 	end
 	
 	local VarID = self.VarIndex + 1
-	self.VarIndex = VarID -- Nome: We move up in memory.
+	self.VarIndex = VarID -- We move up in memory.
 	
 	self.GlobalScope[Name] = VarID
 	self.VarTypes[VarID] = Type
@@ -265,26 +266,65 @@ function Compiler:AssignVar(Type, Name, Special)
 		return self:LocalVar(Name, Type)
 		
 	elseif Special == "global" then
-		return self:SetVar(Name, Type)
+		local Cell = self.GlobalScope[Name]
 		
-	elseif self.ScopeID != 1 then -- They can not be declared here!
-		self:Error("%s can not be declared outside of code body.", UpcaseStr(Special) .. "'s")
-	
+		if !Cell then
+			local VarID = self.VarIndex + 1
+			self.VarIndex = VarID
+			
+			if self.Scope[Name] then
+				self:Error("%s %s can not redefine existing varaible.", Special, Name)
+			end
+			
+			self.Scope[Name] = VarID
+			self.VarTypes[VarID] = Type
+			self.GlobalScope[Name] = VarID
+			
+			return VarID, self.ScopeID
+		elseif self.VarTypes[Cell] != Type then
+			self:Error("Variable %s already exists as %s, and can not be assigned to %s", Name, GetLongType(self.VarTypes[Cell]), GetLongType(Type))
+		elseif self.Scope[Name] and self.Scope[Name] ~= Cell then
+			self:Error("%s %s can not redefine existing varaible.", Special, Name)
+		else
+			self.Scope[Name] = Cell
+			return Cell, self.ScopeID
+		end
+		
+	elseif Special == "input" or Special == "output" then
+		local Cell = self.IOPorts[Name]
+		
+		if !Cell then -- Create New!
+			local VarID = self.VarIndex + 1
+			self.VarIndex = VarID
+			
+			if self.Scope[Name] then
+				self:Error("%s %s can not redefine existing varaible.", Special, Name)
+			elseif Special == "input" then
+				self.Inputs[VarID] = Name
+			elseif Special == "output" then
+				self.Outputs[VarID] = Name
+			end
+			
+			self.Scope[Name] = VarID
+			self.IOPorts[Name] = VarID
+			self.VarTypes[VarID] = Type
+			
+			return VarID, self.ScopeID
+			
+		elseif Special == "input" and self.Outputs[Cell] then
+			self:Error("Variable %s already exists as output, therefore can not be declared as %s", Name, Special)
+		elseif Special == "output" and self.Inputs[Cell] then
+			self:Error("Variable %s already exists as input, therefore can not be declared as %s", Name, Special)
+		elseif self.VarTypes[Cell] != Type then
+			self:Error("Variable %s already exists as %s, and can not be assigned to %s", Name, GetLongType(self.VarTypes[Cell]), GetLongType(Type))
+		elseif self.Scope[Name] and self.Scope[Name] ~= Cell then
+			self:Error("%s %s can not redefine existing varaible.", Special, Name)
+		else
+			self.Scope[Name] = Cell
+			return Cell, self.ScopeID
+		end
 	else
 		local VarID, Scope = self:SetVar(Name, Type)
-		
-		if Special != "input" and self.Inputs[VarID] then
-			self:Error("Variable %s already exists as input, therefore can not be declared as %s", Name, Special)
-		elseif Special != "output" and self.Outputs[VarID] then
-			self:Error("Variable %s already exists as output, therefore can not be declared as %s", Name, Special)
-		end
-		
-		if Special == "input" then
-			self.Inputs[VarID] = Name
-		elseif Special == "output" then
-			self.Outputs[VarID] = Name
-		end
-		
 		return VarID, Scope
 	end
 end
@@ -326,23 +366,24 @@ end
 	Creditors: Rusketh
 ==============================================================================================*/
 function Compiler:Instr_ASSIGN_DEFAULT(Name, Type, Special)
-	-- Purpose: Assign a Variable with a default value.
+	-- Purpose: Initalise a variable and assigns default if required.
 	
 	local Operator, Return, Perf = self:GetOperator("assign", Type)
-	
-	if !Operator then self:Error("Assignment operator (=) does not support '%s'", GetLongType(Type)) end
+	if !Operator then self:Error("Can not initalise Variable %s of %s", Name, GetLongType(Type)) end
 	
 	local VarID, Scope = self:AssignVar(Type, Name, Special) -- Create the Var
-	
-	-- Note: Inputs can not be assigned so registering them is enough.
 	if self.Inputs[VarID] then return self:Operator(function() end) end
+	
+	local Default = E_A.TypeShorts[Type][3]
+	if !Default then self:Error("Can not initalise Variable %s of %s", Name, GetLongType(Type)) end
+	
+	local DefaultAsOp = self:Operator(Default, Type, 0)
 	
 	self:PushPerf(Perf)
 	
-	local Default = E_A.TypeShorts[Type][3]
-	if !Default then self:Error("Assignment operator (=) can not auto assign default value '%s'", GetLongType(Type)) end
-	
-	return self:Operator(Operator, Return, Perf, self:Operator(Default, Type, 0), VarID)
+	return self:Operator( function(self)
+			if self.Memory[VarID] == nil then Operator(self, DefaultAsOp, VarID) end
+		end, Return, Perf) -- Its simple, If it doesnt exist create it.
 end
 
 /********************************************************************************************************************/
@@ -373,7 +414,7 @@ end
 /********************************************************************************************************************/
 
 function Compiler:Instr_ASSIGN(Name, Expr)
-	-- Purpose: Assign Default value.
+	-- Purpose: Assign value.
 	
 	local VarID, Type = self:GetVar(Name)
 	if !VarID then self:Error("variable %s does not exist", Name) end
@@ -417,7 +458,8 @@ end
 	Purpose: Does math stuffs?
 	Creditors: Rusketh
 ==============================================================================================*/
-for Name, Symbol in pairs({exponent = "^", multiply = "*", division = "/", modulus = "%", addition = "+", subtraction = "-"}) do
+for Name, Symbol in pairs({exponent = "^", multiply = "*", division = "/", modulus = "%", addition = "+", subtraction = "-",
+binary_shift_right = ">>", binary_shift_left = "<<", binary_xor = "^^", binary_and = "&&", binary_or = "||"}) do
 
 	Compiler["Instr_" .. UpperStr(Name)] = function(self, InstA, InstB)
 		
@@ -930,7 +972,7 @@ function Compiler:Instr_FUNCASS(Global, Name, Inst)
 	local VarID, Scope
 	
 	if Global then
-		VarID, Scope = self:SetVar(Name, "f")
+		VarID, Scope = self:SetVar(Name, "f") -- Todo: Actualy make this global instead of upscopped!
 	else
 		VarID, Scope = self:LocalVar(Name, "f")
 	end

@@ -45,7 +45,7 @@ E_A:RegisterOperator("assign", "e", "", function(self, ValueOp, Memory)
 	-- Purpose: Assigns a number to memory
 	
 	local Value, Type = ValueOp(self)
-	if Type != "e" then self:Error("Attempt to assign %s to entity", GetLongType(Type)) end
+	if Type != "e" then self:Error("Attempt to assign %s to entity", E_A.GetLongType(Type)) end
 	
 	self.Memory[Memory] = Value
 	
@@ -553,6 +553,29 @@ E_A:RegisterFunction("heading", "e:v", "a", function(self, ValueA, ValueB)
 	end
 	
 	return {0, 0, 0}
+end)
+
+/*==============================================================================================
+	Section: Color
+==============================================================================================*/
+E_A:RegisterFunction("getColor", "e:", "c", function(self, Value)
+	local Entity = Value(self)
+	
+	if Entity and Entity:IsValid() then
+		local C = Entity:GetColor( )
+        return { C.r, C.g, C.b, C.a }
+	end
+	
+	return { 0, 0, 0, 0 }
+end)
+
+E_A:RegisterFunction("color", "e:c", "", function(self, ValueA, ValueB)
+	local Entity, B = ValueA(self), ValueB(self)
+	
+	if Entity and Entity:IsValid() and E_A.IsOwner(self.Player, Entity) then
+        Entity:SetColor( Color( B[1], B[2], B[3], B[4] ) )
+        Entity:SetRenderMode(B[4] == 255 and RENDERMODE_NORMAL or RENDERMODE_TRANSALPHA)
+	end
 end)
 
 /*==============================================================================================

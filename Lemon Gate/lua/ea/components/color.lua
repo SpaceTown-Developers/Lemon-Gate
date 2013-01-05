@@ -5,6 +5,9 @@
 local EA = LemonGate
 local Round = 0.0000001000000
 
+local HSVToColor = HSVToColor
+local ColorToHSV = ColorToHSV
+
 local function clamp( color ) 
     return { math.Clamp( color[1], 0, 255 ), math.Clamp( color[2], 0, 255 ), math.Clamp( color[3], 0, 255 ), math.Clamp( color[4], 0, 255 ) }
 end 
@@ -56,28 +59,28 @@ EA:RegisterFunction( "color", "nnnn", "c", function( self, ValueA, ValueB, Value
     return clamp{ ValueA(self), ValueB(self), ValueC(self), ValueD(self) }
 end )
 
-EA:RegisterFunction( "r", "c:n", "", function( self, ValueA, ValueB ) 
+EA:RegisterFunction( "setR", "c:n", "c", function( self, ValueA, ValueB ) 
     local c = ValueA(self)
     local n = ValueB(self) 
-    c[1] = n
+    c[1] = n; return c
 end )
 
-EA:RegisterFunction( "g", "c:n", "", function( self, ValueA, ValueB ) 
+EA:RegisterFunction( "setG", "c:n", "c", function( self, ValueA, ValueB ) 
     local c = ValueA(self)
     local n = ValueB(self) 
-    c[2] = n
+    c[2] = n; return c
 end )
 
-EA:RegisterFunction( "b", "c:n", "", function( self, ValueA, ValueB ) 
+EA:RegisterFunction( "setB", "c:n", "c", function( self, ValueA, ValueB ) 
     local c = ValueA(self)
     local n = ValueB(self) 
-    c[3] = n
+    c[3] = n; return c
 end )
 
-EA:RegisterFunction( "a", "c:n", "", function( self, ValueA, ValueB ) 
+EA:RegisterFunction( "setA", "c:n", "c", function( self, ValueA, ValueB ) 
     local c = ValueA(self)
     local n = ValueB(self) 
-    c[4] = n
+    c[4] = n; return c
 end )
 
 EA:RegisterFunction( "r", "c:", "n", function( self, Value ) 
@@ -98,4 +101,25 @@ end )
 EA:RegisterFunction( "a", "c:", "n", function( self, Value ) 
     local n = Value(self)
     return n[4]
+end )
+
+EA:RegisterFunction( "hsv2rgb", "c:", "c", function( self, Value ) 
+    local c = Value(self)
+    local v = HSVToColor(c[1], c[2], c[3])
+	return { v.r, v.g, v.b }
+end )
+
+EA:RegisterFunction( "hsv2rgb", "nnn", "c", function( self, ValueA, ValueB, ValueC ) 
+    local v = HSVToColor(ValueA(self), ValueB(self), ValueC(self), nil)
+	return { v.r, v.g, v.b }
+end )
+
+EA:RegisterFunction( "rgb2hsv", "c:", "c", function( self, Value ) 
+    local c = Value(self)
+	return { ColorToHSV(Color(c[1], c[2], c[3])) }
+end )
+
+EA:RegisterFunction( "rgb2hsv", "nnn", "c", function( self, ValueA, ValueB, ValueC ) 
+    local v = ColorToHSV(Color(ValueA(self), ValueB(self), ValueC(self), nil))
+	return { v.r, v.g, v.b }
 end )

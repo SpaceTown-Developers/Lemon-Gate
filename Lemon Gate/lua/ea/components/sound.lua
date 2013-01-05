@@ -146,6 +146,13 @@ EA:RegisterFunction("stop", "sd:", "", function( self, Value )
     snd:Stop() 
 end )
 
+EA:RegisterFunction("restart", "sd:", "", function( self, Value ) 
+    local snd = Value(self)
+    if type(snd) ~= "CSoundPatch" then return end 
+    snd:Stop() 
+	snd:Play() 
+end )
+
 EA:RegisterFunction("remove", "sd:", "", function( self, Value ) 
     local snd = Value(self)
     if type(snd) ~= "CSoundPatch" then return end 

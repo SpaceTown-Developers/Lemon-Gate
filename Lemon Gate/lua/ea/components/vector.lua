@@ -149,16 +149,22 @@ end)
 
 /**********************************************************************************************/
 
-E_A:RegisterFunction("setX", "v:n", "", function(self, ValueA, ValueB)
-	ValueA(self)[1] = ValueB(self)
+E_A:RegisterFunction("setX", "v:n", "v", function(self, ValueA, ValueB)
+	local V = ValueA(self)
+	V[1] = ValueB(self)
+	return V
 end)
 
-E_A:RegisterFunction("setY", "v:n", "", function(self, ValueA, ValueB)
-	ValueA(self)[2] = ValueB(self)
+E_A:RegisterFunction("setY", "v:n", "v", function(self, ValueA, ValueB)
+	local V = ValueA(self)
+	V[2] = ValueB(self)
+	return V
 end)
 
-E_A:RegisterFunction("setZ", "v:n", "", function(self, ValueA, ValueB)
-	ValueA(self)[3] = ValueB(self)
+E_A:RegisterFunction("setZ", "v:n", "v", function(self, ValueA, ValueB)
+	local V = ValueA(self)
+	V[3] = ValueB(self)
+	return V
 end)
 
 /*==============================================================================================
@@ -233,6 +239,13 @@ E_A:RegisterOperator("multiply", "vn", "v", function(self, ValueA, ValueB)
 	return {A[1] * B, A[2] * B, A[3] * B}
 end)
 
+E_A:RegisterOperator("multiply", "nv", "v", function(self, ValueB, ValueA)
+	-- Purpose: * Math Operator
+	
+	local A, B = ValueA(self), ValueB(self)
+	return {A[1] * B, A[2] * B, A[3] * B}
+end)
+
 E_A:RegisterOperator("division", "vn", "v", function(self, ValueA, ValueB)
 	-- Purpose: / Math Operator
 	
@@ -248,6 +261,13 @@ E_A:RegisterOperator("modulus", "vn", "v", function(self, ValueA, ValueB)
 end)
 
 E_A:RegisterOperator("addition", "vn", "v", function(self, ValueA, ValueB)
+	-- Purpose: + Math Operator
+	
+	local A, B = ValueA(self), ValueB(self)
+	return {A[1] + B, A[2] + B, A[3] + B}
+end)
+
+E_A:RegisterOperator("addition", "nv", "v", function(self, ValueB, ValueA)
 	-- Purpose: + Math Operator
 	
 	local A, B = ValueA(self), ValueB(self)
@@ -468,21 +488,77 @@ E_A:RegisterFunction("rotate", "v:a", "v", function(self, ValueA, ValueB)
 end)
 
 /*==============================================================================================
+	Ceil / Floor / Round
+==============================================================================================*/
+local MathFloor = math.floor -- Speed
+
+E_A:RegisterFunction("ceil", "v", "v", function(self, Value)
+	local V = Value(self)
+	return {V[1] - V[1] % -1, V[2] - V[2] % -1, V[3] - V[3] % -1}
+end)
+
+E_A:RegisterFunction("floor", "v", "v", function(self, Value)
+	local V = Value(self)
+	return { MathFloor(V[1]), MathFloor(V[2]), MathFloor(V[3]) }
+end)
+
+E_A:RegisterFunction("ceil", "vn", "v", function(self, ValueA, ValueB)
+	local A, B = ValueA(self), ValueB(self)
+	local Shift = 10 ^ MathFloor(B + 0.5)
+	return { A[1] - ((A[1] * Shift) % -1) / Shift,
+			 A[2] - ((A[2] * Shift) % -1) / Shift,
+			 A[3] - ((A[3] * Shift) % -1) / Shift }
+end)
+
+E_A:RegisterFunction("round", "v", "v", function(self, Value)
+	local V = Value(self)
+	return { V[1] - (V[1] + 0.5) % 1 + 0.5,
+			 V[2] - (V[2] + 0.5) % 1 + 0.5,
+			 V[3] - (V[3] + 0.5) % 1 + 0.5 }
+end)
+
+E_A:RegisterFunction("round", "vn", "v", function(self, ValueA, ValueB)
+	local A, B = ValueA(self), ValueB(self)
+	local Shift = 10 ^ MathFloor(B + 0.5)
+	return { MathFloor(A[1] * Shift+0.5) / Shift,
+			 MathFloor(A[2] * Shift+0.5) / Shift,
+			 MathFloor(A[3] * Shift+0.5) / Shift }
+end)
+
+/*==============================================================================================
+	Clamping and Inrange
+==============================================================================================*/
+local Clamp = math.Clamp
+
+E_A:RegisterFunction("clamp", "vvv", "v", function(self, ValueA, ValueB, ValueC)
+	local A, B, C = ValueA(self), ValueB(self), ValueC(self)
+	return { Clamp(A[1], B[1], C[1]), Clamp(A[2], B[2], C[2]), Clamp(A[3], B[3], C[3]) }
+end)
+
+E_A:RegisterFunction("inrange", "vvv", "n", function(self, ValueA, ValueB, ValueC)
+	local A, B, C = ValueA(self), ValueB(self), ValueC(self)
+	if A[1] < B[1] or A[1] > C[1] then return 0
+	elseif A[2] < B[2] or A[2] > C[2] then return 0
+	elseif A[3] < B[3] or A[3] > C[3] then return 0
+	else return 1 end
+end)
+
+/*==============================================================================================
 	To String
 ==============================================================================================*/
 local FormatStr = string.format
 
 E_A:RegisterOperator("cast", "sv", "s", function(self, Value)
 	local V = Value(self)
-	return FormatStr("Vector(%i, %i, %i)", V[1], V[2], V[3])
+	return FormatStr("Vector(%f, %f, %f)", V[1], V[2], V[3])
 end)
 
 E_A:RegisterFunction("toString", "v:", "s", function(self, Value)
 	local V = Value(self)
-	return FormatStr("Vector(%i, %i, %i)", V[1], V[2], V[3])
+	return FormatStr("Vector(%f, %f, %f)", V[1], V[2], V[3])
 end)
 
 E_A:RegisterFunction("toString", "v", "s", function(self, Value)
 	local V = Value(self)
-	return FormatStr("Vector(%i, %i, %i)", V[1], V[2], V[3])
+	return FormatStr("Vector(%f, %f, %f)", V[1], V[2], V[3])
 end)

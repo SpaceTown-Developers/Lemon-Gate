@@ -77,7 +77,7 @@ E_A:RegisterFunction("matrix2", "nnnn", "m2", function(self, ValueA, ValueB, Val
 	return { A, B, C, D }
 end)
 
-E_A:RegisterFunction("matrix2", "m", "m2", function(self, ValueA)
+E_A:RegisterFunction("matrix2", "m3", "m2", function(self, ValueA)
 	local A = ValueA(self)
 	return { A[1], A[2], A[4], A[5] }
 end)

@@ -154,7 +154,7 @@ E_A.API.AddHook("GateThink", function(Entity)
 	if Entity then
 		local Context, Time = Entity.Context, CurTime()
 		
-		if !Entity.Errored and Context then
+		if !Entity.Errored and Context and Timers[Entity] then
 			for Key, Timer in pairs( Timers[Entity] ) do
 				if Timer.Status == PAUSED then
 					Timer.Last = Time - Timer.Diff

@@ -4,7 +4,7 @@
 ==============================================================================================*/
 local E_A = LemonGate
 
-local Table_Concat = table.concat
+local table_concat = table.concat
 local string_sub = string.sub 
 local string_gsub = string.gsub 
 local string_char = string.char 
@@ -83,7 +83,7 @@ if SERVER then
 		
 		if Upload.Chunks == Chunks then -- used to be ChunkID == Chunks
 			
-			local Script = Table_Concat( Upload.Data, "" )
+			local Script = table_concat( Upload.Data, "" )
 			Entity:LoadScript( Script )
 			Entity:Execute()
 			
@@ -231,7 +231,7 @@ if CLIENT then
 		Download.Data[ChunkID] = Data
 		
 		if Download.Chunks == Chunks then -- used to be ChunkID == Chunks
-			local Script = Table_Concat( Download.Data, "" )
+			local Script = table_concat( Download.Data, "" )
 			E_A.Editor.NewTab(Script, "Download")
 			Downloads = nil
 			

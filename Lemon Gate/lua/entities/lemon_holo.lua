@@ -54,7 +54,7 @@ if SERVER then
 		if self.IsVisible != Bool then
 			self.IsVisible = Bool
 			
-			Orange.NeedsUpdate = true
+			self.NeedsUpdate = true
 			return true
 		end
 	end
@@ -63,7 +63,7 @@ if SERVER then
 		if self.Shading != Bool then
 			self.Shading = Bool
 			
-			Orange.NeedsUpdate = true
+			self.NeedsUpdate = true
 			return true
 		end
 	end
@@ -95,7 +95,7 @@ if SERVER then
             self.Clips[Index] = Clip
             self.Que[Index] = Clip 
             
-            Orange.NeedsUpdate = true 
+            self.NeedsUpdate = true 
             return true
         end 
         
@@ -112,7 +112,7 @@ if SERVER then
 		self.Clips[Index] = nil
 		self.Que[Index] = Clip
 		
-		Orange.NeedsUpdate = true
+		self.NeedsUpdate = true
 		return true
 	end
 	
@@ -121,7 +121,7 @@ if SERVER then
 		if Clip and Clip.Enabled != Bool then
 			Clip.Enabled = Bool
 			self.Que[Index] = Clip
-			Orange.NeedsUpdate = true
+			self.NeedsUpdate = true
 			return true
 		end
 	end
@@ -139,7 +139,7 @@ if SERVER then
 		
 		if Scale.x ~= X or Scale.y ~= Y or Scale.z ~= Z then
 			self.Scale = Vector( X, Y, Z )
-			Orange.NeedsUpdate = true
+			self.NeedsUpdate = true
 			return true
 		end
 	end
@@ -199,8 +199,8 @@ else
 			Neo:Scale( Scale )
 			self:EnableMatrix( "RenderMultiply", Neo )
 			
-			local Min, Max = self:OBBMins(), self:OBBMaxs()
-			self:SetRenderBounds( Scale * Max, Scale * Min )
+			local Bound = Vector(9999, 9999, 9999)
+			self:SetRenderBounds( -Bound, Bound )
 			
 		-- CLIPPING.
 		

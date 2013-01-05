@@ -140,7 +140,6 @@ function Lemon:LoadInstance( Instance )
 	
 	self:RefreshMemory()
 	
-	API.CallHook( "BuildContext", self, Instance )
 end
 
 /*==============================================================================================
@@ -148,6 +147,8 @@ end
 ==============================================================================================*/
 function Lemon:RefreshMemory( )
 	-- Purpose: Clears and recreates the memory of the entire chip.
+	
+	API.CallHook( "BuildContext", self, Instance )
 	
 	local Context, PortLookUp = self.Context, { }
 	local Memory, Delta, Types = Context.Memory, Context.Delta, Context.Types

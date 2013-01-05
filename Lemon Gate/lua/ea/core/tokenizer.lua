@@ -362,7 +362,7 @@ function Toker:WordToken( )
 	-- DECLERATION:
 	
 		elseif RawData == "global" then
-			return self:NewToken( "glob", "global" )
+			return self:NewToken( "glo", "global" )
 		elseif RawData == "input" then
 			return self:NewToken( "in", "input" )
 		elseif RawData == "output" then

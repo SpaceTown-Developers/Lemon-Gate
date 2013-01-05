@@ -32,14 +32,10 @@ local pcall = pcall
 E_A:RegisterClass("string", "s", "")
 
 local function Input(self, Memory, Value)
-	-- Purpose: Used to set Memory via a wired input.
-	
 	self.Memory[Memory] = Value
 end
 
 local function Output(self, Memory)
-	-- Purpose: Used to get Memory for a wired output.
-	
 	return self.Memory[Memory]
 end
 
@@ -51,14 +47,11 @@ E_A:WireModClass("string", "STRING", Input, Output)
 E_A:SetCost(EA_COST_CHEAP)
 
 E_A:RegisterOperator("assign", "s", "", function(self, Value, Memory)
-	-- Purpose: Assigns a string to memory
-	
 	self.Memory[Memory] = Value(self)
+	self.Click[Memory] = true
 end)
 
 E_A:RegisterOperator("variable", "s", "s", function(self, Memory)
-	-- Purpose: Assigns a string to memory
-	
 	return self.Memory[Memory]
 end)
 

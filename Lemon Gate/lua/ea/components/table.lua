@@ -242,21 +242,21 @@ end)
 
 /***************************************************************************/
 
-E_A:RegisterFunction("type", "t:n", "", function(self, ValueA, ValueB)
+E_A:RegisterFunction("type", "t:n", "s", function(self, ValueA, ValueB)
 	local Table, B = ValueA(self), ValueB(self)
 	if Table and Table.Types then
 		return E_A.GetLongType(Table.Types[B] or "")
 	end; return "void"
 end)
 
-E_A:RegisterFunction("type", "t:s", "", function(self, ValueA, ValueB)
+E_A:RegisterFunction("type", "t:s", "s", function(self, ValueA, ValueB)
 	local Table, B = ValueA(self), ValueB(self)
 	if Table and Table.Types then
 		return E_A.GetLongType(Table.Types[B] or "")
 	end; return "void"
 end)
 
-E_A:RegisterFunction("type", "t:e", "", function(self, ValueA, ValueB)
+E_A:RegisterFunction("type", "t:e", "s", function(self, ValueA, ValueB)
 	local Table, B = ValueA(self), ValueB(self)
 	if Table and Table.Types then
 		return E_A.GetLongType(Table.Types[B] or "")
@@ -265,21 +265,21 @@ end)
 
 /***************************************************************************/
 
-E_A:RegisterFunction("exists", "t:n", "", function(self, ValueA, ValueB)
+E_A:RegisterFunction("exists", "t:n", "n", function(self, ValueA, ValueB)
 	local Table, B = ValueA(self), ValueB(self)
 	if Table and Table.Types then
 		return (Table.Types[B] ~= nil and 1 or 0)
 	end; return 0
 end)
 
-E_A:RegisterFunction("exists", "t:s", "", function(self, ValueA, ValueB)
+E_A:RegisterFunction("exists", "t:s", "n", function(self, ValueA, ValueB)
 	local Table, B = ValueA(self), ValueB(self)
 	if Table and Table.Types then
 		return (Table.Types[B] ~= nil and 1 or 0)
 	end; return 0
 end)
 
-E_A:RegisterFunction("exists", "t:e", "", function(self, ValueA, ValueB)
+E_A:RegisterFunction("exists", "t:e", "n", function(self, ValueA, ValueB)
 	local Table, B = ValueA(self), ValueB(self)
 	if Table and Table.Types then
 		return (Table.Types[B] ~= nil and 1 or 0)
@@ -294,103 +294,72 @@ end)
 E_A.API.AddHook("BuildFunctions", function()
 	for Type, tTable in pairs(E_A.TypeShorts) do
 		
-		MsgN("Adding table support for: " .. E_A.GetLongType(Type))
-		
-		-- Get Number Index
-		E_A:RegisterOperator("get", "tn" .. Type, Type, function(self, ValueA, ValueB)
+		local function Get(self, ValueA, ValueB)
 			local Table, Index = ValueA(self), ValueB(self)
-			if !Table.Data then self:Throw("table", "Attempt to index field " .. tostring(Index) .. " on invalid table.") end
+			
+			if !Table.Data then
+				self:Throw("table", "Attempt to index field " .. tostring(Index) .. " on void table.")
+			end
 			
 			local tIndex = Table.Types[Index]
-			if !tIndex and Type == "t" then self:Throw("table", "Attempt to reach invalid table at index " .. tostring(Index) .. ".")
-			elseif !tIndex or tIndex != Type then return tTable[3](self) end -- Default value!
 			
-			return Table.Data[Index]
-		end)
+			if tIndex and tIndex == Type then
+				return Table.Data[Index]
+				
+			elseif !tIndex and Type == "t" then
+				self:Throw("table", "Attempt to reach void table at index " .. tostring(Index) .. ".")
+			
+			elseif !tIndex and Type == "f" then
+				self:Throw("table", "Attempt to reach void function at index " .. tostring(Index) .. ".")
+			
+			else
+				return tTable[3](self) -- Default value!
+			end
+		end
 		
-		-- Get String Index
-		E_A:RegisterOperator("get", "ts" .. Type, Type, function(self, ValueA, ValueB)
-			local Table, Index = ValueA(self), ValueB(self)
-			if !Table.Data then self:Throw("table", "Attempt to index field " .. tostring(Index) .. " on invalid table.") end
-			
-			local tIndex = Table.Types[Index]
-			if !tIndex and Type == "t" then self:Throw("table", "Attempt to reach invalid table at index " .. tostring(Index) .. ".")
-			elseif !tIndex or tIndex != Type then return tTable[3](self) end -- Default value!
-			
-			return Table.Data[Index]
-		end)
-		
-		-- Get Entity Index
-		E_A:RegisterOperator("get", "te" .. Type, Type, function(self, ValueA, ValueB)
-			local Table, Index = ValueA(self), ValueB(self)
-			if !Table.Data then self:Throw("table", "Attempt to index field " .. tostring(Index) .. " on invalid table.") end
-			
-			local tIndex = Table.Types[Index]
-			if !tIndex and Type == "t" then self:Throw("table", "Attempt to reach invalid table at index " .. tostring(Index) .. ".")
-			elseif !tIndex or tIndex != Type then return tTable[3](self) end -- Default value!
-			
-			return Table.Data[Index]
-		end)
+		E_A:RegisterOperator("get", "tn" .. Type, Type, Get)
+		E_A:RegisterOperator("get", "ts" .. Type, Type, Get)
+		E_A:RegisterOperator("get", "te" .. Type, Type, Get)
 		
 		/*****************************************************************************************************************************/
 		
-		-- Set Number Index
-		E_A:RegisterOperator("set", "tn" .. Type, "", function(self, ValueA, ValueB, ValueC)
+		local function Set(self, ValueA, ValueB, ValueC)
 			local Table, Index = ValueA(self), ValueB(self)
-			if !Table.Data then self:Throw("table", "Attempt to index field " .. tostring(Index) .. " on invalid table.") end
 			
-			if !Table:Set(Index, Type, ValueC(self)) then self:Error("Maximum table size exceeded.") end
-		end)
+			if !Table.Data then
+				self:Throw("table", "Attempt to index field " .. tostring(Index) .. " on void table.")
+			end
+			
+			if !Table:Set(Index, Type, ValueC(self)) then
+				self:Error("Maximum table size exceeded.")
+			end
+		end
 		
-		-- Set String Index
-		E_A:RegisterOperator("set", "ts" .. Type, "", function(self, ValueA, ValueB, ValueC)
-			local Table, Index = ValueA(self), ValueB(self)
-			if !Table.Data then self:Throw("table", "Attempt to index field " .. tostring(Index) .. " on invalid table.") end
-			
-			if !Table:Set(Index, Type, ValueC(self)) then self:Error("Maximum table size exceeded.") end
-		end)
-		
-		-- Set Entity Index
-		E_A:RegisterOperator("set", "te" .. Type, "", function(self, ValueA, ValueB, ValueC)
-			local Table, Index = ValueA(self), ValueB(self)
-			if !Table.Data then self:Throw("table", "Attempt to index field " .. tostring(Index) .. " on invalid table.") end
-			
-			if !Table:Set(Index, Type, ValueC(self)) then self:Error("Maximum table size exceeded.") end
-		end)
+		E_A:RegisterOperator("set", "tn" .. Type, "", Set)
+		E_A:RegisterOperator("set", "ts" .. Type, "", Set)
+		E_A:RegisterOperator("set", "te" .. Type, "", Set)
 		
 		/*****************************************************************************************************************************/
 		
-		E_A:RegisterFunction("insert", "t:" .. Type, "", function(self, ValueA, ValueB)
+		local function Insert(self, ValueA, ValueB, ValueC)
 			local Table, Value, Type = ValueA(self), ValueB(self)
+			local Index = nil
 			
-			if Table and Table.Data then
-				Table:Insert(nil, Type, Value)
+			if ValueC then
+				Index = Index(self)
 			end
-		end)
+			
+			if !Table and !Table.Data then
+				return -- Table is void, cba to throw anything.
+			elseif !Table:Insert(Index, Type, Value) then
+				self:Error("Maximum table size exceeded.")
+			end
+		end
 		
-		E_A:RegisterFunction("insert", "t:" .. Type .. "n" , "", function(self, ValueA, ValueB, ValueC)
-			local Table, Index, Value, Type = ValueA(self), ValueC(self), ValueB(self) -- B comes last cus we get the type from it.
-			
-			if Table and Table.Data then
-				Table:Insert(Index, Type, Value)
-			end
-		end)
-		
-		E_A:RegisterFunction("insert", "t:" .. Type .. "s" , "", function(self, ValueA, ValueB, ValueC)
-			local Table, Index, Value, Type = ValueA(self), ValueC(self), ValueB(self) -- B comes last cus we get the type from it.
-			
-			if Table and Table.Data then
-				Table:Insert(Index, Type, Value)
-			end
-		end)
-		
-		E_A:RegisterFunction("insert", "t:" .. Type .. "e" , "", function(self, ValueA, ValueB, ValueC)
-			local Table, Index, Value, Type = ValueA(self), ValueC(self), ValueB(self) -- B comes last cus we get the type from it.
-			
-			if Table and Table.Data then
-				Table:Insert(Index, Type, Value)
-			end
-		end)
+		E_A:RegisterFunction("insert", "t:" .. Type, "", Insert)
+		E_A:RegisterFunction("insert", "t:" .. Type .. "n" , "", Insert)
+		E_A:RegisterFunction("insert", "t:" .. Type .. "s" , "", Insert)
+		E_A:RegisterFunction("insert", "t:" .. Type .. "e" , "", Insert)
 		
 		/*****************************************************************************************************************************/
 		
