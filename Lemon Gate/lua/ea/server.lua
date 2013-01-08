@@ -250,7 +250,7 @@ API.CallHook("PreBuild")
 		  5 - WM Input
 		  6 - WM Output
 ==============================================================================================*/
-E_A.TypeTable, E_A.TypeShorts = {}, {}
+E_A.TypeTable, E_A.TypeShorts = { }, { }
 local TypeTable, TypeShorts = E_A.TypeTable, E_A.TypeShorts
 
 API.CallHook("BuildClasses")
@@ -558,18 +558,6 @@ function Context:PushPerf(Perf)
 	if Perf < 0 then self:Throw("script", "Execution Limit Reached") end
 end
 
--- function Context:GetExeption()
-	-- if self.Exception then
-		-- return self.Exception.Type
-	-- end
--- end
-
--- function Context:GetMessage()
-	-- if self.Exception then
-		-- return self.Exception.Msg
-	-- end
--- end
-
 /*==============================================================================================
 	Section: Instruction Operators
 ==============================================================================================*/
@@ -625,7 +613,13 @@ function E_A.OpToString(Op, self, ...)
 	local Value, Type = Op(self, ...)
 	local OpT = E_A.OperatorTable["cast(s" .. Type .. ")"]
 	
-	if !OpT then return tostring( Value ) end
+	if !OpT then
+		if Type == "***" then
+			return "varargs"
+		else
+			return tostring( Value )
+		end
+	end
 	
 	return OpT[1]( self, function() return Value, Type end) 
 end

@@ -24,6 +24,7 @@ local FindStr = string.find -- Speed
 local LenStr = string.len -- Speed
 local ConcatTbl = table.concat -- Speed
 local RemoveTbl = table.remove -- Speed
+local InsertTbl = table.insert -- Speed
 
 local LimitString = E_A.LimitString
 local GetLongType = E_A.GetLongType
@@ -395,9 +396,13 @@ function Compiler:Instr_ASSIGN_DECLARE(Name, Expr, Type, Special)
 	if !Operator then self:Error("Assignment operator (=) does not support '%s'", GetLongType(Type)) end
 	
 	local Value, tValue = self:CompileInst(Expr, true)
-	if tValue != Type and Type ~= "?" then
-		if tValue == "?" then self:Error("Variable of type variant must be casted before assigning to %s", GetLongType(Type)) end
-		self:Error("Variable %s of type %s, can not be assigned as '%s'", Name, GetLongType(Type), GetLongType(tValue))
+	
+	if (tValue ~= Type and Type ~= "?") or tValue == "***" then
+		if tValue == "?" then
+			self:Error("Variable of type variant must be casted before assigning to %s", GetLongType(Type))
+		else
+			self:Error("Variable %s of type %s, can not be assigned as '%s'", Name, GetLongType(Type), GetLongType(tValue))
+		end
 	end
 	
 	local VarID, Scope = self:AssignVar(Type, Name, Special)
@@ -427,9 +432,13 @@ function Compiler:Instr_ASSIGN(Name, Expr)
 	if !Operator then self:Error("Assignment operator (=) does not support '%s'", GetLongType(Type)) end
 	
 	local Value, tValue = self:CompileInst(Expr)
-	if tValue != Type  and Type ~= "?" then
-		if tValue == "?" then self:Error("Variable of type variant must be casted before assigning to %s", GetLongType(Type)) end
-		self:Error("Variable %s of type %s, can not be assigned as '%s'", Name, GetLongType(Type), GetLongType(tValue))
+	
+	if (tValue ~= Type and Type ~= "?") or tValue == "***" then
+		if tValue == "?" then
+			self:Error("Variable of type variant must be casted before assigning to %s", GetLongType(Type))
+		else
+			self:Error("Variable %s of type %s, can not be assigned as '%s'", Name, GetLongType(Type), GetLongType(tValue))
+		end
 	end
 	
 	self:PushPerf(Perf)
@@ -784,13 +793,19 @@ end
 /********************************************************************************************************************/
 
 function Compiler:Instr_BREAK(Depth)
-	self.ExitDeph = Depth or 0
-	error("Break", 0)
+	local Operator, Return, Perf = self:GetOperator("break")
+	
+	self:PushPerf(Perf)
+	
+	return self:Operator(Operator, Return, Perf, Depth or 0)
 end
 
 function Compiler:Instr_CONTINUE(Depth)
-	self.ExitDeph = Depth or 0
-	error("Continue", 0)
+	local Operator, Return, Perf = self:GetOperator("continue")
+	
+	self:PushPerf(Perf)
+	
+	return self:Operator(Operator, Return, Perf, Depth or 0)
 end
 
 /*==============================================================================================
@@ -804,15 +819,17 @@ function Compiler:Instr_TABLE(InstK, InstV)
 	local Keys, Values = {}, {}
 	
 	for I = 1, #InstV do
-		Values[I] = self:CompileInst(InstV[I])
-		local Key = InstK[I]
+		local Value, tValue = self:CompileInst(InstV[I])
+		local Key = InstK[I]; Values[I] = Value
 		
 		if Key then -- Adds a key!
-			local Value, tValue = self:CompileInst(Key)
-			Keys[I] = Value
+			local vKey, tKey = self:CompileInst(Key)
+			Keys[I] = vKey
 			
-			if tValue ~= "n" and tValue ~= "s" and tValue ~= "e" then
+			if tKey ~= "n" and tKey ~= "s" and tKey ~= "e" then
 				self:Error("%s is not a valid table index", GetLongType(tValue))
+			elseif tValue == "***" then
+				self:Error("can not set index for varargs (...)")
 			end
 		end
 	end
@@ -873,18 +890,22 @@ function Compiler:GenerateArguments(Insts, Method)
 	
 	local Total = #Insts
 	if Total != 0 then
-		local Value, Sig = self:CompileInst(Insts[1])
-		local Values = {Value} 
+		local Values, Sig = { }, ""
 		
-		if Method then Sig = Sig .. ":" end
-		
-		for I = 2, Total do
+		for I = 1, Total do
 			local Value, tValue = self:CompileInst(Insts[I])
 			
-			--Todo: Prevent nil values!
+			if !tValue or tValue == "" then
+				self:Error("argument #" .. I .. " is void")
+			else
+				Values[I] = Value
+			end
 			
-			Values[I] = Value
-			Sig = Sig .. tValue
+			if I == 1 and Method then
+				Sig = tValue .. ":"
+			else
+				Sig = Sig .. tValue
+			end
 		end
 		
 		return Values, Sig
@@ -986,41 +1007,90 @@ end
 
 /***********************************************************************************************/
 
-function Compiler:BuildFunction(Sig, Params, tParams, Stmts, Return)
+function Compiler:BuildFunction(Sig, Params, Types, Stmts, Return)
 	-- Purpose: This instruction Will create function variables.
 	
 	self:PushReturnType(Return)
 	
 	self:PushScope()
+	
+		local FuncParams = { }
+		local TotalParams = #Params
+		if TotalParams > 0 then
 		
-		local Arguments = {}
-		for I = 1, #Params do
-			local Name = Params[I]
-			local Type = tParams[Name]
-			local Operator
-			
-			if Type == "f" then
-				Operator = E_A.OperatorTable["funcass(" .. Type .. ")"]
-			else
-				Operator = E_A.OperatorTable["assign(" .. Type .. ")"]
-			end
-			
-			if !Operator then
-				self:Error("type %s, can not be used in function parameters.", Type)
-			end
-			
-			local VarID, Scope = self:LocalVar(Name, Type)
-			
-			Arguments[I] = function(self, Value)
-				local Val, tVal = Value(self)
+			for I = 1, TotalParams do
 				
-				if tVal ~= Type and Type ~= "?" then
-					self:Throw("invoke", "Parameter mismatch #" .. I .. " " .. GetLongType(Type) .. " expected got " .. GetLongType(tVal))
+				local ArgName = Params[I]
+				local ArgType = Types[ArgName]
+				
+				if ArgType ~= "***" then
+					
+					local VarID, Scope = self:LocalVar(ArgName, ArgType)
+					local Operator = E_A.OperatorTable["assign(" .. ArgType .. ")"]
+					
+					if ArgType == "f" then
+						Operator = E_A.OperatorTable["funcass(f)"]
+					elseif !Operator then
+						self:Error("type %s, can not be used in function parameters.", ArgType)
+					end
+					
+						FuncParams[I] = function(self, Values)
+							
+							if !Values[I] then
+								self:Throw("invoke", "Parameter mismatch #" .. I .. " " .. GetLongType(ArgType) .. " expected got void")
+							end
+							
+							local Value, Type = Values[I](self)
+							
+							if Type == "***" then
+								local Total = #Value
+								if Total == 0 then
+									FuncParams[I + 1](self, Values)
+								else
+									Values[I] = Value[1]
+									
+									if Total > 1 then
+										for J = 2, Total do InsertTbl(Values, Value[J]) end
+									end
+									
+									FuncParams[I](self, Values) -- Vararg replaced with vararg values, Reload from the varargs location.
+								end
+								
+							elseif ArgType ~= Type and ArgType ~= "?" then
+								self:Throw("invoke", "Parameter mismatch #" .. I .. " " .. GetLongType(ArgType) .. " expected got " .. GetLongType(Type))
+							else
+								Operator[1](self, function() return Value, Type end, VarID)
+								FuncParams[I + 1](self, Values)
+							end
+						end
+				else
+					local VarID, Scope = self:LocalVar("...", "***")
+					
+						FuncParams[I] = function(self, Values)
+							local VArgs = { }
+							
+							for K = I, #Values do
+								local Value, Type = Values[K](self)
+								if Type ~= "***" then
+									VArgs[#VArgs + 1] = function() return Value, Type end
+								else
+									for I = 1, #Value do
+										VArgs[#VArgs + 1] = Value[I]
+									end
+								end
+							end
+							
+							self.Memory[VarID] = VArgs
+							
+							FuncParams[I + 1](self, Values)
+						end
 				end
-				
-				Operator[1](self, function() return Val, tVal end, VarID)
 			end
+			
 		end
+	
+		FuncParams[TotalParams + 1] = function(self, Values)
+		end -- Just an empty function.
 		
 		self:PushScope()
 		
@@ -1032,7 +1102,7 @@ function Compiler:BuildFunction(Sig, Params, tParams, Stmts, Return)
 	
 	self:PopReturnType()
 	
-	return Arguments, Statements
+	return FuncParams[1], Statements
 end
 
 function Compiler:Instr_LAMBDA(Sig, Params, tParams, Stmts, Return)
@@ -1043,6 +1113,14 @@ function Compiler:Instr_LAMBDA(Sig, Params, tParams, Stmts, Return)
 	self:PushPerf(Perf)
 	
 	return self:Operator(Operator, _Return, Perf, Sig, Arguments, Statements, Return)
+end
+
+function Compiler:Instr_VARARGS()
+	local VarID, Scope = self:GetVar("...")
+	if !VarID then self:Error( "varargs (...) can not be used outside of vararg functions" ) end
+	
+	local Operator = function(self) return self.Memory[VarID] end
+	return self:Operator(Operator , "***", EA_COST_NORMAL)
 end
 
 /*==============================================================================================
@@ -1099,7 +1177,12 @@ function Compiler:Instr_RETURN(Inst)
 		end
 		
 	elseif Return then
-		self:Error("Unable to return 'void', function return type is '%s'", GetLongType(Return))
+		local Default = E_A.TypeShorts[Return][3]
+		if !Default then
+			self:Error("Unable to return 'void', function return type is '%s'", GetLongType(Return))
+		else
+			Value = Default -- Default return value!
+		end
 	end
 	
 	local Operator, _R, Perf = self:GetOperator("return")

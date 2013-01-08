@@ -33,9 +33,31 @@ Thank you for taking part in this Beta!
 /*==============================================================================================
 	Syntax Highlighting
 ==============================================================================================*/
+local KeyWords = { }
+for _,V in pairs( {
+	"if", "elseif", "else",
+	"for", "while", "foreach",
+	"try", "catch",
+	"return", "break", "continue",
+	"function", "event",
+	"global", "input", "output"
+} ) do KeyWords[V] = V end
+
+
+local Tokens
+
+local function AddToken( Data, Color, Flag )
+	Tokens[#Tokens + 1] = { Data, {Color, Flag} }
+end
+
 local function SyntaxColorLine(self, Row)
-	return {{self.Rows[Row], { Color(255, 255, 255, 255), false}}}
-end -- TODO: Try and make a syntax highlighter!
+	local Line = self.Rows[Row]
+	Tokens = { }
+	
+	AddToken( Line, Color(255, 255, 255) , false )
+	
+	return Tokens
+end
 
 /*==============================================================================================
 	Validator
@@ -44,8 +66,8 @@ local Tokenizer = E_A.Tokenizer
 local Parser = E_A.Parser
 local Compiler = E_A.Compiler
 
-function Editor.Validate(Script)
-	local Check, Tokens = Tokenizer.Execute(Script)
+function Editor.Validate(Script, Editor)
+	local Check, Tokens, Rows = Tokenizer.Execute(Script, true)
 	if !Check then return Tokens end
 	
 	local Check, Instructions = Parser.Execute(Tokens)
@@ -86,13 +108,11 @@ function Editor.Create()
 	local Instance = vgui.Create("Expression2EditorFrame")
 	Instance:Setup("Expression Advanced Editor", "LemonGate", "EA")
 	Instance:SetSyntaxColorLine( SyntaxColorLine )
-	-- Instance.E2 = true -- Activates the validator, I'll hax that later!
 	
 	local Panel = Instance:GetCurrentEditor()
-	if Panel then
-		Panel:SetText( HomeScreen )
-		Panel.Start = Panel:MovePosition({1,1}, #HomeScreen)
-		Panel.Caret = Panel:MovePosition(Panel.Start, #HomeScreen)
+	
+	function Instance:InitShutdownHook()
+		self:SaveTabs()
 	end
 	
 	function Instance:OnTabCreated( Tab )
@@ -111,7 +131,8 @@ function Editor.Create()
 		end
 		
 		
-		local Error = Validate( self:GetCode() )
+		local Error = Validate( self:GetCode(), self:GetCurrentEditor() )
+		
 		if !Error then
 			Panel:SetBGColor(0, 128, 0, 180)
 			Panel:SetFGColor(255, 255, 255, 128)

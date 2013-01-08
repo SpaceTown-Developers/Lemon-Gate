@@ -3,45 +3,42 @@
 	Purpose: A way of playing and manipulating sounds. 
 	Author: Oskar
 ==============================================================================================*/
-local EA = LemonGate
+local E_A = LemonGate
 
-EA.API.NewComponent( "Sound", true )
+E_A.API.NewComponent( "Sound", true )
 
-EA.Sounds = {}
-local Sounds = EA.Sounds
+E_A.Sounds = {}
+local Sounds = E_A.Sounds
 
-EA:RegisterClass( "sound", "sd" )
-
-EA:RegisterException( "sound" )
-
-EA.API.AddHook("GateCreate", function(Entity)
-	Sounds[Entity] = {}
-end)
-
-EA.API.AddHook("GateRemove", function(Entity)
-	Sounds[Entity] = nil
-end)
-
-EA.API.AddHook("BuildContext", function(Entity)
-    for snd, ent in pairs( Sounds[Entity] ) do 
+local function RemoveSounds(Entity)
+	for snd, ent in pairs( Sounds[Entity] ) do 
 		if type(snd) ~= "CSoundPatch" then continue end // GM13 <3 
 		snd:Stop() 
 	end 
 	Sounds[Entity] = {}
+end
+
+E_A.API.AddHook("GateCreate", function(Entity)
+	Sounds[Entity] = {}
 end)
 
-EA:SetCost( EA_COST_CHEAP ) // TODO: Better costs!!
+E_A.API.AddHook("GateRemove", RemoveSounds)
+E_A.API.AddHook("BuildContext", RemoveSounds)
 
-EA:RegisterOperator("assign", "sd", "", function(self, ValueOp, Memory)
-	self.Memory[Memory] = ValueOp(self) 
-	self.Click[Memory] = true 
-end )
+/*==============================================================================================
+	Class
+==============================================================================================*/
+E_A:SetCost( EA_COST_CHEAP )
 
-EA:RegisterOperator("variable", "sd", "sd", function(self, Memory)
-	return self.Memory[Memory]
-end )
+E_A:RegisterException( "sound" )
+E_A:RegisterClass( "sound", "sd")
+E_A:RegisterOperator("assign", "sd", "", E_A.AssignOperator)
+E_A:RegisterOperator("variable", "sd", "sd", E_A.VariableOperator)
 
-EA:RegisterOperator("is", "sd", "n", function(self, Value)
+/*==============================================================================================
+	Operators
+==============================================================================================*/
+E_A:RegisterOperator("is", "sd", "n", function(self, Value)
 	local V = Value(self)
 	return type(V) == "CSoundPatch" and 1 or 0 
 end )
@@ -53,107 +50,107 @@ local function StopSound( ent, gate, snd )
 end 
 
 local maxSounds = 10 // Temp!!! 
-local function createSound( path, ent, gate )
+local function crE_AteSound( path, ent, gate )
     if table.Count( Sounds[gate] ) >= maxSounds then return end 
     if string.match( path, '["?]' ) then return end 
     path = string.gsub( path:Trim(), "\\", "/" ) 
-    local snd = CreateSound( ent, path ) 
-	ent:CallOnRemove( "StopEASound", StopSound, gate, snd ) 
-	if ent != gate then gate:CallOnRemove( "StopEASound", StopSound, gate, snd ) end 
+    local snd = CrE_AteSound( ent, path ) 
+	ent:CallOnRemove( "StopE_ASound", StopSound, gate, snd ) 
+	if ent != gate then gate:CallOnRemove( "StopE_ASound", StopSound, gate, snd ) end 
     Sounds[gate][ent] = snd
     return snd     
 end 
 
-EA:RegisterFunction("sound", "es", "sd", function( self, ValueA, ValueB )
-    local ent = ValueA( self )
+E_A:RegisterFunction("sound", "es", "sd", function( self, Value, ValueB )
+    local ent = Value( self )
     local snd = ValueB( self )
     if !IsValid( ent ) then self:Throw( "sound", "Invalid entity" ) end 
-    return createSound( snd, ent, self.Entity )
+    return crE_AteSound( snd, ent, self.Entity )
 end )
 
-EA:RegisterFunction("sound", "s", "sd", function( self, Value )
+E_A:RegisterFunction("sound", "s", "sd", function( self, Value )
     local snd = Value( self )
-    return createSound( snd, self.Entity, self.Entity )
+    return crE_AteSound( snd, self.Entity, self.Entity )
 end )
 
-EA:RegisterFunction("play", "sd:", "", function( self, Value ) 
+E_A:RegisterFunction("play", "sd:", "", function( self, Value ) 
     local snd = Value(self) 
     if type(snd) ~= "CSoundPatch" then return end 
     snd:Play() 
 end )
 
-EA:RegisterFunction("play", "sd:nn", "", function( self, ValueA, ValueB, ValueC ) 
-    local snd = ValueA(self) 
+E_A:RegisterFunction("play", "sd:nn", "", function( self, Value, ValueB, ValueC ) 
+    local snd = Value(self) 
     if type(snd) ~= "CSoundPatch" then return end 
     local volume = ValueB(self) 
     local pitch = ValueC(self) 
     snd:PlayEx( math.Clamp( volume, 0, 1 ), math.Clamp( pitch, 0, 255 ) ) 
 end )
 
-EA:RegisterFunction("volume", "sd:n", "", function( self, ValueA, ValueB ) 
-    local snd = ValueA(self) 
+E_A:RegisterFunction("volume", "sd:n", "", function( self, Value, ValueB ) 
+    local snd = Value(self) 
     if type(snd) ~= "CSoundPatch" then return end 
     local volume = ValueB(self) 
     snd:ChangeVolume( math.Clamp( volume, 0, 1 ), 0 )
 end )
 
-EA:RegisterFunction("volume", "sd:nn", "", function( self, ValueA, ValueB, ValueC ) 
-    local snd = ValueA(self) 
+E_A:RegisterFunction("volume", "sd:nn", "", function( self, Value, ValueB, ValueC ) 
+    local snd = Value(self) 
     if type(snd) ~= "CSoundPatch" then return end 
     local volume = ValueB(self) 
 	local fadetime = ValueC(self)
     snd:ChangeVolume( math.Clamp( volume, 0, 1 ), fadetime )
 end )
 
-EA:RegisterFunction("pitch", "sd:n", "", function( self, ValueA, ValueB ) 
-    local snd = ValueA(self) 
+E_A:RegisterFunction("pitch", "sd:n", "", function( self, Value, ValueB ) 
+    local snd = Value(self) 
     if type(snd) ~= "CSoundPatch" then return end 
     local pitch = ValueB(self) 
     snd:ChangePitch( math.Clamp( pitch, 0, 255 ), 0 ) 
 end )
 
-EA:RegisterFunction("pitch", "sd:nn", "", function( self, ValueA, ValueB, ValueC ) 
-    local snd = ValueA(self) 
+E_A:RegisterFunction("pitch", "sd:nn", "", function( self, Value, ValueB, ValueC ) 
+    local snd = Value(self) 
     if type(snd) ~= "CSoundPatch" then return end 
     local pitch = ValueB(self) 
 	local fadetime = ValueC(self)
     snd:ChangePitch( math.Clamp( pitch, 0, 255 ), fadetime ) 
 end )
 
-EA:RegisterFunction("soundLevel", "sd:n", "", function( self, ValueA, ValueB ) 
-	local snd = ValueA(self)
+E_A:RegisterFunction("soundLevel", "sd:n", "", function( self, Value, ValueB ) 
+	local snd = Value(self)
     if type(snd) ~= "CSoundPatch" then return end 
 	local level = ValueB(self)
 	snd:SetSoundLevel( math.Clamp( level, 20, 180 ) )
 end )
 
-EA:RegisterFunction("isPlaying", "sd:", "n", function( self, Value ) 
+E_A:RegisterFunction("isPlaying", "sd:", "n", function( self, Value ) 
     local snd = Value(self) 
     if type(snd) ~= "CSoundPatch" then return 0 end 
     return snd:IsPlaying() and 1 or 0 
 end ) 
 
-EA:RegisterFunction("stop", "sd:n", "", function( self, ValueA, ValueB ) 
-    local snd = ValueA(self)
+E_A:RegisterFunction("stop", "sd:n", "", function( self, Value, ValueB ) 
+    local snd = Value(self)
     if type(snd) ~= "CSoundPatch" then return end 
 	local duration = ValueB(self)
     snd:FadeOut( duration ) 
 end )
 
-EA:RegisterFunction("stop", "sd:", "", function( self, Value ) 
+E_A:RegisterFunction("stop", "sd:", "", function( self, Value ) 
     local snd = Value(self)
     if type(snd) ~= "CSoundPatch" then return end 
     snd:Stop() 
 end )
 
-EA:RegisterFunction("restart", "sd:", "", function( self, Value ) 
+E_A:RegisterFunction("restart", "sd:", "", function( self, Value ) 
     local snd = Value(self)
     if type(snd) ~= "CSoundPatch" then return end 
     snd:Stop() 
 	snd:Play() 
 end )
 
-EA:RegisterFunction("remove", "sd:", "", function( self, Value ) 
+E_A:RegisterFunction("remove", "sd:", "", function( self, Value ) 
     local snd = Value(self)
     if type(snd) ~= "CSoundPatch" then return end 
     snd:Stop()

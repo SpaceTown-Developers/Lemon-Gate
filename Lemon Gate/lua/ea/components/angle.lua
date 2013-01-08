@@ -19,67 +19,30 @@ end
 /*==============================================================================================
 	Class & WireMod
 ==============================================================================================*/
+E_A:SetCost(EA_COST_CHEAP)
+
 E_A:RegisterClass("angle", "a", {0, 0, 0})
+E_A:RegisterOperator("assign", "a", "", E_A.AssignOperator)
+E_A:RegisterOperator("variable", "a", "a", E_A.VariableOperator)
+E_A:RegisterOperator("delta", "a", "a", E_A.DeltaOperator)
 
 local function Input(self, Memory, Value)
-	-- Purpose: Used to set Memory via a wired input.
-	
 	self.Delta[Memory] = self.Memory[Memory]
-	
 	self.Memory[Memory] = NewAng(Value.p, Value.y, Value.r)
 end
 
 local function Output(self, Memory)
-	-- Purpose: Used to get Memory for a wired output.
-	
 	local V = self.Memory[Memory]
-	
 	return Angle(V[1], V[2], V[3])
 end
 
 E_A:WireModClass("angle", "ANGLE", Input, Output)
 
 /*==============================================================================================
-	Section: Variable Operators
-==============================================================================================*/
-E_A:SetCost(EA_COST_CHEAP)
-
-E_A:RegisterOperator("assign", "a", "", function(self, ValueOp, Memory)
-	-- Purpose: Assigns a number to memory
-	
-	self.Delta[Memory] = self.Memory[Memory]
-	
-	self.Memory[Memory] = ValueOp(self)
-	
-	self.Click[Memory] = true
-end)
-
-E_A:RegisterOperator("variable", "a", "a", function(self, Memory)
-	-- Purpose: Assigns a number to memory
-	
-	return self.Memory[Memory]
-end)
-
-E_A:RegisterOperator("delta", "a", "a", function(self, Memory)
-	-- Purpose: ~ Delta Operator
-	
-	local V = self.Memory[Memory]
-	
-	local D = self.Delta[Memory]
-	
-	if !D then return V end
-	
-	return {V[1] - D[1], V[2] - D[2], V[3] - D[3]} 
-end)
-
-/*==============================================================================================
 	Section: Comparison Operators
 ==============================================================================================*/
 E_A:RegisterOperator("eq", "aa", "n", function(self, ValueA, ValueB)
-	-- Purpose: == Operator
-	
 	local A, B = ValueA(self), ValueB(self)
-	
 	if A[1] - B[1] <= Round && B[1] - A[1] <= Round &&
 	   A[2] - B[2] <= Round && B[2] - A[2] <= Round &&
 	   A[3] - B[3] <= Round && B[3] - A[3] <= Round
@@ -87,10 +50,7 @@ E_A:RegisterOperator("eq", "aa", "n", function(self, ValueA, ValueB)
 end)
 
 E_A:RegisterOperator("negeq", "aa", "n", function(self, ValueA, ValueB)
-	-- Purpose: != operator
-	
 	local A, B = ValueA(self), ValueB(self)
-	
 	if A[1] - B[1] > Round or B[1] - A[1] > Round or
 	   A[2] - B[2] > Round or B[2] - A[2] > Round or
 	   A[3] - B[3] > Round or B[3] - A[3] > Round
@@ -98,8 +58,6 @@ E_A:RegisterOperator("negeq", "aa", "n", function(self, ValueA, ValueB)
 end)
 
 E_A:RegisterOperator("eqless", "aa", "n", function(self, ValueA, ValueB)
-	-- Purpose: >= Operator
-	
 	local A, B = ValueA(self), ValueB(self)
 	if B[1] - A[1] <= Round &&
 	   B[2] - A[2] <= Round &&
@@ -108,8 +66,6 @@ E_A:RegisterOperator("eqless", "aa", "n", function(self, ValueA, ValueB)
 end)
 
 E_A:RegisterOperator("eqgreater", "aa", "n", function(self, ValueA, ValueB)
-	-- Purpose: <= Operator
-	
 	local A, B = ValueA(self), ValueB(self)
 	if A[1] - B[1] <= Round &&
 	   A[2] - B[2] <= Round &&
@@ -118,8 +74,6 @@ E_A:RegisterOperator("eqgreater", "aa", "n", function(self, ValueA, ValueB)
 end)
 
 E_A:RegisterOperator("less", "aa", "n", function(self, ValueA, ValueB)
-	-- Purpose: < Operator
-	
 	local A, B = ValueA(self), ValueB(self)
 	if B[1] - A[1] > Round &&
 	   B[2] - A[2] > Round &&
@@ -128,8 +82,6 @@ E_A:RegisterOperator("less", "aa", "n", function(self, ValueA, ValueB)
 end)
 
 E_A:RegisterOperator("greater", "aa", "n", function(self, ValueA, ValueB)
-	-- Purpose: > Operator
-	
 	local A, B = ValueA(self), ValueB(self)
 	if A[1] - B[1] > Round &&
 	   A[2] - B[2] > Round &&
@@ -141,10 +93,7 @@ end)
 	Section: Conditional Operators
 ==============================================================================================*/
 E_A:RegisterOperator("is", "a", "n", function(self, Value)
-	-- Purpose: Is Valid
-	
 	local V = Value(self)
-	
 	if V[1] > Round or -V[1] > Round or
 	   V[2] > Round or -V[2] > Round or
 	   V[3] > Round or -V[3] > Round then
@@ -152,10 +101,7 @@ E_A:RegisterOperator("is", "a", "n", function(self, Value)
 end)
 
 E_A:RegisterOperator("not", "a", "n", function(self, Value)
-	-- Purpose: Is Valid
-	
 	local V = Value(self)
-	
 	if V[1] < Round or -V[1] < Round or
 	   V[2] < Round or -V[2] < Round or
 	   V[3] < Round or -V[3] < Round
@@ -194,21 +140,18 @@ end )
 /**********************************************************************************************/
 
 E_A:RegisterFunction("setP", "a:n", "a", function(self, ValueA, ValueB)
-	local V = ValueA(self)
-	V[1] = ValueB(self)
-	return V
+	local A, B = ValueA(self), ValueB(self)
+	return { B, A[2], A[3] }
 end)
 
 E_A:RegisterFunction("setY", "a:n", "a", function(self, ValueA, ValueB)
-	local V = ValueA(self)
-	V[2] = ValueB(self)
-	return V
+	local A, B = ValueA(self), ValueB(self)
+	return { A[1], B, A[3] }
 end)
 
 E_A:RegisterFunction("setR", "a:n", "a", function(self, ValueA, ValueB)
-	local V = ValueA(self)
-	V[3] = ValueB(self)
-	return V
+	local A, B = ValueA(self), ValueB(self)
+	return { A[1], A[2], B }
 end)
 
 /*==============================================================================================
@@ -238,52 +181,37 @@ end)
 E_A:SetCost(EA_COST_NORMAL)
 
 E_A:RegisterOperator("exponent", "aa", "a", function(self, ValueA, ValueB)
-	-- Purpose: ^ Math Operator
-	
 	local A, B = ValueA(self), ValueB(self)
 	return NewAng(A[1] ^ B[1], A[2] ^ B[2], A[3] ^ B[3])
 end)
 
 E_A:RegisterOperator("multiply", "aa", "a", function(self, ValueA, ValueB)
-	-- Purpose: * Math Operator
-	
 	local A, B = ValueA(self), ValueB(self)
 	return NewAng(A[1] * B[1], A[2] * B[2], A[3] * B[3])
 end)
 
 E_A:RegisterOperator("division", "aa", "a", function(self, ValueA, ValueB)
-	-- Purpose: / Math Operator
-	
 	local A, B = ValueA(self), ValueB(self)
 	return NewAng(A[1] / B[1], A[2] / B[2], A[3] / B[3])
 end)
 
 E_A:RegisterOperator("modulus", "aa", "a", function(self, ValueA, ValueB)
-	-- Purpose: % Math Operator
-	
 	local A, B = ValueA(self), ValueB(self)
 	return NewAng(A[1] % B[1], A[2] % B[2], A[3] % B[3])
 end)
 
 E_A:RegisterOperator("addition", "aa", "a", function(self, ValueA, ValueB)
-	-- Purpose: + Math Operator
-	
 	local A, B = ValueA(self), ValueB(self)
 	return NewAng(A[1] + B[1], A[2] + B[2], A[3] + B[3])
 end)
 
 E_A:RegisterOperator("subtraction", "aa", "a", function(self, ValueA, ValueB)
-	-- Purpose: - Math Operator
-	
 	local A, B = ValueA(self), ValueB(self)
 	return NewAng(A[1] - B[1], A[2] - B[2], A[3] - B[3])
 end)
 
 E_A:RegisterOperator("negative", "a", "a", function(self, Value)
-	-- Purpose: Negation Operator
-	
 	local V = Value(self)
-	
 	return NewAng(-V[1], -V[2], -V[3])
 end)
 
@@ -291,43 +219,31 @@ end)
 	Section: Number Mathematical Operators
 ==============================================================================================*/
 E_A:RegisterOperator("exponent", "an", "a", function(self, ValueA, ValueB)
-	-- Purpose: ^ Math Operator
-	
 	local A, B = ValueA(self), ValueB(self)
 	return NewAng(A[1] ^ B, A[2] ^ B, A[3] ^ B)
 end)
 
 E_A:RegisterOperator("multiply", "an", "a", function(self, ValueA, ValueB)
-	-- Purpose: * Math Operator
-	
 	local A, B = ValueA(self), ValueB(self)
 	return NewAng(A[1] * B, A[2] * B, A[3] * B)
 end)
 
 E_A:RegisterOperator("division", "an", "a", function(self, ValueA, ValueB)
-	-- Purpose: / Math Operator
-	
 	local A, B = ValueA(self), ValueB(self)
 	return NewAng(A[1] / B, A[2] / B, A[3] / B)
 end)
 
 E_A:RegisterOperator("modulus", "an", "a", function(self, ValueA, ValueB)
-	-- Purpose: % Math Operator
-	
 	local A, B = ValueA(self), ValueB(self)
 	return NewAng(A[1] % B, A[2] % B, A[3] % B)
 end)
 
 E_A:RegisterOperator("addition", "an", "a", function(self, ValueA, ValueB)
-	-- Purpose: + Math Operator
-	
 	local A, B = ValueA(self), ValueB(self)
 	return NewAng(A[1] + B, A[2] + B, A[3] + B)
 end)
 
 E_A:RegisterOperator("subtraction", "an", "a", function(self, ValueA, ValueB)
-	-- Purpose: - Math Operator
-	
 	local A, B = ValueA(self), ValueB(self)
 	return NewAng(A[1] - B, A[2] - B, A[3] - B)
 end)

@@ -80,24 +80,25 @@ E_A:RegisterOperator("funcass", "f", "", function(self, Value, Memory)
 	self.Memory[Memory] = Value(self)
 end)
 
-E_A:RegisterOperator("lambda", "", "f", function(self, Sig, Perams, Statements, Return)
-	return {Sig, Perams, Statements, Return}
+E_A:RegisterOperator("lambda", "", "f", function(self, Sig, LoadPerams, Statements, Return)
+	return {Sig, LoadPerams, Statements, Return}
 end)
 
 
 E_A:RegisterOperator("call", "f", "?", function(self, Value, pSig, Values)
 	local Lambda, T = Value(self)
+	self.ReturnValue = nil
 	
-	if !Lambda or !Lambda[3] then self:Throw("invoke", "Tryed to call a void function") end
-	local Perams, Return = Lambda[2], Lambda[4]
+	if !Lambda or !Lambda[3] then
+		self:Throw("invoke", "tryed to call a void function")
+	end
 	
-	self.ReturnValue  = nil
-	
-	for I = 1, #Perams do Perams[I]( self, Values[I] ) end
-	
+	Lambda[2](self, Values) -- Load perams!
 	local Ok, Exit = Lambda[3]:SafeCall(self)
 	
 	if Ok or Exit == "Return" then 
+		local Return = Lambda[4]
+		
 		if self.ReturnValue then
 			return self.ReturnValue( self )
 		elseif Return and Return ~= "" then

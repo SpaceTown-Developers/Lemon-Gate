@@ -15,7 +15,12 @@ local math = math
 /*==============================================================================================
 	Class & WireMod
 ==============================================================================================*/
+E_A:SetCost(EA_COST_CHEAP)
+
 E_A:RegisterClass("number", "n", 0)
+E_A:RegisterOperator("assign", "n", "", E_A.AssignOperator)
+E_A:RegisterOperator("variable", "n", "n", E_A.VariableOperator)
+E_A:RegisterOperator("delta", "n", "n", E_A.DeltaOperator)
 
 local function Input(self, Memory, Value)
 	self.Delta[Memory] = self.Memory[Memory]
@@ -28,54 +33,21 @@ end
 
 E_A:WireModClass("number", "NORMAL", Input, Output)
 
--- Note: With out Input function 'Number' would not be inputable, The same goes with Output.
-
-/*==============================================================================================
-	Var Operators
-==============================================================================================*/
-E_A:SetCost(EA_COST_CHEAP)
-
-E_A:RegisterOperator("assign", "n", "", function(self, ValueOp, Memory)
-	self.Delta[Memory] = self.Memory[Memory]
-	self.Memory[Memory] = ValueOp(self)
-	self.Click[Memory] = true
-end)
-
-E_A:RegisterOperator("variable", "n", "n", function(self, Memory)
-	-- Purpose: Assigns a number to memory
-	
-	return self.Memory[Memory]
-end)
-
 /*==============================================================================================
 	Section: Self Arithmetic Operators
 ==============================================================================================*/
 E_A:SetCost(EA_COST_CHEAP)
 
 E_A:RegisterOperator("increment", "n", "n", function(self, Memory)
-	-- Purpose: ++ Math Operator
-	
 	self.Delta[Memory] = self.Memory[Memory]
-	
 	self.Memory[Memory] = self.Memory[Memory] + 1
-	
 	self.Click[Memory] = true
 end)
 
 E_A:RegisterOperator("decrement", "n", "n", function(self, Memory)
-	-- Purpose: -- Math Operator
-	
 	self.Delta[Memory] = self.Memory[Memory]
-	
 	self.Memory[Memory] = self.Memory[Memory] - 1
-	
 	self.Click[Memory] = true
-end)
-
-E_A:RegisterOperator("delta", "n", "n", function(self, Memory)
-	-- Purpose: ~ Delta Operator
-	
-	return self.Memory[Memory] - (self.Delta[Memory] or 0)
 end)
 
 /*==============================================================================================
@@ -84,44 +56,30 @@ end)
 E_A:SetCost(EA_COST_NORMAL)
 
 E_A:RegisterOperator("exponent", "nn", "n", function(self, ValueA, ValueB)
-	-- Purpose: ^ Math Operator
-	
 	return ValueA(self) ^ ValueB(self)
 end)
 
 E_A:RegisterOperator("multiply", "nn", "n", function(self, ValueA, ValueB)
-	-- Purpose: * Math Operator
-	
 	return ValueA(self) * ValueB(self)
 end)
 
 E_A:RegisterOperator("division", "nn", "n", function(self, ValueA, ValueB)
-	-- Purpose: / Math Operator
-	
 	return ValueA(self) / ValueB(self)
 end)
 
 E_A:RegisterOperator("modulus", "nn", "n", function(self, ValueA, ValueB)
-	-- Purpose: % Math Operator
-	
 	return ValueA(self) % ValueB(self)
 end)
 
 E_A:RegisterOperator("addition", "nn", "n", function(self, ValueA, ValueB)
-	-- Purpose: + Math Operator
-	
 	return ValueA(self) + ValueB(self)
 end)
 
 E_A:RegisterOperator("subtraction", "nn", "n", function(self, ValueA, ValueB)
-	-- Purpose: - Math Operator
-	
 	return ValueA(self) - ValueB(self)
 end)
 
 E_A:RegisterOperator("negative", "n", "n", function(self, Value)
-	-- Purpose: Negation Operator
-	
 	return -Value(self)
 end)
 
@@ -129,8 +87,6 @@ end)
 	Section: Comparison Operators
 ==============================================================================================*/
 E_A:RegisterOperator("greater", "nn", "n", function(self, ValueA, ValueB)
-	-- Purpose: > Comparison Operator
-	
 	local Res = ValueA(self) - ValueB(self)
 	if Res > Round then
 		return 1 else return 0
@@ -138,8 +94,6 @@ E_A:RegisterOperator("greater", "nn", "n", function(self, ValueA, ValueB)
 end)
 
 E_A:RegisterOperator("less", "nn", "n", function(self, ValueA, ValueB)
-	-- Purpose: < Comparison Operator
-	
 	local Res = ValueA(self) - ValueB(self)
 	if -Res > Round then
 		return 1 else return 0
@@ -147,8 +101,6 @@ E_A:RegisterOperator("less", "nn", "n", function(self, ValueA, ValueB)
 end)
 
 E_A:RegisterOperator("eqgreater", "nn", "n", function(self, ValueA, ValueB)
-	-- Purpose: <= Comparison Operator
-	
 	local Res = ValueA(self) - ValueB(self)
 	if -Res <= Round then
 		return 1 else return 0
@@ -156,8 +108,6 @@ E_A:RegisterOperator("eqgreater", "nn", "n", function(self, ValueA, ValueB)
 end)
 
 E_A:RegisterOperator("eqless", "nn", "n", function(self, ValueA, ValueB)
-	-- Purpose: <= Comparison Operator
-	
 	local Res = ValueA(self) - ValueB(self)
 	if Res <= Round then
 		return 1 else return 0
@@ -165,8 +115,6 @@ E_A:RegisterOperator("eqless", "nn", "n", function(self, ValueA, ValueB)
 end)
 
 E_A:RegisterOperator("negeq", "nn", "n", function(self, ValueA, ValueB)
-	-- Purpose: != Comparison Operator
-	
 	local Res = ValueA(self) - ValueB(self)
 	if Res > Round and -Res < Round then
 		return 1 else return 0
@@ -174,8 +122,6 @@ E_A:RegisterOperator("negeq", "nn", "n", function(self, ValueA, ValueB)
 end)
 
 E_A:RegisterOperator("eq", "nn", "n", function(self, ValueA, ValueB)
-	-- Purpose: == Comparison Operator
-	
 	local Res = ValueA(self) - ValueB(self)
 	if Res <= Round and -Res <= Round then
 		return 1 else return 0
@@ -188,8 +134,6 @@ end)
 E_A:SetCost(EA_COST_NORMAL)
 
 E_A:RegisterOperator("is", "n", "n", function(self, Value)
-	-- Purpose: Is Valid
-	
 	local V = Value(self)
 	if V > Round or -V > Round then
 		return 1 else return 0
@@ -197,8 +141,6 @@ E_A:RegisterOperator("is", "n", "n", function(self, Value)
 end)
 
 E_A:RegisterOperator("not", "n", "n", function(self, Value)
-	-- Purpose: Is Not Valid
-	
 	local V = Value(self)
 	if V > Round or -V > Round then
 		return 0 else return 1
@@ -206,18 +148,13 @@ E_A:RegisterOperator("not", "n", "n", function(self, Value)
 end)
 
 E_A:RegisterOperator("or", "nn", "n", function(self, ValueA, ValueB)
-	-- Purpose: | Conditional Operator
-	
 	local A, B = ValueA(self), ValueB(self)
-	
 	if A > Round or -A > Round then
 		return A else return B
 	end
 end)
 
 E_A:RegisterOperator("and", "nn", "n", function(self, ValueA, ValueB)
-	-- Purpose: & Conditional Operator
-	
 	local A, B = ValueA(self), ValueB(self)
 	if (A > Round or -A > Round) and (B > Round or -B > Round) then
 		return 1 else return 0

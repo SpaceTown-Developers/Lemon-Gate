@@ -287,21 +287,18 @@ function Lemon:CallEvent( Name, ... )
 	
 	if !self.Errored and Context then
 		local Event = Context.Events[ Name ]
-		if !Event then return end
-		
-		local Params, Values = Event[1], { ... }
-		
-		for I = 1, #Params do Params[I]( Context, Values[I] ) end
-		
-		local Ok, Exit = SafeCall( Event[2], Context )
-		
-		if Ok or Exit == "Exit" then
-			return self:TriggerOutputs()
-		elseif Exit == "Return" then
-			self:TriggerOutputs()
-			return Context.ReturnValue( Context )
-		else
-			return self:Exit( Exit )
+		if Event then
+			Event[1](Context, { ... })
+			local Ok, Exit = SafeCall( Event[2], Context )
+			
+			if Ok or Exit == "Exit" then
+				return self:TriggerOutputs()
+			elseif Exit == "Return" then
+				self:TriggerOutputs()
+				return Context.ReturnValue( Context )
+			else
+				return self:Exit( Exit )
+			end
 		end
 	end
 end

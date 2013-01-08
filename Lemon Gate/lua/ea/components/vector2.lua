@@ -22,8 +22,12 @@ local Deg2Rad = PI / 180
 /*==============================================================================================
 	Class & WireMod
 ==============================================================================================*/
+E_A:SetCost(EA_COST_CHEAP)
 
 E_A:RegisterClass("vector2", "v2", {0, 0})
+E_A:RegisterOperator("assign", "v2", "", E_A.AssignOperator)
+E_A:RegisterOperator("variable", "v2", "v2", E_A.VariableOperator)
+E_A:RegisterOperator("delta", "v2", "v2", E_A.DeltaOperator)
 
 /*
 local function Input(self, Memory, Value)
@@ -43,39 +47,6 @@ local function Output(self, Memory)
 end
 
 E_A:WireModClass("vector2", "VECTOR2", Input, Output)*/
-
-/*==============================================================================================
-	Var Operators
-==============================================================================================*/
-E_A:SetCost(EA_COST_CHEAP)
-
-E_A:RegisterOperator("assign", "v2", "", function(self, ValueOp, Memory)
-	-- Purpose: Assigns a number to memory
-	
-	self.Delta[Memory] = self.Memory[Memory]
-	
-	self.Memory[Memory] = ValueOp(self)
-	
-	self.Click[Memory] = true
-end)
-
-E_A:RegisterOperator("variable", "v2", "v2", function(self, Memory)
-	-- Purpose: Assigns a number to memory
-	
-	return self.Memory[Memory]
-end)
-
-E_A:RegisterOperator("delta", "v2", "v2", function(self, Memory)
-	-- Purpose: ~ Delta Operator
-	
-	local V = self.Memory[Memory]
-	
-	local D = self.Delta[Memory]
-	
-	if !D then return V end
-	
-	return {V[1] - D[1], V[2] - D[2]} 
-end)
 
 /*==============================================================================================
 	Section: Comparison Operators
@@ -158,11 +129,13 @@ end)
 /**********************************************************************************************/
 
 E_A:RegisterFunction("setX", "v2:n", "", function(self, ValueA, ValueB)
-	ValueA(self)[1] = ValueB(self)
+	local A, B = ValueA(self), ValueB(self)
+	return { B, A[2] }
 end)
 
 E_A:RegisterFunction("setY", "v2:n", "", function(self, ValueA, ValueB)
-	ValueA(self)[2] = ValueB(self)
+	local A, B = ValueA(self), ValueB(self)
+	return { A[1], B }
 end)
 
 /*==============================================================================================
@@ -171,52 +144,37 @@ end)
 E_A:SetCost(EA_COST_NORMAL)
 
 E_A:RegisterOperator("exponent", "v2v2", "v2", function(self, ValueA, ValueB)
-	-- Purpose: ^ Math Operator
-	
 	local A, B = ValueA(self), ValueB(self)
 	return {A[1] ^ B[1], A[2] ^ B[2]}
 end)
 
 E_A:RegisterOperator("multiply", "v2v2", "v2", function(self, ValueA, ValueB)
-	-- Purpose: * Math Operator
-	
 	local A, B = ValueA(self), ValueB(self)
 	return {A[1] * B[1], A[2] * B[2]}
 end)
 
 E_A:RegisterOperator("division", "v2v2", "v2", function(self, ValueA, ValueB)
-	-- Purpose: / Math Operator
-	
 	local A, B = ValueA(self), ValueB(self)
 	return {A[1] / B[1], A[2] / B[2]}
 end)
 
 E_A:RegisterOperator("modulus", "v2v2", "v2", function(self, ValueA, ValueB)
-	-- Purpose: % Math Operator
-	
 	local A, B = ValueA(self), ValueB(self)
 	return {A[1] % B[1], A[2] % B[2]}
 end)
 
 E_A:RegisterOperator("addition", "v2v2", "v2", function(self, ValueA, ValueB)
-	-- Purpose: + Math Operator
-	
 	local A, B = ValueA(self), ValueB(self)
 	return {A[1] + B[1], A[2] + B[2]}
 end)
 
 E_A:RegisterOperator("subtraction", "v2v2", "v2", function(self, ValueA, ValueB)
-	-- Purpose: - Math Operator
-	
 	local A, B = ValueA(self), ValueB(self)
 	return {A[1] - B[1], A[2] - B[2]}
 end)
 
 E_A:RegisterOperator("negative", "v2", "v2", function(self, Value)
-	-- Purpose: Negation Operator
-	
 	local V = Value(self)
-	
 	return {-V[1], -V[2]}
 end)
 
@@ -224,43 +182,31 @@ end)
 	Section: Number Mathematical Operators
 ==============================================================================================*/
 E_A:RegisterOperator("exponent", "v2n", "v2", function(self, ValueA, ValueB)
-	-- Purpose: ^ Math Operator
-	
 	local A, B = ValueA(self), ValueB(self)
 	return {A[1] ^ B, A[2] ^ B}
 end)
 
 E_A:RegisterOperator("multiply", "v2n", "v2", function(self, ValueA, ValueB)
-	-- Purpose: * Math Operator
-	
 	local A, B = ValueA(self), ValueB(self)
 	return {A[1] * B, A[2] * B}
 end)
 
 E_A:RegisterOperator("division", "v2n", "v2", function(self, ValueA, ValueB)
-	-- Purpose: / Math Operator
-	
 	local A, B = ValueA(self), ValueB(self)
 	return {A[1] / B, A[2] / B}
 end)
 
 E_A:RegisterOperator("modulus", "v2n", "v2", function(self, ValueA, ValueB)
-	-- Purpose: % Math Operator
-	
 	local A, B = ValueA(self), ValueB(self)
 	return {A[1] % B, A[2] % B}
 end)
 
 E_A:RegisterOperator("addition", "v2n", "v2", function(self, ValueA, ValueB)
-	-- Purpose: + Math Operator
-	
 	local A, B = ValueA(self), ValueB(self)
 	return {A[1] + B, A[2] + B}
 end)
 
 E_A:RegisterOperator("subtraction", "v2n", "v2", function(self, ValueA, ValueB)
-	-- Purpose: - Math Operator
-	
 	local A, B = ValueA(self), ValueB(self)
 	return {A[1] - B, A[2] - B}
 end)
@@ -282,7 +228,6 @@ end)
 
 E_A:RegisterFunction("distance", "v2:v2", "n", function(self, ValueA, ValueB)
 	local A, B = ValueA(self), ValueB(self)
-	
 	local CX, CY = A[1] - B[1], A[2] - B[2]
 	return (CX * CX + CY * CY) ^ 0.5
 end)
@@ -294,7 +239,6 @@ end)
 
 E_A:RegisterFunction("distance2", "v2:v2", "n", function(self, ValueA, ValueB)
 	local A, B = ValueA(self), ValueB(self)
-	
 	local CX, CY = A[1] - B[1], A[2] - B[2]
 	return (CX * CX + CY * CY)
 end)
@@ -314,13 +258,11 @@ end)
 
 E_A:RegisterFunction("dot", "v2:v2", "n", function(self, ValueA, ValueB)
 	local A, B = ValueA(self), ValueB(self)
-	
 	return A[1] * B[1] + A[2] * B[2]
 end)
 
 E_A:RegisterFunction("cross", "v2:v2", "n", function(self, ValueA, ValueB)
 	local A, B = ValueA(self), ValueB(self)
-	
 	return A[1] * B[2] - A[2] * B[1]
 end)
 

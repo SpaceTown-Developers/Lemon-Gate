@@ -20,59 +20,33 @@ local NULL_ENTITY = Entity(-1)
 /*==============================================================================================
 	Class & WireMod
 ==============================================================================================*/
+E_A:SetCost(EA_COST_CHEAP)
+
 E_A:RegisterClass("entity", "e", function() return NULL_ENTITY end)
 
+E_A:RegisterOperator("assign", "e", "", E_A.AssignOperator)
+E_A:RegisterOperator("variable", "e", "e", E_A.VariableOperator)
+
 local function Input(self, Memory, Value)
-	-- Purpose: Used to set Memory via a wired input.
-	
 	self.Memory[Memory] = Value
 end
 
 local function Output(self, Memory)
-	-- Purpose: Used to get Memory for a wired output.
-	
 	return self.Memory[Memory]
 end
 
 E_A:WireModClass("entity", "ENTITY", Input, Output)
 
 /*==============================================================================================
-	Var Operators
-==============================================================================================*/
-E_A:SetCost(EA_COST_CHEAP)
-
-E_A:RegisterOperator("assign", "e", "", function(self, ValueOp, Memory)
-	-- Purpose: Assigns a number to memory
-	
-	local Value, Type = ValueOp(self)
-	if Type != "e" then self:Error("Attempt to assign %s to entity", E_A.GetLongType(Type)) end
-	
-	self.Memory[Memory] = Value
-	
-	self.Click[Memory] = true
-end)
-
-E_A:RegisterOperator("variable", "e", "e", function(self, Memory)
-	-- Purpose: Assigns a number to memory
-	
-	return self.Memory[Memory]
-end)
-
-/*==============================================================================================
 	Section: Comparison Operators
 ==============================================================================================*/
 E_A:SetCost(EA_COST_NORMAL)
 
-
 E_A:RegisterOperator("negeq", "ee", "n", function(self, ValueA, ValueB)
-	-- Purpose: != Comparison Operator
-	
 	return (ValueA(self) == ValueB(self)) and 0 or 1
 end)
 
 E_A:RegisterOperator("eq", "ee", "n", function(self, ValueA, ValueB)
-	-- Purpose: == Comparison Operator
-	
 	return (ValueA(self) == ValueB(self)) and 1 or 0
 end)
 
@@ -82,22 +56,16 @@ end)
 E_A:SetCost(EA_COST_NORMAL)
 
 E_A:RegisterOperator("is", "e", "n", function(self, Value)
-	-- Purpose: Is Valid
-	
 	local Entity = Value(self)
 	return (Entity and Entity:IsValid()) and 1 or 0
 end)
 
 E_A:RegisterOperator("or", "ee", "e", function(self, ValueA, ValueB)
-	-- Purpose: | Conditional Operator
-	
 	local Entity = ValueA(self)
 	return (Entity and Entity:IsValid()) and Entity or ValueB(self)
 end)
 
 E_A:RegisterOperator("and", "ee", "n", function(self, ValueA, ValueB)
-	-- Purpose: & Conditional Operator
-	
 	local A, B = ValueA(self), ValueB(self)
 	return (A and B and A:IsValid() and B:IsValid()) and 1 or 0
 end)
@@ -113,6 +81,18 @@ end)
 
 E_A:RegisterOperator("cast", "se", "s", function(self, Value, ConvertType)
 	return tostring( Value(self) )
+end)
+
+/*==============================================================================================
+	Section: Get Entity
+==============================================================================================*/
+E_A:RegisterFunction("entity", "n", "e", function(self, Value)
+	local V = Value(self)
+	return Entity(V)
+end)
+
+E_A:RegisterFunction("voidEntity", "", "e", function(self)
+	return Entity(-1)
 end)
 
 /*==============================================================================================

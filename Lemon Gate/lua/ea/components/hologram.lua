@@ -169,32 +169,22 @@ local _Size = CreateConVar( "lemon_holograms_max_size", "50" )
 local _Model = CreateConVar( "lemon_holograms_model_any", "0" )
 
 /*==============================================================================================
-	Class and Operators
+	Class
 ==============================================================================================*/
 E_A:RegisterClass("hologram", "h", function( ) return NULL_ENTITY end)
 
 E_A:RegisterException("hologram")
-
-E_A:RegisterOperator("assign", "h", "", function(self, ValueOp, Memory)
-	-- Purpose: Assigns a number to memory
-	
-	self.Memory[Memory] = ValueOp(self)
-	self.Click[Memory] = true
-end)
-
-E_A:RegisterOperator("variable", "h", "h", function(self, Memory)
-	-- Purpose: Assigns a number to memory
-	
-	return self.Memory[Memory] or NULL_ENTITY
-end)
+E_A:RegisterOperator("assign", "h", "", E_A.AssignOperator)
+E_A:RegisterOperator("variable", "h", "h", E_A.VariableOperator)
 
 E_A:RegisterOperator("cast", "eh", "e", function(self, Value)
 	return Value(self), "e" -- They are entities anyway.
 end)
 
+/*==============================================================================================
+	Casting
+==============================================================================================*/
 E_A:RegisterOperator("cast", "he", "h", function(self, Value)
-	-- Purpose: Assigns a number to memory
-	
 	local Holo = Value(self)
 	if !Holo or !Holo:IsValid() or !Holo.IsHologram then
 		self:Throw("hologram", "casted none hologram from entity")
@@ -203,22 +193,19 @@ E_A:RegisterOperator("cast", "he", "h", function(self, Value)
 	return Holo
 end)
 
+/*==============================================================================================
+	Comparason
+==============================================================================================*/
 E_A:RegisterOperator("is", "h", "n", function(self, Value)
-	-- Purpose: Is Valid
-	
 	local Holo = Value(self)
 	return (Holo and Holo:IsValid()) and 1 or 0
 end)
 
 E_A:RegisterOperator("negeq", "hh", "n", function(self, ValueA, ValueB)
-	-- Purpose: != Comparison Operator
-	
 	return (ValueA(self) == ValueB(self)) and 0 or 1
 end)
 
 E_A:RegisterOperator("eq", "hh", "n", function(self, ValueA, ValueB)
-	-- Purpose: == Comparison Operator
-	
 	return (ValueA(self) == ValueB(self)) and 1 or 0
 end)
 

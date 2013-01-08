@@ -33,13 +33,6 @@ function E_A.NewResultTable(Values, Type)
 end
 
 /*==============================================================================================
-	Table Class
-==============================================================================================*/
-E_A:RegisterClass("table", "t", NewTable )
-
-E_A:RegisterException("table")
-
-/*==============================================================================================
 	Table Metacore
 ==============================================================================================*/
 
@@ -113,6 +106,16 @@ function Table:Remove(Index)
 end
 
 /*==============================================================================================
+	Section: Class & WireMod
+==============================================================================================*/
+E_A:SetCost(EA_COST_CHEAP)
+
+E_A:RegisterException("table")
+E_A:RegisterClass("table", "t", NewTable )
+E_A:RegisterOperator("assign", "t", "", E_A.AssignOperator)
+E_A:RegisterOperator("variable", "t", "t", E_A.VariableOperator)
+
+/*==============================================================================================
 	Section: Core Operator
 	Purpose: Support for the table syntax!
 	Creditors: Rusketh
@@ -120,10 +123,7 @@ end
 E_A:SetCost(EA_COST_NORMAL)
 
 E_A:RegisterOperator("table", "", "t", function(self, Keys, Values)
-	-- Purpose: Builds a table.
-	
 	local Table = NewTable()
-	
 	for I = 1, #Values do
 		self.Perf = self.Perf + EA_COST_NORMAL
 		local Value, Type = Values[I](self)
@@ -131,6 +131,11 @@ E_A:RegisterOperator("table", "", "t", function(self, Keys, Values)
 		
 		if Key then
 			Table:Set(Key(self), Type, Value)
+		elseif Type == "***" then
+			for I = 1, #Value do
+				local Value, Type = Value[I](self)
+				Table:Insert(nil, Type, Value)
+			end
 		else
 			Table:Insert(nil, Type, Value)
 		end
@@ -140,46 +145,24 @@ E_A:RegisterOperator("table", "", "t", function(self, Keys, Values)
 end)
 
 /*==============================================================================================
-	Section: Variable Operators
-	Purpose: Storing to memory.
-	Creditors: Rusketh
-==============================================================================================*/
-E_A:SetCost(EA_COST_CHEAP)
-
-E_A:RegisterOperator("assign", "t", "", function(self, ValueOp, Memory)
-	-- Purpose: Assigns a string to memory
-	
-	self.Memory[Memory] = ValueOp(self)
-end)
-
-E_A:RegisterOperator("variable", "t", "t", function(self, Memory)
-	-- Purpose: Assigns a string to memory
-	
-	return self.Memory[Memory]
-end)
-
-/*==============================================================================================
 	Section: Table Operators
 	Purpose: Basic operations.
 	Creditors: Rusketh
 ==============================================================================================*/
 E_A:RegisterOperator("length", "t", "n", function(self, Value)
 	-- Purpose: Gets the highest numeric index
-	
 	local Data = Value(self).Data
 	if !Data then return 0 else return #Data end
 end)
 
 E_A:RegisterOperator("is", "t", "n", function(self, Value)
 	-- Purpose: Gets the highest numeric index
-	
 	local Data = Value(self).Data
 	if !Data or #Data == 0 then return 0 else return 1 end
 end)
 
 E_A:RegisterOperator("not", "t", "n", function(self, Value)
 	-- Purpose: Gets the highest numeric index
-	
 	local Data = Value(self).Data
 	if !Data or #Data == 0 then return 1 else return 0 end
 end)
@@ -218,7 +201,6 @@ end)
 
 E_A:RegisterFunction("remove", "t:n", "", function(self, ValueA, ValueB)
 	local Table, B = ValueA(self), ValueB(self)
-	
 	if Table and Table.Data then
 		Table:Remove( B )
 	end
@@ -226,7 +208,6 @@ end)
 
 E_A:RegisterFunction("remove", "t:s", "", function(self, ValueA, ValueB)
 	local Table, B = ValueA(self), ValueB(self)
-	
 	if Table and Table.Data then
 		Table:Remove( B )
 	end
@@ -234,7 +215,6 @@ end)
 
 E_A:RegisterFunction("remove", "t:e", "", function(self, ValueA, ValueB)
 	local Table, B = ValueA(self), ValueB(self)
-	
 	if Table and Table.Data then
 		Table:Remove( B )
 	end
@@ -293,6 +273,8 @@ end)
 ==============================================================================================*/
 E_A.API.AddHook("BuildFunctions", function()
 	for Type, tTable in pairs(E_A.TypeShorts) do
+		
+		if Type == "***" then continue end
 		
 		local function Get(self, ValueA, ValueB)
 			local Table, Index = ValueA(self), ValueB(self)

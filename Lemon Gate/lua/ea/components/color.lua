@@ -2,28 +2,26 @@
 	Expression Advanced: Color Library
 	Purpose: Colors!
 ==============================================================================================*/
-local EA = LemonGate
+local E_A = LemonGate
 local Round = 0.0000001000000
 
 local HSVToColor = HSVToColor
 local ColorToHSV = ColorToHSV
+local MathClamp = math.Clamp
 
-local function clamp( color ) 
-    return { math.Clamp( color[1], 0, 255 ), math.Clamp( color[2], 0, 255 ), math.Clamp( color[3], 0, 255 ), math.Clamp( color[4], 0, 255 ) }
+local function Clamp( Color ) 
+    return { MathClamp( Color[1], 0, 255 ), MathClamp( Color[2], 0, 255 ), MathClamp( Color[3], 0, 255 ), MathClamp( Color[4], 0, 255 ) }
 end 
 
-EA:RegisterClass( "color", "c", { 0, 0, 0, 255 } )
+/*==============================================================================================
+	Class and Operators
+==============================================================================================*/
+E_A:RegisterClass( "color", "c", { 0, 0, 0, 255 } )
+E_A:RegisterOperator( "assign", "c", "", E_A.AssignOperator)
+E_A:RegisterOperator( "variable", "c", "c", E_A.VariableOperator)
+E_A:RegisterOperator("delta", "c", "c", E_A.DeltaOperator)
 
-EA:RegisterOperator( "assign", "c", "", function( self, ValueOp, Memory )
-	self.Memory[Memory] = ValueOp(self) 
-	self.Click[Memory] = true 
-end )
-
-EA:RegisterOperator( "variable", "c", "c", function( self, Memory )
-	return self.Memory[Memory] 
-end )
-
-EA:RegisterOperator( "is", "c", "n", function( self, Value )
+E_A:RegisterOperator( "is", "c", "n", function( self, Value )
 	local V = Value(self)
 	if V[1] > Round or -V[1] > Round or
 	   V[2] > Round or -V[2] > Round or
@@ -32,94 +30,83 @@ EA:RegisterOperator( "is", "c", "n", function( self, Value )
 	   return 1 else return 0 end
 end )
 
-EA:RegisterOperator( "get", "cn", "c", function( self, Value, Index )
-    local C = Value(self)
-	local I = Index(self)
-
-	return C[I] 
+E_A:RegisterOperator( "addition", "cc", "c", function( self, ValueA, ValueB )
+	local A, B = ValueA(self), ValueB(self)
+	return Clamp( { A[1] + B[1], A[2] + B[2], A[3] + B[3], A[4] + B[4] } )
 end )
 
-EA:RegisterOperator( "addition", "cc", "c", function( self, ValueA, ValueB )
-	local c1 = ValueA(self)
-	local c2 = ValueB(self)
-    return clamp{ c1[1] + c2[1], c1[2] + c2[2], c1[3] + c2[3], c1[4] + c2[4] }
+E_A:RegisterOperator( "subtraction", "cc", "c", function( self, ValueA, ValueB )
+	local A, B = ValueA(self), ValueB(self)
+    return Clamp( { A[1] - B[1], A[2] - B[2], A[3] - B[3], A[4] - B[4] } )
 end )
 
-EA:RegisterOperator( "subtraction", "cc", "c", function( self, ValueA, ValueB )
-	local c1 = ValueA(self)
-	local c2 = ValueB(self)
-    return clamp{ c1[1] - c2[1], c1[2] - c2[2], c1[3] - c2[3], c1[4] - c2[4] }
+E_A:RegisterFunction( "color", "nnn", "c", function( self, ValueA, ValueB, ValueC ) 
+    local A, B, C = ValueA(self), ValueB(self), ValueC(self)
+	return Clamp( { A, B, C, 255 } )
 end )
 
-EA:RegisterFunction( "color", "nnn", "c", function( self, ValueA, ValueB, ValueC ) 
-    return clamp{ ValueA(self), ValueB(self), ValueC(self), 255 }
+E_A:RegisterFunction( "color", "nnnn", "c", function( self, ValueA, ValueB, ValueC, ValueD ) 
+    local A, B, C, D = ValueA(self), ValueB(self), ValueC(self), ValueD(self)
+	return Clamp( { A, B, C, D } )
 end )
 
-EA:RegisterFunction( "color", "nnnn", "c", function( self, ValueA, ValueB, ValueC, ValueD ) 
-    return clamp{ ValueA(self), ValueB(self), ValueC(self), ValueD(self) }
+E_A:RegisterFunction( "setR", "c:n", "c", function( self, ValueA, ValueB ) 
+    local A, B = ValueA(self), ValueB(self)
+	return Clamp( { B, A[2], A[3], A[4] } )
 end )
 
-EA:RegisterFunction( "setR", "c:n", "c", function( self, ValueA, ValueB ) 
-    local c = ValueA(self)
-    local n = ValueB(self) 
-    c[1] = n; return c
+E_A:RegisterFunction( "setG", "c:n", "c", function( self, ValueA, ValueB ) 
+    local A, B = ValueA(self), ValueB(self)
+	return Clamp( { A[1], B, A[3], A[4] } )
 end )
 
-EA:RegisterFunction( "setG", "c:n", "c", function( self, ValueA, ValueB ) 
-    local c = ValueA(self)
-    local n = ValueB(self) 
-    c[2] = n; return c
+E_A:RegisterFunction( "setB", "c:n", "c", function( self, ValueA, ValueB ) 
+    local A, B = ValueA(self), ValueB(self)
+	return Clamp( { A[1], A[2], B, A[4] } )
 end )
 
-EA:RegisterFunction( "setB", "c:n", "c", function( self, ValueA, ValueB ) 
-    local c = ValueA(self)
-    local n = ValueB(self) 
-    c[3] = n; return c
+E_A:RegisterFunction( "setA", "c:n", "c", function( self, ValueA, ValueB ) 
+    local A, B = ValueA(self), ValueB(self)
+	return Clamp( { A[1], A[2], A[3], B } )
 end )
 
-EA:RegisterFunction( "setA", "c:n", "c", function( self, ValueA, ValueB ) 
-    local c = ValueA(self)
-    local n = ValueB(self) 
-    c[4] = n; return c
+E_A:RegisterFunction( "r", "c:", "n", function( self, Value ) 
+    local V = Value(self)
+    return V[1]
 end )
 
-EA:RegisterFunction( "r", "c:", "n", function( self, Value ) 
-    local n = Value(self)
-    return n[1]
+E_A:RegisterFunction( "g", "c:", "n", function( self, Value ) 
+    local V = Value(self)
+    return V[2]
 end )
 
-EA:RegisterFunction( "g", "c:", "n", function( self, Value ) 
-    local n = Value(self)
-    return n[2]
-end )
-
-EA:RegisterFunction( "b", "c:", "n", function( self, Value ) 
+E_A:RegisterFunction( "b", "c:", "n", function( self, Value ) 
     local n = Value(self)
     return n[3]
 end )
 
-EA:RegisterFunction( "a", "c:", "n", function( self, Value ) 
-    local n = Value(self)
-    return n[4]
+E_A:RegisterFunction( "a", "c:", "n", function( self, Value ) 
+    local V = Value(self)
+    return V[4]
 end )
 
-EA:RegisterFunction( "hsv2rgb", "c:", "c", function( self, Value ) 
-    local c = Value(self)
-    local v = HSVToColor(c[1], c[2], c[3])
-	return { v.r, v.g, v.b }
+E_A:RegisterFunction( "hsv2rgb", "c:", "c", function( self, Value ) 
+    local V = Value(self)
+    local C = HSVToColor(V[1], V[2], V[3])
+	return { C.r, C.g, C.b }
 end )
 
-EA:RegisterFunction( "hsv2rgb", "nnn", "c", function( self, ValueA, ValueB, ValueC ) 
-    local v = HSVToColor(ValueA(self), ValueB(self), ValueC(self), nil)
-	return { v.r, v.g, v.b }
+E_A:RegisterFunction( "hsv2rgb", "nnn", "c", function( self, Value, ValueB, ValueC ) 
+    local C = HSVToColor(Value(self), ValueB(self), ValueC(self), nil)
+	return { C.r, C.g, C.b }
 end )
 
-EA:RegisterFunction( "rgb2hsv", "c:", "c", function( self, Value ) 
-    local c = Value(self)
-	return { ColorToHSV(Color(c[1], c[2], c[3])) }
+E_A:RegisterFunction( "rgb2hsv", "c:", "c", function( self, Value ) 
+    local V = Value(self)
+	return { ColorToHSV( Color(V[1], V[2], V[3]) ) }
 end )
 
-EA:RegisterFunction( "rgb2hsv", "nnn", "c", function( self, ValueA, ValueB, ValueC ) 
-    local v = ColorToHSV(Color(ValueA(self), ValueB(self), ValueC(self), nil))
-	return { v.r, v.g, v.b }
+E_A:RegisterFunction( "rgb2hsv", "nnn", "c", function( self, Value, ValueB, ValueC ) 
+    local V = ColorToHSV( Color( Value(self), ValueB(self), ValueC(self), nil ) )
+	return { V.r, V.g, V.b }
 end )

@@ -14,7 +14,6 @@ local ipairs = ipairs
 /*==============================================================================================
 	Util Functions
 ==============================================================================================*/
-
 local function Clone( A )
 	local Copy = {}
 	for K,V in ipairs( A ) do Copy[K] = V end
@@ -38,7 +37,12 @@ end
 /*==============================================================================================
 	Maxtrix 2: Class
 ==============================================================================================*/
+E_A:SetCost(EA_COST_CHEAP)
+
 E_A:RegisterClass("matrix2", "m2", { 0, 0, 0, 0 })
+E_A:RegisterOperator("assign", "m2", "", E_A.AssignOperator)
+E_A:RegisterOperator("variable", "m2", "m2", E_A.VariableOperator)
+E_A:RegisterOperator("delta", "m2", "m2", E_A.DeltaOperator)
 
 local function Input(self, Memory, Value)
 	self.Memory[Memory] = Value
@@ -53,9 +57,6 @@ E_A:WireModClass("matrix2", "MATRIX2", Input, Output)
 /*==============================================================================================
 	Maxtrix 2: Creator Functions
 ==============================================================================================*/
-E_A:SetCost(EA_COST_CHEAP)
-
-
 E_A:RegisterFunction("matrix2", "", "m2", function(self, Value)
 	return { 0, 0, 0, 0 }
 end)
@@ -90,20 +91,6 @@ end)
 /*==============================================================================================
 	Maxtrix 2: Operators
 ==============================================================================================*/
-E_A:RegisterOperator("assign", "m2", "", function(self, ValueOp, Memory)
-	self.Delta[Memory] = self.Memory[Memory]
-	
-	self.Memory[Memory] = ValueOp(self)
-	
-	self.Click[Memory] = true
-end)
-
-E_A:RegisterOperator("variable", "m2", "m2", function(self, Memory)
-	return self.Memory[Memory]
-end)
-
-/******************************************************************************/
-
 E_A:RegisterOperator("is", "m2", "n", function(self, Value)
 	local V = Value(self)
 	
@@ -135,11 +122,6 @@ E_A:RegisterOperator("neq", "m2m2", "n", function(self, ValueA, ValueB)
 end)
 
 /******************************************************************************/
-
-E_A:RegisterOperator("delta", "m2", "m2", function(self, Memory)
-	local A, B = self.Memory[Memory], self.Delta[Memory] or { 0, 0, 0, 0 }
-	return { A[1] - B[1], A[2] - B[2], A[3] - B[3], A[4] - B[4] }
-end)
 
 E_A:RegisterOperator("negative", "m2", "m2", function(self, Value)
 	local V = Value(self)
@@ -203,7 +185,6 @@ end)
 /*==============================================================================================
 	Maxtrix 2: Functions
 ==============================================================================================*/
-
 E_A:RegisterFunction("row", "m2:n", "v2", function(self, ValueA, ValueB)
 	local A, B, C = ValueA(self), ValueB(self)
 
@@ -413,7 +394,12 @@ end)
 /*==============================================================================================
 	Maxtrix 3: Class
 ==============================================================================================*/
+E_A:SetCost(EA_COST_CHEAP)
+
 E_A:RegisterClass("matrix", "m3", { 0, 0, 0, 0, 0, 0, 0, 0, 0 })
+E_A:RegisterOperator("assign", "m3", "", E_A.AssignOperator)
+E_A:RegisterOperator("variable", "m3", "m3", E_A.VariableOperator)
+E_A:RegisterOperator("delta", "m3", "m3", E_A.DeltaOperator)
 
 local function Input(self, Memory, Value)
 	self.Memory[Memory] = Value
@@ -496,21 +482,6 @@ end)
 /*==============================================================================================
 	Matrix 3: Operators
 ==============================================================================================*/
-E_A:SetCost(EA_COST_CHEAP)
-
-E_A:RegisterOperator("assign", "m3", "", function(self, Value, Memory)
-	self.Delta[Memory] = self.Memory[Memory]
-	
-	self.Memory[Memory] = Value(self)
-	
-	self.Click[Memory] = true
-end)
-
-E_A:RegisterOperator("variable", "m3", "m3", function(self, Memory)
-	return self.Memory[Memory]
-end)
-
-/******************************************************************************/
 
 E_A:RegisterOperator("is", "m3", "n", function(self, Value)
 	local A = Value(self)
@@ -555,14 +526,6 @@ E_A:RegisterOperator("neg", "m3m3", "n", function(self, ValueA, ValueB)
 end)
 
 /******************************************************************************/
-
-E_A:RegisterOperator("delta", "m3", "m3", function(self, Memory)
-	local A, B = self.Memory[Memory], self.Delta[Memory] or { 0, 0, 0, 0, 0, 0, 0, 0, 0 }
-	
-	return { A[1] - B[1], A[2] - B[2], A[3] - B[3],
-			 A[4] - B[4], A[5] - B[5], A[6] - B[6],
-			 A[7] - B[7], A[8] - B[8], A[9] - B[9]	}
-end)
 
 E_A:RegisterOperator("negative", "m3", "m3", function(self, ValueA)
 	local A = ValueA(self)

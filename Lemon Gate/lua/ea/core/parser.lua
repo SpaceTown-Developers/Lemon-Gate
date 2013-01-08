@@ -304,8 +304,6 @@ end
 ==============================================================================================*/
 
 function Parser:Expression()
-	local Trace = self:TokenTrace()
-	
 	if !self:HasTokens() then
 		return
 		
@@ -340,7 +338,9 @@ function Parser:ExpressionValue()
 	
 	local Inst, Prefix, Cast
 	
-	if self:AcceptToken("add") then -- add +Num
+	if self:AcceptToken("varg") then -- varags ...
+		return self:Instruction("varargs", self:TokenTrace())
+	elseif self:AcceptToken("add") then -- add +Num
 		if !self:HasTokens() then self:Error("Identity operator (+) must not be succeeded by whitespace") end
 	elseif self:AcceptToken("sub") then -- sub -Num
 		if !self:HasTokens() then self:Error("Negation operator (-) must not be succeeded by whitespace") end
@@ -463,7 +463,7 @@ end
 
 function Parser:GetValue()
 	-- Purpose: Gets a build up of instructions that will become a value.
-	local Trace, Instr = self:TokenTrace()
+	local Instr
 	
 	if self:AcceptToken("dlt") then -- dlt $Num
 		if !self:HasTokens() then 
@@ -472,20 +472,19 @@ function Parser:GetValue()
 			self:Error("variable expected, after Delta operator ($)")
 		end
 		
-		return self:Instruction("delta", Trace, self.TokenData)
+		return self:Instruction("delta", self:TokenTrace(), self.TokenData)
 	
 	elseif self:CheckToken("num") then
 		return self:GetNumber()
 		
 	elseif self:AcceptToken("str") then -- Create a string from a string token.
-		return self:Instruction("string", Trace, self.TokenData)
+		return self:Instruction("string", self:TokenTrace(), self.TokenData)
 	
 	elseif self:AcceptToken("var") then -- Grab a var from a var token.
-		return self:Instruction("variable", Trace, self.TokenData)
+		return self:Instruction("variable", self:TokenTrace(), self.TokenData)
 		
 	elseif self:AcceptToken("fun") then -- We are going to getting a function.
-		
-			local Function = self.TokenData
+			local Trace, Function = self:TokenTrace(), self.TokenData
 			
 		-- FUNCTION CALL, function()
 		
@@ -603,9 +602,8 @@ end
 
 
 function Parser:CallOperator(Instr)
-	local Trace = self:TokenTrace()
-	
 	if self:AcceptToken("lpa") then
+		local Trace = self:TokenTrace()
 		local Permaters, Index = {}, 1
 		
 		if !self:CheckToken("rpa") then
@@ -746,7 +744,11 @@ function Parser:Statement()
 		return self:ExitStatement()
 	
 	elseif self:AcceptToken("try") then
-		return self:Instruction("try", self:TokenTrace(), self:Block("try block"), self:Catch(true))
+		local PrevList = self.CatchList
+		self.CatchList = { }
+		local Instr = self:Instruction("try", self:TokenTrace(), self:Block("try block"), self:Catch(true))
+		self.CatchList = PrevList
+		return Instr
 	end
 	
 	return self:FunctionStatement()	or
@@ -839,9 +841,8 @@ end
 local AssignmentInstructions = {aadd = "addition", asub = "subtraction", amul = "multiply", adiv = "division"}
 
 function Parser:VariableStatement(NoDec)
-	local Trace = self:TokenTrace()
-	
 	if self:AcceptToken("var") then
+		local Trace = self:TokenTrace()
 		local Var = self.TokenData
 		
 		if self:AcceptToken("inc") then
@@ -876,9 +877,8 @@ function Parser:VariableStatement(NoDec)
 end
 
 function Parser:MultiVariableStatement()
-	local Trace = self:TokenTrace()
-	
 	if self:AcceptToken("var") then
+		local Trace = self:TokenTrace()
 		local Vars, Index = {self.TokenData}, 1
 		
 		while self:AcceptToken("com") do
@@ -1004,52 +1004,68 @@ function Parser:ElseIf()
 	end
 end
 
+
 function Parser:Catch(Reqired)
 	if self:AcceptToken("cth") then
+		local Trace, Exceptions, Var = self:TokenTrace(), { }
 		
 		if !self:AcceptToken("lpa") then
 			self:Error("Left parenthesis (() missing, to start catch statement.")
+		elseif self.CatchList["*"] then
+			self:Error("No exceptions can be caught here.")
 		end
 		
-		if !self:AcceptToken("fun") then
-			self:Error("exception type, expected for catch statement")
-		end
-		
-		local Exception = self.TokenData
-		
-		if !E_A.Exceptions[ Exception ] then
-			self:Error("invalid exception %s", Exception)
-		end
-		
-		local Exceptions = {[Exception] = true}
-		
-		while self:AcceptToken("com") do
-			if !self:AcceptToken("fun") then
-				self:Error("exception type expected after comma (,) for catch statement")
-			end
+		if self:AcceptToken("var") then
+			Var = self.TokenData
+			Exceptions["*"] = true
+			self.CatchList["*"] = true
 			
+		elseif self:AcceptToken("fun") then
 			local Exception = self.TokenData
 			
-			if Exceptions[Exception] then
-				self:Error("exception %s is already listed in catch statement", Exception)
-			elseif !E_A.Exceptions[ Exception ] then
+			if !E_A.Exceptions[ Exception ] then
 				self:Error("invalid exception %s", Exception)
+			elseif self.CatchList[ Exception ] then
+				self:Error("%s exception, can not be caught here", Exception)
 			end
-		
+			
 			Exceptions[Exception] = true
+			self.CatchList[Exception] = true
+			
+			while self:AcceptToken("com") do
+				if !self:AcceptToken("fun") then
+					self:Error("exception type expected after comma (,) for catch statement")
+				end
+				
+				local Exception = self.TokenData
+				
+				if Exceptions[Exception] then
+					self:Error("exception %s is already listed in catch statement", Exception)
+				elseif !E_A.Exceptions[ Exception ] then
+					self:Error("invalid exception %s", Exception)
+				elseif self.CatchList[ Exception ] then
+					self:Error("%s exception, can not be caught here", Exception)
+				end
+			
+				Exceptions[Exception] = true
+				self.CatchList[Exception] = true
+			end
+			
+			if !self:AcceptToken("var") then
+				self:Error("Variable expected after exception type")
+			end
+			
+			Var = self.TokenData
+			
+		else
+			self:Error("exception type, expected for catch statement")
 		end
-		
-		if !self:AcceptToken("var") then
-			self:Error("Variable expected after exception type")
-		end
-		
-		local Var = self.TokenData
 		
 		if !self:AcceptToken("rpa") then
 			self:Error("Right parenthesis ()) missing, to close function parameters")
 		end
 		
-		return self:Instruction("catch", self:TokenTrace(), Exceptions, Var, self:Block("catch block"), self:Catch())
+		return self:Instruction("catch", Trace, Exceptions, Var, self:Block("catch block"), self:Catch())
 		
 	elseif Required then
 		self:Error("catch statement required, after try")
@@ -1094,8 +1110,7 @@ function Parser:BuildParams(BlockType)
 
 	local Params, Types, Listed, Index = {}, {}, "", 0
 	
-	if self:AcceptToken("var") or self:AcceptToken("fun") or self:AcceptToken("func") then
-		self:PrevToken()
+	if self:CheckToken("var") or self:CheckToken("fun") or self:CheckToken("func") or self:CheckToken("varg") then
 		
 		while true do
 			if self:AcceptToken("com") then
@@ -1118,6 +1133,12 @@ function Parser:BuildParams(BlockType)
 				elseif !self:AcceptToken("var") and Type ~= "f" then
 					self:Error("variable expected, after parameter type (%s)", GetLongType(Type))
 				end
+			elseif self:AcceptToken("varg") then
+				if !self:CheckToken("rpa") then
+					self:Error("Right parenthesis ()) exspected, to close %s after varargs (...)", BlockType or "parameters")
+				end
+				
+				Type = "***"
 			else
 				Type = "n"
 				
@@ -1153,12 +1174,10 @@ end
 function Parser:LambdaFunction()
 	-- Purpose: Creates a Lambda.
 	
-	local Trace = self:TokenTrace()
 	local Ret = self:AcceptToken("fun")
 	
 	if self:AcceptToken("func") then
-		
-		local Return
+		local Trace, Return = self:TokenTrace()
 		
 		if Ret then
 			self:PrevToken() -- Back to func
@@ -1182,15 +1201,12 @@ end
 
 
 function Parser:FunctionStatement()
-	local Trace = self:TokenTrace()
-		
 	local Global = self:AcceptToken("glo")
 		
 	-- FUNCTION ASSIGN
 	
 		if self:AcceptToken("fun") then
-			
-			local Name = self.TokenData
+			local Trace, Name = self:TokenTrace(), self.TokenData
 			
 			if self:AcceptToken("ass") then -- Function Assignment, func = func, func = function() {}
 				return self:Instruction("funcass", Trace, Global, Name, self:Expression())
@@ -1202,6 +1218,7 @@ function Parser:FunctionStatement()
 	-- FUNCTION DECLAIR
 	
 		elseif self:AcceptToken("func") then
+			local Trace = self:TokenTrace()
 			
 			if !self:AcceptToken("fun") then
 				self:Error("function name expected, after (function)")
@@ -1225,7 +1242,7 @@ function Parser:FunctionStatement()
 			self.InFunc = InFunc
 			
 			if Return and Return ~= "" and (!Exit or Exit ~= "return") then
-				self:TokenError( Trace, "function must return %s", GetLongType(Return) )
+				self:TokenError( Trace, "return statment, expected at end of function" )
 			end
 			
 			local Lambda = self:Instruction("lambda", Trace, Sig, Params, Types, Block, Return)
@@ -1443,12 +1460,12 @@ function Parser:ExitStatement()
 		return self:Instruction("continue", self:TokenTrace(), Level)
 	
 	elseif self:AcceptToken("ret") then
+		self.ExitStatus = "return"
 		
 		if self:CheckToken("rcb") then
 			return self:Instruction("return", self:TokenTrace())
 		end
 		
-		self.ExitStatus = "return"
 		return self:Instruction("return", self:TokenTrace(), self:Expression())
 	end
 end

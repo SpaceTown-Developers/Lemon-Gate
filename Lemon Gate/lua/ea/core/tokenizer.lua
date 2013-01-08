@@ -73,7 +73,11 @@ local Tokens = {
 		{ "{", "lcb", "left curly bracket" },
 		{ "}", "rcb", "right curly bracket" },
 		{ "[", "lsb", "left square bracket" },
-		{ "]", "rsb", "right square bracket" }
+		{ "]", "rsb", "right square bracket" },
+	
+	-- MISC:
+	
+		{ "...", "varg", "varargs" },
 }
 
 E_A.API.CallHook( "BuildTokens", Tokens )
@@ -97,7 +101,7 @@ function Toker:Run( Code )
 	--Purpose: Tokenize the code.
 	
 	self.Tokens = { }
-	self.Pos, self.ReadChar, self.ReadLine = 0, 0, 1
+	self.Pos, self.ReadChar, self.ReadLine = 0, 1, 1
 	self.Char, self.ReadData = "", "", ""
 	self.Buffer, self.Len = Code, #Code
 	
@@ -111,9 +115,7 @@ function Toker:Run( Code )
 		self.SkipToken = false
 		local Token = self:NextToken( )
 		
-		if Token then
-			self.Tokens[#self.Tokens + 1] = Token
-		end
+		self:PushToken( Token )
 		
 		if self.Char == "" then
 			self.Char = nil
@@ -126,7 +128,13 @@ function Toker:Run( Code )
 		self:InfProtect(  )
 	end
 	
-	return self.Tokens
+	return self.Tokens, self.Rows
+end
+
+function Toker:PushToken( Token )
+	if Token then
+		self.Tokens[#self.Tokens + 1] = Token
+	end
 end
 
 /***************************************************************/
@@ -142,7 +150,6 @@ end
 
 /***************************************************************/
 
--- NEW FUNCTION!
 function Toker:NextPattern( Pattern, Exact )
 	if self.Char then
 		local Start, End, String = self.Buffer:find(Pattern, self.Pos, Exact)
@@ -327,7 +334,7 @@ function Toker:WordToken( )
 		if RawData == "if" then
 			return self:NewToken( "if", "if" )
 		elseif RawData == "elseif" then
-			return self:NewToken( "eif", "else if" )
+			return self:NewToken( "eif", "elseif" )
 		elseif RawData == "else" then
 			return self:NewToken( "els", "else" )
 		elseif RawData == "while" then
@@ -337,11 +344,11 @@ function Toker:WordToken( )
 		elseif RawData == "foreach" then
 			return self:NewToken( "each", "foreach")
 		elseif RawData == "function" then
-			return self:NewToken( "func", "function constructor")
+			return self:NewToken( "func", "function")
 		-- elseif RawData == "switch" then
 			-- return self:NewToken( "swh", "switch")
 		elseif RawData == "event" then
-			return self:NewToken( "evt", "event constructor")
+			return self:NewToken( "evt", "event")
 		elseif RawData == "try" then
 			return self:NewToken( "try", "try")
 		elseif RawData == "catch" then
@@ -356,8 +363,8 @@ function Toker:WordToken( )
 			return self:NewToken( "cnt", "continue" )
 		elseif RawData == "return" then
 			return self:NewToken( "ret", "return" )
-		elseif RawData == "error" then
-			return self:NewToken( "err", "error" )
+		-- elseif RawData == "error" then
+			-- return self:NewToken( "err", "error" )
 
 	-- DECLERATION:
 	

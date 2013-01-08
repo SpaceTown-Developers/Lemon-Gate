@@ -20,11 +20,56 @@ local MathCeil = math.ceil -- Speed
 
 local GetConVarNumber = GetConVarNumber -- Speed
 local unpack = unpack -- Speed
-local tostring = tostring
+local tostring = tostring -- Speed
+
+E_A:RegisterClass("varargs (...)", "***", {})
 
 /*==============================================================================================
-	Section: Functions
-	Purpose: =D.
+	Section: Base Operators
+	Creditors: Rusketh
+==============================================================================================*/
+function E_A.AssignOperator(self, InValue, Cell)
+	local Value, tValue = InValue(self)
+	local CurValue = self.Memory[Cell]
+	self.Memory[Cell] = Value
+	
+	local Compare = E_A.OperatorTable["eq(" .. tValue .. tValue .. ")"]
+	if CurValue and Compare then
+		local Eq = Compare[1](self, function() return Value, tValue end, function() return CurValue, tValue end)
+		self.Click[Cell] = (Eq and Eq == 1)
+	else
+		self.Click[Cell] = true
+	end
+	
+	local Delta = E_A.OperatorTable["delta(" .. tValue .. ")"]
+	if Delta then
+		self.Delta[Cell] = CurValue
+	end
+end
+
+function E_A.VariableOperator(self, Cell)
+	return self.Memory[Cell] 
+end
+
+function E_A.DeltaOperator(self, Cell)
+	local tValue = self.Types[Cell]
+	local Sub = E_A.OperatorTable["subtraction(" .. tValue .. tValue .. ")"]
+	local Default = E_A.TypeShorts[tValue][3]
+	
+	if Sub then
+		local Value = self.Memory[Cell] or Default(self)
+		local Delta = self.Delta[Cell] or Default(self)
+		
+		return Sub[1](self,
+			function() return Value, tValue end,
+			function() return Delta, tValue end)
+	end
+	
+	return Default(self)
+end
+
+/*==============================================================================================
+	Section: Exit Statments.
 	Creditors: Rusketh
 ==============================================================================================*/
 E_A:SetCost(EA_COST_CHEAP)
@@ -38,6 +83,20 @@ E_A:RegisterOperator("return", "", "", function(self, Value)
 	error("Return", 0)
 end)
 
+E_A:RegisterOperator("break", "", "", function(self, Depth)
+	self.ExitDeph = Depth or 0
+	error("Break", 0)
+end)
+
+E_A:RegisterOperator("continue", "", "", function(self, Depth)
+	self.ExitDeph = Depth or 0
+	error("Continue", 0)
+end)
+
+/*==============================================================================================
+	Section: Functions
+	Creditors: Rusketh
+==============================================================================================*/
 E_A:SetCost(EA_COST_ABNORMAL)
 
 E_A:RegisterFunction("print", "...", "", function(self, ...)
@@ -58,7 +117,7 @@ end)
 E_A:RegisterOperator("sequence", "", "", function(self, Statements, Count)
 	-- Purpose: Runs a set of statements, know as a sequence.
 	
-	for I = 1, Count or #Statements do -- Note: Count is used for speed.
+	for I = 1, Count or #Statements do -- Count is used for speed.
 		Statements[I](self)
 	end
 end)
@@ -82,9 +141,9 @@ end)
 E_A:RegisterOperator("for", "", "", function(self, Assign, Condition, Step, Block)
 	-- Purpose: Runs a for loop
 	
-	Assign(self) -- Note: Run assignment
+	Assign(self) -- Run assignment
 	
-	while Condition(self) == 1 do -- Note: loop until condition is met.
+	while Condition(self) == 1 do -- loop until condition is met.
 		self:PushPerf(EA_COST_CHEAP)
 		
 		local Ok, Exit = Block:SafeCall(self)
@@ -101,7 +160,7 @@ E_A:RegisterOperator("for", "", "", function(self, Assign, Condition, Step, Bloc
 				error(Exit, 0)
 			end
 		else	
-			Step(self) -- Note: Next Step
+			Step(self) -- Next Step
 		end
 	end
 end)
@@ -109,7 +168,7 @@ end)
 E_A:RegisterOperator("while", "", "", function(self, Condition, Block)
 	-- Purpose: Runs a for loop
 	
-	while Condition(self) == 1 do -- Note: loop until condition is met.
+	while Condition(self) == 1 do -- loop until condition is met.
 		self:PushPerf(EA_COST_CHEAP)
 		
 		local Ok, Exit = Block:SafeCall(self)
@@ -149,7 +208,7 @@ end)
 E_A:RegisterOperator("catch", "", "", function(self, Exceptions, Memory, Block, Catch)
 	local Exception = self.Exception
 	
-	if Exception and Exceptions[ Exception.Type ] then
+	if Exception and ( Exceptions[ Exception.Type ] or Exceptions["*"] ) then
 		self.Memory[Memory] = self.Exception
 		return true, Block(self)
 	elseif Catch then
