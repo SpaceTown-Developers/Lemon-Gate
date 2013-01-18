@@ -176,6 +176,7 @@ E_A:RegisterClass("hologram", "h", function( ) return NULL_ENTITY end)
 E_A:RegisterException("hologram")
 E_A:RegisterOperator("assign", "h", "", E_A.AssignOperator)
 E_A:RegisterOperator("variable", "h", "h", E_A.VariableOperator)
+E_A:RegisterOperator("trigger", "h", "n", E_A.TriggerOperator)
 
 E_A:RegisterOperator("cast", "eh", "e", function(self, Value)
 	return Value(self), "e" -- They are entities anyway.
@@ -628,7 +629,7 @@ end)
 E_A:SetCost(EA_COST_EXPENSIVE)
 
 E_A:RegisterFunction("holograms", "", "t", function(self)
-	return E_A.NewResultTable(Holograms[self.Entity], "h")
+	return E_A.NewResultTable(Holograms[self.Entity] or { }, "h")
 end)
 
 /*==============================================================================================

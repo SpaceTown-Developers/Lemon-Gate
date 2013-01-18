@@ -26,6 +26,7 @@ E_A:RegisterClass("entity", "e", function() return NULL_ENTITY end)
 
 E_A:RegisterOperator("assign", "e", "", E_A.AssignOperator)
 E_A:RegisterOperator("variable", "e", "e", E_A.VariableOperator)
+E_A:RegisterOperator("trigger", "e", "n", E_A.TriggerOperator)
 
 local function Input(self, Memory, Value)
 	self.Memory[Memory] = Value

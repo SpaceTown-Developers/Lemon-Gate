@@ -18,25 +18,30 @@
 			3: var++, var--
 			4: var = e1, var += e1, var -= e1, var *= e1, var /= e1
 			5: var[e1,type] = e1, var[e1,type] += e1, var[e1,type] -= e1, var[e1,type] *= e1, var[e1,type] /= e1
+			6: [global] [type] function fun = f1
+			7: [global] [type] function fun( var[, ...] ) { q2 }
 		If
 			1: elseif (e1) { q1 } i1
 			2: else { q1 }
-
+		
 		Expression
-			1: e1 | e2, e1 & e2
-			2: e6 == e7, e6 != e7
-			3: e6 < e7, e6 > e7, e6 <= e7, e6 >= e7
-			4: e1 || e2, e1 && e1 -- Binary Logic
-			5: e1 << e2, e1 >> e2, e1 ^^ e2 -- Binary Shift
-			6: e6 + e7, e6 - e7
-			7: e6 * e7, e6 / e7, e6 % e7
-			8: e6 ^ e7
-			19: +e11, -e11, !e10
-			10: e11:fun([e1, ...]), e11[var,type]
-			11: string, num, ~var
-			12: var
+			1: "(type) e2", "(type) f1", e2
+			2: e2 | e3, e2 & e3
+			3: e4 == e5, e4 != e5
+			4: e5 < e6, e5 > e6, e5 <= e6, e5 >= e6
+			5: e1 || e3, e1 && e3 -- Binary Logic
+			6: e1 << e3, e1 >> e3, e1 ^^ e3 -- Binary Shift
+			7: e5 + e6, e5 - e6
+			8: e5 * e6, e5 / e6, e5 % e6
+			9: e5 ^ e6
+			10: +e12, -e12, !e12, $e12, #e12, e11
+			11: e12:fun([e1, ...]), e11[var,type]
+			12: string, num, var
 			13: (e1)
-
+		
+		Function
+			1: f2, e13
+			2: [type] function( var[, ...] ) { q2 }
 				
 */
 
@@ -322,13 +327,15 @@ function Parser:Expression()
 		self:PrevToken()
 	end
 	
-	return self:NextOperator( 	"or", "and",
-								"bor", "band", "bxor",
-								"eq", "neq", "gth", "lth", "geq", "leq",
-								"bshr", "bshl",
-								"add", "sub", "mul", "div",
-								"mod", "exp"
-							)
+	local Inst = self:NextOperator( "or", "and",
+			"bor", "band", "bxor",
+			"eq", "neq", "gth", "lth", "geq", "leq",
+			"bshr", "bshl",
+			"add", "sub", "mul", "div",
+			"mod", "exp"
+		)
+	
+	return self:UniqueOperators( Inst )
 end
 
 function Parser:ExpressionValue()	
@@ -381,7 +388,9 @@ function Parser:ExpressionValue()
 		end
 	end
 	
-	if !Inst then self:ExpressionError() end
+	if !Inst then
+		self:ExpressionError()
+	end
 	
 	Inst = self:AppendValue( Inst )
 	
@@ -394,6 +403,7 @@ function Parser:ExpressionValue()
 	end
 
 	self.ExprTrace = ParentTrace
+	
 	return Inst
 end
 
@@ -422,19 +432,33 @@ local ExpressionOperators = {
 }
 
 function Parser:NextOperator( Token, ... )
-	if !Token then return self:ExpressionValue() end
+	if !Token then return self:ExpressionValue( ) end
 	
 	local Instr = ExpressionOperators[ Token ]
 	local Expr = self:NextOperator( ... )
 	
 	while self:AcceptToken( Token ) do
-		Expr = self:Instruction(Instr, self:TokenTrace(), Expr, self:NextOperator( Token, ... ) )
+		Expr = self:Instruction(Instr, self.ExprTrace, Expr, self:NextOperator( Token, ... ) )
 	end
 	
 	return Expr
 end
 
+function Parser:UniqueOperators( Expr1 )
+	
+	if self:AcceptToken("qsm") then
+		local Expr2 = self:Expression()
+		
+		self:RequireToken("com", "seperator (,) expected for conditonal (?) 'A ? B, C'")
+		
+		return self:Instruction("cnd", self.ExprTrace, Expr1, Expr2, self:Expression())
+	end
+	
+	return Expr1
+end
+
 /********************************************************************************************************************/
+
 local type = type -- Speed
 local Match = string.match -- Speed
 
@@ -473,6 +497,15 @@ function Parser:GetValue()
 		end
 		
 		return self:Instruction("delta", self:TokenTrace(), self.TokenData)
+	
+	elseif self:AcceptToken("trg") then -- dlt $Num
+		if !self:HasTokens() then 
+			self:Error("Trigger operator (~) must not be succeeded by whitespace")
+		elseif !self:AcceptToken("var") then
+			self:Error("variable expected, after Trigger operator (~)")
+		end
+		
+		return self:Instruction("trigger", self:TokenTrace(), self.TokenData)
 	
 	elseif self:CheckToken("num") then
 		return self:GetNumber()
@@ -704,8 +737,8 @@ function Parser:GetStatements(ExitToken)
 	end
 	
 	while true do
-		if self:AcceptToken("com") then
-			self:Error("Separator (,) must not appear twice.")
+		if self:AcceptToken("sep") then
+			self:Error("Separator (;) must not appear twice.")
 		end
 	
 		Index = Index + 1
@@ -717,8 +750,8 @@ function Parser:GetStatements(ExitToken)
 			break -- Note: Exit because we have found out exit token
 		elseif !self:HasTokens() then
 			break -- Note: No tokens left so exit
-		elseif !self:AcceptToken("com") and self.NextLine == self.TokenLine then
-			self:Error("Statements must be separated by comma (,) or whitespace")
+		elseif !self:AcceptToken("sep") and self.NextLine == self.TokenLine then
+			self:Error("Statements must be separated by semicolon (;) or newline")
 		elseif self.ExitStatus then
 			self:Error("Unreachable code after %s", self.ExitStatus)
 		end
@@ -1208,8 +1241,8 @@ function Parser:FunctionStatement()
 		if self:AcceptToken("fun") then
 			local Trace, Name = self:TokenTrace(), self.TokenData
 			
-			if self:AcceptToken("ass") then -- Function Assignment, func = func, func = function() {}
-				return self:Instruction("funcass", Trace, Global, Name, self:Expression())
+			if self:AcceptToken("ass") and !Global then -- Function Assignment, func = func, func = function() {}
+				return self:Instruction("func_ass", Trace, Name, self:Expression())
 			end
 		
 			self:PrevToken() -- Not a funcass!
@@ -1235,19 +1268,23 @@ function Parser:FunctionStatement()
 				self:NextToken() -- Name
 			end
 			
-			local Params, Types, Sig = self:BuildParams("function parameters")
-		
-			local InFunc = self.InFunc; self.InFunc = true
-			local Block, Exit = self:Block("function body")
-			self.InFunc = InFunc
+			if !self:AcceptToken("ass") then
+				local Params, Types, Sig = self:BuildParams("function parameters")
 			
-			if Return and Return ~= "" and (!Exit or Exit ~= "return") then
-				self:TokenError( Trace, "return statment, expected at end of function" )
+				local InFunc = self.InFunc; self.InFunc = true
+				local Block, Exit = self:Block("function body")
+				self.InFunc = InFunc
+				
+				if Return and Return ~= "" and (!Exit or Exit ~= "return") then
+					self:TokenError( Trace, "return statment, expected at end of function" )
+				end
+				
+				local Lambda = self:Instruction("lambda", Trace, Sig, Params, Types, Block, Return)
+				
+				return self:Instruction("func_declare", Trace, Name, Lambda, Global)
+			else
+				return self:Instruction("func_declare", Trace, Name, self:Expression(), Global)
 			end
-			
-			local Lambda = self:Instruction("lambda", Trace, Sig, Params, Types, Block, Return)
-			return self:Instruction("funcass", Trace, Global, Name, Lambda)
-
 	end
 	
 	if Global then

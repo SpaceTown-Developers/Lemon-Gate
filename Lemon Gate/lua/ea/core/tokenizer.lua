@@ -60,11 +60,13 @@ local Tokens = {
 
 	-- SYMBOLS:
 	
-		{ "?", "qsm", "?" },
+		//{ "?", "qsm", "?" }, Cant get this stable yet =(
 		{ ":", "col", "colon" },
+		{ ";", "sep", "semicolon" },
 		{ ",", "com", "comma" },
 		{ "$", "dlt", "delta" },
 		{ "#", "len", "length" },
+		{ "~", "trg", "trigger" },
 
 	-- BRACKETS:
 	

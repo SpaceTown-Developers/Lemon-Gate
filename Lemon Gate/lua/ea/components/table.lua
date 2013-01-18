@@ -26,9 +26,8 @@ end
 local NewTable = E_A.NewTable
 
 function E_A.NewResultTable(Values, Type)
-	local Size, Types = #Values, {}
-	local Result = setmetatable({ Data = Values, Types = Types, Size = Size, Count = Size }, Table)
-	for I = 1, Size do Types[I] = Type end
+	local Result = NewTable()
+	for _, Value in pairs( Values ) do Result:Insert(nil, Type, Value) end
 	return Result
 end
 
@@ -513,5 +512,3 @@ end
 E_A:RegisterOperator("get", "tn", "?", GetVariant)
 E_A:RegisterOperator("get", "ts", "?", GetVariant)
 E_A:RegisterOperator("get", "te", "?", GetVariant)
-
-

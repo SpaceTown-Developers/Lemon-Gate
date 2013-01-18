@@ -190,29 +190,96 @@ if CLIENT then
 		-- Todo: Model Select & Friend write!
 		-- Add a Wiki Link?
 		
-		local FileBrowser = vgui.Create("wire_expression2_browser" , Panel)
-		FileBrowser.OpenOnSingleClick = Editor
-		Panel:AddPanel(FileBrowser)
+        
+        local FileBrowser = vgui.Create( "DTree", Panel ) 
+        FileBrowser:SetSize( W, 500 )
+        FileBrowser:DockMargin( 5, 5, 5, 0 ) 
+        FileBrowser:Dock( TOP ) 
+        
+        FileBrowser.Paint = function( _, w, h )
+            surface.SetDrawColor( 100, 100, 100, 255 )
+            surface.DrawRect( 0, 0, w, h )
+            
+            surface.SetDrawColor( 75, 75, 75 )
+            surface.SetMaterial( Material( "vgui/gradient-u" ) )
+            surface.DrawTexturedRect( 0, 0, w, h )
+            return true 
+        end 
+        
+        FileBrowser.DoClick = function( _, Node ) 
+            local Dir = Node:GetFileName() or ""
+            
+            if !string.EndsWith( Dir, ".txt" ) then return end 
+            
+            if Node.LastClick and CurTime() - Node.LastClick < 0.5 then 
+                E_A.Editor.Open( ) 
+                Editor:LoadFile( Dir )
+                Node.LastClick = 0
+                return true 
+            end 
+            
+            Node.LastClick = CurTime() 
+        end 
+        
+        
+        local LemonNode = vgui.Create( "EA_FileNode" )
+        FileBrowser.RootNode:InsertNode( LemonNode )
+        LemonNode:SetText( "Lemongate" ) 
+        LemonNode:MakeFolder( "lemongate", "DATA", true )  
+        LemonNode:SetExpanded( true ) 
+        
+        
+        local BrowserRefresh = vgui.Create( "EA_Button", Panel )
+        BrowserRefresh:SetWide( W )
+        BrowserRefresh:SetTall( 25 )
+        BrowserRefresh:DockMargin( 5, 0, 5, 0 ) 
+        BrowserRefresh:Dock( TOP ) 
+        BrowserRefresh:SetText( "Update" ) 
+        BrowserRefresh:SetTextCentered( true ) 
+        BrowserRefresh.DoClick = function( ) 
+            LemonNode.ChildNodes:Remove()
+            LemonNode.ChildNodes = nil
+            LemonNode:CreateChildNodes()
+            LemonNode:SetNeedsPopulating( true )
+            LemonNode:PopulateChildrenAndSelf( true )
+        end
+        
+        
+        // TODO: Use the same as for the editor!
+		-- local FileBrowser = vgui.Create("wire_expression2_browser" , Panel)
+		-- FileBrowser.OpenOnSingleClick = Editor
+		-- Panel:AddPanel(FileBrowser)
 		
-		FileBrowser:Setup("LemonGate")
-		FileBrowser:SetSize(W, 300)
-		FileBrowser:DockMargin(5, 5, 5, 5)
-		FileBrowser:DockPadding(5, 5, 5, 5)
-		FileBrowser:Dock( TOP )
+		-- FileBrowser:Setup("LemonGate")
+		-- FileBrowser:SetSize(W, 300)
+		-- FileBrowser:DockMargin(5, 5, 5, 5)
+		-- FileBrowser:DockPadding(5, 5, 5, 5)
+		-- FileBrowser:Dock( TOP )
 		
-		function FileBrowser:OnFileOpen(filepath, newtab)
-			Editor:Open(filepath, nil, newtab)
-		end
+		-- function FileBrowser:OnFileOpen(filepath, newtab)
+			-- Editor:Open(filepath, nil, newtab)
+		-- end
 
-		local OpenEditor = Panel:Button("Open Editor")
+		-- local OpenEditor = Panel:Button("Open Editor")
+		local OpenEditor = vgui.Create( "EA_Button", Panel )
+        OpenEditor:SetTall( 25 )
+        OpenEditor:DockMargin( 5, 0, 5, 0 ) 
+        OpenEditor:Dock( TOP ) 
+        OpenEditor:SetText( "Open Editor" ) 
+        OpenEditor:SetTextCentered( true ) 
 		OpenEditor.DoClick = function(button)
-			Editor:Open()
+			E_A.Editor.Open()
 		end
 
-		local NewExpression = Panel:Button("New Expression")
+		-- local NewExpression = Panel:Button("New Expression")
+		local NewExpression = vgui.Create( "EA_Button", Panel )
+        NewExpression:SetTall( 25 )
+        NewExpression:DockMargin( 5, 0, 5, 0 ) 
+        NewExpression:Dock( TOP ) 
+        NewExpression:SetText( "New Expression" ) 
+        NewExpression:SetTextCentered( true ) 
 		NewExpression.DoClick = function(button)
-			Editor:Open()
-			Editor:NewScript()
+			E_A.Editor.Open( nil, true )
 		end
 	end
 end

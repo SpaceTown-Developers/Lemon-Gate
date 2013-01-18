@@ -20,6 +20,7 @@ E_A:RegisterClass( "color", "c", { 0, 0, 0, 255 } )
 E_A:RegisterOperator( "assign", "c", "", E_A.AssignOperator)
 E_A:RegisterOperator( "variable", "c", "c", E_A.VariableOperator)
 E_A:RegisterOperator("delta", "c", "c", E_A.DeltaOperator)
+E_A:RegisterOperator("trigger", "c", "n", E_A.TriggerOperator)
 
 E_A:RegisterOperator( "is", "c", "n", function( self, Value )
 	local V = Value(self)

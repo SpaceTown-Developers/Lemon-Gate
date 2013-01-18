@@ -25,6 +25,7 @@ E_A:RegisterClass("angle", "a", {0, 0, 0})
 E_A:RegisterOperator("assign", "a", "", E_A.AssignOperator)
 E_A:RegisterOperator("variable", "a", "a", E_A.VariableOperator)
 E_A:RegisterOperator("delta", "a", "a", E_A.DeltaOperator)
+E_A:RegisterOperator("trigger", "a", "n", E_A.TriggerOperator)
 
 local function Input(self, Memory, Value)
 	self.Delta[Memory] = self.Memory[Memory]

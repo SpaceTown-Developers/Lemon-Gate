@@ -12,6 +12,20 @@ if SERVER then
 	resource.AddFile( "materials/fugue/script-text.vmt" )
 	resource.AddFile( "materials/fugue/24/cross-circle.vmt" )
 	
+    // Editor Textures
+	resource.AddFile( "materials/fugue/blue-folder-horizontal-open.png" )
+	resource.AddFile( "materials/fugue/blue-folder-horizontal.png" )
+	resource.AddFile( "materials/fugue/cross-button.png" )
+	resource.AddFile( "materials/fugue/disk.png" )
+	resource.AddFile( "materials/fugue/disks.png" )
+	resource.AddFile( "materials/fugue/gear.png" )
+	resource.AddFile( "materials/fugue/question.png" )
+	resource.AddFile( "materials/fugue/script--minus.png" )
+	resource.AddFile( "materials/fugue/script--plus.png" )
+	resource.AddFile( "materials/fugue/script-text.png" )
+	resource.AddFile( "materials/fugue/toggle-small-expand.png" )
+	resource.AddFile( "materials/fugue/toggle-small.png" )
+	    
 	AddCSLuaFile("lemongate.lua")
 	AddCSLuaFile("ea/client.lua")
 	
@@ -19,8 +33,18 @@ if SERVER then
 	AddCSLuaFile("ea/core/Parser.lua")
 	AddCSLuaFile("ea/core/Compiler.lua")
 	
-	AddCSLuaFile("ea/editor.lua")
 	AddCSLuaFile("ea/uploader.lua")
+    
+	AddCSLuaFile("ea/editor.lua")
+    AddCSLuaFile("ea/editor/EA_Button.lua")
+    AddCSLuaFile("ea/editor/EA_CloseButton.lua")
+    AddCSLuaFile("ea/editor/EA_Editor.lua")
+    AddCSLuaFile("ea/editor/EA_EditorPanel.lua")
+    AddCSLuaFile("ea/editor/EA_FileNode.lua")
+    AddCSLuaFile("ea/editor/EA_Frame.lua")
+    AddCSLuaFile("ea/editor/EA_ImageButton.lua")
+    AddCSLuaFile("ea/editor/EA_ToolBar.lua")
+    AddCSLuaFile("ea/editor/syntaxer.lua")
 end
 
 /*==============================================================================================
@@ -33,6 +57,17 @@ function LemonGateLoad()
 		include("ea/server.lua")
 	else
 		include("ea/client.lua")
+        
+        include("ea/editor/EA_Button.lua")
+        include("ea/editor/EA_CloseButton.lua")
+        include("ea/editor/EA_Editor.lua")
+        include("ea/editor/EA_EditorPanel.lua")
+        include("ea/editor/EA_FileNode.lua")
+        include("ea/editor/EA_Frame.lua")
+        include("ea/editor/EA_ImageButton.lua")
+        include("ea/editor/EA_ToolBar.lua")
+        include("ea/editor/syntaxer.lua")
+        
 		include("ea/editor.lua")
 	end
 	

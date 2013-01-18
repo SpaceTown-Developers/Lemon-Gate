@@ -260,8 +260,10 @@ end
 
 /********************************************************************************************************************/
 
-function Compiler:AssignVar(Type, Name, Special)
+function Compiler:AssignVar(Type, Name, Special, AssignType)
 	-- Purpose: Handel's variable assignments properly and sorts special cases.
+	
+	AssignType = AssignType or "varaible"
 	
 	if !Special or Special == "local" then
 		return self:LocalVar(Name, Type)
@@ -274,7 +276,7 @@ function Compiler:AssignVar(Type, Name, Special)
 			self.VarIndex = VarID
 			
 			if self.Scope[Name] then
-				self:Error("%s %s can not redefine existing varaible.", Special, Name)
+				self:Error("%s %s can not redefine existing %s.", Special, Name, AssignType)
 			end
 			
 			self.Scope[Name] = VarID
@@ -283,9 +285,9 @@ function Compiler:AssignVar(Type, Name, Special)
 			
 			return VarID, self.ScopeID
 		elseif self.VarTypes[Cell] != Type then
-			self:Error("Variable %s already exists as %s, and can not be assigned to %s", Name, GetLongType(self.VarTypes[Cell]), GetLongType(Type))
+			self:Error("%s %s already exists as %s, and can not be assigned to %s", AssignType, Name, GetLongType(self.VarTypes[Cell]), GetLongType(Type))
 		elseif self.Scope[Name] and self.Scope[Name] ~= Cell then
-			self:Error("%s %s can not redefine existing varaible.", Special, Name)
+			self:Error("%s %s can not redefine existing %s.", Special, Name, AssignType)
 		else
 			self.Scope[Name] = Cell
 			return Cell, self.ScopeID
@@ -299,7 +301,7 @@ function Compiler:AssignVar(Type, Name, Special)
 			self.VarIndex = VarID
 			
 			if self.Scope[Name] then
-				self:Error("%s %s can not redefine existing varaible.", Special, Name)
+				self:Error("%s %s can not redefine existing %s.", Special, Name, AssignType)
 			elseif Special == "input" then
 				self.Inputs[VarID] = Name
 			elseif Special == "output" then
@@ -313,13 +315,13 @@ function Compiler:AssignVar(Type, Name, Special)
 			return VarID, self.ScopeID
 			
 		elseif Special == "input" and self.Outputs[Cell] then
-			self:Error("Variable %s already exists as output, therefore can not be declared as %s", Name, Special)
+			self:Error("%s %s already exists as output, therefore can not be declared as %s", AssignType, Name, Special)
 		elseif Special == "output" and self.Inputs[Cell] then
-			self:Error("Variable %s already exists as input, therefore can not be declared as %s", Name, Special)
+			self:Error("%s %s already exists as input, therefore can not be declared as %s", AssignType, Name, Special)
 		elseif self.VarTypes[Cell] != Type then
-			self:Error("Variable %s already exists as %s, and can not be assigned to %s", Name, GetLongType(self.VarTypes[Cell]), GetLongType(Type))
+			self:Error("%s %s already exists as %s, and can not be assigned to %s", AssignType, Name, GetLongType(self.VarTypes[Cell]), GetLongType(Type))
 		elseif self.Scope[Name] and self.Scope[Name] ~= Cell then
-			self:Error("%s %s can not redefine existing varaible.", Special, Name)
+			self:Error("%s %s can not redefine existing %s.", Special, Name, AssignType)
 		else
 			self.Scope[Name] = Cell
 			return Cell, self.ScopeID
@@ -397,9 +399,17 @@ function Compiler:Instr_ASSIGN_DECLARE(Name, Expr, Type, Special)
 	
 	local Value, tValue = self:CompileInst(Expr, true)
 	
-	if (tValue ~= Type and Type ~= "?") or tValue == "***" then
+	if tValue ~= Type or tValue == "***" then
 		if tValue == "?" then
-			self:Error("Variable of type variant must be casted before assigning to %s", GetLongType(Type))
+			local Operator, Return, Perf = self:GetOperator("cast", Type, "?")
+			
+			if !Operator then
+				self:Error("Variable of type variant must be casted before assigning to %s", GetLongType(Type))
+			end
+			
+			Value = self:Operator(Operator, Return, Perf, Value)
+			
+			self:PushPerf(Perf)
 		else
 			self:Error("Variable %s of type %s, can not be assigned as '%s'", Name, GetLongType(Type), GetLongType(tValue))
 		end
@@ -429,13 +439,24 @@ function Compiler:Instr_ASSIGN(Name, Expr)
 	end
 	
 	local Operator, Return, Perf = self:GetOperator("assign", Type)
-	if !Operator then self:Error("Assignment operator (=) does not support '%s'", GetLongType(Type)) end
+	
+	if !Operator then
+		self:Error("Assignment operator (=) does not support '%s'", GetLongType(Type))
+	end
 	
 	local Value, tValue = self:CompileInst(Expr)
 	
-	if (tValue ~= Type and Type ~= "?") or tValue == "***" then
+	if tValue ~= Type or tValue == "***" then
 		if tValue == "?" then
-			self:Error("Variable of type variant must be casted before assigning to %s", GetLongType(Type))
+			local Operator, Return, Perf = self:GetOperator("cast", Type, "?")
+			
+			if !Operator then
+				self:Error("Variable of type variant must be casted before assigning to %s", GetLongType(Type))
+			end
+			
+			Value = self:Operator(Operator, Return, Perf, Value)
+			
+			self:PushPerf(Perf)
 		else
 			self:Error("Variable %s of type %s, can not be assigned as '%s'", Name, GetLongType(Type), GetLongType(tValue))
 		end
@@ -495,7 +516,7 @@ function Compiler:Instr_INCREMENT(Name)
 	if self.Inputs[Memory] then self:Error("increment operator (--) will not accept input %s", Name) end
 	
 	local Operator, Return, Perf = self:GetOperator("increment", Type)
-	if !Operator then self:Error("increment operator (++) does not support '%s++'", Type) end
+	if !Operator then self:Error("increment operator (++) does not support '%s++'", GetLongType(Type)) end
 	
 	self:PushPerf(Perf)
 	
@@ -516,6 +537,28 @@ function Compiler:Instr_DECREMENT(Name)
 	self:PushPerf(Perf)
 	
 	return self:Operator(Operator, Return, Perf, Memory)
+end
+
+/********************************************************************************************************************/
+
+function Compiler:Instr_CND(InstA, InstB, InstC)
+	-- Purpose: ? Comparason Operator.
+	
+	local ValueA, TypeA = self:CompileInst(InstA)
+	local ValueB, TypeB = self:CompileInst(InstB)
+	local ValueC, TypeC = self:CompileInst(InstC)
+	
+	local Is, IsR, IsP = self:GetOperator("is", TypeA)
+	
+	if !Is or TypeB ~= TypeC then 
+		self:Error("conditonal does not support '%s ? %s , %s'", GetLongType(TypeA), GetLongType(TypeB), GetLongType(TypeC) )
+	end
+	
+	local Operator, Return, Perf = self:GetOperator("cnd")
+	
+	self:PushPerf(Perf + IsP)
+	
+	return self:Operator(Operator, TypeB, Perf, self:Operator(Is, IsR, IsP, ValueA), ValueB, ValueC)
 end
 
 /*==============================================================================================
@@ -656,7 +699,21 @@ function Compiler:Instr_DELTA(Name)
 	if !Memory then self:Error("Variable %s does not exist", Name) end
 	
 	local Operator, Return, Perf = self:GetOperator("delta", Type)
-	if !Operator then self:Error("delta operator ($) does not support " .. GetLongType(Type)) end
+	if !Operator then self:Error("Delta operator ($) does not support " .. GetLongType(Type)) end
+	
+	self:PushPerf(Perf)
+	
+	return self:Operator(Operator, Return, Perf, Memory)
+end
+
+function Compiler:Instr_TRIGGER(Name)
+	-- Purpose: $Variable
+	
+	local Memory, Type = self:GetVar(Name)
+	if !Memory then self:Error("Variable %s does not exist", Name) end
+	
+	local Operator, Return, Perf = self:GetOperator("trigger", Type)
+	if !Operator then self:Error("Trigger operator (~) does not support " .. GetLongType(Type)) end
 	
 	self:PushPerf(Perf)
 	
@@ -674,7 +731,9 @@ function Compiler:Instr_CAST(Type, Inst)
 	local Value, tValue = self:CompileInst(Inst)
 	local Operator, Return, Perf = self:GetOperator("cast", Type, tValue)
 	
-	if !Operator then self:Error("Can not cast from %s to %s", GetLongType(tValue), GetLongType(Type) ) end
+	if !Operator then
+		self:Error("Can not cast from %s to %s", GetLongType(tValue), GetLongType(Type) )
+	end
 	
 	self:PushPerf(Perf)
 	
@@ -974,8 +1033,10 @@ function Compiler:Instr_FUNCVAR(Name)
 	-- Purpose: Grab a function var.
 	
 	local VarID, Type = self:GetVar(Name)
-	if !VarID then self:Error("function %s does not exist", Name) end
-	if Type ~= "f" then self:Error("Impossible Error: variable %s is not a function.", Name) end
+	
+	if !VarID then
+		self:Error("function %s does not exist", Name)
+	end
 	
 	local Operator, Return, Perf = self:GetOperator("funcvar", Type)
 	
@@ -984,18 +1045,59 @@ function Compiler:Instr_FUNCVAR(Name)
 	return self:Operator(Operator, Return, Perf, VarID)
 end
 
-function Compiler:Instr_FUNCASS(Global, Name, Inst)
-	-- Purpose: Grab a function var.
+function Compiler:Instr_FUNC_DECLARE(Name, Inst, Global)
+	-- Purpose: define a function var.
 	
 	local Function, tFunction = self:CompileInst(Inst)
-	if tFunction ~= "f" then self:Error("Can not assign %q as 'function'", GetLongType(tFunction)) end
 	
-	local VarID, Scope
+	if tFunction == "?" then
+		local Operator, Return, Perf = self:GetOperator("cast", "f", tFunction)
+		
+		if !Operator then
+			self:Error("Can not assign %q as 'function'", GetLongType(tFunction))
+		end
 	
-	if Global then
-		VarID, Scope = self:SetVar(Name, "f") -- Todo: Actualy make this global instead of upscopped!
-	else
-		VarID, Scope = self:LocalVar(Name, "f")
+		self:PushPerf(Perf)
+	
+		Function = self:Operator(Operator, Return, Perf, Function)
+		
+	elseif tFunction ~= "f" then
+		self:Error("Can not assign %q as 'function'", GetLongType(tFunction))
+	end
+	
+	local VarID, Scope = self:AssignVar("f", Name, (Global and "global" or nil) , "function") -- TODO Parser Support for this!
+	
+	local Operator, Return, Perf = self:GetOperator("funcass", "f")
+	
+	self:PushPerf(Perf)
+	
+	return self:Operator(Operator, Return, Perf, Function, VarID)
+end
+
+function Compiler:Instr_FUNC_ASS(Name, Inst)
+	-- Purpose: reassign a function var.
+	
+	local VarID, Type = self:GetVar(Name)
+	
+	if !VarID then
+		self:Error("function %s does not exist", Name)
+	end
+	
+	local Function, tFunction = self:CompileInst(Inst)
+	
+	if tFunction == "?" then
+		local Operator, Return, Perf = self:GetOperator("cast", "f", tFunction)
+		
+		if !Operator then
+			self:Error("Can not assign %q as 'function'", GetLongType(tFunction))
+		end
+	
+		self:PushPerf(Perf)
+	
+		Function = self:Operator(Operator, Return, Perf, Function)
+		
+	elseif tFunction ~= "f" then
+		self:Error("Can not assign %q as 'function'", GetLongType(tFunction))
 	end
 	
 	local Operator, Return, Perf = self:GetOperator("funcass", "f")

@@ -28,6 +28,7 @@ E_A:RegisterClass("vector2", "v2", {0, 0})
 E_A:RegisterOperator("assign", "v2", "", E_A.AssignOperator)
 E_A:RegisterOperator("variable", "v2", "v2", E_A.VariableOperator)
 E_A:RegisterOperator("delta", "v2", "v2", E_A.DeltaOperator)
+E_A:RegisterOperator("trigger", "v2", "n", E_A.TriggerOperator)
 
 /*
 local function Input(self, Memory, Value)

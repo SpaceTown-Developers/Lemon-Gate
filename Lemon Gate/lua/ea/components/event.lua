@@ -107,6 +107,10 @@ end
 local KeyBoardType = CreateConVar( "lemon_keyboard_layout", "British" )
 
 numpad.Register( "Lemon.KeyEvent", function( Player, Emu, Pressed, EventKeys )
+	if (EventKeys[Emu] and Pressed) or (!EventKeys[Emu] and !Pressed) then
+		return
+	end
+	
 	EventKeys[Emu] = Pressed and true or nil
 	
 	local Layout = Wire_Keyboard_Remap[ KeyBoardType:GetString() ] 

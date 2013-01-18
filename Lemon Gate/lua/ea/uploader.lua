@@ -129,7 +129,7 @@ if CLIENT then
 			return
 		end
 		
-		local Error = E_A.Editor.Validate( Script ) -- Validate the code, as not to upload crap!
+		local Error = E_A.Editor.Validate( )
 		
 		if Error then
 			LocalPlayer():PrintMessage( HUD_PRINTTALK, "Them lemons appear to be leaking (Script Error)." )
@@ -232,7 +232,7 @@ if CLIENT then
 		
 		if Download.Chunks == Chunks then -- used to be ChunkID == Chunks
 			local Script = table_concat( Download.Data, "" )
-			E_A.Editor.NewTab(Script, "Download")
+			E_A.Editor.NewTab(Script)
 			Downloads = nil
 			
 			net.Start( "lemon_download_confirm" )

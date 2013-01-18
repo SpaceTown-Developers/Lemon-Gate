@@ -32,7 +32,7 @@ local pcall = pcall -- Speed
 local GoodColor = Color(255, 255, 255, 255)
 local BadColor = Color(255, 0, 0, 0)
 
-local MaxPerf = CreateConVar("lemongate_perf", "25000")
+local MaxPerf = CreateConVar("lemongate_perf", "50000")
 
 -- Other Files:
 include("shared.lua")

@@ -34,6 +34,7 @@ E_A:SetCost(EA_COST_CHEAP)
 E_A:RegisterClass("string", "s", "")
 E_A:RegisterOperator("assign", "s", "", E_A.AssignOperator)
 E_A:RegisterOperator("variable", "s", "s", E_A.VariableOperator)
+E_A:RegisterOperator("trigger", "s", "n", E_A.TriggerOperator)
 
 local function Input(self, Memory, Value)
 	self.Memory[Memory] = Value

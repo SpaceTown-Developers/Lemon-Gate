@@ -35,8 +35,10 @@ function E_A.AssignOperator(self, InValue, Cell)
 	
 	local Compare = E_A.OperatorTable["eq(" .. tValue .. tValue .. ")"]
 	if CurValue and Compare then
-		local Eq = Compare[1](self, function() return Value, tValue end, function() return CurValue, tValue end)
-		self.Click[Cell] = (Eq and Eq == 1)
+		local Eq = Compare[1](self, function() return Value, tValue end,
+									function() return CurValue, tValue end)
+		
+		self.Click[Cell] = (Eq == 0)
 	else
 		self.Click[Cell] = true
 	end
@@ -67,6 +69,22 @@ function E_A.DeltaOperator(self, Cell)
 	
 	return Default(self)
 end
+
+function E_A.TriggerOperator(self, Cell)
+	return self.Click[Cell] and 1 or 0
+end
+
+/*==============================================================================================
+	Section: Conditonal
+	Creditors: Rusketh
+==============================================================================================*/
+E_A:SetCost(EA_COST_NORMAL)
+
+E_A:RegisterOperator("cnd", "", "", function(self, ValueA, ValueB, ValueC)
+	local A, B, C = ValueA(self), ValueB(self), ValueC(self)
+	return (A == 1) and B or C
+end)
+
 
 /*==============================================================================================
 	Section: Exit Statments.

@@ -43,6 +43,7 @@ E_A:RegisterClass("matrix2", "m2", { 0, 0, 0, 0 })
 E_A:RegisterOperator("assign", "m2", "", E_A.AssignOperator)
 E_A:RegisterOperator("variable", "m2", "m2", E_A.VariableOperator)
 E_A:RegisterOperator("delta", "m2", "m2", E_A.DeltaOperator)
+E_A:RegisterOperator("trigger", "m2", "n", E_A.TriggerOperator)
 
 local function Input(self, Memory, Value)
 	self.Memory[Memory] = Value
@@ -400,6 +401,7 @@ E_A:RegisterClass("matrix", "m3", { 0, 0, 0, 0, 0, 0, 0, 0, 0 })
 E_A:RegisterOperator("assign", "m3", "", E_A.AssignOperator)
 E_A:RegisterOperator("variable", "m3", "m3", E_A.VariableOperator)
 E_A:RegisterOperator("delta", "m3", "m3", E_A.DeltaOperator)
+E_A:RegisterOperator("trigger", "m3", "n", E_A.TriggerOperator)
 
 local function Input(self, Memory, Value)
 	self.Memory[Memory] = Value
