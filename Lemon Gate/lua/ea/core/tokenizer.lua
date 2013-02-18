@@ -244,12 +244,16 @@ function Toker:SkipComments( )
 		end
 		
 		if Style then
-			while !self:NextPattern( Style , true) do
+			while !self:NextPattern( Style, true ) do
 				
 				-- TODO: Anitations =D
 				
-				if !self.Char and Style == "*/" then
-					self:Error("Unterminated multiline comment (/*)", 0)
+				if !self.Char then 
+					if Style == "*/" then
+						self:Error("Unterminated multiline comment (/*)", 0)
+					else 
+						break 
+					end 
 				end
 				
 				self:SkipChar()

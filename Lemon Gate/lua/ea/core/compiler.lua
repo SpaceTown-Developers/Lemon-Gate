@@ -84,6 +84,12 @@ function Compiler:Error(Message, Info, ...)
 	error( FormatStr(Message .. " at line %i, char %i", Line, Char), 0)
 end
 
+function Compiler:LuaError(Message, Info, ...)
+	debug.Trace()
+	if Info then Message = FormatStr(Message, Info, ...) end
+	error( "LUA: " .. Message, 0)
+end
+
 /*==============================================================================================
 	Section: Instruction Conversion
 	Purpose: Functions to find instructions and convert them to operators.
@@ -93,22 +99,32 @@ function Compiler:CompileInst(Inst)
 	-- Purpose: Compiles an instruction.
 	
 	if !Inst then
-		debug.Trace()
-		self:Error("Lua: Invalid Instruction '%s'", type(Inst))
+		self:LuaError("Invalid instruction (type %s).", type( Inst ) )
 	end
 	
-	local Func = self["Instr_" .. UpperStr(Inst[1])]
+	local IName, ITrace = Inst[1], Inst[2]
 	
-	if Func then
-		local Trace = Inst[2]; Trace[3] = Inst[1]
-		local _Trace = self.Trace; self.Trace = Trace
-		
-		local Result, Type = Func(self, unpack(Inst[3]))
-		self.Trace = _Trace; return Result, Type
-	else
-		debug.Trace()
-		self:Error("Lua: Unknown Instruction '%s'", Inst[1])
+	if !IName then
+		self:LuaError("Invalid instruction (no name)." )
+	elseif !ITrace then
+		self:LuaError("Invalid instruction %s (no trace).", IName )
 	end
+	
+	local Func = self["Instr_" .. UpperStr(IName)]
+	
+	if !Func then
+		self:LuaError("Invalid instruction %s (unrecognised).", IName )
+	end
+	
+	local Trace = self.Trace
+	self.Trace = ITrace
+	ITrace[3] = IName
+	
+	local Result, Type = Func(self, unpack(Inst[3]))
+	
+	self.Trace = Trace
+	
+	return Result, Type
 end
 
 function Compiler:GetOperator(Name, sType, ...)
@@ -1029,81 +1045,85 @@ end
 	Purpose: Function Objects, just 20% cooler!
 	Creditors: Rusketh
 ==============================================================================================*/
-function Compiler:Instr_FUNCVAR(Name)
+-- NEW GEN CODE - CBA TO FIX!
+-- function Compiler:Instr_FUNCVAR(Name)
 	-- Purpose: Grab a function var.
 	
+	-- local VarID, Type = self:GetVar(Name)
+	
+	-- if !VarID then
+		-- self:Error("function %s does not exist", Name)
+	-- end
+	
+	-- local Operator, Return, Perf = self:GetOperator("funcvar", Type)
+	
+	-- self:PushPerf(Perf)
+	
+	-- return self:Operator(Operator, Return, Perf, VarID)
+-- end
+
+-- function Compiler:Instr_FUNC_ASS(Name, Inst, Special)
+	-- Purpose: define a function var.
+	
+	-- local Function, tFunction = self:CompileInst(Inst)
+	
+	-- if tFunction == "?" then
+		-- local Operator, Return, Perf = self:GetOperator("cast", "f", tFunction)
+		
+		-- if !Operator then
+			-- self:Error("Can not assign %q as 'function'", GetLongType(tFunction))
+		-- end
+	
+		-- self:PushPerf(Perf)
+	
+		-- Function = self:Operator(Operator, Return, Perf, Function)
+		
+	-- elseif tFunction ~= "f" then
+		-- self:Error("Can not assign %q as 'function'", GetLongType(tFunction))
+	-- end
+	
+	-- local VarID, Scope = self:AssignVar("f", Name, Special, "function") -- TODO Parser Support for this!
+	
+	-- local Operator, Return, Perf = self:GetOperator("funcass", "f")
+	
+	-- self:PushPerf(Perf)
+	
+	-- return self:Operator(Operator, Return, Perf, Function, VarID)
+-- end
+
+--THE OLD CODE
+function Compiler:Instr_FUNCVAR(Name)
+	-- Purpose: Grab a function var.
+
 	local VarID, Type = self:GetVar(Name)
-	
-	if !VarID then
-		self:Error("function %s does not exist", Name)
-	end
-	
+	if !VarID then self:Error("function %s does not exist", Name) end
+	if Type ~= "f" then self:Error("Impossible Error: variable %s is not a function.", Name) end
+
 	local Operator, Return, Perf = self:GetOperator("funcvar", Type)
-	
+
 	self:PushPerf(Perf)
-	
+
 	return self:Operator(Operator, Return, Perf, VarID)
 end
 
-function Compiler:Instr_FUNC_DECLARE(Name, Inst, Global)
-	-- Purpose: define a function var.
-	
-	local Function, tFunction = self:CompileInst(Inst)
-	
-	if tFunction == "?" then
-		local Operator, Return, Perf = self:GetOperator("cast", "f", tFunction)
-		
-		if !Operator then
-			self:Error("Can not assign %q as 'function'", GetLongType(tFunction))
-		end
-	
-		self:PushPerf(Perf)
-	
-		Function = self:Operator(Operator, Return, Perf, Function)
-		
-	elseif tFunction ~= "f" then
-		self:Error("Can not assign %q as 'function'", GetLongType(tFunction))
-	end
-	
-	local VarID, Scope = self:AssignVar("f", Name, (Global and "global" or nil) , "function") -- TODO Parser Support for this!
-	
-	local Operator, Return, Perf = self:GetOperator("funcass", "f")
-	
-	self:PushPerf(Perf)
-	
-	return self:Operator(Operator, Return, Perf, Function, VarID)
-end
+function Compiler:Instr_FUNCASS(Global, Name, Inst)
+	-- Purpose: Grab a function var.
 
-function Compiler:Instr_FUNC_ASS(Name, Inst)
-	-- Purpose: reassign a function var.
-	
-	local VarID, Type = self:GetVar(Name)
-	
-	if !VarID then
-		self:Error("function %s does not exist", Name)
-	end
-	
 	local Function, tFunction = self:CompileInst(Inst)
-	
-	if tFunction == "?" then
-		local Operator, Return, Perf = self:GetOperator("cast", "f", tFunction)
-		
-		if !Operator then
-			self:Error("Can not assign %q as 'function'", GetLongType(tFunction))
-		end
-	
-		self:PushPerf(Perf)
-	
-		Function = self:Operator(Operator, Return, Perf, Function)
-		
-	elseif tFunction ~= "f" then
-		self:Error("Can not assign %q as 'function'", GetLongType(tFunction))
+	if tFunction ~= "f" then self:Error("Can not assign %q as 'function'", GetLongType(tFunction)) end
+
+	local VarID, Scope
+
+	if Global then
+		VarID, Scope = self:SetVar(Name, "f") -- Todo: Actualy make this global instead of upscopped! (What i tried above).
+	else
+		VarID, Scope = self:LocalVar(Name, "f")
 	end
-	
+
 	local Operator, Return, Perf = self:GetOperator("funcass", "f")
-	
+
 	self:PushPerf(Perf)
-	
+
 	return self:Operator(Operator, Return, Perf, Function, VarID)
 end
 
