@@ -376,6 +376,8 @@ function Toker:WordToken( )
 	
 		elseif RawData == "global" then
 			return self:NewToken( "glo", "global" )
+		elseif RawData == "local" then
+			return self:NewToken( "loc", "local" )
 		elseif RawData == "input" then
 			return self:NewToken( "in", "input" )
 		elseif RawData == "output" then

@@ -81,7 +81,7 @@ end
 
 local FormatStr = string.format -- Speed
 
-function Parser:Error(Message, Info, ...) debug.Trace() //PrintTable( self.Token )
+function Parser:Error(Message, Info, ...)
 	-- Purpose: Create and push a syntax error.
 	
 	if Info then Message = FormatStr(Message, Info, ...) end
@@ -1235,62 +1235,7 @@ function Parser:LambdaFunction()
 	end
 end
 
--- NEW GEN CODE - I CBA TO FIX!
--- function Parser:FunctionStatement()
-	-- local Global = self:AcceptToken("glo") and "global" or "local"
-
-	-- FUNCTION ASSIGN
-
-		-- if self:AcceptToken("fun") then
-			-- local Trace, Name = self:TokenTrace(), self.TokenData
-
-			-- if self:AcceptToken("ass") then -- Function Assignment, func = func, func = function() {}
-				-- return self:Instruction("func_ass", Trace, Name, self:Expression(), Global)
-			-- end
-
-			-- self:PrevToken() -- Not a funcass!
-
-
-	-- FUNCTION DECLAIR
-
-		-- elseif self:AcceptToken("func") then
-			-- local Trace = self:TokenTrace()
-
-			-- if !self:AcceptToken("fun") then
-				-- self:Error("function name expected, after (function)")
-			-- end
-
-			-- local Name, Return = self.TokenData
-
-			-- if self:AcceptToken("fun") then
-				-- Name = self.TokenData
-
-				-- self:PrevToken() -- Type
-				-- self:PrevToken() -- Function
-				-- Return = self:StrictType() -- Note: We go back and grab the type.
-				-- self:NextToken() -- Name
-			-- end
-
-			-- local Params, Types, Sig = self:BuildParams("function parameters")
-
-			-- local InFunc = self.InFunc; self.InFunc = true
-			-- local Block, Exit = self:Block("function body")
-			-- self.InFunc = InFunc
-
-			-- if Return and Return ~= "" and (!Exit or Exit ~= "return") then
-				-- self:TokenError( Trace, "return statment, expected at end of function" )
-			-- end
-
-			-- local Lambda = self:Instruction("lambda", Trace, Sig, Params, Types, Block, Return)
-			-- return self:Instruction("func_ass", Trace, Name, Lambda, Global)
-
-	-- end
-
-	-- if Global then
-		-- self:PrevToken()
-	-- end
--- end
-
+--[[ OLD CODE - Incase I brake it again =D
 function Parser:FunctionStatement()
 	local Global = self:AcceptToken("glo")
 
@@ -1342,6 +1287,69 @@ function Parser:FunctionStatement()
 	end
 
 	if Global then
+		self:PrevToken()
+	end
+end
+]]
+
+function Parser:FunctionStatement()
+	local Case
+	
+	if self:AcceptToken("glo") then
+		Case = "global"
+	elseif self:AcceptToken("glo") then
+		Case = "local"
+	end
+	
+
+	-- FUNCTION ASSIGN
+
+		if self:AcceptToken("fun") then
+			local Trace, Name = self:TokenTrace(), self.TokenData
+
+			if self:AcceptToken("ass") then -- Function Assignment, func = func, func = function() {}
+				return self:Instruction("funcass", Trace, Case, Name, self:Expression())
+			end
+
+			self:PrevToken() -- Not a funcass!
+
+
+	-- FUNCTION DECLAIR
+
+		elseif self:AcceptToken("func") then
+			local Trace = self:TokenTrace()
+
+			if !self:AcceptToken("fun") then
+				self:Error("function name expected, after (function)")
+			end
+
+			local Name, Return = self.TokenData
+
+			if self:AcceptToken("fun") then
+				Name = self.TokenData
+
+				self:PrevToken() -- Type
+				self:PrevToken() -- Function
+				Return = self:StrictType() -- Note: We go back and grab the type.
+				self:NextToken() -- Name
+			end
+
+			local Params, Types, Sig = self:BuildParams("function parameters")
+
+			local InFunc = self.InFunc; self.InFunc = true
+			local Block, Exit = self:Block("function body")
+			self.InFunc = InFunc
+
+			if Return and Return ~= "" and (!Exit or Exit ~= "return") then
+				self:TokenError( Trace, "return statment, expected at end of function" )
+			end
+
+			local Lambda = self:Instruction("lambda", Trace, Sig, Params, Types, Block, Return)
+			return self:Instruction("funcass", Trace, Case, Name, Lambda)
+
+	end
+
+	if Case then
 		self:PrevToken()
 	end
 end

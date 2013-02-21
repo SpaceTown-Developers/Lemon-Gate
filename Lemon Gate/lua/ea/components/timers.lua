@@ -44,110 +44,118 @@ end
 ==============================================================================================*/
 E_A:SetCost(EA_COST_CHEAP)
 
-E_A:RegisterFunction("curTime", "", "n", function(self)
-	return CurTime()
-end)
+E_A:RegisterFunction("curTime", "", "n",
+	function(self)
+		return CurTime()
+	end)
 
-E_A:RegisterFunction("time", "s", "n", function(self, Value)
-	local V = Value(self)
-	local Time = Date("!*t")
-	local TU = Date[component]
+E_A:RegisterFunction("time", "s", "n",
+	function(self, Value)
+		local V = Value(self)
+		local Time = Date("!*t")
+		local TU = Date[component]
 
-	return tonumber(TU) or TU and 1 or 0
-end)
+		return tonumber(TU) or TU and 1 or 0
+	end)
 
 /*==============================================================================================
 	Section: Timers
 ==============================================================================================*/
 E_A:SetCost(EA_COST_EXPENSIVE)
 
-E_A:RegisterFunction("timerCreate", "snnf", "", function(self, ValueA, ValueB, ValueC, ValueD)
-	local A, B, C, D = ValueA(self), ValueB(self), ValueC(self), ValueD(self)
-	
-	local P, R = D[1], D[4]
-	
-	if P and P ~= "" then -- TODO: VarArgs
-		self:Throw("invoke", "Timer callbacks can not take parameters.")
-	elseif R and R ~= "" then
-		self:Throw("invoke", "Timer callback return type  must be number")
-	end
-	
-	Timers[self.Entity][A] = {
-		N = 0,
-		Status = RUNNING,
-		Last = CurTime(),
-		Delay = B,
-		Repetitions = C,
-		Func = D[3]
-	}
-end)
+E_A:RegisterFunction("timerCreate", "snnf", "",
+	function(self, ValueA, ValueB, ValueC, Lambda)
+		local A, B, C, L = ValueA(self), ValueB(self), ValueC(self), Lambda(self)
+		
+		if L.Signature and L.Signature ~= "" then
+			self:Throw("invoke", "timer callback does not accept peramaters.")
+		elseif L.Return and L.Return ~= "" then
+			self:Throw("invoke", "timer callback does not allow return values.")
+		end
+		
+		Timers[self.Entity][A] = {
+			N = 0,
+			Status = RUNNING,
+			Last = CurTime(),
+			Delay = B,
+			Repetitions = C,
+			Lambda = L
+		}
+	end)
 
 E_A:SetCost(EA_COST_NORMAL)
 
-E_A:RegisterFunction("timerAdjust", "snn", "", function(self, ValueA, ValueB, ValueC)
-	local Timer = GetTimer(self, ValueA(self))
-	if Timer then
-		Timer.Delay = ValueB(self)
-		Timer.Repetitions = ValueC(self)
-	end
-end)
+E_A:RegisterFunction("timerAdjust", "snn", "",
+	function(self, ValueA, ValueB, ValueC)
+		local Timer = GetTimer(self, ValueA(self))
+		if Timer then
+			Timer.Delay = ValueB(self)
+			Timer.Repetitions = ValueC(self)
+		end
+	end)
 
-E_A:RegisterFunction("timerRemove", "s", "", function(self, Value)
-	Timers[self.Entity][ Value(self) ] = nil
-end)
+E_A:RegisterFunction("timerRemove", "s", "",
+	function(self, Value)
+		Timers[self.Entity][ Value(self) ] = nil
+	end)
 
-E_A:RegisterFunction("timerStart", "s", "n", function(self, Value)
-	local Timer = GetTimer(self, Value(self))
-	if Timer and Timer.Status != RUNNING then
-		Timer.N = 0
-		Timer.Status = RUNNING
-		Timer.Last = CurTime()
-		return 1
-	end
-	
-	return 0
-end)
+E_A:RegisterFunction("timerStart", "s", "n",
+	function(self, Value)
+		local Timer = GetTimer(self, Value(self))
+		if Timer and Timer.Status != RUNNING then
+			Timer.N = 0
+			Timer.Status = RUNNING
+			Timer.Last = CurTime()
+			return 1
+		end
+		
+		return 0
+	end)
 
-E_A:RegisterFunction("timerPause", "s", "n", function(self, Value)
-	local Timer = GetTimer(self, Value(self))
-	if Timer and Timer.Status == RUNNING then
-		Timer.Diff = CurTime() - Timer.Last
-        Timer.Status = PAUSED
-		return 1
-	end
-	
-	return 0
-end)
+E_A:RegisterFunction("timerPause", "s", "n",
+	function(self, Value)
+		local Timer = GetTimer(self, Value(self))
+		if Timer and Timer.Status == RUNNING then
+			Timer.Diff = CurTime() - Timer.Last
+			Timer.Status = PAUSED
+			return 1
+		end
+		
+		return 0
+	end)
 
-E_A:RegisterFunction("timerUnpause", "s", "n", function(self, Value)
-	local Timer = GetTimer(self, Value(self))
-	if Timer and Timer.Status == PAUSED then
-		Timer.Diff = nil
-        Timer.Status = RUNNING
-		return 1
-	end
-	
-	return 0
-end)
+E_A:RegisterFunction("timerUnpause", "s", "n",
+	function(self, Value)
+		local Timer = GetTimer(self, Value(self))
+		if Timer and Timer.Status == PAUSED then
+			Timer.Diff = nil
+			Timer.Status = RUNNING
+			return 1
+		end
+		
+		return 0
+	end)
 
-E_A:RegisterFunction("timerStop", "s", "n", function(self, Value)
-	local Timer = GetTimer(self, Value(self))
-	if Timer and Timer.Status != STOPPED then
-		Timer.Status = STOPPED
-		return 1
-	end
-	
-	return 0
-end)
+E_A:RegisterFunction("timerStop", "s", "n",
+	function(self, Value)
+		local Timer = GetTimer(self, Value(self))
+		if Timer and Timer.Status != STOPPED then
+			Timer.Status = STOPPED
+			return 1
+		end
+		
+		return 0
+	end)
 
-E_A:RegisterFunction("timerStatus", "s", "n", function(self, Value)
-	local Timer = GetTimer(self, Value(self))
-	if Timer then return Timer.Status end
-	return 0
-end)
+E_A:RegisterFunction("timerStatus", "s", "n",
+	function(self, Value)
+		local Timer = GetTimer(self, Value(self))
+		if Timer then return Timer.Status end
+		return 0
+	end)
 
 /*==============================================================================================
-	Section: Context
+	Section: 
 ==============================================================================================*/
 
 E_A.API.AddHook("GateThink", function(Entity)
@@ -167,9 +175,9 @@ E_A.API.AddHook("GateThink", function(Entity)
 						Timer.Status = STOPPED
 					end
 								
-					local Ok, Exit = Timer.Func:SafeCall( Context )
+					local Ok, ExitCode = Timer.Lambda( Context )
 					
-					if Ok or Exit == "Exit" then
+					if Ok or ExitCode == "Exit" then
 						Entity:TriggerOutputs()
 					else
 						Entity:Exit( Exit )

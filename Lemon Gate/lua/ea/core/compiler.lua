@@ -1045,53 +1045,36 @@ end
 	Purpose: Function Objects, just 20% cooler!
 	Creditors: Rusketh
 ==============================================================================================*/
--- NEW GEN CODE - CBA TO FIX!
--- function Compiler:Instr_FUNCVAR(Name)
-	-- Purpose: Grab a function var.
+function Compiler:Instr_FUNCASS(Case, Name, Inst)
+	--Purpose: define a function var.
 	
-	-- local VarID, Type = self:GetVar(Name)
+	local Function, tFunction = self:CompileInst(Inst)
 	
-	-- if !VarID then
-		-- self:Error("function %s does not exist", Name)
-	-- end
-	
-	-- local Operator, Return, Perf = self:GetOperator("funcvar", Type)
-	
-	-- self:PushPerf(Perf)
-	
-	-- return self:Operator(Operator, Return, Perf, VarID)
--- end
-
--- function Compiler:Instr_FUNC_ASS(Name, Inst, Special)
-	-- Purpose: define a function var.
-	
-	-- local Function, tFunction = self:CompileInst(Inst)
-	
-	-- if tFunction == "?" then
-		-- local Operator, Return, Perf = self:GetOperator("cast", "f", tFunction)
+	if tFunction == "?" then
+		local Operator, Return, Perf = self:GetOperator("cast", "f", tFunction)
 		
-		-- if !Operator then
-			-- self:Error("Can not assign %q as 'function'", GetLongType(tFunction))
-		-- end
+		if !Operator then
+			self:Error("Can not assign %q as 'function'", GetLongType(tFunction))
+		end
 	
-		-- self:PushPerf(Perf)
+		self:PushPerf(Perf)
 	
-		-- Function = self:Operator(Operator, Return, Perf, Function)
+		Function = self:Operator(Operator, Return, Perf, Function)
 		
-	-- elseif tFunction ~= "f" then
-		-- self:Error("Can not assign %q as 'function'", GetLongType(tFunction))
-	-- end
+	elseif tFunction ~= "f" then
+		self:Error("Can not assign %q as 'function'", GetLongType(tFunction))
+	end
 	
-	-- local VarID, Scope = self:AssignVar("f", Name, Special, "function") -- TODO Parser Support for this!
+	local VarID, Scope = self:AssignVar("f", Name, Case, "function")
 	
-	-- local Operator, Return, Perf = self:GetOperator("funcass", "f")
+	local Operator, Return, Perf = self:GetOperator("funcass", "f")
 	
-	-- self:PushPerf(Perf)
+	self:PushPerf(Perf)
 	
-	-- return self:Operator(Operator, Return, Perf, Function, VarID)
--- end
+	return self:Operator(Operator, Return, Perf, Function, VarID)
+end
 
---THE OLD CODE
+
 function Compiler:Instr_FUNCVAR(Name)
 	-- Purpose: Grab a function var.
 
@@ -1106,26 +1089,27 @@ function Compiler:Instr_FUNCVAR(Name)
 	return self:Operator(Operator, Return, Perf, VarID)
 end
 
-function Compiler:Instr_FUNCASS(Global, Name, Inst)
-	-- Purpose: Grab a function var.
+-- THE OLD CODE
+-- function Compiler:Instr_FUNCASS(Global, Name, Inst)
+	--Purpose: Grab a function var.
 
-	local Function, tFunction = self:CompileInst(Inst)
-	if tFunction ~= "f" then self:Error("Can not assign %q as 'function'", GetLongType(tFunction)) end
+	-- local Function, tFunction = self:CompileInst(Inst)
+	-- if tFunction ~= "f" then self:Error("Can not assign %q as 'function'", GetLongType(tFunction)) end
 
-	local VarID, Scope
+	-- local VarID, Scope
 
-	if Global then
-		VarID, Scope = self:SetVar(Name, "f") -- Todo: Actualy make this global instead of upscopped! (What i tried above).
-	else
-		VarID, Scope = self:LocalVar(Name, "f")
-	end
+	-- if Global then
+		-- VarID, Scope = self:SetVar(Name, "f") -- Todo: Actualy make this global instead of upscopped! (What i tried above).
+	-- else
+		-- VarID, Scope = self:LocalVar(Name, "f")
+	-- end
 
-	local Operator, Return, Perf = self:GetOperator("funcass", "f")
+	-- local Operator, Return, Perf = self:GetOperator("funcass", "f")
 
-	self:PushPerf(Perf)
+	-- self:PushPerf(Perf)
 
-	return self:Operator(Operator, Return, Perf, Function, VarID)
-end
+	-- return self:Operator(Operator, Return, Perf, Function, VarID)
+-- end
 
 /***********************************************************************************************/
 
