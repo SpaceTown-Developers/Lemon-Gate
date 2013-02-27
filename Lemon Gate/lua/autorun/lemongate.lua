@@ -5,12 +5,6 @@ if SERVER then
 	resource.AddFile( "models/mandrac/wire/e3.mdl" )
 	resource.AddFile( "materials/mandrac/wire/e3.2323.vmt" )
 	resource.AddFile( "materials/mandrac/wire/e3.vmt" )
-	resource.AddFile( "materials/fugue/blue-folder-horizontal.vmt" )
-	resource.AddFile( "materials/fugue/magnifier.vmt" )
-	resource.AddFile( "materials/fugue/minus-circle.vmt" )
-	resource.AddFile( "materials/fugue/plus-circle.vmt" )
-	resource.AddFile( "materials/fugue/script-text.vmt" )
-	resource.AddFile( "materials/fugue/24/cross-circle.vmt" )
 	
     // Editor Textures
 	resource.AddFile( "materials/fugue/blue-folder-horizontal-open.png" )
@@ -25,6 +19,15 @@ if SERVER then
 	resource.AddFile( "materials/fugue/script-text.png" )
 	resource.AddFile( "materials/fugue/toggle-small-expand.png" )
 	resource.AddFile( "materials/fugue/toggle-small.png" )
+	
+	resource.AddFile( "materials/oskar/minus.png" )
+	resource.AddFile( "materials/oskar/plus.png" )
+	resource.AddFile( "materials/oskar/arrow-left.png" )
+	resource.AddFile( "materials/oskar/arrow-right.png" )
+	resource.AddFile( "materials/oskar/scrollthumb.png" )
+	
+	resource.AddFile( "material/spicol/arrow_sans_down_16.png" )
+	resource.AddFile( "material/spicol/arrow_sans_up_16.png" )
 	    
 	AddCSLuaFile("lemongate.lua")
 	AddCSLuaFile("ea/client.lua")
@@ -36,15 +39,15 @@ if SERVER then
 	AddCSLuaFile("ea/uploader.lua")
     
 	AddCSLuaFile("ea/editor.lua")
-    AddCSLuaFile("ea/editor/EA_Button.lua")
-    AddCSLuaFile("ea/editor/EA_CloseButton.lua")
-    AddCSLuaFile("ea/editor/EA_Editor.lua")
-    AddCSLuaFile("ea/editor/EA_EditorPanel.lua")
-    AddCSLuaFile("ea/editor/EA_FileNode.lua")
-    AddCSLuaFile("ea/editor/EA_Frame.lua")
-    AddCSLuaFile("ea/editor/EA_ImageButton.lua")
-    AddCSLuaFile("ea/editor/EA_ToolBar.lua")
-    AddCSLuaFile("ea/editor/syntaxer.lua")
+	AddCSLuaFile("ea/editor/ea_button.lua")
+	AddCSLuaFile("ea/editor/ea_closebutton.lua")
+	AddCSLuaFile("ea/editor/ea_editor.lua")
+	AddCSLuaFile("ea/editor/ea_editorpanel.lua")
+	AddCSLuaFile("ea/editor/ea_filenode.lua")
+	AddCSLuaFile("ea/editor/ea_frame.lua")
+	AddCSLuaFile("ea/editor/ea_imagebutton.lua")
+	AddCSLuaFile("ea/editor/ea_toolbar.lua")
+	AddCSLuaFile("ea/editor/syntaxer.lua")
 end
 
 /*==============================================================================================
@@ -58,14 +61,14 @@ function LemonGateLoad()
 	else
 		include("ea/client.lua")
         
-        include("ea/editor/EA_Button.lua")
-        include("ea/editor/EA_CloseButton.lua")
-        include("ea/editor/EA_Editor.lua")
-        include("ea/editor/EA_EditorPanel.lua")
-        include("ea/editor/EA_FileNode.lua")
-        include("ea/editor/EA_Frame.lua")
-        include("ea/editor/EA_ImageButton.lua")
-        include("ea/editor/EA_ToolBar.lua")
+        include("ea/editor/ea_button.lua")
+        include("ea/editor/ea_closebutton.lua")
+        include("ea/editor/ea_editor.lua")
+        include("ea/editor/ea_editorpanel.lua")
+        include("ea/editor/ea_filenode.lua")
+        include("ea/editor/ea_frame.lua")
+        include("ea/editor/ea_imagebutton.lua")
+        include("ea/editor/ea_toolbar.lua")
         include("ea/editor/syntaxer.lua")
         
 		include("ea/editor.lua")
