@@ -180,7 +180,7 @@ E_A.API.AddHook("GateThink", function(Entity)
 					if Ok or ExitCode == "Exit" then
 						Entity:TriggerOutputs()
 					else
-						Entity:Exit( Exit )
+						Entity:Exit( ExitCode )
 						break
 					end
 				end

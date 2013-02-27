@@ -18,8 +18,8 @@ local PANEL = {}
 AccessorFunc( PANEL, "m_sText", 		"Text", FORCE_STRING )
 AccessorFunc( PANEL, "m_bSizable", 		"Sizable", FORCE_BOOL )
 
-AccessorFunc( PANEL, "m_iMinWidth", 			"MinWidth" )
-AccessorFunc( PANEL, "m_iMinHeight", 			"MinHeight" )
+AccessorFunc( PANEL, "m_iMinWidth", 	"MinWidth" )
+AccessorFunc( PANEL, "m_iMinHeight", 	"MinHeight" )
 
 function PANEL:Init()
 	self:DockPadding( 0, 26, 0, 0 )
@@ -32,7 +32,7 @@ end
 function PANEL:Think( )
 	local x,y
 	if self.IsMoving then
-		local _x, _y = ( Vector2( gui.MousePos( ) ) - self.LocalPos )()
+		local _x, _y = ( Vector2( gui.MousePos( ) ) - self.LocalPos )( )
 		
 		x = math.Clamp( _x, 0, ScrW( ) - self:GetWide( ) )
 		y = math.Clamp( _y, 0, ScrH( ) - self:GetTall( ) )
@@ -45,7 +45,7 @@ function PANEL:Think( )
 	end
 	
 	if self.Sizing then 
-		self:SetSize( self:CursorPos() )
+		self:SetSize( self:CursorPos( ) )
 		
 		x, y = self:LocalToScreen( self:GetSize( ) ) 
 		if x > ScrW( ) then self:SetWide( ScrW( ) - self.x ) end 
@@ -61,14 +61,14 @@ function PANEL:Think( )
 	
 	if self.Hovered then
 		local x,y = self:CursorPos( )
-		if ( y < 25 and y > 0 ) and ( x < self:GetWide( ) and x > 0 ) then
+		if y < 25 and y > 0 and x < self:GetWide( ) and x > 0 then
 			self:SetCursor( "sizeall" )
 			return
 		end
 		
 		if self.m_bSizable then 
 			local x, y = self:CursorPos( ) 
-			if x > self:GetWide() - 20 and y > self:GetTall() - 20 then 
+			if x > self:GetWide( ) - 20 and y > self:GetTall( ) - 20 then 
 				self:SetCursor( "sizenwse" )
 				return 
 			end 
@@ -80,8 +80,8 @@ end
 
 function PANEL:OnMousePressed( m ) 
 	if m == MOUSE_LEFT then 
-		local x, y = self:CursorPos() 
-		if (y < 25 and y > 0) and (x < self:GetWide( ) and x > 0) then 
+		local x, y = self:CursorPos( ) 
+		if y < 25 and y > 0 and x < self:GetWide( ) and x > 0 then 
 			self.IsMoving = true 
 			self.LocalPos = Vector2( x, y ) 
 			self.EndPos = Vector2( x, y ) 
@@ -89,7 +89,7 @@ function PANEL:OnMousePressed( m )
 			return 
 		end 
 		if self.m_bSizable then 
-			if x > self:GetWide() - 20 and y > self:GetTall() - 20 then 
+			if x > self:GetWide( ) - 20 and y > self:GetTall( ) - 20 then 
 				self.Sizing = true 
 				self:MouseCapture( true ) 
 			end 
@@ -153,4 +153,4 @@ function PANEL:ShowCloseButton( Bool )
 end
 
 
-vgui.Register("EA_Frame", PANEL, "EditablePanel")
+vgui.Register( "EA_Frame", PANEL, "EditablePanel" )

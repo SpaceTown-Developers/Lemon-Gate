@@ -739,9 +739,10 @@ function Parser:GetStatements(ExitToken)
 	end
 	
 	while true do
-		if self:AcceptToken("sep") then
-			self:Error("Separator (;) must not appear twice.")
-		end
+		self:AcceptToken("sep")
+		-- if self:AcceptToken("sep") then
+			-- self:Error("Separator (;) must not appear twice.")
+		-- end
 	
 		Index = Index + 1
 		Statements[Index] = self:Statement() 
@@ -1297,7 +1298,7 @@ function Parser:FunctionStatement()
 	
 	if self:AcceptToken("glo") then
 		Case = "global"
-	elseif self:AcceptToken("glo") then
+	elseif self:AcceptToken("loc") then
 		Case = "local"
 	end
 	

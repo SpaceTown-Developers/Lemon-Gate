@@ -88,7 +88,7 @@ end
 
 function LAMBDA:__call( Context, Values )
 	if !self or !self.Execution then
-		Context:Thorw("invoke", "attempt to call void function")
+		Context:Throw("invoke", "attempt to call void function")
 	else
 		self.AssignPerams( Context, Values )
 		

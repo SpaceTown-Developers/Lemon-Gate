@@ -315,13 +315,13 @@ function Lemon:Exit( Exit )
 		else
 			return self:ScriptError("uncatched exception '" .. Exception.Type .. "' in main thread")
 		end
+	elseif Exit == "Return" or Exit == "Break" or Exit == "Continue" then
+		return self:ScriptError("unexpected use of " .. Exit .. " in main thread.")
+	elseif Exit == "LUA" and self.Context.LuaError then
+		return self:LuaError( self.Context.LuaError )
+	else
+		return self:ScriptError("Unexpected untracable error.")
 	end
-	
-	if Exit == "Return" or Exit == "Break" or Exit == "Continue" then
-		return self:ScriptError("unexpected use of " .. Exit .. " in main thread")
-	end
-	
-	return self:LuaError( Exit )
 end
 
 function Lemon:LuaError(Message)
@@ -333,6 +333,7 @@ function Lemon:LuaError(Message)
 	self:UpdateOverlay("LUA Error")
 	MsgN("LemonGate LUA: " .. Message)
 	WireLib.ClientError("LemonGate: Suffered a LUA error" , self.Player)
+	WireLib.ClientError("LUA: " .. Message , self.Player)
 end
 
 function Lemon:ScriptError(Message)

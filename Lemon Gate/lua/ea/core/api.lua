@@ -96,7 +96,12 @@ function API.LoadComponents()
         include("ea/components/sound.lua")
         include("ea/components/hologram.lua")
         include("ea/components/egplib.lua")
-        include("ea/components/buffer.lua")
+        include("ea/components/http.lua")
+        include("ea/components/file.lua")
+		
+		AddCSLuaFile("ea/components/cl_file.lua")
+	else
+		include("ea/components/cl_file.lua")
 	end
 	
 	MsgN("Expression Advanced: Loading Components!")

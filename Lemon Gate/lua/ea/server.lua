@@ -537,6 +537,7 @@ end
 /*==============================================================================================
 	Section: Script Context
 ==============================================================================================*/
+--[[ DEPRICATED FOR NEW CODE
 local Context = E_A.Context
 Context.__index = Context
 
@@ -606,6 +607,108 @@ E_A.CallOp = CallOp
 E_A.SafeCall = SafeCall
 Operator.__call = CallOp
 Operator.SafeCall = SafeCall
+]] -- New Code Below:
+
+local setmetatable, unpack, pcall  = setmetatable, unpack, pcall
+
+/*==============================================================================================
+	Section: Script Context
+==============================================================================================*/
+local Context = E_A.Context
+Context.__index = Context
+
+function Context:Throw( Exeption, Msg )
+	self.LuaError = nil
+	self.Exception = {
+		Trace = self.StackTrace,
+		Type = Exeption, 
+		Msg = Msg,
+	}
+	
+	error("Exception", 0)
+end
+
+function Context:LuaError( Message )
+	self.Exception = nil
+	self.LuaError = Message
+	error("LUA", 0)
+end
+
+function Context:Error( Message, Info, ... )
+	if Info then Message = FormatStr(Message, Info, ...) end
+	self:Throw( "script", Message )
+end
+
+function Context:PushPerf( Perf )
+	self.Perf = self.Perf - Perf
+	
+	if self.Perf < 0 then
+		self:Throw("script", "Execution Limit Reached")
+	end
+end
+
+function Context:PushTrace( Op )
+	self.StackTrace[ #self.StackTrace + 1 ] = Op[4]
+end
+
+function Context:PopTrace( )
+	self.StackTrace[ #self.StackTrace + 1 ] = nil
+end
+
+function Context:PullTrace( )
+	local Trace = self.StackTrace
+	self.StackTrace = { Trace[ #Trace ] }
+	return Trace
+end
+
+/*==============================================================================================
+	Section: Script Context
+==============================================================================================*/
+
+local Operator = E_A.Operator
+Operator.__index = Operator
+
+Operator.ExitCodes = { ["Exit"] = true, ["Continue"] = true, ["Break"] = true, ["Return"] = true, ["Exception"] = true, ["LUA"] = true }
+
+function Operator:CallOp( Context, Arg1, ... )
+	Context:PushTrace( self ) -- Push the trace.
+	
+	Context:PushPerf( self[0] or EA_COST_NORMAL )
+	
+	local P = self[3] or { } -- Compiled Ops.
+	if Arg1 then P = { Arg1, ... } end
+	
+	local C, R, T = #P
+	
+	if C == 0 then
+		R, T = self[1]( Context )
+	elseif C < 20 then
+		R, T = self[1]( Context, P[1], P[2], P[3], P[4], P[5], P[6], P[7], P[8], P[9], P[10], P[11], P[12], P[13], P[14], P[15], P[16], P[17], P[18], P[19], P[20])
+	else
+		R, T = self[1]( Context, unpack(P) ) -- More then 20 parameters!
+	end
+	
+	Context:PopTrace( )
+	
+	return R, T or self[2]
+end
+
+function Operator:SafeCall( Context, Arg1, ... )
+	local Trace = Context:PullTrace( )
+	local S, R, T = pcall( self.CallOp, self, Context, Arg1, ... )
+	
+	Context.StackTrace = Trace
+	if !S and !self.ExitCodes[ R ] then
+		Context.LuaError = R
+		R = "LUA" -- Now we read this =D
+	end
+	
+	return S, R, T
+end
+
+Operator.__call = Operator.CallOp
+E_A.CallOp = Operator.CallOp
+E_A.SafeCall = Operator.SafeCall
 
 /****************************************************************************/
 

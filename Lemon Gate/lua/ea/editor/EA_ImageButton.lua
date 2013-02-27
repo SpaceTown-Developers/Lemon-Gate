@@ -60,8 +60,8 @@ function PANEL:SizeToContentsX( )
 	end
 	
 	if self.m_bDrawButton then 
-		surface.SetFont( self:GetFont() ) 
-		local Text = self:GetText() 
+		surface.SetFont( self:GetFont( ) ) 
+		local Text = self:GetText( ) 
 		local x = surface.GetTextSize( Text )
 		if x > 0 then 
 			w = w + x + self.m_nPadding * ( self.m_Material and 1 or 2 ) 
@@ -78,8 +78,8 @@ function PANEL:SizeToContentsY( )
 	end
 	
 	if self.m_bDrawButton then 
-		surface.SetFont( self:GetFont() ) 
-		local Text = self:GetText() 
+		surface.SetFont( self:GetFont( ) ) 
+		local Text = self:GetText( ) 
 		local _, y = surface.GetTextSize( Text )
 		h = math.max( h, y + 10 )
 	end 
@@ -88,21 +88,21 @@ function PANEL:SizeToContentsY( )
 end 
 
 local function PaintButton( self, w, h )
-	surface.SetDrawColor( self:GetColor() )
+	surface.SetDrawColor( self:GetColor( ) )
 	surface.DrawRect( 0, 0, w, h )
 	
 	surface.SetDrawColor( 200, 200, 200, 100 )
 	surface.SetMaterial( gradient_down )
 	surface.DrawTexturedRect( 0, 0, w, h )
 	
-	if self:GetFading() then 
+	if self:GetFading( ) then 
 		surface.SetDrawColor( 0, 0, 0, 0 )
-		if self.Hovered then surface.SetDrawColor( 0, 0, 0, 50 ) end 
-		if self.Depressed then surface.SetDrawColor( 0, 0, 0, 100 ) end 
+		if self.Hovered then surface.SetDrawColor( 0, 0, 0, 100 ) end 
+		if self.Depressed then surface.SetDrawColor( 0, 0, 0, 150 ) end 
 		surface.DrawRect( 0, 0, w, h )
 	end 
 	
-	if self:GetOutlined() then 
+	if self:GetOutlined( ) then 
 		surface.SetDrawColor( 0, 0, 0, 255 ) 
 		surface.DrawOutlinedRect( 0, 0, w, h )  
 	end 
@@ -140,13 +140,13 @@ function PANEL:Paint( w, h )
 		surface.SetMaterial( self.m_Material )
 		
 		local n = math.max( self.m_Material:Width( ), self.m_Material:Height( ) )
-		local x, y = w/2-n/2, h/2-n/2
+		local x, y = w/2 - n/2, h/2 - n/2
 		
 		if !self.m_bIconCentered then x = self.m_nPadding end 
 		
 		surface.DrawTexturedRect( x, y, n, n )
 		
-		if self:GetIconFading() then 
+		if self:GetIconFading( ) then 
 			surface.SetDrawColor( 0, 0, 0, 0 )
 			if self.Hovered then surface.SetDrawColor( 0, 0, 0, 50 ) end
 			if self.Depressed then surface.SetDrawColor( 0, 0, 0, 100 ) end

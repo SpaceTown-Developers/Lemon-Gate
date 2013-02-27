@@ -15,20 +15,20 @@ function PANEL:Init( )
 	self.Browser = self:Add( "DTree" )
 	self.Browser:Dock( FILL )
 	
-	self.Browser.Paint = function() return true end 
+	self.Browser.Paint = function( ) return true end 
 	self.Browser.DoClick = function( _, Node ) 
-		if Node.LastClick and CurTime() - Node.LastClick < 0.5 then 
+		if Node.LastClick and CurTime( ) - Node.LastClick < 0.5 then 
 			Node.LastClick = 0
 			return self:DoDoubleClick( Node ) 
 		end 
-		Node.LastClick = CurTime() 
+		Node.LastClick = CurTime( ) 
 		return self:DoClick( Node )
 	end 
 	
 	self.Browser.DoRightClick = function( _, Node ) return self:DoRightClick( Node ) end 
 	
 	self.Browser.RootNode:Remove( ) 
-	self.Browser.RootNode = self.Browser:GetCanvas():Add( "EA_FileNode" )
+	self.Browser.RootNode = self.Browser:GetCanvas( ):Add( "EA_FileNode" )
 	self.Browser.RootNode:SetRoot( self.Browser )
 	self.Browser.RootNode:SetParentNode( self.Browser )
 	self.Browser.RootNode:Dock( TOP )
@@ -42,13 +42,13 @@ function PANEL:Init( )
 	self.BrowserRefresh:SetText( "Update" ) 
 	self.BrowserRefresh:SetTextCentered( true ) 
 	self.BrowserRefresh:SetOutlined( true )
-	self.BrowserRefresh.DoClick = function( ) self:Update() end 
+	self.BrowserRefresh.DoClick = function( ) self:Update( ) end 
 	
-	self.Browser:DockMargin( 0, 0, 0, self.BrowserRefresh:GetTall() + 10 )
+	self.Browser:DockMargin( 0, 0, 0, self.BrowserRefresh:GetTall( ) + 10 )
 end
 
 function PANEL:PerformLayout( )
-	self.BrowserRefresh:SetPos( 5, self:GetTall() - self.BrowserRefresh:GetTall() - 5 )
+	self.BrowserRefresh:SetPos( 5, self:GetTall( ) - self.BrowserRefresh:GetTall( ) - 5 )
 end
 
 function PANEL:Root( )

@@ -1,7 +1,7 @@
 /*============================================================================================================================================
 	Expression-Advanced Syntax Highlighting
 	Autor: Oskar
-	Credits: The one that made the E2 syntax highlighter 
+	Credits: The authors of the E2 syntax highlighter 
 ============================================================================================================================================*/
 
 local table_concat = table.concat 
@@ -9,29 +9,29 @@ local string_sub = string.sub
 local string_gsub = string.gsub 
 local string_gmatch = string.gmatch 
 
-Syntax = {} 
-local Syntax = {} 
+Syntax = { } 
+local Syntax = { } 
 local EA = LemonGate 
 
 local function SetupFunctionTable( )
 	if !LemonGate then return end 
 	if !LemonGate.FunctionTable then 
 		RunConsoleCommand( "lemon_sync" ) 
-		timer.Simple( 0.5, function() 
+		timer.Simple( 0.5, function( ) 
 			Syntax.FunctionTable = SetupFunctionTable( )
 		end )
-		return {}
+		return { }
 	end 
 	
 	// TODO: Do in timer to prevent lagg?
-	local FunctionTable = {} 
+	local FunctionTable = { } 
 	for name, data in pairs( LemonGate.FunctionTable ) do 
 		local funcName = name:match( "^[^%(]+" ) 
 		FunctionTable[funcName] = true 
 	end 
 	return FunctionTable 
 end
-Syntax.FunctionTable = SetupFunctionTable() 
+Syntax.FunctionTable = SetupFunctionTable( ) 
 Syntax.UserFunctions = { } 
 
 function Syntax:ResetTokenizer( Row )
@@ -46,10 +46,10 @@ function Syntax:ResetTokenizer( Row )
 		self.multilinestring = nil
 		local singlelinecomment = false
 
-		local str = string_gsub( table_concat( self.Editor.Rows, "\n", 1, self.Editor.Scroll.x-1 ), "\r", "" )
+		local str = string_gsub( table_concat( self.Editor.Rows, "\n", 1, self.Editor.Scroll.x - 1 ), "\r", "" )
 
 		for before, char, after in string_gmatch( str, "()([/'\"\n])()" ) do
-			local before = string_sub( str, before-1, before-1  )
+			local before = string_sub( str, before - 1, before - 1  )
 			local after = string_sub( str, after, after )
 			if not self.blockcomment and not self.multilinestring and not singlelinecomment then
 				if char == '"' or char == "'" then
@@ -78,7 +78,7 @@ function Syntax:ResetTokenizer( Row )
 	end
 end
 
-function Syntax:NextCharacter()
+function Syntax:NextCharacter( )
 	if not self.char then return end
 
 	self.tokendata = self.tokendata .. self.char
@@ -93,10 +93,10 @@ end
 
 function Syntax:NextPattern( pattern, skip )
 	if !self.char then return false end
-	local startpos,endpos,text = self.line:find(pattern, self.position)
+	local startpos, endpos, text = self.line:find( pattern, self.position )
 	
 	if startpos ~= self.position then return false end
-	local buf = self.line:sub(startpos, endpos)
+	local buf = self.line:sub( startpos, endpos )
 	if not text then text = buf end
 	
 	if !skip then 
@@ -105,7 +105,7 @@ function Syntax:NextPattern( pattern, skip )
 	
 	self.position = endpos + 1
 	if self.position <= #self.line then
-		self.char = self.line:sub(self.position, self.position)
+		self.char = self.line:sub( self.position, self.position )
 	else
 		self.char = nil
 	end
@@ -140,22 +140,22 @@ local keywords = {
 }
 
 -- fallback for nonexistant entries:
-setmetatable( keywords, { __index=function(tbl,index) return {} end } )
+setmetatable( keywords, { __index = function( tbl, index ) return { } end } )
 
 /*
 
-"wire_expression2_editor_color_comment"		"128_128_128"
+"wire_expression2_editor_color_comment"			"128_128_128"
 "wire_expression2_editor_color_constant"		"140_200_50"
 "wire_expression2_editor_color_directive"		"100_200_255"
 "wire_expression2_editor_color_function"		"80_160_240"
-"wire_expression2_editor_color_keyword"		"0_120_240"
+"wire_expression2_editor_color_keyword"			"0_120_240"
 "wire_expression2_editor_color_notfound"		"240_160_0"
-"wire_expression2_editor_color_number"		"0_200_0"
+"wire_expression2_editor_color_number"			"0_200_0"
 "wire_expression2_editor_color_operator"		"255_0_0"
 "wire_expression2_editor_color_ppcommand"		"255_255_255"
-"wire_expression2_editor_color_string"		"100_50_200"
+"wire_expression2_editor_color_string"			"100_50_200"
 "wire_expression2_editor_color_typename"		"80_160_240"
-"wire_expression2_editor_color_userfunction"		"102_122_102"
+"wire_expression2_editor_color_userfunction"	"102_122_102"
 "wire_expression2_editor_color_variable"		"0_180_80"
 
 
@@ -165,23 +165,26 @@ wire_expression2_editor_color_typename 80_160_240;wire_expression2_editor_color_
 
 */
 
-local colors = {
+local colors = { 
+	/* TODO: 
+		Make propper color scheme 
+		Add syntax color options 
+	*/
 	["comment"]      = Color( 128, 128, 128 ), 
-	-- ["event"]        = Color( 240, 240, 240 ), 
-	-- ["exception"]    = Color( 240, 240, 240 ), 
+	["event"]        = Color(  80, 160, 240 ), // TODO: Other color? 
+	["exception"]    = Color(  80, 160, 240 ), // TODO: Other color? 
 	["function"]     = Color(  80, 160, 240 ), 
 	["keyword"]      = Color(   0, 120, 240 ), 
 	["notfound"]     = Color( 240, 160,   0 ), 
 	["number"]       = Color(   0, 200,   0 ), 
 	["operator"]     = Color( 240,   0,   0 ),  
 	["string"]       = Color( 100,  50, 200 ), 
-	["typename"]     = Color( 255, 255,   0 ), 
+	["typename"]     = Color( 140, 200,  50 ), 
 	["userfunction"] = Color( 102, 122, 102 ), 
 	["variable"]     = Color(   0, 180,  80 ), 
-	
 }
 
-setmetatable( colors, { __index=function(tbl,index) return Color( 255, 255, 255 ) end } )
+setmetatable( colors, { __index = function( tbl, index ) return Color( 255, 255, 255 ) end } ) 
 
 local cols = {} 
 local lastcol 
@@ -229,7 +232,7 @@ function Syntax:Parse( Row )
 		
 		addToken( "comment", self.tokendata )
 	elseif self.multilinestring then
-		while self.char do -- Find the ending "
+		while self.char do -- Find the ending " or ''
 			if self.char == self.multilinestring then
 				self.multilinestring = nil
 				self:NextCharacter()
@@ -258,12 +261,12 @@ function Syntax:Parse( Row )
 				
 			tokenname = "notfound" 
 			
-			if self:NextPattern( "^ *= " ) then 
+			if self:NextPattern( "^ *= *" ) then 
 				tokenname = self.FunctionTable[word] and "function" or "userfunction"
 				self:AddUserfunction( Row, word ) 
 				addToken( tokenname, word )
 				tokenname = "operator"
-				self.tokendata = self.tokendata:match( " *= " )
+				self.tokendata = self.tokendata:match( " *= *" )
 				addToken( tokenname, self.tokendata )
 				continue 
 			end 
@@ -272,11 +275,11 @@ function Syntax:Parse( Row )
 				tokenname = "function"
 			end 
 			
-			if self.UserFunctions[self.tokendata] then 
+			if self.UserFunctions[self.tokendata] and self.UserFunctions[self.tokendata] <= Row then 
 				tokenname = "userfunction"
 			end 
 			
-			if EA.IsType( word ) and keyword and word ~= EA.GetShortType( word ) then 
+			if istype( word ) and keyword then 
 				tokenname = "typename" 
 			end 
 			
@@ -291,15 +294,22 @@ function Syntax:Parse( Row )
 			if word == "function" then 
 				tokenname = "keyword"
 				self:NextPattern( " *" ) 
+				
 				if self.char == "]" then 
-					addToken( "typename", word )
+					tokenname = "typename"
+					addToken( tokenname, self.tokendata  ) 
+					continue 
+				elseif self.char == "(" then 
+					tokenname = "keyword"
+					addToken( tokenname, self.tokendata  ) 
 					continue 
 				end 
-				addToken( tokenname, self.tokendata )
+				
+				addToken( tokenname, self.tokendata  ) 
 				self.tokendata = ""
 				
 				if self:NextPattern( "^[a-z][a-zA-Z0-9_]*" ) then 
-					if EA.IsType( self.tokendata ) and self.tokendata ~= EA.GetShortType( self.tokendata ) then 
+					if istype( self.tokendata ) then 
 						self:NextPattern( " *" ) 
 						tokenname = "typename" 
 						addToken( tokenname, self.tokendata )
@@ -307,9 +317,10 @@ function Syntax:Parse( Row )
 						if !self:NextPattern( "^[a-z][a-zA-Z0-9_]*" ) then continue end 
 					end 
 					tokenname = "userfunction" 
-					self:AddUserfunction( Row, self.tokendata ) 
-					addToken( tokenname, self.tokendata )
+					self:AddUserfunction( Row, self.tokendata )
+					addToken( tokenname, self.tokendata ) 
 				end 
+				
 				continue 
 			end 
 			
@@ -381,7 +392,6 @@ function Syntax:Parse( Row )
 			else 
 				self:NextCharacter() 
 			end 
-			
 		elseif self.char == "/" then
 			self:NextCharacter()
 			if self.char == "*" then // Multiline comment 
@@ -396,7 +406,7 @@ function Syntax:Parse( Row )
 					if self.char == "\\" then self:NextCharacter() end
 					self:NextCharacter()
 				end
-				if (tokenname == "") then 
+				if tokenname == "" then 
 					self.blockcomment = true
 					tokenname = "comment"
 				else
@@ -406,7 +416,6 @@ function Syntax:Parse( Row )
 				self:NextPattern(".*")
 				tokenname = "comment"
 			end
-			
 		else
 			self:NextCharacter()
 			tokenname = "operator"

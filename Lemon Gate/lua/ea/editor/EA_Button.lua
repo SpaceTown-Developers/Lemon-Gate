@@ -37,43 +37,43 @@ function PANEL:Init( )
 	self:SetFading( true )
 end
 
-function PANEL:SizeToContents() 
-	surface.SetFont( self:GetFont() ) 
-	local Text = self:GetText() 
+function PANEL:SizeToContents(  ) 
+	surface.SetFont( self:GetFont( ) ) 
+	local Text = self:GetText( ) 
 	local w, h = surface.GetTextSize( Text )
 	self:SetSize( w + 10, h )
 end 
 
-function PANEL:SizeToContentsX() 
-	surface.SetFont( self:GetFont() ) 
-	local Text = self:GetText() 
+function PANEL:SizeToContentsX( ) 
+	surface.SetFont( self:GetFont( ) ) 
+	local Text = self:GetText( ) 
 	local w, h = surface.GetTextSize( Text ) 
 	self:SetWide( w + 10 )
 end 
 
-function PANEL:SizeToContentsY() 
-	surface.SetFont( self:GetFont() ) 
-	local Text = self:GetText() 
+function PANEL:SizeToContentsY( ) 
+	surface.SetFont( self:GetFont( ) ) 
+	local Text = self:GetText( ) 
 	local w, h = surface.GetTextSize( Text )
 	self:SetTall( h )
 end 
 
 function PANEL:Paint( w, h )
-	surface.SetDrawColor( self:GetColor() )
+	surface.SetDrawColor( self:GetColor( ) )
 	surface.DrawRect( 0, 0, w, h )
 	
 	surface.SetDrawColor( 200, 200, 200, 100 )
 	surface.SetMaterial( gradient_down )
 	surface.DrawTexturedRect( 0, 0, w, h )
 	
-	if self:GetFading() then 
+	if self:GetFading( ) then 
 		surface.SetDrawColor( 0, 0, 0, 0 )
 		if self.Hovered then surface.SetDrawColor( 0, 0, 0, 50 ) end 
 		if self.Depressed then surface.SetDrawColor( 0, 0, 0, 100 ) end 
 		surface.DrawRect( 0, 0, w, h )
 	end 
 	
-	if self:GetOutlined() then 
+	if self:GetOutlined( ) then 
 		surface.SetDrawColor( 0, 0, 0, 255 ) 
 		surface.DrawOutlinedRect( 0, 0, w, h )  
 	end 
@@ -83,7 +83,7 @@ function PANEL:Paint( w, h )
 	local tw, th = surface.GetTextSize( Text ) 
 	local x, y = math.floor( w / 2 ) - math.floor( tw / 2 ), math.floor( h / 2 ) - math.floor( th / 2 )
 	
-	if !self:GetTextCentered() then x = 5 end 
+	if !self:GetTextCentered( ) then x = 5 end 
 	
 	if self:GetTextShadow( ) then 
 		surface.SetTextColor( self:GetTextShadow( ) ) 

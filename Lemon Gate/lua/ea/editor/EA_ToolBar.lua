@@ -82,29 +82,29 @@ function PANEL:Init()
 	self.btnHelp:SetTooltip( "Help" )
 	self.btnHelp:SetMaterial( Material( "fugue/question.png" ) )
 	
-	function self.btnSave:DoClick()
-		self:GetParent():GetParent():SaveFile( ) 
+	function self.btnSave:DoClick( )
+		self:GetParent( ):GetParent( ):SaveFile( ) 
 	end 
 	
-	function self.btnSaveAs:DoClick()
-		self:GetParent():GetParent():SaveFile( nil, true ) 
+	function self.btnSaveAs:DoClick( )
+		self:GetParent( ):GetParent( ):SaveFile( nil, true ) 
 	end 
 	
 	function self.btnNewTab:DoClick()
-		self:GetParent():GetParent():NewTab() 
+		self:GetParent( ):GetParent( ):NewTab( ) 
 	end 
 	
 	function self.btnCloseTab:DoClick()
-		self:GetParent():GetParent():CloseTab() 
+		self:GetParent( ):GetParent( ):CloseTab( ) 
 	end 
 	
-	/*function self.btnCloseAll:DoClick()
-		self:GetParent():GetParent():CloseAll() 
+	/*function self.btnCloseAll:DoClick( )
+		self:GetParent( ):GetParent( ):CloseAll( ) 
 	end*/
 end 
 
 function PANEL:Paint( w, h ) 
-	surface.SetDrawColor( self.btnSave:GetColor() )
+	surface.SetDrawColor( self.btnSave:GetColor( ) )
 	surface.DrawRect( 0, 0, w, h )
 	
 	surface.SetDrawColor( 200, 200, 200, 100 )

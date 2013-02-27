@@ -503,9 +503,9 @@ end)
 ==============================================================================================*/
 local function GetVariant(self, ValueA, ValueB)
 	local Table, Index = ValueA(self), ValueB(self)
-	if !Table.Data then self:Throw("Attempt to index field " .. tostring(Index) .. " on invalid table.") end
+	if !Table.Data then self:Throw("table", "Attempt to index field " .. tostring(Index) .. " on invalid table.") end
 			
-	if !Table.Types[Index] then self:Throw("Attempt to index field " .. tostring(Index) .. " a void value.") end
+	if !Table.Types[Index] then self:Throw("table", "Attempt to index field " .. tostring(Index) .. " a void value.") end
 	return Table.Data[Index]
 end
 

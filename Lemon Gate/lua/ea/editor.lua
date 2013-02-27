@@ -13,8 +13,8 @@ timer.Simple( 0.5, function()
 end )
 
 /*---------------------------------------------------------------------------
-	Vector2 class
-	Author: Oskar
+Vector2 class
+Author: Oskar
 ---------------------------------------------------------------------------*/
 do  
 	local meta = {} 
@@ -116,39 +116,22 @@ end
 
 timer.Simple( 0.5, function()
 	surface.CreateFont( "Fixedsys", {
-		font 		= "Fixedsys",
-		size 		= 13,
-		weight 		= 400,
-		blursize 	= 0,
-		scanlines 	= 0,
-		antialias 	= true,
-		underline 	= false,
-		italic 		= false,
-		strikeout 	= false,
-		symbol 		= false,
-		rotary 		= false,
-		shadow 		= false,
-		additive 	= false,
-		outline 	= false
-	} )
-
-	-- surface.CreateFont( "Trebuchet24", { // Goddamit Garry!
-	-- 	font 		= "Trebuchet MS",
-	-- 	size 		= 24,
-	-- 	weight 		= 900,
-	-- 	blursize 	= 0,
-	-- 	scanlines 	= 0,
-	-- 	antialias 	= true,
-	-- 	underline 	= false,
-	-- 	italic 		= false,
-	-- 	strikeout 	= false,
-	-- 	symbol 		= false,
-	-- 	rotary 		= false,
-	-- 	shadow 		= false,
-	-- 	additive 	= false,
-	-- 	outline 	= false
-	-- } )
-
+        font 		= "Fixedsys",
+        size 		= 13,
+        weight 		= 400,
+        blursize 	= 0,
+        scanlines 	= 0,
+        antialias 	= true,
+        underline 	= false,
+        italic 		= false,
+        strikeout 	= false,
+        symbol 		= false,
+        rotary 		= false,
+        shadow 		= false,
+        additive 	= false,
+        outline 	= false, 
+    } )
+    
 	surface.CreateFont( "Trebuchet22", {
 		font 		= "Trebuchet MS",
 		size 		= 22,
@@ -189,7 +172,7 @@ end )
 ---------------------------------------------------------------------------*/
 local HomeScreen = [[/*===================================================
 Expression Advanced Beta
-- Rusketh, Oskar94, Divran, Syranide
+- Rusketh, Oskar94, Divran, Syranide, Jerwuqu
 
 For documentation and help visit out wiki.
 Wiki: https://github.com/SpaceTown-Developers/Lemon-Gate/wiki
@@ -198,17 +181,12 @@ There are bugs you will find them, there are also ideas and you will have them.
 When you do please post them on your bug tracker to help development.
 Bug Tracker: https://github.com/SpaceTown-Developers/Lemon-Gate/issues
 
-Latest Update:
+Latest Updates:
+* File library.
+* HTTP library.
 * Changed sound library.
 * Changed function declerations.
 * Variants auto cast on assigmnet.
-
-Newest Features:
-* New editor by Oskar (WIP).
-* Trigger operator (~Variable)
-* Try and Catch statements.
-* Entity find functions.
-* Foreach loops.
 
 Thank you for taking part in this Beta!
 ===================================================*/
@@ -252,6 +230,8 @@ function Editor.Create( )
 	
 	Instance:SetSyntaxColorLine( SyntaxColorLine ) 
 	
+    Instance:SetKeyBoardInputEnabled( true )
+    
 	-- Instance:SetSize( 1000, 800 )
 	Instance:SetSize( math.min( 1000, ScrW() * 0.8 ), math.min( 800, ScrH() * 0.8 ) )
 	Instance:Center()

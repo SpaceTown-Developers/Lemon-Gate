@@ -33,18 +33,18 @@ end
 local function InvalidateLayout( panel ) 
 	if panel.ChildNodes then panel.ChildNodes:InvalidateLayout( true ) end
 	panel:InvalidateLayout( true ) 
-	if panel.GetParentNode then InvalidateLayout( panel:GetParentNode() ) end 
+	if panel.GetParentNode then InvalidateLayout( panel:GetParentNode( ) ) end 
 end
 
 function PANEL:Update( )
-	self.LemonNode.ChildNodes:Remove()
+	self.LemonNode.ChildNodes:Remove( )
 	self.LemonNode.ChildNodes = nil
-	self.LemonNode:CreateChildNodes()
+	self.LemonNode:CreateChildNodes( )
 	self.LemonNode:SetNeedsPopulating( true )
 	self.LemonNode:PopulateChildrenAndSelf( true )
 end
 
-function PANEL:Init()
+function PANEL:Init( ) 
 	self:SetKeyBoardInputEnabled( true )
 	self:SetMouseInputEnabled( true )
 	self:SetSizable( true )
@@ -57,12 +57,11 @@ function PANEL:Init()
 	self.TabHolder:Dock( FILL )
 	self.TabHolder:DockMargin( 5, 5, 5, 5 )
 	self.TabHolder:SetFadeTime( 0 )
-	timer.Simple( 0.1, function() 
+	timer.Simple( 0.1, function( ) 
 		if self:OpenOldTabs( ) then return end 
 		self:NewTab( ) 
-	end )
-	
-	self.TabHolder.DoRightClick = function() print":D" end 
+	end ) 
+	-- self.TabHolder.DoRightClick = function( ) print":D" end 
 	
 	self.Browser = self:Add( "DTree" )
 	self.Browser:Dock( LEFT )
@@ -80,66 +79,87 @@ function PANEL:Init()
 	end 
 	
 	self.Browser.DoClick = function( _, Node ) 
-		local Dir = Node:GetFileName() or ""
+		local Dir = Node:GetFileName( ) or ""
 		
 		if !string.EndsWith( Dir, ".txt" ) then return end 
 		
-		if Node.LastClick and CurTime() - Node.LastClick < 0.5 then 
+		if Node.LastClick and CurTime( ) - Node.LastClick < 0.5 then 
 			self:LoadFile( Dir )
 			Node.LastClick = 0
 			return true 
 		end 
 		
-		Node.LastClick = CurTime() 
+		Node.LastClick = CurTime( ) 
 	end 
 	
-	/* 
+	-- [[
 	self.Browser.DoRightClick = function( _, Node ) 
 		if Node then 
-			local Dir = Node:GetFileName() or ""
+			if IsValid( self.Browser.m_pSelectedItem ) then
+				self.Browser.m_pSelectedItem:SetSelected( false )
+			end
+			
+			self.Browser.m_pSelectedItem = Node
+			Node:SetSelected( true )
+			
+			local Dir = Node:GetFileName( ) or ""
 			if string.EndsWith( Dir, ".txt" ) then 
 				// File 
-				local Menu = DermaMenu() 
+				local Menu = DermaMenu( ) 
 				
-				Menu:AddOption( "Open", function() end ) 
+				-- Menu:AddOption( "Open", function( ) end ) 
 				
-				Menu:AddSpacer() 
+				-- Menu:AddSpacer( ) 
 				
-				Menu:AddOption( "Copy", function() end ) 
-				Menu:AddOption( "Move", function() end ) 
-				Menu:AddOption( "Rename", function() end ) 
+				-- Menu:AddOption( "Copy", function( ) end ) 
+				-- Menu:AddOption( "Move", function( ) end ) 
+				-- Menu:AddOption( "Rename", function( ) end ) 
 				
-				Menu:AddSpacer() 
+				-- Menu:AddSpacer( ) 
 				
-				Menu:AddOption( "New File", function() self.Editor:NewTab( ) end ) 
-				Menu:AddOption( "New Folder", function() end ) 
-				Menu:AddOption( "Delete", function() end ) 
+				Menu:AddOption( "New File", function( ) self:NewTab( ) end ) 
+				Menu:AddOption( "New Folder", function( ) 
+					Derma_StringRequest( "Create new folder", "", "new folder",
+					function( result ) 
+						file.CreateDir( "lemongate/" .. result )
+					end )
+				end ) 
+				-- Menu:AddOption( "Delete", function( ) end ) 
 				
-				Menu:Open() 
+				Menu:Open( ) 
 			else 
 				// Folder 
-				local Menu = DermaMenu() 
+				local Menu = DermaMenu( ) 
 				
 				// Keep or not to keep, that's the question
-				Menu:AddOption( "Open", function() end ) 
-				Menu:AddSpacer() 
+				if Node.m_bExpanded then 
+					Menu:AddOption( "Close", function( ) Node:SetExpanded( false ) end ) 
+				else 
+					Menu:AddOption( "Open", function( ) Node:SetExpanded( true ) end ) 
+				end 
+				Menu:AddSpacer( ) 
 				
-				Menu:AddOption( "New File", function() self.Editor:NewTab( ) end ) 
-				Menu:AddOption( "New Folder", function() end ) 
+				Menu:AddOption( "New File", function( ) self:NewTab( ) end ) 
+				Menu:AddOption( "New Folder", function( ) 
+					Derma_StringRequest( "Create new folder", "", "new folder",
+					function( result ) 
+						file.CreateDir( "lemongate/" .. result )
+					end )
+				end ) 
 				
-				Menu:Open() 
+				Menu:Open( ) 
 			end 
-		else 
+		else // TODO: Make this actually happen
 			// Panel 
-			local Menu = DermaMenu() 
+			local Menu = DermaMenu( ) 
 			
-			Menu:AddOption( "New File", function() self.Editor:NewTab( ) end ) 
-			Menu:AddOption( "New Folder", function() end ) 
+			Menu:AddOption( "New File", function( ) self:NewTab( ) end ) 
+			Menu:AddOption( "New Folder", function( ) end ) 
 			
-			Menu:Open()
+			Menu:Open( )
 		end 
 	end 
-	*/
+	-- ]]
 	
 	
 	self.LemonNode = vgui.Create( "EA_FileNode" )
@@ -151,17 +171,41 @@ function PANEL:Init()
 	
 	self.BrowserRefresh = self:Add( "EA_Button" )
 	self.BrowserRefresh:SetWide( 200 )
-	self.BrowserRefresh:SetTall( 25 )
+	self.BrowserRefresh:SetTall( 30 )
 	self.BrowserRefresh:SetText( "Update" ) 
 	self.BrowserRefresh:SetTextCentered( true ) 
-	self.BrowserRefresh.DoClick = function( ) self:Update() end
+	self.BrowserRefresh.DoClick = function( ) self:Update( ) end
 	
-	self.Browser:DockMargin( 5, 5, 0, self.BrowserRefresh:GetTall() + 10 )
+	self.Browser:DockMargin( 5, self.BrowserRefresh:GetTall( ) + 10, 0, 5 )
 	
+	
+	self.BrowserFolding = self:Add( "EA_ImageButton" ) 
+	self.BrowserFolding:SetMaterial( Material( "oskar/arrow-left.png" ) ) 
+	self.BrowserFolding.Expanded = true 
+	
+	self.BrowserFolding.Think = function( btn ) 
+		btn:SetPos( self.ToolBar.x - 35, 30 )
+	end 
+	
+	self.BrowserFolding.DoClick = function( btn ) 
+		if btn.Expanded then 
+			btn.Expanded = false 
+			btn:SetMaterial( Material( "oskar/arrow-right.png" ) ) 
+			self.Browser:SizeTo( 0, -1, 1, 0, 1 )
+			self.BrowserRefresh:SizeTo( 0, -1, 1, 0, 1 )
+			self.Browser:DockMargin( 0, self.BrowserRefresh:GetTall( ) + 10, 0, 5 )
+		else 
+			btn.Expanded = true 
+			btn:SetMaterial( Material( "oskar/arrow-left.png" ) ) 
+			self.BrowserRefresh:SizeTo( 200, -1, 1, 0, 1 )
+			self.Browser:SizeTo( 200, -1, 1, 0, 1 )
+			self.Browser:DockMargin( 5, self.BrowserRefresh:GetTall( ) + 10, 0, 5 )
+		end 
+	end 
 	
 	self.ToolBar = self:Add( "EA_ToolBar" )
 	self.ToolBar:Dock( TOP )
-	self.ToolBar:DockMargin( 5, 5, 5, 0 )
+	self.ToolBar:DockMargin( 5 + 35, 5, 5, 0 )
 	self.ToolBar:SetTall( 30 ) 
 	
 	
@@ -177,22 +221,6 @@ function PANEL:Init()
 	
 	self.ValidateButton.DoClick = function( )
 		self:DoValidate( true )
-		
-		-- Why Oskar?
-		-- local Error = self:Validate( self:GetCode( ), nil )
-		
-		-- if !LemonGate.TypeTable or !LemonGate.FunctionTable or !LemonGate.OperatorTable or !LemonGate.EventsTable then
-			-- self.ValidateButton:SetText( "Downloading Validation Files, Please wait..." )
-			-- return RunConsoleCommand("lemon_sync")
-		-- end
-		
-		-- if Error then 
-			-- self.ValidateButton:SetColor( Color( 255, 0, 0 ) )
-			-- self.ValidateButton:SetText( Error )
-		-- else 
-			-- self.ValidateButton:SetColor( Color( 0, 255, 0 ) )
-			-- self.ValidateButton:SetText( "Validation Successful!" )
-		-- end 
 	end
 	
 	file.CreateDir( "Lemongate" )
@@ -217,7 +245,7 @@ function PANEL:DoValidate( Goto )
 			end
 			
 			if Row then
-				self:SetCaret( Vector2( tonumber(Row), tonumber(Col) ) )
+				self:SetCaret( Vector2( tonumber( Row ), tonumber( Col ) ) )
 			end
 		end
 	else 
@@ -231,13 +259,13 @@ local Parser = LemonGate.Parser
 local Compiler = LemonGate.Compiler
 
 function PANEL:Validate( Script )
-	local Check, Tokens, Rows = Tokenizer.Execute(Script, true)
+	local Check, Tokens, Rows = Tokenizer.Execute( Script, true )
 	if !Check then return Tokens end
-	
-	local Check, Instructions = Parser.Execute(Tokens)
+	-- PrintTable( Tokens )
+	local Check, Instructions = Parser.Execute( Tokens )
 	if !Check then return Instructions end
 	
-	local Check, Executable, Instance = Compiler.Execute(Instructions)
+	local Check, Executable, Instance = Compiler.Execute( Instructions )
 	if !Check then return Executable end
 	
 	local Types = Instance.VarTypes
@@ -277,11 +305,11 @@ local function MakeFolders( Path )
 end
 
 function PANEL:SaveFile( Path, SaveAs )
-	Path = Path or self.TabHolder:GetActiveTab().FilePath
+	Path = Path or self.TabHolder:GetActiveTab( ).FilePath
 	if !Path or SaveAs then 
 		Derma_StringRequest( "Save to New File", "", "generic",
 		function( result )
-			result = string.gsub(result, ".", invalid_filename_chars)
+			result = string.gsub( result, ".", invalid_filename_chars )
 			self:SaveFile( result .. ".txt" )
 		end )
 		return
@@ -291,8 +319,8 @@ function PANEL:SaveFile( Path, SaveAs )
 	
 	MakeFolders( Path )
 	
-	file.Write( Path , self:GetCode() )
-	surface.PlaySound("ambient/water/drip3.wav")
+	file.Write( Path , self:GetCode( ) )
+	surface.PlaySound( "ambient/water/drip3.wav" )
 	self.ValidateButton:SetText( "Saved as " .. Path )
 	if !self.TabHolder:GetActiveTab().FilePath then 
 		self.TabHolder:GetActiveTab().FilePath = Path 
@@ -313,7 +341,7 @@ function PANEL:SetSyntaxColorLine( func )
 		self.TabHolder.Items[i].Panel.SyntaxColorLine = func
 	end
 end
-function PANEL:GetSyntaxColorLine() return self.SyntaxColorLine end 
+function PANEL:GetSyntaxColorLine( ) return self.SyntaxColorLine end 
 
 // Override 
 function PANEL:OnTabCreated( Tab, Code, Path ) 
@@ -321,30 +349,30 @@ function PANEL:OnTabCreated( Tab, Code, Path )
 end
 
 local function DoRightClick( self )
-	local Menu = DermaMenu() 
+	local Menu = DermaMenu( ) 
 	
-	Menu:AddOption( "Close", function() end ) 
-	Menu:AddOption( "Close others", function() end ) 
-	Menu:AddOption( "Close tabs to the right", function() end ) 
+	Menu:AddOption( "Close", function( ) end ) 
+	Menu:AddOption( "Close others", function( ) end ) 
+	Menu:AddOption( "Close tabs to the right", function( ) end ) 
 	
-	Menu:AddSpacer() 
+	Menu:AddSpacer( ) 
 	
-	Menu:AddOption( "Save", function() end ) 
-	Menu:AddOption( "Save As", function() end ) 
+	Menu:AddOption( "Save", function( ) end ) 
+	Menu:AddOption( "Save As", function( ) end ) 
 	
-	Menu:AddSpacer() 
+	Menu:AddSpacer( ) 
 	
-	Menu:AddOption( "New File", function() self.Editor:NewTab( ) end ) 
+	Menu:AddOption( "New File", function( ) self:NewTab( ) end ) 
 	
-	Menu:Open() 
+	Menu:Open( ) 
 end
 
 function PANEL:NewTab( Code, Path )
 	local Sheet = self.TabHolder:AddSheet( Path or "generic", vgui.Create( "EA_Editor" ), "fugue/script-text.png" ) 
 	self.TabHolder:SetActiveTab( Sheet.Tab ) 
-	Sheet.Panel:RequestFocus()
+	Sheet.Panel:RequestFocus( )
 	
-	local func = self:GetSyntaxColorLine()
+	local func = self:GetSyntaxColorLine( )
 	if func != nil then 
 		Sheet.Panel.SyntaxColorLine = func
 	end
@@ -358,11 +386,11 @@ function PANEL:NewTab( Code, Path )
 end
 
 function PANEL:CloseTab( bSave ) 
-	local Tab = self.TabHolder:GetActiveTab() 
-	local Editor = Tab:GetPanel()
+	local Tab = self.TabHolder:GetActiveTab( ) 
+	local Editor = Tab:GetPanel( )
 	 
 	if #self.TabHolder.Items == 1 then 
-		self:NewTab() 
+		self:NewTab( ) 
 	end 
 	
 	if bSave and Tab.FilePath then // Ask about this?
@@ -371,14 +399,14 @@ function PANEL:CloseTab( bSave )
 	
 	self.TabHolder:CloseTab( Tab, true )
 	
-	self.TabHolder.Items[#self.TabHolder.Items].Tab:GetPanel():RequestFocus()
+	self.TabHolder.Items[#self.TabHolder.Items].Tab:GetPanel( ):RequestFocus( )
 end 
 
 function PANEL:CloseAll( bSave )
 	// TODO!!
 end
 
-function PANEL:SaveTabs()
+function PANEL:SaveTabs( )
 	local strtabs = ""
 	for i = 1, #self.TabHolder.Items do
 		local FilePath = self.TabHolder.Items[i].Tab.FilePath
@@ -387,12 +415,12 @@ function PANEL:SaveTabs()
 		end
 	end
 
-	strtabs = strtabs:sub(1,-2)
+	strtabs = strtabs:sub( 1, -2 )
 
 	file.Write( "lemongate/_tabs_.txt", strtabs )
 end
 
-function PANEL:OpenOldTabs() 
+function PANEL:OpenOldTabs( ) 
 	if !file.Exists( "lemongate/_tabs_.txt", "DATA" ) then return end 
 	
 	local tabs = file.Read( "lemongate/_tabs_.txt" )
@@ -419,8 +447,6 @@ function PANEL:Open( Code, NewTab )
 	self:SetVisible( true )
 	self:MakePopup( )
 	
-	print( "Opening :D" )
-	
 	if NewTab then 
 		self:NewTab( Code ) 
 	elseif Code then 
@@ -428,19 +454,22 @@ function PANEL:Open( Code, NewTab )
 	end 
 end
 
-// Todo: Only hide, no delhard
+function PANEL:GetCode( ) 
+	return self.TabHolder:GetActiveTab():GetPanel():GetCode() 
+end 
+
 function PANEL:Close( )
-	self:SaveTabs() 
+	self:SaveTabs( ) 
 	
-	if GLOBALDERMAPANEL then 
-		self:Remove() 
+	if GLOBALDERMAPANEL and GLOBALDERMAPANEL == self then 
+		self:Remove( ) 
 	else 
 		self:SetVisible( false ) 
 	end 
 end
 
 function PANEL:PerformLayout( )
-	self.BrowserRefresh:SetPos( 5, self:GetTall() - self.BrowserRefresh:GetTall() - 5 )
+	self.BrowserRefresh:SetPos( 5, 30 )
 end
 
 vgui.Register( "EA_EditorPanel", PANEL, "EA_Frame" )

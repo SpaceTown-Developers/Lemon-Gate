@@ -148,13 +148,17 @@ end
 function Compiler:Operator(Op, Type, Perf, ...)
 	-- Purpose: Creates an operation.
 	
-	local Trace, Type = self.Trace, GetShortType(Type)
-	
-	local Operator = { Op, Type, {...}, Trace }
-	
-	Operator[0] = (Perf or 0); Trace[4] = Operator
+	local Type = GetShortType(Type)
+	local Operator = { [0] = (Perf or 0), Op, Type, {...}, Trace }
+	self:InsertTrace( Operator )
+	--Trace[4] = Operator
 	
 	return setmetatable(Operator, E_A.Operator), Type
+end
+
+function Compiler:InsertTrace( Operator )
+	Operator[4] = self.Trace
+	self.Trace[4] = Operator
 end
 
 /********************************************************************************************************************/
@@ -224,7 +228,7 @@ function Compiler:LocalVar(Name, Type)
 		if CType != Type then -- Check to see if this value exists?
 			self:Error("Variable %s already exists as %s, and can not be assigned to %s", Name, GetLongType(CType), GetLongType(Type))
 		else
-			return Curr -- Return the existing Var Index
+			return Cur -- Return the existing Var Index
 		end
 	end
 	

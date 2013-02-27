@@ -32,7 +32,7 @@ function PANEL:SetOffset( x, y )
 end 
 
 function PANEL:Think( )
-	if ( self:GetParent() ) then
+	if self:GetParent() then
 		local x = self:GetParent( ):GetWide( ) - self:GetWide( ) + self._x 
 		local y = self._y 
 		self:SetPos( x, y )

@@ -18,9 +18,9 @@ function PANEL:Init()
 	
 	function self:SetExpanded( bExpand, bSurpressAnimation )
 		exp( self, bExpand, bSurpressAnimation )
-		if self:GetIcon() == "fugue/blue-folder-horizontal.png" and self.m_bExpanded then 
+		if self:GetIcon( ) == "fugue/blue-folder-horizontal.png" and self.m_bExpanded then 
 			self:SetIcon( "fugue/blue-folder-horizontal-open.png" )
-		elseif self:GetIcon() == "fugue/blue-folder-horizontal-open.png" and !self.m_bExpanded then 
+		elseif self:GetIcon( ) == "fugue/blue-folder-horizontal-open.png" and !self.m_bExpanded then 
 			self:SetIcon( "fugue/blue-folder-horizontal.png" )
 		end 
 	end
@@ -44,12 +44,12 @@ function PANEL:AddNode( strName, strIcon )
 		pNode:SetParentNode( self )
 		pNode:SetRoot( self:GetRoot() )
 		pNode:SetIcon( strIcon )
-		pNode:SetDrawLines( !self:IsRootNode() )
+		pNode:SetDrawLines( !self:IsRootNode( ) )
 		
 		self:InstallDraggable( pNode )			
 	
 	self.ChildNodes:Add( pNode )
-	self:InvalidateLayout()
+	self:InvalidateLayout( )
 	
 	return pNode
 end
@@ -71,7 +71,7 @@ function PANEL:MakeFolder( strFolder, strPath, bShowFiles, strWildCard, bDontFor
 	self:SetShowFiles( bShowFiles or false )
 	self.strChildIcon = strIcon 
 	
-	self:CreateChildNodes()
+	self:CreateChildNodes( )
 	self:SetNeedsChildSearch( true )
 	
 	if !bDontForceExpandable then
@@ -105,14 +105,14 @@ function PANEL:FilePopulateCallback( files, folders, foldername, path, bAndChild
 	end
 	
 	if FileCount == 0 then
-		self.ChildNodes:Remove()
+		self.ChildNodes:Remove( )
 		self.ChildNodes = nil
 		
 		self:SetNeedsPopulating( false )
 		self:SetShowFiles( nil )
 		self:SetWildCard( nil )
 		
-		self:InvalidateLayout()
+		self:InvalidateLayout( )
 		
 		self.Expander:SetExpanded( true )
 	return end
