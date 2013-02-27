@@ -21,7 +21,6 @@ function PANEL:Init( )
 	self:SetIconFading( true )
 	self:SetTextCentered( false )
 	self:SetIconCentered( false )
-	self.DrawBase = false 
 end
 
 function PANEL:DrawButton( bool )

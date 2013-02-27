@@ -37,6 +37,8 @@ local draw_WordBox 			= draw.WordBox
 local input_IsKeyDown 		= input.IsKeyDown
 local input_IsMouseDown 	= input.IsMouseDown
 
+local ScrollThumb = Material( "oskar/scrollthumb.png" ):CreateTextureBorder( 0, 0, 16, 32, 8, 8, 8, 8 )
+
 local PANEL = { }
 
 function PANEL:Init( )
@@ -74,6 +76,30 @@ function PANEL:Init( )
 	
 	self.ScrollBar = self:Add( "DVScrollBar" )
 	self.ScrollBar:SetUp( 1, 1 ) 
+	
+	self.ScrollBar.btnGrip.Paint = function( scroll, w, h ) 
+		ScrollThumb( 0, 0, 16, h )
+	end 
+	
+	self.ScrollBar.Paint = function( scroll, w, h ) 
+		surface_SetDrawColor( 128, 128, 128, 255 )
+		surface_DrawRect( 0, 0, w, h )
+	end 
+	
+	self.ScrollBar.btnUp:Remove( ) 
+	self.ScrollBar.btnUp = self.ScrollBar:Add( "EA_ImageButton" ) 
+	self.ScrollBar.btnUp:SetIconCentered( true ) 
+	self.ScrollBar.btnUp:SetIconFading( false ) 
+	self.ScrollBar.btnUp:SetMaterial( Material( "picol/arrow_sans_up_16.png" ) )
+	self.ScrollBar.btnUp.DoClick = function ( self ) self:GetParent():AddScroll( -.1 ) end 
+	
+	self.ScrollBar.btnDown:Remove( ) 
+	self.ScrollBar.btnDown = self.ScrollBar:Add( "EA_ImageButton" ) 
+	self.ScrollBar.btnDown:SetIconCentered( true ) 
+	self.ScrollBar.btnDown:SetIconFading( false ) 
+	self.ScrollBar.btnDown:SetMaterial( Material( "picol/arrow_sans_down_16.png" ) )
+	self.ScrollBar.btnDown.DoClick = function ( self ) self:GetParent():AddScroll( .1 ) end 
+	
 	
 	surface_SetFont( "Fixedsys" )
 	self.FontWidth, self.FontHeight = surface_GetTextSize( " " )
@@ -790,6 +816,74 @@ local function ParseIndents( Rows, exit )
 	return foldData 
 end 
 
+local ParamPairs = {
+	["{"] = { "{", "}", true }, 
+	["["] = { "[", "]", true }, 
+	["("] = { "(", ")", true }, 
+	
+	["}"] = { "}", "{", false }, 
+	["]"] = { "]", "[", false }, 
+	[")"] = { ")", "(", false }, 
+}
+
+local function FindMatchingParam( Rows, Row, Char ) 
+	local Param, EnterParam, ExitParam = ParamPairs[Rows[Row][Char]] 
+	
+	if not Param then 
+		Char = Char - 1
+		Param = ParamPairs[Rows[Row][Char]] 
+	end 
+	
+	if not Param then return false end 
+	
+	EnterParam = Param[1]
+	ExitParam = Param[2]
+	
+	local line, pos, level = Row, Char, 0 
+	
+	if Param[3] then -- Look forward 
+		while line < #Rows do 
+			while pos < #Rows[line] do 
+				pos = pos + 1 
+				local Text = Rows[line][pos] 
+				
+				if Text == EnterParam then 
+					level = level + 1 
+				elseif Text == ExitParam then 
+					if level > 0 then 
+						level = level - 1 
+					else 
+						return { Vector2( Row, Char ), Vector2( line, pos ) }
+					end 
+				end 
+			end 
+			pos = 0 
+			line = line + 1 
+		end 
+	else -- Look backwards 
+		while line > 0 do 
+			while pos > 0 do 
+				pos = pos - 1 
+				local Text = Rows[line][pos] 
+				
+				if Text == EnterParam then 
+					level = level + 1 
+				elseif Text == ExitParam then 
+					if level > 0 then 
+						level = level - 1 
+					else 
+						return { Vector2( line, pos ), Vector2( Row, Char ) }
+					end 
+				end 
+			end 
+			line = line - 1 
+			pos = #Rows[line] + 1
+		end 
+	end 
+	
+	return false 
+end 
+
 function PANEL:Paint( w, h )
 	self.LineNumberWidth = 6 + self.FontWidth * string_len( tostring( math_min( self.Scroll.x, #self.Rows - self.Size.x + 1 ) + self.Size.x - 1 ) )
 	
@@ -832,7 +926,7 @@ function PANEL:Paint( w, h )
 end
 
 function PANEL:PaintTextOverlay( )
-	if self.TextEntry:HasFocus( ) and self.Caret.y - self.Scroll.y >= 0 then
+	if self.TextEntry:HasFocus( ) and self.Caret.x - self.Scroll.x >= 0 and self.Caret.x < self.Scroll.x + self.Size.x + 1 then
 		local width, height = self.FontWidth, self.FontHeight
 
 		if ( RealTime( ) - self.Blink ) % 0.8 < 0.4 then
@@ -864,6 +958,7 @@ function PANEL:DrawText( w, h )
 	surface_SetDrawColor( 32, 32, 32, 255 )
 	surface_DrawRect( self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth, 0, self:GetWide( ) - ( self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth ), self:GetTall( ) )
 	
+	self.Params = FindMatchingParam( self.Rows, self.Caret.x, self.Caret.y ) 
 	self.FoldData = ParseIndents( self.Rows )
 	
 	for i = 1, #self.Rows do
@@ -881,7 +976,7 @@ function PANEL:DrawText( w, h )
 	
 	local painted = 0
 	local hideLevel = 0
-	while painted < self.Size.x + 1 do 
+	while painted < self.Size.x + 2 do 
 		line = line + 1
 		if hideLevel == 0 then 
 			if self.FoldButtons[line] then 
@@ -914,8 +1009,19 @@ function PANEL:PaintRowUnderlay( Row, LinePos )
 	if Row == self.Caret.x and self.TextEntry:HasFocus( ) then
 		surface_SetDrawColor( 48, 48, 48, 255 )
 		surface_DrawRect( self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth, ( LinePos ) * self.FontHeight, self:GetWide( ) - ( self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth ) , self.FontHeight )
-		self.CaretRow = LinePos 
+		self.CaretRow = LinePos
 	end
+	
+	if self.Params then 
+		if self.Params[1].x == Row then 
+			surface_SetDrawColor( 255, 0, 0, 100 )
+			surface_DrawRect( ( self.Params[1].y - self.Scroll.y ) * self.FontWidth + self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth, LinePos * self.FontHeight, self.FontWidth, self.FontHeight ) 
+		end 
+		if self.Params[2].x == Row then 
+			surface_SetDrawColor( 255, 0, 0, 100 )
+			surface_DrawRect( ( self.Params[2].y - self.Scroll.y ) * self.FontWidth + self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth, LinePos * self.FontHeight, self.FontWidth, self.FontHeight ) 
+		end 
+	end 
 	
 	if self:HasSelection( ) then 
 		local start, stop = self:MakeSelection( self:Selection( ) )

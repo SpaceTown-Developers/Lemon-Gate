@@ -37,8 +37,10 @@ local function InvalidateLayout( panel )
 end
 
 function PANEL:Update( )
-	self.LemonNode.ChildNodes:Remove( )
-	self.LemonNode.ChildNodes = nil
+	if self.LemonNode.ChildNodes then 
+		self.LemonNode.ChildNodes:Remove( )
+		self.LemonNode.ChildNodes = nil
+	end 
 	self.LemonNode:CreateChildNodes( )
 	self.LemonNode:SetNeedsPopulating( true )
 	self.LemonNode:PopulateChildrenAndSelf( true )
@@ -57,11 +59,13 @@ function PANEL:Init( )
 	self.TabHolder:Dock( FILL )
 	self.TabHolder:DockMargin( 5, 5, 5, 5 )
 	self.TabHolder:SetFadeTime( 0 )
+	-- self.TabHolder.Paint = function( self, w, h ) end 
 	timer.Simple( 0.1, function( ) 
 		if self:OpenOldTabs( ) then return end 
 		self:NewTab( ) 
 	end ) 
 	-- self.TabHolder.DoRightClick = function( ) print":D" end 
+	
 	
 	self.Browser = self:Add( "DTree" )
 	self.Browser:Dock( LEFT )
