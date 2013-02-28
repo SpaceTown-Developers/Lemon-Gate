@@ -16,6 +16,7 @@ local string_gsub 			= string.gsub
 local string_Explode 		= string.Explode
 local string_len 			= string.len
 local string_gmatch 		= string.gmatch
+local string_match 			= string.match
 
 local table_remove 			= table.remove 
 local table_insert 			= table.insert 
@@ -38,6 +39,16 @@ local input_IsKeyDown 		= input.IsKeyDown
 local input_IsMouseDown 	= input.IsMouseDown
 
 local ScrollThumb = Material( "oskar/scrollthumb.png" ):CreateTextureBorder( 0, 0, 16, 32, 8, 8, 8, 8 )
+
+local ParamPairs = {
+	["{"] = { "{", "}", true }, 
+	["["] = { "[", "]", true }, 
+	["("] = { "(", ")", true }, 
+	
+	["}"] = { "}", "{", false }, 
+	["]"] = { "]", "[", false }, 
+	[")"] = { ")", "(", false }, 
+}
 
 local PANEL = { }
 
@@ -261,11 +272,6 @@ function PANEL:GetArea( selection )
 
 	if start.x == stop.x then 
 		if self.Insert and start.y == stop.y then 
-			MsgN( ":D" )
-			MsgN( "'" .. string_sub( self.Rows[start.x], start.y, start.y ) .. "'" )
-			print( selection[1] )
-			print( selection[2] )
-			
 			selection[2].y = selection[2].y + 1 
 			
 			return string_sub( self.Rows[start.x], start.y, start.y )
@@ -365,7 +371,7 @@ function PANEL:DoUndo( )
 	if #self.Undo > 0 then
 		local undo = self.Undo[#self.Undo]
 		self.Undo[#self.Undo] = nil
-
+		
 		self:SetCaret( self:SetArea( undo[1], undo[2], true, false, undo[3], undo[4] ) ) 
 	end
 end
@@ -560,7 +566,22 @@ function PANEL:_OnKeyCodeTyped( code )
 		end
 	else
 		if code == KEY_ENTER then
-			self:SetSelection( "\n" )
+			local Line = self.Rows[self.Caret.x] 
+			local Count = string_len( string_match( string_sub( Line, 1, self.Caret.y - 1 ), "^%s*" ) ) 
+			
+			if string_match( "{" .. Line .. "}", "^%b{}.*$" ) then 
+				if string_match( string_sub( Line, 1, self.Caret.y - 1 ), "{$" ) and string_match( string_sub( Line, self.Caret.y, -1 ), "^}" ) then 
+					local Caret = self:SetArea( self:Selection( ), "\n" .. string_rep( "    ", math_floor( Count / 4 ) + 1 )  .. "\n" .. string_rep( "    ", math_floor( Count / 4 ) ) )  
+					
+					Caret.y = 1 
+					Caret = self:MovePosition( Caret, -1 ) 
+					self:SetCaret( Caret )
+				else 
+					self:SetSelection( "\n" .. string_rep( "    ", math_floor( Count / 4 ) )  )
+				end 
+			else 
+				self:SetSelection( "\n" .. string_rep( "    ", math_floor( Count / 4 ) )  .. "    " )
+			end 
 		elseif code == KEY_INSERT then 
 			self.Insert = !self.Insert
 		elseif code == KEY_UP then
@@ -607,10 +628,13 @@ function PANEL:_OnKeyCodeTyped( code )
 			if self:HasSelection( ) then
 				self:SetSelection( )
 			else
-				local buffer = self:GetArea( { self.Caret, Vector2( self.Caret.x, 1 ) } )
-				if self.Caret.y % 4 == 1 and #( buffer ) > 0 and string_rep( " ", #( buffer ) ) == buffer then
+				local buffer = self:GetArea( { self.Caret, Vector2( self.Caret.x, 1 ) } ) 
+				if self.Caret.y % 4 == 1 and #buffer > 0 and string_rep( " ", #buffer ) == buffer then
 					self:SetCaret( self:SetArea( { self.Caret, self:MovePosition( self.Caret, -4 ) } ) )
-				else
+				elseif #buffer > 0 and ParamPairs[self.Rows[self.Caret.x][self.Caret.y-1]] and ParamPairs[self.Rows[self.Caret.x][self.Caret.y-1]][2] == self.Rows[self.Caret.x][self.Caret.y] then 
+					self.Caret.y = self.Caret.y + 1
+					self:SetCaret( self:SetArea( { self.Caret, self:MovePosition( self.Caret, -2 ) } ) )
+				else 
 					self:SetCaret( self:SetArea( { self.Caret, self:MovePosition( self.Caret, -1 ) } ) )
 				end
 			end
@@ -667,6 +691,7 @@ function PANEL:_OnKeyCodeTyped( code )
 			end
 		elseif code == KEY_F2 then // F-Keys is broken atm! D: 
 			print( ":D" ) 
+			// TODO: ?
 		end 
 	end
 
@@ -694,14 +719,26 @@ function PANEL:_OnTextChanged( )
 			return
 		end
 	end
-
+	
 	if text == "" then return end
 	if not ctrlv then
 		if text == "\n" then return end
 	end
-
+	
+	local bSelection = self:HasSelection( ) 
+	
 	self:SetSelection( text )
 	self:ScrollCaret( ) 
+	
+	if #text == 1 and ParamPairs[text] then 
+		if bSelection then 
+			// TODO: SublimeText2 like brackets 
+		else 
+			local old = self:CopyPosition( self.Caret ) 
+			self:SetSelection( ParamPairs[text][2] ) 
+			self:SetCaret( old )
+		end 
+	end 
 end
 
 /*---------------------------------------------------------------------------
@@ -816,16 +853,6 @@ local function ParseIndents( Rows, exit )
 	return foldData 
 end 
 
-local ParamPairs = {
-	["{"] = { "{", "}", true }, 
-	["["] = { "[", "]", true }, 
-	["("] = { "(", ")", true }, 
-	
-	["}"] = { "}", "{", false }, 
-	["]"] = { "]", "[", false }, 
-	[")"] = { ")", "(", false }, 
-}
-
 local function FindMatchingParam( Rows, Row, Char ) 
 	local Param, EnterParam, ExitParam = ParamPairs[Rows[Row][Char]] 
 	
@@ -877,7 +904,7 @@ local function FindMatchingParam( Rows, Row, Char )
 				end 
 			end 
 			line = line - 1 
-			pos = #Rows[line] + 1
+			pos = #(Rows[line] or "") + 1
 		end 
 	end 
 	
