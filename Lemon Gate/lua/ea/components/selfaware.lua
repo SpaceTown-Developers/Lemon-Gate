@@ -30,7 +30,7 @@ end)
 ==============================================================================================*/
 
 E_A:RegisterFunction("gateName", "", "s", function(self)
-	return self.Entity.Name
+	return self.Entity.GateName
 end)
 
 E_A:RegisterFunction("gateName", "s", "", function(self, Value)
