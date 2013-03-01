@@ -52,7 +52,7 @@ function Lemon:Initialize( )
 	self.Inputs = WireLib.CreateInputs( self, {} )
 	self.Outputs = WireLib.CreateOutputs( self, {} )
 	
-	self.Name = "LemonGate"
+	self.GateName = "LemonGate"
 	self.Errored = nil
 	
 	self:SetOverlayText( "LemonGate\nExpression Advanced\nOffline: 0%" )
@@ -152,70 +152,62 @@ function Lemon:RefreshMemory( )
 	
 	local Context, PortLookUp = self.Context, { }
 	local Memory, Delta, Types = Context.Memory, Context.Delta, Context.Types
-	local _Inputs, _Outputs = self.Inputs, self.Outputs
+	local InPorts, OutPorts = self.Inputs or {}, self.Outputs or {}
 	
-/*****************************************************************************/
---	INPUTS:
-
-	local InPuts, InTypes, I = { }, { }, 0 
+	--- Inputs:
+	
+	local Inputs, InTypes = { }, { }
 	for Cell, Name in pairs( self.InMemory ) do
+		local Type = ShortTypes[ Types[Cell] ]
+		local WireType = Type[4]
 		PortLookUp[Name] = Cell
 		
-		local Type = ShortTypes[Types[Cell]]
-		local WireName = Type[4] -- Wiremod type name.
-		
-		if !WireName or !Type[5] then
+		if !WireType or !Type[5] then
 			return self:ScriptError( "Type '" .. Type[1] .. "' may not be used as input." )
-		end
-		
-		local LastValue = _Inputs[Name] -- Restore input memory!
-		
-		if LastValue and LastValue.Type == WireName then
-			Type[5]( Context, Cell, LastValue.Value )
+		elseif InPorts[Name] and InPorts[Name].Type == WireType then
+			Type[5]( Context, Cell, InPorts[Name].Value )
 		else
 			Memory[Cell] = Type[3]( Context )
+			InPorts[Name] = nil
 		end
 		
-		I = I + 1
-		InPuts[I] = Name
-		InTypes[I] = WireName
+		Inputs[#Inputs + 1] = Name
+		InTypes[#InTypes + 1] = WireName
 	end
 	
-	self.Inputs = WireLib.CreateSpecialInputs( self, InPuts, InTypes )
+	self.Inputs = WireLib.CreateSpecialInputs( self, Inputs, InTypes )
 	
-	for Key, _Input in pairs( _Inputs )  do
-		local Input = self.Inputs[Key]
-		if Input and Input.Type == _Input.Type then
-			Input.Value = _Input.Value -- Restore input values.
-		end
+	for Name, Port in pairs( InPorts ) do
+		self.Inputs[Name] = Port
 	end
-	
-/*****************************************************************************/
---	OUTPUTS:
 
-	local Outputs, OutTypes, I = {}, {}, 0
+	--- Outputs:
+	
+	local Outputs, OutTypes = { }, { }
 	for Cell, Name in pairs( self.OutMemory ) do
+		local Type = ShortTypes[ Types[Cell] ]
+		local WireType = Type[4]
 		PortLookUp[Name] = Cell
 		
-		local Type = ShortTypes[Types[Cell]]
-		local WireName = Type[4]
-		
-		if !WireName or !Type[6] then
+		if !WireType or !Type[6] then
 			return self:ScriptError( "Type '" .. Type[1] .. "' may not be used as output." )
+		elseif !OutPorts[Name] or OutPorts[Name].Type ~= WireType then
+			InPorts[Name] = nil
 		end
 		
 		Memory[Cell] = Type[3]( Context )
-		
-		I = I + 1
-		Outputs[I] = Name
-		OutTypes[I] = WireName
+		Outputs[#Outputs + 1] = Name
+		OutTypes[#OutTypes + 1] = WireName
 	end
 	
-	self.Outputs = WireLib.CreateSpecialOutputs(self, Outputs, OutTypes)
+	self.Outputs = WireLib.CreateSpecialOutputs( self, Outputs, OutTypes )
+	
+	for Name, Port in pairs( OutPorts ) do
+		self.Outputs[Name] = Port
+	end; self:TriggerOutputs()
 	
 	self.PortLookUp = PortLookUp
-	
-	self.Name = "LemonGate"
+	self.GateName = "LemonGate"
 	self.Errored = nil
 	self.LastPerf = 0
 end
@@ -356,13 +348,13 @@ end
 	Section: Name and Overlay.
 ==============================================================================================*/
 function Lemon:SetGateName(Name)
-	self.Name = Name or "LemonGate"
+	self.GateName = Name or "LemonGate"
 end
 
 function Lemon:UpdateOverlay(Status, Info, ...)
 	if Info then Status = FormatStr(Status, Info, ...) end
 	
-	self:SetOverlayText(FormatStr("%s\n%s", self.Name, Status ))
+	self:SetOverlayText( self.GateName .. "\n" .. Status )
 end
 
 /*==============================================================================================

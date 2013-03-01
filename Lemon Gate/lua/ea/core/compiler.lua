@@ -1120,7 +1120,7 @@ end
 function Compiler:BuildFunction(Sig, Params, Types, Stmts, Return)
 	-- Purpose: This instruction Will create function variables.
 	
-	self:PushReturnType(Return)
+	if Return then self:PushReturnType(Return) end
 	
 	self:PushScope()
 	
@@ -1210,7 +1210,7 @@ function Compiler:BuildFunction(Sig, Params, Types, Stmts, Return)
 		
 	self:PopScope()
 	
-	self:PopReturnType()
+	if Return then self:PopReturnType() end
 	
 	return FuncParams[1], Statements
 end
