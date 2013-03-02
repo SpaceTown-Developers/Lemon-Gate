@@ -1052,6 +1052,8 @@ end
 function Compiler:Instr_FUNCASS(Case, Name, Inst)
 	--Purpose: define a function var.
 	
+	local VarID, Scope = self:AssignVar("f", Name, Case, "function")
+	
 	local Function, tFunction = self:CompileInst(Inst)
 	
 	if tFunction == "?" then
@@ -1068,8 +1070,6 @@ function Compiler:Instr_FUNCASS(Case, Name, Inst)
 	elseif tFunction ~= "f" then
 		self:Error("Can not assign %q as 'function'", GetLongType(tFunction))
 	end
-	
-	local VarID, Scope = self:AssignVar("f", Name, Case, "function")
 	
 	local Operator, Return, Perf = self:GetOperator("funcass", "f")
 	

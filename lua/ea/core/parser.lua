@@ -321,8 +321,8 @@ function Parser:Expression()
 		self:ExcludeToken("amul", "Multiplicative assignment operator (*=), can't be part of Expression")
 		self:ExcludeToken("adiv", "Divisive assignment operator (/=), can't be part of Expression")
 		
-		self:ExcludeToken("inc", "Increment operator (++), can't be part of Expression")
-		self:ExcludeToken("inc", "Decrement operator (--), can't be part of Expression")
+		--self:ExcludeToken("inc", "Increment operator (++), can't be part of Expression")
+		--self:ExcludeToken("inc", "Decrement operator (--), can't be part of Expression")
 		
 		self:PrevToken()
 	end
@@ -516,7 +516,15 @@ function Parser:GetValue()
 		return self:Instruction("string", self:TokenTrace(), self.TokenData)
 	
 	elseif self:AcceptToken("var") then -- Grab a var from a var token.
-		return self:Instruction("variable", self:TokenTrace(), self.TokenData)
+		local Trace, Var = self:TokenTrace(), self.TokenData
+		
+		if self:AcceptToken("inc") then
+			return self:Instruction("increment", Trace, Var)
+		elseif self:AcceptToken("dec") then
+			return self:Instruction("decrement", Trace, Var)
+		else
+			return self:Instruction("variable", Trace, Var)
+		end
 		
 	elseif self:AcceptToken("fun") then -- We are going to getting a function.
 			local Trace, Function = self:TokenTrace(), self.TokenData
@@ -742,7 +750,7 @@ function Parser:GetStatements(ExitToken)
 		self:AcceptToken("sep")
 		-- if self:AcceptToken("sep") then
 			-- self:Error("Separator (;) must not appear twice.")
-		-- end
+		-- end -- Removed becuase it makes more sense!
 	
 		Index = Index + 1
 		Statements[Index] = self:Statement() 
@@ -878,17 +886,12 @@ local AssignmentInstructions = {aadd = "addition", asub = "subtraction", amul = 
 
 function Parser:VariableStatement(NoDec)
 	local Trace = self:TokenTrace()
-		
+	-- TODO: Rewrite all this!
 	if self:AcceptToken("var") then
 		local Var = self.TokenData
 		
-		if self:AcceptToken("inc") then
-			return self:Instruction("increment", Trace, Var)
-		
-		elseif self:AcceptToken("dec") then
-			return self:Instruction("decrement", Trace, Var)
-			
-		elseif self:CheckToken("lsb") then
+		--Inc and Dec used to be here!
+		if self:CheckToken("lsb") then
 			self:PrevToken()
 			return self:IndexedStatement()
 			

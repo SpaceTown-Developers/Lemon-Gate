@@ -1,0 +1,3 @@
+#!/bin/sh
+echo `git describe --always --abbrev=30` > data/ea_version.txt
+git add data/ea_version.txt

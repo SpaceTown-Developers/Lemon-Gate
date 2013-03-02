@@ -40,15 +40,19 @@ E_A:WireModClass("number", "NORMAL", Input, Output)
 E_A:SetCost(EA_COST_CHEAP)
 
 E_A:RegisterOperator("increment", "n", "n", function(self, Memory)
-	self.Delta[Memory] = self.Memory[Memory]
-	self.Memory[Memory] = self.Memory[Memory] + 1
+	local Cur = self.Memory[Memory]
+	self.Delta[Memory] = Cur
+	self.Memory[Memory] = Cur + 1
 	self.Click[Memory] = true
+	return Cur + 1
 end)
 
 E_A:RegisterOperator("decrement", "n", "n", function(self, Memory)
-	self.Delta[Memory] = self.Memory[Memory]
-	self.Memory[Memory] = self.Memory[Memory] - 1
+	local Cur = self.Memory[Memory]
+	self.Delta[Memory] = Cur
+	self.Memory[Memory] = Cur - 1
 	self.Click[Memory] = true
+	return Cur - 1
 end)
 
 /*==============================================================================================
