@@ -1,2 +1,0 @@
-Here are a few custom componets we thought you might like.
-Just drag the ones you like into the custom components folder.

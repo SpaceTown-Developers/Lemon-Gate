@@ -1,0 +1,3 @@
+#!/bin/sh
+echo `git describe --tags --long` > data/lemon_version.txt
+git add data/lemon_version.txt
