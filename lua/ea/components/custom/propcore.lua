@@ -168,7 +168,7 @@ E_A:RegisterFunction("remove","e:","",
 	function( self, A )
 		local Ent = A( self )
 		
-		Check_Enabled( Context )
+		Check_Enabled( self )
 		
 		if Ent and Ent:IsValid( ) and E_A.IsOwner( self.Player, Ent) then
 			Ent:Remove( )
@@ -180,7 +180,7 @@ E_A:RegisterFunction("remove","e:","",
 ==============================================================================================*/
 E_A:RegisterFunction("setPos","e:v","",
 	function( self, A, B )
-		Check_Enabled( Context )
+		Check_Enabled( self )
 		
 		local Ent, Pos = A( self ), B( self )
 		if Ent and Ent:IsValid( ) and E_A.IsOwner( self.Player, Ent) then
@@ -190,7 +190,7 @@ E_A:RegisterFunction("setPos","e:v","",
 
 E_A:RegisterFunction("setAng","e:a","",
 	function( self, A, B )
-		Check_Enabled( Context )
+		Check_Enabled( self )
 		
 		local Ent, Ang = A( self ), B( self )
 		if Ent and Ent:IsValid( ) and E_A.IsOwner( self.Player, Ent) then
@@ -202,7 +202,7 @@ E_A:RegisterFunction("setAng","e:a","",
 	Section: Parent and Freeze
 ==============================================================================================*/
 local function Parent( self, A, B )
-	Check_Enabled( Context )
+	Check_Enabled( self )
 	
 	local Ent, Par = A( self ), B( self )
 	if Ent and Ent:IsValid( ) and !Ent:IsVehicle() and E_A.IsOwner( self.Player, Ent) then
@@ -217,7 +217,7 @@ E_A:RegisterFunction("setParent","e:h","", Parent)
 	
 E_A:RegisterFunction("setFrozen","e:n","",
 	function( self, A, B )
-		Check_Enabled( Context )
+		Check_Enabled( self )
 		
 		local Ent, Freeze = A( self ), B( self )
 		if Ent and Ent:IsValid( ) and E_A.IsOwner( self.Player, Ent) then
