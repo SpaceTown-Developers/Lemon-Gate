@@ -172,7 +172,7 @@ function Lemon:RefreshMemory( )
 		end
 		
 		Inputs[#Inputs + 1] = Name
-		InTypes[#InTypes + 1] = WireName
+		InTypes[#InTypes + 1] = WireType
 	end
 	
 	self.Inputs = WireLib.CreateSpecialInputs( self, Inputs, InTypes )
@@ -197,7 +197,7 @@ function Lemon:RefreshMemory( )
 		
 		Memory[Cell] = Type[3]( Context )
 		Outputs[#Outputs + 1] = Name
-		OutTypes[#OutTypes + 1] = WireName
+		OutTypes[#OutTypes + 1] = WireType
 	end
 	
 	self.Outputs = WireLib.CreateSpecialOutputs( self, Outputs, OutTypes )
