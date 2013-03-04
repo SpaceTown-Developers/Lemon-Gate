@@ -79,7 +79,7 @@ function PANEL:Init( )
 	self.TextEntry.m_bDisableTabbing = true // OH GOD YES!!!!! NO MORE HACKS!!!
 	self.TextEntry.OnTextChanged = function( ) self:_OnTextChanged( ) end
 	self.TextEntry.OnKeyCodeTyped = function( _, code ) self:_OnKeyCodeTyped( code ) end 
-	
+		
 	self.Caret = Vector2( 1, 1 )
 	self.Start = Vector2( 1, 1 )
 	self.Scroll = Vector2( 1, 1 )
@@ -88,29 +88,30 @@ function PANEL:Init( )
 	self.ScrollBar = self:Add( "DVScrollBar" )
 	self.ScrollBar:SetUp( 1, 1 ) 
 	
-	self.ScrollBar.btnGrip.Paint = function( scroll, w, h ) 
-		ScrollThumb( 0, 0, 16, h )
-	end 
-	
-	self.ScrollBar.Paint = function( scroll, w, h ) 
-		surface_SetDrawColor( 128, 128, 128, 255 )
-		surface_DrawRect( 0, 0, w, h )
-	end 
-	
-	self.ScrollBar.btnUp:Remove( ) 
-	self.ScrollBar.btnUp = self.ScrollBar:Add( "EA_ImageButton" ) 
-	self.ScrollBar.btnUp:SetIconCentered( true ) 
-	self.ScrollBar.btnUp:SetIconFading( false ) 
-	self.ScrollBar.btnUp:SetMaterial( Material( "picol/arrow_sans_up_16.png" ) )
-	self.ScrollBar.btnUp.DoClick = function ( self ) self:GetParent():AddScroll( -.1 ) end 
-	
-	self.ScrollBar.btnDown:Remove( ) 
-	self.ScrollBar.btnDown = self.ScrollBar:Add( "EA_ImageButton" ) 
-	self.ScrollBar.btnDown:SetIconCentered( true ) 
-	self.ScrollBar.btnDown:SetIconFading( false ) 
-	self.ScrollBar.btnDown:SetMaterial( Material( "picol/arrow_sans_down_16.png" ) )
-	self.ScrollBar.btnDown.DoClick = function ( self ) self:GetParent():AddScroll( .1 ) end 
-	
+	/*
+		self.ScrollBar.btnGrip.Paint = function( scroll, w, h ) 
+			ScrollThumb( 0, 0, 16, h )
+		end 
+		
+		self.ScrollBar.Paint = function( scroll, w, h ) 
+			surface_SetDrawColor( 128, 128, 128, 255 )
+			surface_DrawRect( 0, 0, w, h )
+		end 
+		
+		self.ScrollBar.btnUp:Remove( ) 
+		self.ScrollBar.btnUp = self.ScrollBar:Add( "EA_ImageButton" ) 
+		self.ScrollBar.btnUp:SetIconCentered( true ) 
+		self.ScrollBar.btnUp:SetIconFading( false ) 
+		self.ScrollBar.btnUp:SetMaterial( Material( "picol/arrow_sans_up_16.png" ) )
+		self.ScrollBar.btnUp.DoClick = function ( self ) self:GetParent():AddScroll( -.1 ) end 
+		
+		self.ScrollBar.btnDown:Remove( ) 
+		self.ScrollBar.btnDown = self.ScrollBar:Add( "EA_ImageButton" ) 
+		self.ScrollBar.btnDown:SetIconCentered( true ) 
+		self.ScrollBar.btnDown:SetIconFading( false ) 
+		self.ScrollBar.btnDown:SetMaterial( Material( "picol/arrow_sans_down_16.png" ) )
+		self.ScrollBar.btnDown.DoClick = function ( self ) self:GetParent():AddScroll( .1 ) end 
+	*/
 	
 	surface_SetFont( "Fixedsys" )
 	self.FontWidth, self.FontHeight = surface_GetTextSize( " " )
@@ -171,7 +172,7 @@ function PANEL:SetCaret( caret )
 end
 
 function PANEL:CopyPosition( caret )
-	return Vector2( caret( ) )
+	return caret:Clone( ) 
 end
 
 function PANEL:MovePosition( caret, offset )
@@ -246,7 +247,7 @@ function PANEL:HasSelection( )
 end
 
 function PANEL:Selection( )
-	return { Vector2( self.Caret( ) ), Vector2( self.Start( ) ) }
+	return { Vector2( self.Start( ) ), Vector2( self.Caret( ) ) }
 end
 
 function PANEL:GetSelection( )
@@ -363,6 +364,41 @@ function PANEL:SelectAll( )
 	self:ScrollCaret( )
 end
 
+function PANEL:Indent( Shift ) 
+	local oldSelection = { self:MakeSelection( self:Selection( ) ) } 
+	local Scroll = self.Scroll:Clone( ) 
+	local Start, End = oldSelection[1]:Clone( ), oldSelection[2]:Clone( ) 
+	
+	Start.y = 1 
+	if End.y ~= 1 then 
+		End.x = End.x + 1 
+		End.y = 1 
+	end 
+	
+	self.Start = Start:Clone( ) 
+	self.Caret = End:Clone( ) 
+	
+	if self.Caret.y == 1 then 
+		self.Caret = self:MovePosition( self.Caret, -1 )
+	end 
+		
+	if Shift then // Unindent 
+		local Temp = string_gsub( self:GetSelection( ), "\n ? ? ? ?", "\n" ) 
+		self:SetSelection( string_match( Temp, "^ ? ? ? ?(.*)$") )
+	else // Indent 
+		self:SetSelection( "    " .. string_gsub( self:GetSelection( ), "\n", "\n    " ) ) 
+	end 
+	
+	//TODO: SublimeText like indenting. 
+	
+	self.Start = Start:Clone( ) 
+	self.Caret = End:Clone( ) 
+	
+	self.Scroll = Scroll:Clone( ) 
+	
+	self:ScrollCaret( ) 
+end 
+
 function PANEL:CanUndo( )
 	return #self.Undo > 0 
 end
@@ -442,22 +478,38 @@ end
 TextEntry hooks
 ---------------------------------------------------------------------------*/
 
+local AutoParam = {
+	["{"] = "}",
+	["["] = "]",
+	["("] = ")",
+	["\""] = "\"",
+	["'"] = "'",
+}
+
+local SpecialCase = {
+	["}"] = true, 
+	["]"] = true, 
+	[")"] = true, 
+	["\""] = true, 
+	["'"] = true, 
+}
+
 function PANEL:_OnKeyCodeTyped( code ) 
 	self.Blink = RealTime( )
-
+	
 	local alt = input_IsKeyDown( KEY_LALT ) or input_IsKeyDown( KEY_RALT )
 	if alt then return end
-
+	
 	local shift = input_IsKeyDown( KEY_LSHIFT ) or input_IsKeyDown( KEY_RSHIFT )
 	local control = input_IsKeyDown( KEY_LCONTROL ) or input_IsKeyDown( KEY_RCONTROL )
-
+	
 	-- allow ctrl-ins and shift-del ( shift-ins, like ctrl-v, is handled by vgui )
 	if not shift and control and code == KEY_INSERT then
 		shift, control, code = true, false, KEY_C
 	elseif shift and not control and code == KEY_DELETE then
 		shift, control, code = false, true, KEY_X
 	end
-
+	
 	if control then
 		if code == KEY_A then
 			self:SelectAll( ) 
@@ -486,9 +538,9 @@ function PANEL:_OnKeyCodeTyped( code )
 			self:GetParent( ):GetParent( ):CloseTab( )
 		elseif code == KEY_S then // Save
 			if shift then // ctrl+shift+s
-				self:GetParent( ):GetParent( ):SaveFile( nil, true )
+				self:GetParent( ):GetParent( ):SaveFile( true, true )
 			else // ctrl+s
-				self:GetParent( ):GetParent( ):SaveFile( )
+				self:GetParent( ):GetParent( ):SaveFile( true )
 			end 
 		elseif code == KEY_UP then
 			self.Scroll.x = self.Scroll.x - 1
@@ -631,7 +683,7 @@ function PANEL:_OnKeyCodeTyped( code )
 				local buffer = self:GetArea( { self.Caret, Vector2( self.Caret.x, 1 ) } ) 
 				if self.Caret.y % 4 == 1 and #buffer > 0 and string_rep( " ", #buffer ) == buffer then
 					self:SetCaret( self:SetArea( { self.Caret, self:MovePosition( self.Caret, -4 ) } ) )
-				elseif #buffer > 0 and ParamPairs[self.Rows[self.Caret.x][self.Caret.y-1]] and ParamPairs[self.Rows[self.Caret.x][self.Caret.y-1]][2] == self.Rows[self.Caret.x][self.Caret.y] then 
+				elseif #buffer > 0 and AutoParam[self.Rows[self.Caret.x][self.Caret.y-1]] and AutoParam[self.Rows[self.Caret.x][self.Caret.y-1]] == self.Rows[self.Caret.x][self.Caret.y] then 
 					self.Caret.y = self.Caret.y + 1
 					self:SetCaret( self:SetArea( { self.Caret, self:MovePosition( self.Caret, -2 ) } ) )
 				else 
@@ -694,14 +746,53 @@ function PANEL:_OnKeyCodeTyped( code )
 			// TODO: ?
 		end 
 	end
-
-	if code == KEY_TAB and ( !shift or !control ) then 
-		if self:HasSelection( ) then //TODO
+	
+	if code == KEY_TAB or ( control and ( code == KEY_I or code == KEY_O ) ) then 
+		if code == KEY_O then shift = not shift end 
+		if code == KEY_TAB and control then shift = not shift end 
+		if self:HasSelection( ) then 
+			self:Indent( shift ) 
 		else 
-			self:SetSelection( string_rep( " ", ( self.Caret.y + 2 ) % 4 + 1 ) )
+			if (shift and code ~= KEY_O) or code == KEY_I then 
+				local newpos = self.Caret.y - 4
+				if newpos < 1 then newpos = 1 end
+				self.Start:Set( self.Caret.x, newpos ) 
+				
+				if string_find( self:GetSelection( ), "%S" ) then 
+					local Caret = self.Caret:Clone( ) 
+					
+					self.Start:Set( self.Start.x, 1 ) 
+					self.Caret:Set( Caret.x, #self.Rows[Caret.x] + 1 ) 
+					
+					local text = string_match( self.Rows[Caret.x], "^ ? ? ? ?(.*)$" ) 
+					local oldLength = #self.Rows[Caret.x] 
+					
+					self:SetSelection( text ) 
+					
+					self.Caret = self:MovePosition( Caret, #text - oldLength ) 
+					self.Start = self.Caret:Clone( ) 
+				else 
+					self:SetSelection( "" )
+				end
+			else 
+				if code == KEY_O then 
+					local Caret = self.Caret:Clone( ) 
+					
+					self.Start:Set( self.Start.x, 1 ) 
+					self.Caret:Set( Caret.x, #self.Rows[Caret.x] + 1 ) 
+					
+					self:Indent( ) 
+					
+					self.Caret = Caret:Add( 0, 4 )
+					self.Start = self.Caret:Clone( ) 
+				else 
+					self:SetSelection( string_rep( " ", ( self.Caret.y + 2 ) % 4 + 1 ) )
+				end 
+			end 
 		end
 	end
 	
+	if control and self.OnShortcut then self:OnShortcut( code ) end 
 end
 
 function PANEL:_OnTextChanged( ) 
@@ -727,17 +818,32 @@ function PANEL:_OnTextChanged( )
 	
 	local bSelection = self:HasSelection( ) 
 	
-	self:SetSelection( text )
-	self:ScrollCaret( ) 
-	
-	if #text == 1 and ParamPairs[text] then 
-		if bSelection then 
-			// TODO: SublimeText2 like brackets 
+	if bSelection then 
+		local selection = self:Selection( ) 
+		local selectionText = self:GetArea( selection )
+		
+		if #text == 1 and AutoParam[text] then 
+			self:SetSelection( text .. selectionText .. AutoParam[text] ) 
+			self.Start = selection[1]:Add( 0, 1 ) 
+			self.Caret = selection[2]:Add( 0, 1 ) 
+			self:ScrollCaret( ) 
 		else 
-			local old = self:CopyPosition( self.Caret ) 
-			self:SetSelection( ParamPairs[text][2] ) 
-			self:SetCaret( old )
+			self:SetSelection( text )
+			self:ScrollCaret( ) 
 		end 
+	elseif #text == 1 and AutoParam[text] then 
+		if self.Rows[self.Caret.x][self.Caret.y] == " " or self.Rows[self.Caret.x][self.Caret.y] == "" then 
+			self:SetSelection( text .. AutoParam[text] ) 
+			self:SetCaret( self:MovePosition( self.Caret, -1 ) ) 
+		elseif SpecialCase[text] and self.Rows[self.Caret.x][self.Caret.y] == text then 
+			self:SetCaret( self:MovePosition( self.Caret, 1 ) ) 
+		else 
+			self:SetSelection( text )
+		end
+	elseif #text == 1 and SpecialCase[text] and self.Rows[self.Caret.x][self.Caret.y] == text then 
+		self:SetCaret( self:MovePosition( self.Caret, 1 ) ) 
+	else
+		self:SetSelection( text )
 	end 
 end
 
@@ -814,8 +920,9 @@ function PANEL:OnMouseReleased( code )
 				end ) 
 			end 
 			
-			-- Menu:AddOption( "Paste", function( ) 
-			-- end ) 
+			Menu:AddOption( "Paste", function( ) 
+				self.TextEntry:Paste( ) 
+			end ) 
 			
 			Menu:AddSpacer( ) 
 			
@@ -918,9 +1025,6 @@ function PANEL:Paint( w, h )
 		self:OnMouseReleased( MOUSE_LEFT )
 	end
 	
-	-- if !self.PaintRows then
-	-- 	self.PaintRows = { }
-	-- end 
 	self.PaintRows = self.PaintRows or { } 
 	
 	if self.MouseDown and self.MouseDown == MOUSE_LEFT then
@@ -967,22 +1071,18 @@ function PANEL:PaintTextOverlay( )
 	end
 end
 
-C_white = Color( 255, 255, 255 )
-C_gray = Color( 160, 160, 160 )
--- C_black = Color( 0, 0, 0 )
--- C_red = Color( 255, 0, 0 )
+local C_white = Color( 255, 255, 255 ) 
+local C_gray = Color( 160, 160, 160 ) 
 
 function PANEL:DrawText( w, h )
 	surface_SetFont( "Fixedsys" )
 	
-	surface_SetDrawColor( 0, 0, 0, 255 )
+	surface_SetDrawColor( 32, 32, 32, 255 )
 	surface_DrawRect( 0, 0, self.BookmarkWidth, self:GetTall( ) )
 	surface_DrawRect( self.BookmarkWidth, 0, self.LineNumberWidth, self:GetTall( ) )
-	
-	-- surface_SetDrawColor( 64, 64, 64, 255 )
 	surface_DrawRect( self.BookmarkWidth + self.LineNumberWidth, 0, self.FoldingWidth, self:GetTall( ) )
 	
-	surface_SetDrawColor( 32, 32, 32, 255 )
+	surface_SetDrawColor( 0, 0, 0, 255 )
 	surface_DrawRect( self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth, 0, self:GetWide( ) - ( self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth ), self:GetTall( ) )
 	
 	self.Params = FindMatchingParam( self.Rows, self.Caret.x, self.Caret.y ) 
@@ -1039,17 +1139,6 @@ function PANEL:PaintRowUnderlay( Row, LinePos )
 		self.CaretRow = LinePos
 	end
 	
-	if self.Params then 
-		if self.Params[1].x == Row then 
-			surface_SetDrawColor( 255, 0, 0, 100 )
-			surface_DrawRect( ( self.Params[1].y - self.Scroll.y ) * self.FontWidth + self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth, LinePos * self.FontHeight, self.FontWidth, self.FontHeight ) 
-		end 
-		if self.Params[2].x == Row then 
-			surface_SetDrawColor( 255, 0, 0, 100 )
-			surface_DrawRect( ( self.Params[2].y - self.Scroll.y ) * self.FontWidth + self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth, LinePos * self.FontHeight, self.FontWidth, self.FontHeight ) 
-		end 
-	end 
-	
 	if self:HasSelection( ) then 
 		local start, stop = self:MakeSelection( self:Selection( ) )
 		local line, char = start.x, start.y 
@@ -1093,7 +1182,16 @@ function PANEL:PaintRowUnderlay( Row, LinePos )
 				self.FontHeight 
 			 )
 		end
-	end
+	elseif self.Params then 
+		if self.Params[1].x == Row then 
+			surface_SetDrawColor( 160, 160, 160, 255 )
+			surface_DrawRect( ( self.Params[1].y - self.Scroll.y ) * self.FontWidth + self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth, (LinePos+1) * self.FontHeight, self.FontWidth, 1 ) 
+		end 
+		if self.Params[2].x == Row then 
+			surface_SetDrawColor( 160, 160, 160, 255 )
+			surface_DrawRect( ( self.Params[2].y - self.Scroll.y ) * self.FontWidth + self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth, (LinePos+1) * self.FontHeight, self.FontWidth, 1 ) 
+		end 
+	end 
 end 
 
 function PANEL:PaintRow( Row, LinePos )
@@ -1135,7 +1233,7 @@ function PANEL:PaintRow( Row, LinePos )
 		end 
 	end 
 	
-	draw_SimpleText( tostring( Row ), "Fixedsys", self.BookmarkWidth + self.LineNumberWidth - 3, self.FontHeight * ( LinePos ), C_gray, TEXT_ALIGN_RIGHT ) 
+	draw_SimpleText( tostring( Row ), "Fixedsys", self.BookmarkWidth + self.LineNumberWidth - 3, self.FontHeight * ( LinePos ), C_white, TEXT_ALIGN_RIGHT ) 
 	
 	local offset = math_max( self.Scroll.y, 1 )
 	
@@ -1179,7 +1277,7 @@ function PANEL:SetCode( Text )
 	self.Undo = { } 
 	self.Redo = { } 
 	self.PaintRows = { } 
-
+	
 	self.ScrollBar:SetUp( self.Size.x, #self.Rows + ( math_floor( self:GetTall( ) / self.FontHeight ) - 2 ) - table_Count( table_KeysFromValue( self.FoldedRows, true ) )) 
 end 
 

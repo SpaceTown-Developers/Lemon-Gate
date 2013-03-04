@@ -70,16 +70,23 @@ do
 	function meta:Set( x, y ) 
 		self.x = x 
 		self.y = y 
+		return self 
 	end 
 
 	function meta:Add( x, y ) 
 		self.x = self.x + x 
 		self.y = self.y + y 
+		return self 
 	end 
 	
 	function meta:Sub( x, y )
 		self.x = self.x - x 
 		self.y = self.y - y 
+		return self 
+	end 
+	
+	function meta:Clone( )
+		return Vector2( self.x, self.y )
 	end
 
 	local setmetatable = setmetatable 

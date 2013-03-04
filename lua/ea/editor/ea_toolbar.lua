@@ -13,76 +13,103 @@ local string_find = string.find
 
 local PANEL = {} 
 
+local function SetupButton( self, sName, mMaterial, nDock, fDoClick ) 
+	local btn = self:Add( "EA_ImageButton" ) 
+	btn:Dock( nDock ) 
+	btn:SetPadding( 5 ) 
+	btn:SetIconFading( false )
+	btn:SetIconCentered( false )
+	btn:SetTextCentered( false )
+	btn:DrawButton( true )
+	btn:SetTooltip( sName ) 
+	btn:SetMaterial( mMaterial )
+	
+	btn.DoClick = fDoClick 
+	return btn 
+end 
+
+/*
+	-- self.btnSave = self:Add( "EA_ImageButton" ) 
+	-- self.btnSave:Dock( LEFT ) 
+	-- self.btnSave:SetPadding( 5 ) 
+	-- self.btnSave:SetIconFading( false )
+	-- self.btnSave:SetIconCentered( false )
+	-- self.btnSave:SetTextCentered( false )
+	-- self.btnSave:DrawButton( true )
+	-- self.btnSave:SetTooltip( "Save" ) 
+	-- self.btnSave:SetMaterial( Material( "fugue/disk.png" ) )
+	
+	-- self.btnSaveAs = self:Add( "EA_ImageButton" ) 
+	-- self.btnSaveAs:Dock( LEFT ) 
+	-- self.btnSaveAs:SetPadding( 5 ) 
+	-- self.btnSaveAs:SetIconFading( false )
+	-- self.btnSaveAs:SetIconCentered( false )
+	-- self.btnSaveAs:SetTextCentered( false )
+	-- self.btnSaveAs:DrawButton( true )
+	-- self.btnSaveAs:SetTooltip( "Save As" ) 
+	-- self.btnSaveAs:SetMaterial( Material( "fugue/disks.png" ) )
+	
+	-- self.btnNewTab = self:Add( "EA_ImageButton" ) 
+	-- self.btnNewTab:Dock( LEFT )  
+	-- self.btnNewTab:SetPadding( 5 ) 
+	-- self.btnNewTab:SetIconFading( false )
+	-- self.btnNewTab:SetIconCentered( false )
+	-- self.btnNewTab:SetTextCentered( false )
+	-- self.btnNewTab:DrawButton( true )
+	-- self.btnNewTab:SetTooltip( "New tab" )
+	-- self.btnNewTab:SetMaterial( Material( "fugue/script--plus.png" ) )
+	
+	-- self.btnCloseTab = self:Add( "EA_ImageButton" ) 
+	-- self.btnCloseTab:Dock( LEFT )  
+	-- self.btnCloseTab:SetPadding( 5 ) 
+	-- self.btnCloseTab:SetIconFading( false )
+	-- self.btnCloseTab:SetIconCentered( false )
+	-- self.btnCloseTab:SetTextCentered( false )
+	-- self.btnCloseTab:DrawButton( true )
+	-- self.btnCloseTab:SetTooltip( "Close tab" )
+	-- self.btnCloseTab:SetMaterial( Material( "fugue/script--minus.png" ) )
+	
+	-- self.btnOptions = self:Add( "EA_ImageButton" ) 
+	-- self.btnOptions:Dock( RIGHT )  
+	-- self.btnOptions:SetPadding( 5 ) 
+	-- self.btnOptions:SetIconFading( false )
+	-- self.btnOptions:SetIconCentered( false )
+	-- self.btnOptions:SetTextCentered( false )
+	-- self.btnOptions:DrawButton( true )
+	-- self.btnOptions:SetTooltip( "Options" )
+	-- self.btnOptions:SetMaterial( Material( "fugue/gear.png" ) )
+	
+	-- self.btnHelp = self:Add( "EA_ImageButton" ) 
+	-- self.btnHelp:Dock( RIGHT )  
+	-- self.btnHelp:SetPadding( 5 ) 
+	-- self.btnHelp:SetIconFading( false )
+	-- self.btnHelp:SetIconCentered( false )
+	-- self.btnHelp:SetTextCentered( false )
+	-- self.btnHelp:DrawButton( true )
+	-- self.btnHelp:SetTooltip( "Help" )
+	-- self.btnHelp:SetMaterial( Material( "fugue/question.png" ) )
+	
+	-- self.btnWiki = self:Add( "EA_ImageButton" ) 
+	-- self.btnWiki:Dock( RIGHT )  
+	-- self.btnWiki:SetPadding( 5 ) 
+	-- self.btnWiki:SetIconFading( false )
+	-- self.btnWiki:SetIconCentered( false )
+	-- self.btnWiki:SetTextCentered( false )
+	-- self.btnWiki:DrawButton( true )
+	-- self.btnWiki:SetTooltip( "Open wiki" )
+	-- self.btnWiki:SetMaterial( Material( "fugue/home.png" ) )
+*/
+
 function PANEL:Init() 
-	self.btnSave = self:Add( "EA_ImageButton" ) 
-	self.btnSave:Dock( LEFT ) 
-	self.btnSave:SetPadding( 5 ) 
-	self.btnSave:SetIconFading( false )
-	self.btnSave:SetIconCentered( false )
-	self.btnSave:SetTextCentered( false )
-	self.btnSave:DrawButton( true )
-	self.btnSave:SetTooltip( "Save" ) 
-	self.btnSave:SetMaterial( Material( "fugue/disk.png" ) )
+	self.btnSave = SetupButton( self, "Save", Material( "fugue/disk.png" ), LEFT )
+	self.btnSaveAs = SetupButton( self, "Save As", Material( "fugue/disks.png" ), LEFT )
+	self.btnNewTab = SetupButton( self, "New tab", Material( "fugue/script--plus.png" ), LEFT )
+	self.btnCloseTab = SetupButton( self, "Close tab", Material( "fugue/script--minus.png" ), LEFT )
 	
-	self.btnSaveAs = self:Add( "EA_ImageButton" ) 
-	self.btnSaveAs:Dock( LEFT ) 
-	self.btnSaveAs:SetPadding( 5 ) 
-	self.btnSaveAs:SetIconFading( false )
-	self.btnSaveAs:SetIconCentered( false )
-	self.btnSaveAs:SetTextCentered( false )
-	self.btnSaveAs:DrawButton( true )
-	self.btnSaveAs:SetTooltip( "Save As" ) 
-	self.btnSaveAs:SetMaterial( Material( "fugue/disks.png" ) )
+	self.btnOptions = SetupButton( self, "Options", Material( "fugue/gear.png" ), RIGHT )
+	self.btnHelp = SetupButton( self, "Open helper", Material( "fugue/question.png" ), RIGHT )
+	self.btnWiki = SetupButton( self, "Open wiki", Material( "fugue/home.png" ), RIGHT )
 	
-	self.btnNewTab = self:Add( "EA_ImageButton" ) 
-	self.btnNewTab:Dock( LEFT )  
-	self.btnNewTab:SetPadding( 5 ) 
-	self.btnNewTab:SetIconFading( false )
-	self.btnNewTab:SetIconCentered( false )
-	self.btnNewTab:SetTextCentered( false )
-	self.btnNewTab:DrawButton( true )
-	self.btnNewTab:SetTooltip( "New tab" )
-	self.btnNewTab:SetMaterial( Material( "fugue/script--plus.png" ) )
-	
-	self.btnCloseTab = self:Add( "EA_ImageButton" ) 
-	self.btnCloseTab:Dock( LEFT )  
-	self.btnCloseTab:SetPadding( 5 ) 
-	self.btnCloseTab:SetIconFading( false )
-	self.btnCloseTab:SetIconCentered( false )
-	self.btnCloseTab:SetTextCentered( false )
-	self.btnCloseTab:DrawButton( true )
-	self.btnCloseTab:SetTooltip( "Close tab" )
-	self.btnCloseTab:SetMaterial( Material( "fugue/script--minus.png" ) )
-	
-	self.btnOptions = self:Add( "EA_ImageButton" ) 
-	self.btnOptions:Dock( RIGHT )  
-	self.btnOptions:SetPadding( 5 ) 
-	self.btnOptions:SetIconFading( false )
-	self.btnOptions:SetIconCentered( false )
-	self.btnOptions:SetTextCentered( false )
-	self.btnOptions:DrawButton( true )
-	self.btnOptions:SetTooltip( "Options" )
-	self.btnOptions:SetMaterial( Material( "fugue/gear.png" ) )
-	
-	self.btnHelp = self:Add( "EA_ImageButton" ) 
-	self.btnHelp:Dock( RIGHT )  
-	self.btnHelp:SetPadding( 5 ) 
-	self.btnHelp:SetIconFading( false )
-	self.btnHelp:SetIconCentered( false )
-	self.btnHelp:SetTextCentered( false )
-	self.btnHelp:DrawButton( true )
-	self.btnHelp:SetTooltip( "Help" )
-	self.btnHelp:SetMaterial( Material( "fugue/question.png" ) )
-	
-	self.btnWiki = self:Add( "EA_ImageButton" ) 
-	self.btnWiki:Dock( RIGHT )  
-	self.btnWiki:SetPadding( 5 ) 
-	self.btnWiki:SetIconFading( false )
-	self.btnWiki:SetIconCentered( false )
-	self.btnWiki:SetTextCentered( false )
-	self.btnWiki:DrawButton( true )
-	self.btnWiki:SetTooltip( "Open wiki" )
-	self.btnWiki:SetMaterial( Material( "fugue/home.png" ) )
 	
 	self.lblLink = self.btnWiki:Add( "DLabelURL" ) 
 	self.lblLink:Dock( FILL ) 
@@ -103,29 +130,22 @@ function PANEL:Init()
 	end 
 	
 	function self.btnSave:DoClick( )
-		self:GetParent( ):GetParent( ):SaveFile( ) 
+		self:GetParent( ):GetParent( ):SaveFile( true ) 
 	end 
 	
 	function self.btnSaveAs:DoClick( )
-		self:GetParent( ):GetParent( ):SaveFile( nil, true ) 
+		self:GetParent( ):GetParent( ):SaveFile( true, true ) 
 	end 
 	
 	function self.btnNewTab:DoClick()
 		self:GetParent( ):GetParent( ):NewTab( ) 
 	end 
 	
-	function self.btnCloseTab:DoClick()
-		self:GetParent( ):GetParent( ):CloseTab( ) 
+	function self.btnCloseTab:DoClick( )
+		self:GetParent( ):GetParent( ):CloseTab( nil, true ) 
 	end 
-	
-	function self.btnOptions:DoClick( )
-	end 
-	
 	function self.btnHelp:DoClick( )
 		self:GetParent( ):OpenHelper( ) 
-	end 
-	
-	function self.btnWiki:DoClick( )
 	end 
 end 
 

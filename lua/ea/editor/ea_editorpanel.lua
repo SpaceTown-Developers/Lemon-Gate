@@ -10,6 +10,8 @@ local gradient_down = Material( "vgui/gradient-u" )
 
 local PANEL = {}
 
+PANEL.FileTabs = { } 
+
 local invalid_filename_chars = {
 	["*"] = "",
 	["?"] = "",
@@ -47,11 +49,12 @@ function PANEL:Update( )
 end
 
 function PANEL:Init( ) 
+	-- self:SetFocusTopLevel( true ) // TODO: Figure out how this shit works! 
 	self:SetKeyBoardInputEnabled( true )
 	self:SetMouseInputEnabled( true )
 	self:SetSizable( true )
 	self:SetMinWidth( 600 )
-	self:SetMinHeight( 300 )
+	self:SetMinHeight( 400 )
 	self:SetText( "Expression Advanced Editor" )
 	
 	
@@ -64,7 +67,33 @@ function PANEL:Init( )
 		if self:OpenOldTabs( ) then return end 
 		self:NewTab( ) 
 	end ) 
-	-- self.TabHolder.DoRightClick = function( ) print":D" end 
+	
+	function self.TabHolder:CloseTab( tab, bRemovePanelToo )
+		for k, v in pairs( self.Items ) do
+			if v.Tab != tab then continue end
+			table.remove( self.Items, k )
+			break 
+		end
+		
+		for k, v in pairs( self.tabScroller.Panels ) do
+			if v != tab then continue end
+			table.remove( self.tabScroller.Panels, k )
+			break 
+		end
+		self.tabScroller:InvalidateLayout( true )
+		 
+		if tab == self:GetActiveTab( ) then
+			if #self.Items > 0 then self.m_pActiveTab = self.Items[#self.Items].Tab
+			else self.m_pActiveTab = nil end 
+		end
+		
+		local pnl = tab:GetPanel( )
+		if bRemovePanelToo then pnl:Remove( ) end
+		
+		tab:Remove( )
+		self:InvalidateLayout( true )
+		return pnl
+	end
 	
 	
 	self.Browser = self:Add( "DTree" )
@@ -111,9 +140,9 @@ function PANEL:Init( )
 				// File 
 				local Menu = DermaMenu( ) 
 				
-				-- Menu:AddOption( "Open", function( ) end ) 
+				Menu:AddOption( "Open", function( ) self:LoadFile( Dir ) end ) 
 				
-				-- Menu:AddSpacer( ) 
+				Menu:AddSpacer( ) 
 				
 				-- Menu:AddOption( "Copy", function( ) end ) 
 				-- Menu:AddOption( "Move", function( ) end ) 
@@ -291,16 +320,19 @@ function PANEL:Validate( Script )
 	end
 end
 
-function PANEL:SetCode( Code ) 
-	self.TabHolder:GetActiveTab( ):GetPanel( ):SetCode( Code )
+function PANEL:SetCode( Code, Tab ) 
+	Tab = Tab or self.TabHolder:GetActiveTab( ) 
+	Tab:GetPanel( ):SetCode( Code )
 end
 
-function PANEL:GetCode( )
-	return self.TabHolder:GetActiveTab( ):GetPanel( ):GetCode( )
+function PANEL:GetCode( Tab )
+	Tab = Tab or self.TabHolder:GetActiveTab( ) 
+	return Tab:GetPanel( ):GetCode( )
 end
 
-function PANEL:SetCaret( Pos )
-	self.TabHolder:GetActiveTab( ):GetPanel( ):SetCaret( Pos )
+function PANEL:SetCaret( Pos, Tab )
+	Tab = Tab or self.TabHolder:GetActiveTab( ) 
+	Tab:GetPanel( ):SetCaret( Pos ) 
 end
 
 local function MakeFolders( Path )
@@ -308,9 +340,16 @@ local function MakeFolders( Path )
 	file.CreateDir( folder )
 end
 
-function PANEL:SaveFile( Path, SaveAs )
-	Path = Path or self.TabHolder:GetActiveTab( ).FilePath
-	if !Path or SaveAs then 
+function PANEL:SaveFile( Path, SaveAs, Tab, bNoSound ) 
+	if Path == true then 
+		Tab = self.TabHolder:GetActiveTab( ) 
+		Path = Tab.FilePath 
+	end
+	 
+	if not ValidPanel( Tab ) then return end 
+	if not SaveAs and (type( Path ) ~= "string" or Path == "") then return end 
+	
+	if (!Path and SaveAs) or SaveAs then 
 		Derma_StringRequest( "Save to New File", "", "generic",
 		function( result )
 			result = string.gsub( result, ".", invalid_filename_chars )
@@ -323,11 +362,14 @@ function PANEL:SaveFile( Path, SaveAs )
 	
 	MakeFolders( Path )
 	
-	file.Write( Path , self:GetCode( ) )
-	surface.PlaySound( "ambient/water/drip3.wav" )
-	self.ValidateButton:SetText( "Saved as " .. Path )
-	if !self.TabHolder:GetActiveTab().FilePath then 
-		self.TabHolder:GetActiveTab().FilePath = Path 
+	file.Write( Path, self:GetCode( Tab ) )
+	if !bNoSound then 
+		surface.PlaySound( "ambient/water/drip3.wav" ) 
+		self.ValidateButton:SetText( "Saved as " .. Path )
+	end 
+	if !Tab.FilePath then 
+		Tab.FilePath = Path:sub( 11 ) 
+		self.FileTabs[Path:sub( 11 )] = Tab 
 	end 
 end
 
@@ -355,23 +397,29 @@ end
 local function DoRightClick( self )
 	local Menu = DermaMenu( ) 
 	
-	Menu:AddOption( "Close", function( ) end ) 
-	Menu:AddOption( "Close others", function( ) end ) 
-	Menu:AddOption( "Close tabs to the right", function( ) end ) 
+	Menu:AddOption( "Close", function( ) self.Editor:CloseTab( false, self ) end ) 
+	Menu:AddOption( "Close others", function( ) self.Editor:CloseAllBut( self ) end ) 
+	Menu:AddOption( "Close all tabs", function( ) self.Editor:CloseAll( )  end ) 
 	
 	Menu:AddSpacer( ) 
 	
-	Menu:AddOption( "Save", function( ) end ) 
-	Menu:AddOption( "Save As", function( ) end ) 
+	Menu:AddOption( "Save", function( ) self.Editor:SaveFile( self.FilePath, false, self ) end ) 
+	-- Menu:AddOption( "Save As", function( ) end ) 
 	
 	Menu:AddSpacer( ) 
 	
-	Menu:AddOption( "New File", function( ) self:NewTab( ) end ) 
+	Menu:AddOption( "New File", function( ) self.Editor:NewTab( ) end ) 
 	
 	Menu:Open( ) 
 end
 
 function PANEL:NewTab( Code, Path )
+	if ValidPanel( self.FileTabs[Path] ) then 
+		self.TabHolder:SetActiveTab( self.FileTabs[Path] )
+		self.FileTabs[Path]:GetPanel( ):RequestFocus( ) 
+		return 
+	end 
+	
 	local Sheet = self.TabHolder:AddSheet( Path or "generic", vgui.Create( "EA_Editor" ), "fugue/script-text.png" ) 
 	self.TabHolder:SetActiveTab( Sheet.Tab ) 
 	Sheet.Panel:RequestFocus( )
@@ -381,34 +429,65 @@ function PANEL:NewTab( Code, Path )
 		Sheet.Panel.SyntaxColorLine = func
 	end
 	
-	-- Sheet.Tab.DoRightClick = DoRightClick 
-	-- Sheet.Tab.Editor = self 
+	Sheet.Tab.DoRightClick = DoRightClick 
+	Sheet.Tab.Editor = self 
 	
-	if Path then Sheet.Tab.FilePath = Path end 
+	if Path then 
+		Sheet.Tab.FilePath = Path 
+		self.FileTabs[Path] = Sheet.Tab 
+	end 
 	if self:OnTabCreated( Sheet.Tab, Code, Path ) then return end 
 	if Code and Code ~= "" then self:SetCode( Code ) end 
 end
 
-function PANEL:CloseTab( bSave ) 
-	local Tab = self.TabHolder:GetActiveTab( ) 
+function PANEL:CloseTab( bSave, Tab ) 
+	if Tab == true then Tab = self.TabHolder:GetActiveTab( ) end
+	if not ValidPanel( Tab ) then return end 
+	
 	local Editor = Tab:GetPanel( )
-	 
-	if #self.TabHolder.Items == 1 then 
-		self:NewTab( ) 
+	
+	if bSave and Tab.FilePath and Tab.FilePath ~= "" then // Ask about this? 
+		self:SaveFile( Tab.FilePath, false, Tab, true ) 
 	end 
 	
-	if bSave and Tab.FilePath then // Ask about this?
-		self:SaveFile( Tab.FilePath )
+	if Tab.FilePath and self.FileTabs[Tab.FilePath] then 
+		self.FileTabs[Tab.FilePath] = nil 
+	end 
+	
+	local idx
+	for k, v in pairs( self.TabHolder.Items ) do
+		if v.Tab ~= Tab then continue end 
+		idx = k + 1 
+	end
+	
+	if Tab == self.TabHolder:GetActiveTab( ) and self.TabHolder.Items[idx] then 
+		self.TabHolder:SetActiveTab( self.TabHolder.Items[idx].Tab ) 
 	end 
 	
 	self.TabHolder:CloseTab( Tab, true )
 	
-	self.TabHolder.Items[#self.TabHolder.Items].Tab:GetPanel( ):RequestFocus( )
+	if ValidPanel( self.TabHolder:GetActiveTab( ) ) then 
+		self.TabHolder:GetActiveTab( ):GetPanel( ):RequestFocus( ) 
+	end 
 end 
 
-function PANEL:CloseAll( bSave )
-	// TODO!!
+function PANEL:CloseAll( )
+	while #self.TabHolder.Items > 0 do 
+		self:CloseTab( true, self.TabHolder.Items[1].Tab ) 
+	end 
 end
+
+function PANEL:CloseAllBut( pTab ) 
+	if not ValidPanel( pTab ) then return end 
+	local found = 0
+	while #self.TabHolder.Items > 0 + found do 
+		if self.TabHolder.Items[found+1].Tab == pTab then 
+			found = 1 
+			continue 
+		end 
+		self:CloseTab( false, self.TabHolder.Items[found+1].Tab ) 
+	end 
+end 
 
 function PANEL:SaveTabs( )
 	local strtabs = ""
@@ -447,7 +526,7 @@ function PANEL:OpenOldTabs( )
 	return opentabs 
 end
 
-function PANEL:Open( Code, NewTab )
+function PANEL:Open( Code, NewTab ) 
 	self:SetVisible( true )
 	self:MakePopup( )
 	
@@ -457,10 +536,6 @@ function PANEL:Open( Code, NewTab )
 		self:SetCode( Code ) 
 	end 
 end
-
-function PANEL:GetCode( ) 
-	return self.TabHolder:GetActiveTab():GetPanel():GetCode() 
-end 
 
 function PANEL:Close( )
 	self:SaveTabs( ) 
