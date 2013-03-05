@@ -541,8 +541,14 @@ function PANEL:Close( )
 	
 	if GLOBALDERMAPANEL and GLOBALDERMAPANEL == self then 
 		self:Remove( ) 
+		if ValidPanel( LemonGate.Helper ) and LemonGate.Helper:IsVisible( ) then 
+			LemonGate.Helper:Remove( ) 
+		end 
 	else 
 		self:SetVisible( false ) 
+		if ValidPanel( LemonGate.Helper ) and LemonGate.Helper:IsVisible( ) then 
+			LemonGate.Helper:SetVisible( false )
+		end 
 	end 
 end
 

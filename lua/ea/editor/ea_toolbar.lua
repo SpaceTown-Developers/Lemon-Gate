@@ -10,6 +10,10 @@ local gradient_down = Material( "vgui/gradient-u" )
 
 local string_match = string.match 
 local string_find = string.find 
+local string_reverse = string.reverse 
+local string_sub = string.sub 
+
+local GetLongType = LemonGate.GetLongType 
 
 local PANEL = {} 
 
@@ -27,78 +31,6 @@ local function SetupButton( self, sName, mMaterial, nDock, fDoClick )
 	btn.DoClick = fDoClick 
 	return btn 
 end 
-
-/*
-	-- self.btnSave = self:Add( "EA_ImageButton" ) 
-	-- self.btnSave:Dock( LEFT ) 
-	-- self.btnSave:SetPadding( 5 ) 
-	-- self.btnSave:SetIconFading( false )
-	-- self.btnSave:SetIconCentered( false )
-	-- self.btnSave:SetTextCentered( false )
-	-- self.btnSave:DrawButton( true )
-	-- self.btnSave:SetTooltip( "Save" ) 
-	-- self.btnSave:SetMaterial( Material( "fugue/disk.png" ) )
-	
-	-- self.btnSaveAs = self:Add( "EA_ImageButton" ) 
-	-- self.btnSaveAs:Dock( LEFT ) 
-	-- self.btnSaveAs:SetPadding( 5 ) 
-	-- self.btnSaveAs:SetIconFading( false )
-	-- self.btnSaveAs:SetIconCentered( false )
-	-- self.btnSaveAs:SetTextCentered( false )
-	-- self.btnSaveAs:DrawButton( true )
-	-- self.btnSaveAs:SetTooltip( "Save As" ) 
-	-- self.btnSaveAs:SetMaterial( Material( "fugue/disks.png" ) )
-	
-	-- self.btnNewTab = self:Add( "EA_ImageButton" ) 
-	-- self.btnNewTab:Dock( LEFT )  
-	-- self.btnNewTab:SetPadding( 5 ) 
-	-- self.btnNewTab:SetIconFading( false )
-	-- self.btnNewTab:SetIconCentered( false )
-	-- self.btnNewTab:SetTextCentered( false )
-	-- self.btnNewTab:DrawButton( true )
-	-- self.btnNewTab:SetTooltip( "New tab" )
-	-- self.btnNewTab:SetMaterial( Material( "fugue/script--plus.png" ) )
-	
-	-- self.btnCloseTab = self:Add( "EA_ImageButton" ) 
-	-- self.btnCloseTab:Dock( LEFT )  
-	-- self.btnCloseTab:SetPadding( 5 ) 
-	-- self.btnCloseTab:SetIconFading( false )
-	-- self.btnCloseTab:SetIconCentered( false )
-	-- self.btnCloseTab:SetTextCentered( false )
-	-- self.btnCloseTab:DrawButton( true )
-	-- self.btnCloseTab:SetTooltip( "Close tab" )
-	-- self.btnCloseTab:SetMaterial( Material( "fugue/script--minus.png" ) )
-	
-	-- self.btnOptions = self:Add( "EA_ImageButton" ) 
-	-- self.btnOptions:Dock( RIGHT )  
-	-- self.btnOptions:SetPadding( 5 ) 
-	-- self.btnOptions:SetIconFading( false )
-	-- self.btnOptions:SetIconCentered( false )
-	-- self.btnOptions:SetTextCentered( false )
-	-- self.btnOptions:DrawButton( true )
-	-- self.btnOptions:SetTooltip( "Options" )
-	-- self.btnOptions:SetMaterial( Material( "fugue/gear.png" ) )
-	
-	-- self.btnHelp = self:Add( "EA_ImageButton" ) 
-	-- self.btnHelp:Dock( RIGHT )  
-	-- self.btnHelp:SetPadding( 5 ) 
-	-- self.btnHelp:SetIconFading( false )
-	-- self.btnHelp:SetIconCentered( false )
-	-- self.btnHelp:SetTextCentered( false )
-	-- self.btnHelp:DrawButton( true )
-	-- self.btnHelp:SetTooltip( "Help" )
-	-- self.btnHelp:SetMaterial( Material( "fugue/question.png" ) )
-	
-	-- self.btnWiki = self:Add( "EA_ImageButton" ) 
-	-- self.btnWiki:Dock( RIGHT )  
-	-- self.btnWiki:SetPadding( 5 ) 
-	-- self.btnWiki:SetIconFading( false )
-	-- self.btnWiki:SetIconCentered( false )
-	-- self.btnWiki:SetTextCentered( false )
-	-- self.btnWiki:DrawButton( true )
-	-- self.btnWiki:SetTooltip( "Open wiki" )
-	-- self.btnWiki:SetMaterial( Material( "fugue/home.png" ) )
-*/
 
 function PANEL:Init() 
 	self.btnSave = SetupButton( self, "Save", Material( "fugue/disk.png" ), LEFT )
@@ -144,12 +76,52 @@ function PANEL:Init()
 	function self.btnCloseTab:DoClick( )
 		self:GetParent( ):GetParent( ):CloseTab( nil, true ) 
 	end 
+		
 	function self.btnHelp:DoClick( )
 		self:GetParent( ):OpenHelper( ) 
 	end 
+	
+	function self.btnOptions:DoClick( ) end 
+	function self.btnWiki:DoClick( ) end 
 end 
 
-local GetLongType = LemonGate.GetLongType 
+local function GetArgumentTypes( sArgs ) 
+	local _sArgs = string_reverse( sArgs )
+	local buff = ""
+	sArgs = "" 
+	while #_sArgs > 0 do 
+		local shorttp = _sArgs[1] 
+		local longtp = GetLongType( shorttp ) 
+		if buff or not longtp then 
+			buff = shorttp .. buff
+			
+			if GetLongType( buff ) then 
+				longtp = GetLongType( buff )
+				buff = "" 
+			elseif buff == "..." then 
+				sArgs = sArgs .. "...  " 
+				_sArgs = "" 
+				buff = "" 
+				break 
+			else 
+				_sArgs = string_sub( _sArgs, 2 )
+				continue 
+			end 
+		end 
+		sArgs = sArgs .. longtp .. ", "
+		_sArgs = string_sub( _sArgs, 2 ) 
+	end 
+	
+	if #buff > 0 then 
+		print( sArgs ) 
+		print( buff ) 
+		error( "The helper is leaking lemon juice!", 2 ) 
+	end 
+	
+	sArgs = string_sub( sArgs, 1, -3 ) 
+	return sArgs 
+end 
+
 local function ParseFunction( name, retType, ops ) 
 	local funcName = string_match( name, "^[^%(]+" ) 
 	local argTypes = string_match( name, "%(([^%)]*)%)" )
@@ -161,40 +133,7 @@ local function ParseFunction( name, retType, ops )
 		argTypes = argTypes:sub( stop + 1 )
 	end 
 	
-	local _argTypes = argTypes:reverse( ) 
-	local buff = ""
-	argTypes = "" 
-	while #_argTypes > 0 do 
-		local shorttp = _argTypes[1] 
-		local longtp = GetLongType( shorttp ) 
-		if buff or not longtp then 
-			buff = shorttp .. buff
-			
-			if GetLongType( buff ) then 
-				longtp = GetLongType( buff )
-				buff = "" 
-			elseif buff == "..." then 
-				argTypes = argTypes .. "...  " 
-				_argTypes = "" 
-				buff = "" 
-				break 
-			else 
-				_argTypes = _argTypes:sub( 2 )
-				continue 
-			end 
-		end 
-		argTypes = argTypes .. longtp .. ", "
-		_argTypes = _argTypes:sub( 2 )
-	end 
-	
-	if #buff > 0 then 
-		print( funcName )
-		print( name )
-		print( buff )
-		error( "The helper is leaking lemon juice!", 2 ) 
-	end 
-	
-	argTypes = argTypes:sub( 1, -3 ) .. " "
+	argTypes = GetArgumentTypes( argTypes ) .. " "
 	
 	if retType and retType ~= "" then 
 		retType = GetLongType( retType ) or ""
@@ -205,39 +144,70 @@ local function ParseFunction( name, retType, ops )
 	return funcName, { comp = super, args = argTypes or "", ret = retType, opcost = ops }
 end 
 
-local function SetupHelperFunctions( List, filter )
+local function SetupHelperFunctions( List, filter, bFunctions, bEvents, bExceptions )
 	if !LemonGate then return end 
 	if !LemonGate.FunctionTable then 
 		RunConsoleCommand( "lemon_sync" ) 
 		timer.Simple( 0.5, function() 
 			if !LemonGate.FunctionTable then return end 
-			SetupHelperFunctions( List )
+			SetupHelperFunctions( List, filter, bFunctions, bEvents, bExceptions )
 		end )
 		return 
 	end 
+	
+	bFunctions = bFunctions == nil and true or bFunctions 
+	bEvents = bEvents == nil and true or bEvents 
+	bExceptions = bExceptions == nil and true or bExceptions 
 	
 	// TODO: Do in timer to prevent lag? 
 	local FunctionData = LemonGate.HelperFunctionData 
 	local count = 0
 	filter = filter or ".+" 
 	List:Clear( true ) 
-	for name, data in pairs( LemonGate.FunctionTable ) do 
-		local funcName = string_match( name, "^[^%(]+" ) 
-		local argTypes = string_match( name, "%(([^%)]*)%)" ) 
-		
-		if string_find( name, "***", nil, true ) or string.find( name, "!", nil, true ) then continue end 
-		if !string_match( funcName, filter ) then continue end 
-		
-		List:AddLine( funcName, argTypes, data[2], data[3] ).OnSelect = function( self ) 
-			local _, funcData = ParseFunction( name, data[2], data[3] ) 
-			print( name )
-			print( funcName .. "(" .. argTypes .. (funcData.ret and " " .. data[2]  .. ")" or ")") ) 
-			List:GetParent( ).Description:SetText( FunctionData[funcName .. "(" .. argTypes .. (funcData.ret and " " .. data[2] .. ")" or ")")] or ""  ) 
-			List:GetParent( ).Syntax:SetText( (funcData.ret and funcData.ret .. " = " or "") .. (funcData.comp and funcData.comp .. ":" or "") .. funcName .. "( " .. funcData.args .. ")" )
+	
+	if bFunctions then 
+		for name, data in pairs( LemonGate.FunctionTable ) do 
+			local funcName = string_match( name, "^[^%(]+" ) 
+			local argTypes = string_match( name, "%(([^%)]*)%)" ) 
+			
+			if string_find( name, "***", nil, true ) or string.find( name, "!", nil, true ) then continue end 
+			if !string_match( funcName, filter ) then continue end 
+			
+			List:AddLine( funcName, argTypes, data[2], data[3] ).OnSelect = function( self ) 
+				local _, funcData = ParseFunction( name, data[2], data[3] ) 
+				List:GetParent( ).Description:SetText( FunctionData[funcName .. "(" .. argTypes .. (funcData.ret and " " .. data[2] .. ")" or ")")] or ""  ) 
+				List:GetParent( ).Syntax:SetText( (funcData.ret and funcData.ret .. " = " or "") .. (funcData.comp and funcData.comp .. ":" or "") .. funcName .. "( " .. funcData.args .. ")" )
+			end 
+			
+			count = count + 1 
+			if count > 50 then break end 
 		end 
-		count = count + 1 
-		if count > 250 then break end 
 	end 
+	
+	if bEvents then 
+		for name, data in pairs( LemonGate.EventsTable ) do 
+			local argTypes = GetArgumentTypes( data[1] )
+			local retType = GetArgumentTypes( data[2] )
+			
+			if !string_match( name, filter ) then continue end 
+			
+			List:AddLine( name, data[1], data[2], data[3] ).OnSelect = function( self ) 
+				List:GetParent( ).Description:SetText( "" ) 
+				List:GetParent( ).Syntax:SetText( (retType ~= "" and retType .. " = " or "") .. name .. "<" .. argTypes .. ">" )
+			end 
+		end 
+	end 
+	
+	--[[ TODO: Add or not to add? Thats the question. 
+	if bExceptions then 
+		for name, data in pairs( LemonGate.Exceptions ) do 
+			local argTypes = data[1] 
+			local retType = data[2] 
+			print( name )
+			print( data )
+		end 
+	end 
+	--]]
 	
 	List:SortByColumn( 1 )
 end
@@ -256,19 +226,14 @@ local function CreateHelperWindow( )
 	Helper:Center( )
 	Helper:MakePopup( ) 
 	
-	/*Helper.Close = function( self ) 
-		self:KillFocus( ) 
-		self:SetVisible( false ) 
-	end */
-	
 	
 	Helper.List = Helper:Add( "DListView" )
 	Helper.List:Dock( FILL )
 	Helper.List:DockMargin( 5, 5, 5, 5 )
 	
 	Helper.List:AddColumn( "Function" ):SetWide( 126 )
-	Helper.List:AddColumn( "Takes" ):SetWide( 60 )
-	Helper.List:AddColumn( "Returns" ):SetWide( 60 )
+	Helper.List:AddColumn( "Arguments" ):SetWide( 60 )
+	Helper.List:AddColumn( "Return" ):SetWide( 60 )
 	Helper.List:AddColumn( "Cost" ):SetWide( 30 )
 	
 	
@@ -297,11 +262,58 @@ local function CreateHelperWindow( )
 	Helper.Search:SetEnabled( true )
 	Helper.Search:SetEnterAllowed( true )
 	
+	
+	local Func, Event, Exception 
 	Helper.Search.OnEnter = function( self )
-		SetupHelperFunctions( Helper.List, self:GetValue( ) )
+		SetupHelperFunctions( Helper.List, self:GetValue( ), Func, Event, Exception )
 	end 
 	
-	SetupHelperFunctions( Helper.List )
+	
+	Helper.Options = Helper:Add( "DPanel" ) 
+	Helper.Options.Paint = function( self, w, h ) 
+		surface.SetDrawColor( 0, 0, 0, 255 ) 
+		surface.DrawRect( 0, 0, w, h )
+	end 
+	Helper.Options:SetTall( 25 ) 
+	Helper.Options:Dock( TOP ) 
+	Helper.Options:DockMargin( 5, 5, 5, 0 ) 
+	
+	Helper.Options.ShowFunctions = Helper.Options:Add( "DCheckBoxLabel" ) 
+	Helper.Options.ShowFunctions:Dock( LEFT ) 
+	Helper.Options.ShowFunctions:DockMargin( 5, 5, 0, 5 ) 
+	Helper.Options.ShowFunctions:SetText( "Show Functions" ) 
+	Helper.Options.ShowFunctions:SizeToContents( ) 
+	Helper.Options.ShowFunctions.OnChange = function( self, bVal ) 
+		Func = bVal 
+		SetupHelperFunctions( Helper.List, Helper.Search:GetValue( ), Func, Event, Exception )
+	end 
+	Helper.Options.ShowFunctions:SetValue( true )
+	
+	Helper.Options.ShowEvents = Helper.Options:Add( "DCheckBoxLabel" ) 
+	Helper.Options.ShowEvents:Dock( LEFT ) 
+	Helper.Options.ShowEvents:DockMargin( 5, 5, 0, 5 ) 
+	Helper.Options.ShowEvents:SetText( "Show Events" ) 
+	Helper.Options.ShowEvents:SizeToContents( ) 
+	Helper.Options.ShowEvents.OnChange = function( self, bVal ) 
+		Event = bVal 
+		SetupHelperFunctions( Helper.List, Helper.Search:GetValue( ), Func, Event, Exception )
+	end 
+	Helper.Options.ShowEvents:SetValue( false )
+	
+	Helper.Options.ShowExceptions = Helper.Options:Add( "DCheckBoxLabel" ) 
+	Helper.Options.ShowExceptions:Dock( LEFT ) 
+	Helper.Options.ShowExceptions:DockMargin( 5, 5, 0, 5 ) 
+	Helper.Options.ShowExceptions:SetText( "Show Exceptions" ) 
+	Helper.Options.ShowExceptions:SizeToContents( ) 
+	Helper.Options.ShowExceptions:SetDisabled( true ) 
+	Helper.Options.ShowExceptions.OnChange = function( self, bVal ) 
+		Exception = bVal 
+		SetupHelperFunctions( Helper.List, Helper.Search:GetValue( ), Func, Event, Exception )
+	end 
+	Helper.Options.ShowExceptions:SetValue( false )
+	
+	
+	SetupHelperFunctions( Helper.List, Helper.Search:GetValue( ), Func, Event, Exception )
 end
 
 function PANEL:OpenHelper( ) 
