@@ -61,6 +61,11 @@ E_A:RegisterOperator("is", "e", "n", function(self, Value)
 	return (Entity and Entity:IsValid()) and 1 or 0
 end)
 
+E_A:RegisterOperator("not", "e", "n", function(self, Value)
+	local Entity = Value(self)
+	return (Entity and Entity:IsValid()) and 0 or 1
+end)
+
 E_A:RegisterOperator("or", "ee", "e", function(self, ValueA, ValueB)
 	local Entity = ValueA(self)
 	return (Entity and Entity:IsValid()) and Entity or ValueB(self)
@@ -537,7 +542,7 @@ E_A:RegisterFunction("heading", "e:v", "a", function(self, ValueA, ValueB)
 end)
 
 /*==============================================================================================
-	Section: Color
+	Section: Color & Material
 ==============================================================================================*/
 E_A:RegisterFunction("getColor", "e:", "c", function(self, Value)
 	local Entity = Value(self)
@@ -550,12 +555,28 @@ E_A:RegisterFunction("getColor", "e:", "c", function(self, Value)
 	return { 0, 0, 0, 0 }
 end)
 
-E_A:RegisterFunction("color", "e:c", "", function(self, ValueA, ValueB)
+E_A:RegisterFunction("setColor", "e:c", "", function(self, ValueA, ValueB)
 	local Entity, B = ValueA(self), ValueB(self)
 	
 	if Entity and Entity:IsValid() and E_A.IsOwner(self.Player, Entity) then
         Entity:SetColor( Color( B[1], B[2], B[3], B[4] ) )
         Entity:SetRenderMode(B[4] == 255 and RENDERMODE_NORMAL or RENDERMODE_TRANSALPHA)
+	end
+end)
+
+E_A:RegisterFunction("getMaterial", "e:", "s", function(self, Value)
+	local Entity = Value(self)
+	if Entity and Entity:IsValid() then
+		return Entity:GetMaterial() or ""
+	end
+	
+	return ""
+end)
+
+E_A:RegisterFunction("setMaterial", "e:s", "", function(self, ValueA, ValueB)
+	local Entity, Material = ValueA(self), ValueB(self)
+	if Entity and Entity:IsValid() and E_A.IsOwner(self.Player, Entity) then
+		Entity:SetMaterial(Material)
 	end
 end)
 

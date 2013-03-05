@@ -237,6 +237,7 @@ local function CreateHolo(self)
 	end
 	
 	Holo.Player = Owner
+	if CPPI then Holo:CPPISetOwner( Owner ) end
 	
 	Recent[Ent] = Burst + 1
 	Owners[Owner] = Count + 1

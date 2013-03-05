@@ -321,9 +321,6 @@ function Parser:Expression()
 		self:ExcludeToken("amul", "Multiplicative assignment operator (*=), can't be part of Expression")
 		self:ExcludeToken("adiv", "Divisive assignment operator (/=), can't be part of Expression")
 		
-		--self:ExcludeToken("inc", "Increment operator (++), can't be part of Expression")
-		--self:ExcludeToken("inc", "Decrement operator (--), can't be part of Expression")
-		
 		self:PrevToken()
 	end
 	
@@ -890,8 +887,11 @@ function Parser:VariableStatement(NoDec)
 	if self:AcceptToken("var") then
 		local Var = self.TokenData
 		
-		--Inc and Dec used to be here!
-		if self:CheckToken("lsb") then
+		if self:AcceptToken("inc") then
+			return self:Instruction("increment", Trace, Var)
+		elseif self:AcceptToken("dec") then
+			return self:Instruction("decrement", Trace, Var)
+		elseif self:CheckToken("lsb") then
 			self:PrevToken()
 			return self:IndexedStatement()
 			
@@ -1238,63 +1238,6 @@ function Parser:LambdaFunction()
 		self:PrevToken()
 	end
 end
-
---[[ OLD CODE - Incase I brake it again =D
-function Parser:FunctionStatement()
-	local Global = self:AcceptToken("glo")
-
-	-- FUNCTION ASSIGN
-
-		if self:AcceptToken("fun") then
-			local Trace, Name = self:TokenTrace(), self.TokenData
-
-			if self:AcceptToken("ass") then -- Function Assignment, func = func, func = function() {}
-				return self:Instruction("funcass", Trace, Global, Name, self:Expression())
-			end
-
-			self:PrevToken() -- Not a funcass!
-
-
-	-- FUNCTION DECLAIR
-
-		elseif self:AcceptToken("func") then
-			local Trace = self:TokenTrace()
-
-			if !self:AcceptToken("fun") then
-				self:Error("function name expected, after (function)")
-			end
-
-			local Name, Return = self.TokenData
-
-			if self:AcceptToken("fun") then
-				Name = self.TokenData
-
-				self:PrevToken() -- Type
-				self:PrevToken() -- Function
-				Return = self:StrictType() -- Note: We go back and grab the type.
-				self:NextToken() -- Name
-			end
-
-			local Params, Types, Sig = self:BuildParams("function parameters")
-
-			local InFunc = self.InFunc; self.InFunc = true
-			local Block, Exit = self:Block("function body")
-			self.InFunc = InFunc
-
-			if Return and Return ~= "" and (!Exit or Exit ~= "return") then
-				self:TokenError( Trace, "return statment, expected at end of function" )
-			end
-
-			local Lambda = self:Instruction("lambda", Trace, Sig, Params, Types, Block, Return)
-			return self:Instruction("funcass", Trace, Global, Name, Lambda)
-
-	end
-
-	if Global then
-		self:PrevToken()
-	end
-end
-]]
 
 function Parser:FunctionStatement()
 	local Case
