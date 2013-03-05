@@ -345,19 +345,18 @@ function PANEL:SaveFile( Path, SaveAs, Tab, bNoSound )
 		Tab = self.TabHolder:GetActiveTab( ) 
 		Path = Tab.FilePath 
 	end
-	 
-	if not ValidPanel( Tab ) then return end 
-	if not SaveAs and (type( Path ) ~= "string" or Path == "") then return end 
 	
-	if (!Path and SaveAs) or SaveAs then 
+	if SaveAs then 
 		Derma_StringRequest( "Save to New File", "", "generic",
 		function( result )
 			result = string.gsub( result, ".", invalid_filename_chars )
-			self:SaveFile( result .. ".txt" )
+			print( result ) 
+			self:SaveFile( result .. ".txt", nil, Tab, bNoSound )
 		end )
 		return
 	end
 	
+	if not ValidPanel( Tab ) then return end 
 	if !string.StartWith( Path, "lemongate/" ) then Path = "lemongate/" .. Path end 
 	
 	MakeFolders( Path )
