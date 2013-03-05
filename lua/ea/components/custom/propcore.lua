@@ -106,19 +106,17 @@ local function Spawn( Context, Model, Freeze )
 		Context:Throw("propcore", "Unable to spawn prop." )
 	end
 	
+	Prop:SetPos( G:GetPos( ) )
+	AddProp( Prop, G, P )
+	Prop:Spawn( )
+	
 	local Phys = Prop:GetPhysicsObject()
 	if Phys and Phys:IsValid( ) then
 		Phys:Wake()
-		
 		if Freeze > 0 then
 			Phys:EnableMotion( false )
 		end
 	end
-	
-	AddProp( Prop, G, P )
-	
-	Prop:SetPos( G:GetPos( ) )
-	Prop:Spawn( )
 	
 	Props[ G ][ Prop ] = Prop
 	Players[ P ] = T + 1
