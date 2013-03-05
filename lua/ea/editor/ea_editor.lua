@@ -38,7 +38,7 @@ local draw_WordBox 			= draw.WordBox
 local input_IsKeyDown 		= input.IsKeyDown
 local input_IsMouseDown 	= input.IsMouseDown
 
-local ScrollThumb = Material( "oskar/scrollthumb.png" ):CreateTextureBorder( 0, 0, 16, 32, 8, 8, 8, 8 )
+-- local ScrollThumb = Material( "oskar/scrollthumb.png" ):CreateTextureBorder( 0, 0, 16, 32, 8, 8, 8, 8 )
 
 local ParamPairs = {
 	["{"] = { "{", "}", true }, 

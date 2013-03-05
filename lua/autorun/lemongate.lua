@@ -13,6 +13,7 @@ if SERVER then
 	resource.AddFile( "materials/fugue/disk.png" )
 	resource.AddFile( "materials/fugue/disks.png" )
 	resource.AddFile( "materials/fugue/gear.png" )
+	resource.AddFile( "materials/fugue/home.png" )
 	resource.AddFile( "materials/fugue/question.png" )
 	resource.AddFile( "materials/fugue/script--minus.png" )
 	resource.AddFile( "materials/fugue/script--plus.png" )
@@ -20,10 +21,10 @@ if SERVER then
 	resource.AddFile( "materials/fugue/toggle-small-expand.png" )
 	resource.AddFile( "materials/fugue/toggle-small.png" )
 	
-	resource.AddFile( "materials/oskar/arrow-left.png" )
-	resource.AddFile( "materials/oskar/arrow-right.png" )
 	resource.AddFile( "materials/oskar/minus.png" )
 	resource.AddFile( "materials/oskar/plus.png" )
+	resource.AddFile( "materials/oskar/arrow-left.png" )
+	resource.AddFile( "materials/oskar/arrow-right.png" )
 	resource.AddFile( "materials/oskar/scrollthumb.png" )
 	
 	resource.AddFile( "material/spicol/arrow_sans_down_16.png" )
