@@ -21,14 +21,16 @@ if SERVER then
 	resource.AddFile( "materials/fugue/toggle-small-expand.png" )
 	resource.AddFile( "materials/fugue/toggle-small.png" )
 	
+	resource.AddFile( "materials/diagona-icons/152.png" )
+	
 	resource.AddFile( "materials/oskar/minus.png" )
 	resource.AddFile( "materials/oskar/plus.png" )
 	resource.AddFile( "materials/oskar/arrow-left.png" )
 	resource.AddFile( "materials/oskar/arrow-right.png" )
 	resource.AddFile( "materials/oskar/scrollthumb.png" )
 	
-	resource.AddFile( "material/spicol/arrow_sans_down_16.png" )
-	resource.AddFile( "material/spicol/arrow_sans_up_16.png" )
+	resource.AddFile( "materials/picol/arrow_sans_down_16.png" )
+	resource.AddFile( "materials/picol/arrow_sans_up_16.png" )
 	    
 	AddCSLuaFile("lemongate.lua")
 	AddCSLuaFile("ea/client.lua")
