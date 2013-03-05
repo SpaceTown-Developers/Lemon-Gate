@@ -515,13 +515,13 @@ concommand.Add("lemon_sync", E_A.SyncClient)
 function E_A.IsOwner(Player, Entity)
 	local Owner = Entity:GetOwner()
 	if Entity.Player then Owner = Entity.Player end
-	if CPPI then Owner = Entity:CPPIGetOwner() end
+	if CPPI then Owner = Entity:CPPIGetOwner() or Owner end
 	
 	if !Owner then return false end
 	return Player == Owner
 end
 
-function E_A.IsFriend(Owner, Player)
+function E_A.IsFreind(Owner, Player)
 	if CPPI then
 		local Friends = Owner:CPPIGetFriends()
 		if type(Friends) == "table" then
@@ -534,83 +534,7 @@ function E_A.IsFriend(Owner, Player)
 	return Owner == Player
 end
 
-/*==============================================================================================
-	Section: Script Context
-==============================================================================================*/
---[[ DEPRICATED FOR NEW CODE
-local Context = E_A.Context
-Context.__index = Context
-
-function Context:Throw(Exeption, Message)
-	self.Exception = {
-		Type = Exeption, 
-		Msg = Message,
-		Trace = self.StackTrace
-	}; error("Exception", 0)
-end
-
-function Context:Error(Message, Info, ...)
-	if Info then Message = FormatStr(Message, Info, ...) end
-	self:Throw("script", Message)
-end
-
-function Context:PushPerf(Perf)
-	local Perf = self.Perf - Perf; self.Perf = Perf
-	if Perf < 0 then self:Throw("script", "Execution Limit Reached") end
-end
-
-/*==============================================================================================
-	Section: Instruction Operators
-==============================================================================================*/
-local Operator = E_A.Operator
-Operator.__index = Operator
-
-local setmetatable = setmetatable
-local unpack = unpack
-local pcall = pcall
-
-local function CallOp(Op, self, Arg, ...)
-	self:PushPerf(Op[0] or EA_COST_NORMAL)
-	
-	-- Update Stack Trace
-	local StackTrace = self.StackTrace
-	StackTrace[#StackTrace + 1] = Op[4]
-	
-	-- Parameters
-	local Perams = Op[3]
-	if Arg then Perams = {Arg, ...} end
-	
-	local Res, Type
-	if !Perams or #Perams == 0 then
-		Res, Type = Op[1](self)
-	elseif #Perams < 20 then -- Unpack is slow so lets avoid it!
-		Res, Type = Op[1](self, Perams[1], Perams[2], Perams[3], Perams[4], Perams[5], Perams[6], Perams[7], Perams[8], Perams[9], Perams[10], Perams[11], Perams[12], Perams[13], Perams[14], Perams[15], Perams[16], Perams[17], Perams[18], Perams[19], Perams[20])
-	else
-		Res, Type = Op[1](self, unpack(Perams)) -- More then 20 parameters!
-	end
-	
-	StackTrace[#StackTrace] = nil
-	return Res, (Type or Op[2])
-end 
-
-local function SafeCall(Op, self, ...)
-	local Trace = self.StackTrace
-	self.StackTrace = {Trace[#Trace]}
-	
-	local Ok, Result, Type = pcall(CallOp, Op, self, ...)
-	
-	self.StackTrace = Trace
-	return Ok, Result, Type
-end
-
-E_A.CallOp = CallOp
-E_A.SafeCall = SafeCall
-Operator.__call = CallOp
-Operator.SafeCall = SafeCall
-]] -- New Code Below:
-
 local setmetatable, unpack, pcall  = setmetatable, unpack, pcall
-
 /*==============================================================================================
 	Section: Script Context
 ==============================================================================================*/

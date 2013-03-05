@@ -6,6 +6,12 @@
 local E_A = LemonGate
 local API = E_A.API
 
+local function RemoveProp(Entity)
+	if Entity and Entity:IsValid() then
+		pcall(Entity.Remove, Entity)
+	end
+end
+ 
 MsgN("EA: Prop Core Avalible")
 
 API.NewComponent("Prop Control", true)
@@ -20,18 +26,16 @@ local CV_Rate = CreateConVar("lemon_prop_rate", 5, {FCVAR_ARCHIVE, FCVAR_NOTIFY}
 /*==============================================================================================
 	Section: Prop Tables
 ==============================================================================================*/
-local Props, Time, Players = { }, { }, { }
+local Props, PlayerCount, PlayerRate = { }, { }, { }
 
 timer.Create("lemon_propcore", 1, 0, function( )
-	for K, V in pairs( Players ) do
-		Players[K] = 0
-	end
+	for K, V in pairs( PlayerRate ) do PlayerRate[K] = 0 end
 end)
 
 local function RemoveAll( Entity )
 	local Ents = Props[Entity]
 	if Ents then
-		for K, V in pairs( Ents ) do V:Remove( ) end
+		for K, V in pairs( Ents ) do RemoveProp( V ) end
 		Props[Entity] = nil
 	end
 end
@@ -64,7 +68,7 @@ local function Check_Enabled( Context )
 end
 
 local function AddProp( Prop, G, P )
-	P.Player = P
+	Prop.Player = P
 	
 	P:AddCleanup( "props", Prop )
 	undo.Create("lemon_spawned_prop")
@@ -72,13 +76,15 @@ local function AddProp( Prop, G, P )
 		undo.SetPlayer( P )
 	undo.Finish( ) -- Add to undo que.
 	
-	Prop:CallOnRemove( "lemon_propcore_remove", function( Prop )
-		if G and G:IsValid( ) then
-			Props[ G ][ Prop ] = nil	
+	Prop:CallOnRemove( "lemon_propcore_remove", function( E )
+		if G and G:IsValid( ) and E then
+			if Props[G] then Props[G][E] = nil end
 		end
 		
 		if P and P:IsValid( ) then
-			Players[P] = (Players[P] or 1) - 1
+			local Count = PlayerCount[P] or 1
+			if Count < 1 then Count = 1 end
+			PlayerCount[P] = Count - 1
 		end
 	end) -- Register its removal.
 	
@@ -91,38 +97,39 @@ local function Spawn( Context, Model, Freeze )
 	Check_Enabled( Context )
 	
 	local G, P = Context.Entity, Context.Player
-	local T, C = Players[ G ] or 0, Time[ G ] or 0
+	local PRate, PCount = PlayerRate[P] or 0, PlayerCount[P] or 0
 	
-	if T > CV_Max:GetInt( ) then
+	if PCount >= CV_Max:GetInt( ) then
 		Context:Throw("propcore", "Max total props reached (" .. CV_Max:GetInt( ) .. ")." )
-	elseif C > CV_Rate:GetInt( ) then
+	elseif PRate >= CV_Rate:GetInt( ) then
 		Context:Throw("propcore", "Max prop spawn rate reached (" .. CV_Rate:GetInt( ) .. ")." )
 	elseif !util.IsValidModel( Model ) or !util.IsValidProp( Model ) then
 		Context:Throw("propcore", "Invalid model for prop spawn." )
 	end
 	
-	local Prop = ents.Create("prop_physics")
+	local Prop = MakeProp( P, G:GetPos(), G:GetAngles(), Model, {}, {} )
 	if !Prop or !Prop:IsValid( ) then
 		Context:Throw("propcore", "Unable to spawn prop." )
 	end
 	
-	Prop:SetPos( G:GetPos( ) )
 	AddProp( Prop, G, P )
-	Prop:Spawn( )
+	Prop:Activate()
 	
 	local Phys = Prop:GetPhysicsObject()
 	if Phys and Phys:IsValid( ) then
+		if Freeze > 0 then Phys:EnableMotion( false ) end
 		Phys:Wake()
-		if Freeze > 0 then
-			Phys:EnableMotion( false )
-		end
 	end
 	
 	Props[ G ][ Prop ] = Prop
-	Players[ P ] = T + 1
-	Time[ P ] = C + 1
+	PlayerRate[ P ] = PRate + 1
+	PlayerCount[ P ] = PCount + 1
 	
 	return Prop
+end
+
+local function PropValid( self, Entity )
+	return Entity and Entity:IsValid( ) and E_A.IsOwner( self.Player, Entity)
 end
 
 /*==============================================================================================
@@ -139,8 +146,8 @@ E_A:RegisterFunction("propcoreInfo","","t",
 		Table:Set("Enabled", "n", CV_Enabled:GetInt( ))
 		Table:Set("MaxProps", "n", CV_Max:GetInt( ))
 		Table:Set("MaxRate", "n", CV_Rate:GetInt( ))
-		Table:Set("CurProps", "n", Players[ G ] or 0)
-		Table:Set("CurRate", "n", Time[ G ] or 0)
+		Table:Set("CurProps", "n", PlayerCount[ self.Player ] or 0)
+		Table:Set("CurRate", "n", PlayerRate[ self.Player ] or 0)
 		return Table
 	end)
 
@@ -167,9 +174,8 @@ E_A:RegisterFunction("remove","e:","",
 		local Ent = A( self )
 		
 		Check_Enabled( self )
-		
-		if Ent and Ent:IsValid( ) and E_A.IsOwner( self.Player, Ent) then
-			Ent:Remove( )
+		if PropValid( self, Ent ) then
+			RemoveProp( Ent )
 		end
 	end)
 	
@@ -181,7 +187,7 @@ E_A:RegisterFunction("setPos","e:v","",
 		Check_Enabled( self )
 		
 		local Ent, Pos = A( self ), B( self )
-		if Ent and Ent:IsValid( ) and E_A.IsOwner( self.Player, Ent) then
+		if PropValid( self, Ent ) then
 			Ent:SetPos( Vector( Pos[1], Pos[2], Pos[3] ) )
 		end
 	end)
@@ -191,37 +197,87 @@ E_A:RegisterFunction("setAng","e:a","",
 		Check_Enabled( self )
 		
 		local Ent, Ang = A( self ), B( self )
-		if Ent and Ent:IsValid( ) and E_A.IsOwner( self.Player, Ent) then
+		if PropValid( self, Ent ) then
 			Ent:SetAngles( Angle( Ang[1], Ang[2], Ang[3] ) )
 		end
 	end)
 	
 /*==============================================================================================
-	Section: Parent and Freeze
+	Section: Parent
 ==============================================================================================*/
 local function Parent( self, A, B )
 	Check_Enabled( self )
 	
 	local Ent, Par = A( self ), B( self )
-	if Ent and Ent:IsValid( ) and !Ent:IsVehicle() and E_A.IsOwner( self.Player, Ent) then
-		if Par and Par:IsValid( ) and !Par:IsVehicle() and E_A.IsOwner( self.Player, Par) then
+	if PropValid( self, Ent ) and PropValid( self, Par )  then
+		if !Ent:IsVehicle() and !Par:IsVehicle() then
 			Ent:SetParent( Par )
 		end
 	end
 end
 	
-E_A:RegisterFunction("setParent","e:e","", Parent)
-E_A:RegisterFunction("setParent","e:h","", Parent)
+E_A:RegisterFunction("parent","e:e","", Parent)
+E_A:RegisterFunction("parent","e:h","", Parent)
+
+E_A:RegisterFunction("unparent","e:","",
+	function(self, Value)
+		Check_Enabled( self )
+		
+		local Ent, Freeze = A( self ), B( self )
+		if PropValid( self, Ent ) then
+			Ent:SetParent( nil )
+		end
+	end)
 	
-E_A:RegisterFunction("setFrozen","e:n","",
+/*==============================================================================================
+	Section: Freeze
+==============================================================================================*/
+E_A:RegisterFunction("freeze","e:n","",
 	function( self, A, B )
 		Check_Enabled( self )
 		
 		local Ent, Freeze = A( self ), B( self )
-		if Ent and Ent:IsValid( ) and E_A.IsOwner( self.Player, Ent) then
+		if PropValid( self, Ent ) then
 			local Phys = Ent:GetPhysicsObject()
-			if Phys and Phys:IsValid( ) then
-				Phys:EnableMotion( Freeze > 0 )
+			Phys:EnableMotion( Freeze == 0 )
+			Phys:Wake( )
+			
+			if !Phys:IsMoveable() then
+				Phys:EnableMotion( true  )
+				Phys:EnableMotion( false)
+			end
+		end
+	end)
+
+/*==============================================================================================
+	Section: Solidnes
+==============================================================================================*/
+E_A:RegisterFunction("setNotSolid","e:n","",
+	function( self, A, B )
+		Check_Enabled( self )
+		
+		local Ent, Solid = A( self ), B( self )
+		if PropValid( self, Ent ) then
+			Ent:SetNotSolid( Solid > 0 )
+		end
+	end)
+	
+/*==============================================================================================
+	Section: Gravity
+==============================================================================================*/
+E_A:RegisterFunction("enableGravity","e:n","",
+	function( self, A, B )
+		Check_Enabled( self )
+		
+		local Ent, Gravity = A( self ), B( self )
+		if PropValid( self, Ent ) then
+			local Phys = Ent:GetPhysicsObject()
+			Phys:EnableGravity( Gravity > 0 )
+			Phys:Wake( )
+			
+			if !Phys:IsMoveable() then
+				Phys:EnableMotion( true  )
+				Phys:EnableMotion( false)
 			end
 		end
 	end)

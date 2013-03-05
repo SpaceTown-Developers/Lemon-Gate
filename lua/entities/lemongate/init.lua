@@ -32,7 +32,7 @@ local pcall = pcall -- Speed
 local GoodColor = Color(255, 255, 255, 255)
 local BadColor = Color(255, 0, 0, 0)
 
-local MaxPerf = CreateConVar("lemongate_perf", "50000")
+local MaxPerf = CreateConVar("lemongate_perf", "100000")
 
 -- Other Files:
 include("shared.lua")
@@ -55,7 +55,7 @@ function Lemon:Initialize( )
 	self.GateName = "LemonGate"
 	self.Errored = nil
 	
-	self:SetOverlayText( "LemonGate\nExpression Advanced\nOffline: 0%" )
+	self:SetOverlayText( "LemonGate\nExpression Advanced\nOffline: 0 Ops, 0%" )
 	
 	API.AddGate( self ) -- Let the api know this gate exists!
 end
@@ -68,8 +68,8 @@ function Lemon:Think( )
 	if !self.Errored and self.Context then
 		if Time > self.PerfTime then
 			self.PerfTime = Time + 1
-			local _A, _B, Percent = self:CaculatePerf( )
-			self:UpdateOverlay( "Online: %i%%", Percent )
+			local Cur, _B, Percent = self:CaculatePerf( )
+			self:UpdateOverlay( "Online: %i Ops, %i%%", Cur, Percent )
 		end
 		
 		self:CallEvent( "think" )

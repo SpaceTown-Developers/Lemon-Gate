@@ -66,15 +66,14 @@ if SERVER then
 	/****************************************************************************************************/
 	
 	function Lemon:CanInteract( Entity )
-		local Player, Owner = self:GetOwner(), Entity.Player
-		return Player == Owner -- Owner and E_A.IsFreind(Player, Owner) and Owner:GetInfoNum("lemongate_friendwrite", 0)
+		return E_A.IsFreind(Entity.Player, self:GetOwner())
 	end
 	
 	function Lemon:Reload( Trace )
 		local Entity = Trace.Entity
 		if self:IsLemonGate(Entity) then
 			if self:CanInteract(Entity) then
-				Entity:Restart()
+				Entity:Restart( )
 				return true -- Reload the Script!
 			end
 		end
@@ -87,7 +86,7 @@ if SERVER then
 		
 		if self:IsLemonGate(Entity) then
 			if self:CanInteract(Entity) then
-				E_A.Downloader.Send_Script( Player, Entity:GetScript() )
+				E_A.Downloader.Send_Script( Player, Entity:GetScript( ) )
 				return true -- Send the player the Script!
 			end
 			
