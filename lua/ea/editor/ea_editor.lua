@@ -38,6 +38,8 @@ local draw_WordBox 			= draw.WordBox
 local input_IsKeyDown 		= input.IsKeyDown
 local input_IsMouseDown 	= input.IsMouseDown
 
+local BookmarkMaterial 		= Material( "diagona-icons/152.png" )
+
 -- local ScrollThumb = Material( "oskar/scrollthumb.png" ):CreateTextureBorder( 0, 0, 16, 32, 8, 8, 8, 8 )
 
 local ParamPairs = {
@@ -64,6 +66,8 @@ function PANEL:Init( )
 	self.FoldButtons = { }
 	self.FoldData = { } 
 	self.FoldedRows = { } 
+	self.Bookmarks = { } 
+	self.ActiveBookmarks = { } 
 	self.Insert = false 
 	
 	self.Blink = RealTime( )
@@ -450,7 +454,7 @@ function PANEL:wordRight( caret )
 	return caret
 end
 
-function PANEL:wordStart( caret, getword )
+function PANEL:wordStart( caret )
 	local line = self.Rows[caret.x] 
 	
 	for startpos, endpos in string_gmatch( line, "()[a-zA-Z0-9_]+()" ) do 
@@ -462,7 +466,7 @@ function PANEL:wordStart( caret, getword )
 	return Vector2( caret.x, 1 )
 end
 
-function PANEL:wordEnd( caret, getword )
+function PANEL:wordEnd( caret )
 	local line = self.Rows[caret.x] 
 	
 	for startpos, endpos in string_gmatch( line, "()[a-zA-Z0-9_]+()" ) do 
@@ -471,7 +475,7 @@ function PANEL:wordEnd( caret, getword )
 		end 
 	end 
 	
-	return Vector2( caret.x, caret.y - 1 )
+	return Vector2( caret.x, caret.y )
 end
 
 /*---------------------------------------------------------------------------
@@ -615,6 +619,24 @@ function PANEL:_OnKeyCodeTyped( code )
 			self:ScrollCaret( )
 		elseif code == KEY_SPACE then 
 			self:GetParent( ):GetParent( ):DoValidate( true ) 
+		elseif code == KEY_B then // TODO: Fix F-Keys and move bookmarks to F2 
+			local Start, End = self:MakeSelection( self:Selection( ) ) 
+			if shift then 
+				local pos = Start.x 
+				while pos <= #self.Rows do 
+					if pos >= #self.Rows then pos = 0 end 
+					pos = pos + 1 
+					if pos == Start.x then break end 
+					if self.ActiveBookmarks[pos] then 
+						self.Start = self.ActiveBookmarks[pos][1] 
+						self.Caret = self.ActiveBookmarks[pos][2] 
+						self:ScrollCaret( ) 
+						break 
+					end 
+				end 
+			else 
+				self.Bookmarks[Start.x]:DoClick( ) 
+			end 
 		end
 	else
 		if code == KEY_ENTER then
@@ -857,11 +879,11 @@ function PANEL:OnMousePressed( code )
 	if code == MOUSE_LEFT then 
 		local cursor = self:CursorToCaret( ) 
 		if self.LastClick and CurTime( ) - self.LastClick < 0.6 and ( self.Caret == cursor or self.LastCursor == cursor ) then 
-			if self.temp then // TODO Triple click!
+			if self.temp then 
 				self.temp = nil 
 				
 				self.Start = Vector2( cursor.x, 1 )
-				self.Caret = Vector2( cursor.x, #self.Rows[cursor.x] + 1 )
+				self.Caret = Vector2( cursor.x, #self.Rows[cursor.x] + 1 ) 
 			else 
 				self.temp = true 
 				
@@ -1094,6 +1116,12 @@ function PANEL:DrawText( w, h )
 		end 
 	end
 	
+	for i = 1, #self.Rows do
+		if self.Bookmarks[i] and ValidPanel( self.Bookmarks[i] ) then 
+			self.Bookmarks[i]:SetVisible( false )
+		end 
+	end
+	
 	local line = self.Scroll.x - 1 
 	line = line + GetFoldingOffset( self, line + self.Scroll.x - 1 ) 
 	
@@ -1231,6 +1259,35 @@ function PANEL:PaintRow( Row, LinePos )
 			self.FoldButtons[Row]:SetVisible( true )
 			self.FoldButtons[Row]:SetPos( self.BookmarkWidth + self.LineNumberWidth, ( LinePos ) * self.FontHeight ) 
 		end 
+	end 
+	
+	if Row <= #self.Rows then 
+		if not self.Bookmarks[Row] or not ValidPanel( self.Bookmarks[Row] ) then 
+			local btn = self:Add( "EA_ImageButton" ) 
+			btn:SetIconCentered( true )
+			btn:SetIconFading( false ) 
+			btn.bActive = false 
+			btn:SetMaterial( BookmarkMaterial ) 
+			
+			local paint = btn.Paint 
+			btn.Paint = function( _, w, h ) 
+				if not btn.bActive then return end 
+				paint( btn, w, h )
+			end 
+			
+			btn.DoClick = function( )
+				btn.bActive = not btn.bActive 
+				if btn.bActive then 
+					self.ActiveBookmarks[Row] = { self:MakeSelection( self:Selection( ) ) } 
+				else 
+					self.ActiveBookmarks[Row] = nil 
+				end 
+			end
+			
+			self.Bookmarks[Row] = btn 
+		end 
+		self.Bookmarks[Row]:SetVisible( true )
+		self.Bookmarks[Row]:SetPos( 2, ( LinePos ) * self.FontHeight ) 
 	end 
 	
 	draw_SimpleText( tostring( Row ), "Fixedsys", self.BookmarkWidth + self.LineNumberWidth - 3, self.FontHeight * ( LinePos ), C_white, TEXT_ALIGN_RIGHT ) 
