@@ -123,8 +123,8 @@ local keywords = {
 	["foreach"]  = { true, true }, 
 	["try"]      = { true, true }, 
 	["catch"]    = { true, true }, 
-	-- ["switch"] 	 = { true, true }, 
-	-- ["case"]     = { true, true }, 
+	["switch"] 	 = { true, true }, 
+	["case"]     = { true, true }, 
 	-- ["default"]  = { true, true }, 
 
 	-- keywords that cannot be followed by a "(":

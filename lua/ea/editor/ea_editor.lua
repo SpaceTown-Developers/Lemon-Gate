@@ -436,7 +436,7 @@ function PANEL:wordLeft( caret )
 		caret = Vector2( caret.x-1, #self.Rows[caret.x-1] )
 		row = self.Rows[caret.x]
 	end
-	local pos = row:sub( 1, caret.y - 1 ):match( "[^%w@]()[%w@]+[^%w@]*$" )
+	local pos = row:sub( 1, caret.y - 1 ):match( "[^%w]+()[%w ]+[^%w ]*$" )
 	caret.y = pos or 1
 	return caret
 end
@@ -449,7 +449,7 @@ function PANEL:wordRight( caret )
 		row = self.Rows[caret.x]
 		if row:sub( 1, 1 ) ~= " " then return caret end
 	end
-	local pos = row:match( "[^%w@]()[%w@]", caret.y )
+	local pos = row:match( "[^%w ]+()[%w ]", caret.y )
 	caret.y = pos or ( #row + 1 )
 	return caret
 end

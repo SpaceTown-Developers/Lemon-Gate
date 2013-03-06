@@ -3,6 +3,13 @@ local Data = { }
 LemonGate.HelperFunctionData = Data 
 
 
+// Events 
+Data["playerChat<es s>"] = ""
+Data["playerJoin<e>"] = ""
+Data["tick<>"] = ""
+
+
+// Functions
 Data["print(...)"] = "Prints all arguments to chat." 
 Data["exit()"] = "Exits current execution." 
 

@@ -12,6 +12,7 @@ local string_match = string.match
 local string_find = string.find 
 local string_reverse = string.reverse 
 local string_sub = string.sub 
+local string_lower = string.lower 
 
 local GetLongType = LemonGate.GetLongType 
 
@@ -171,11 +172,11 @@ local function SetupHelperFunctions( List, filter, bFunctions, bEvents, bExcepti
 			local argTypes = string_match( name, "%(([^%)]*)%)" ) 
 			
 			if string_find( name, "***", nil, true ) or string.find( name, "!", nil, true ) then continue end 
-			if !string_match( funcName, filter ) then continue end 
+			if !string_match( string_lower(funcName), string_lower(filter) ) then continue end 
 			
 			List:AddLine( funcName, argTypes, data[2], data[3] ).OnSelect = function( self ) 
 				local _, funcData = ParseFunction( name, data[2], data[3] ) 
-				List:GetParent( ).Description:SetText( FunctionData[funcName .. "(" .. argTypes .. (funcData.ret and " " .. data[2] .. ")" or ")")] or ""  ) 
+				List:GetParent( ).Description:SetText( FunctionData[funcName .. "(" .. argTypes .. (funcData.ret and " " .. data[2] .. ")" or ")")] or "" )
 				List:GetParent( ).Syntax:SetText( (funcData.ret and funcData.ret .. " = " or "") .. (funcData.comp and funcData.comp .. ":" or "") .. funcName .. "( " .. funcData.args .. ")" )
 			end 
 			
@@ -192,7 +193,7 @@ local function SetupHelperFunctions( List, filter, bFunctions, bEvents, bExcepti
 			if !string_match( name, filter ) then continue end 
 			
 			List:AddLine( name, data[1], data[2], data[3] ).OnSelect = function( self ) 
-				List:GetParent( ).Description:SetText( "" ) 
+				List:GetParent( ).Description:SetText( FunctionData[name .. "<" .. data[1] .. (#data[2]>0 and " " .. data[2] .. ">" or ">")] or "" ) 
 				List:GetParent( ).Syntax:SetText( (retType ~= "" and retType .. " = " or "") .. name .. "<" .. argTypes .. ">" )
 			end 
 		end 
@@ -201,13 +202,10 @@ local function SetupHelperFunctions( List, filter, bFunctions, bEvents, bExcepti
 	--[[ TODO: Add or not to add? Thats the question. 
 	if bExceptions then 
 		for name, data in pairs( LemonGate.Exceptions ) do 
-			local argTypes = data[1] 
-			local retType = data[2] 
-			print( name )
-			print( data )
+			List:AddLine( name )
 		end 
 	end 
-	--]]
+	-- ]]
 	
 	List:SortByColumn( 1 )
 end
@@ -225,6 +223,9 @@ local function CreateHelperWindow( )
 	Helper:SetSize( 400, 600 ) 
 	Helper:Center( )
 	Helper:MakePopup( ) 
+	Helper.Close = function(self) 
+		self:SetVisible( false )
+	end 
 	
 	
 	Helper.List = Helper:Add( "DListView" )
