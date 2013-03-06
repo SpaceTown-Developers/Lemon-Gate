@@ -740,6 +740,32 @@ function Compiler:Instr_TRIGGER(Name)
 	return self:Operator(Operator, Return, Perf, Memory)
 end
 
+function Compiler:Instr_CONNECT(Name)
+	-- Purpose: ->Variable
+	
+	local Cell, Type = self:GetVar(Name)
+	
+	if !Cell then
+		self:Error("Variable %s does not exist", Name) 
+		
+	elseif self.Inputs[Cell] then
+		local Operator, Return, Perf = self:GetOperator("iconnect")
+		
+		self:PushPerf(Perf)
+		
+		return self:Operator(Operator, Return, Perf, Name)
+		
+	elseif self.Outputs[Cell] then
+		local Operator, Return, Perf = self:GetOperator("oconnect")
+		
+		self:PushPerf(Perf)
+		
+		return self:Operator(Operator, Return, Perf, Name)
+	else
+		self:Error("Connect operator (->) can only accept input and output variables")
+	end
+end
+
 /*==============================================================================================
 	Section: Value Casting
 	Purpose: Casting converts one type to another.
@@ -885,6 +911,50 @@ function Compiler:Instr_CONTINUE(Depth)
 	self:PushPerf(Perf)
 	
 	return self:Operator(Operator, Return, Perf, Depth or 0)
+end
+
+/*==============================================================================================
+	Section: Switch Case
+	Purpose: Techbot said I be admin!
+	Creditors: Rusketh
+==============================================================================================*/
+function Compiler:Instr_SWITCH(Expr, Cases, Statments, Index)
+	local Expr, tExpr = self:CompileInst(Expr)
+	
+	if tExpr ~= "n" and tExpr ~= "s" then
+		self:Error("switch statments do not support %s'", GetLongType(tExpr) )
+	end
+	
+	self:PushScope()
+	
+		for I = 1, Index do
+			if Cases[I] then
+				local Op, tOp = self:CompileInst(Cases[I])
+				
+				if tOp ~= tExpr then
+					self:Error("case must be %s instead of %s, in switch statment", GetLongType(tExpr), GetLongType(tOp))
+				end
+				
+				local Operator, Return, Perf = self:GetOperator("eq", tExpr, tExpr)
+				
+				self:PushPerf(Perf)
+				
+				Cases[I] = self:Operator(Operator, Return, Perf, Op) -- TODO: Set Op[3][2] = Expr
+			end
+			
+			if Statments[I] then
+				Statments[I] = self:CompileInst(Statments[I])
+			end
+			
+		end
+	
+	self:PopScope()
+	
+	local Operator, Return, Perf = self:GetOperator("switch")
+			
+	self:PushPerf(Perf)
+			
+	return self:Operator(Operator, Return, Perf, Expr, Cases, Statments, Index)
 end
 
 /*==============================================================================================

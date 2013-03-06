@@ -60,3 +60,10 @@ E_A:RegisterFunction("perfPer", "", "n", function(self)
 	return MathCeil((Perf / MaxPerf) * 100)
 end)
 
+/*==============================================================================================
+	Section: Things that have no place to go!
+==============================================================================================*/
+
+E_A:RegisterFunction("map", "", "s", function(self)
+	return game.GetMap() or ""
+end)

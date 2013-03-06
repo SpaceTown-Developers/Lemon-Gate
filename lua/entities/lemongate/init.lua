@@ -266,7 +266,7 @@ function Lemon:Execute()
 		
 		local Ok, Exit = SafeCall( Executable, Context )
 	
-		if !Ok and Exit ~= "exit" then
+		if !Ok and Exit ~= "Exit" then
 			return self:Exit( Exit )
 		end	-- Inproper exit!
 			

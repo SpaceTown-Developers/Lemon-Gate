@@ -506,6 +506,15 @@ function Parser:GetValue()
 		
 		return self:Instruction("trigger", self:TokenTrace(), self.TokenData)
 	
+	elseif self:AcceptToken("wc") then -- connect ->Input
+		if !self:HasTokens() then 
+			self:Error("Connect operator (->) must not be succeeded by whitespace")
+		elseif !self:AcceptToken("var") then
+			self:Error("variable expected, after Connect operator (->)")
+		end
+		
+		return self:Instruction("connect", self:TokenTrace(), self.TokenData)
+		
 	elseif self:CheckToken("num") then
 		return self:GetNumber()
 		
@@ -745,13 +754,9 @@ function Parser:GetStatements(ExitToken)
 	
 	while true do
 		self:AcceptToken("sep")
-		-- if self:AcceptToken("sep") then
-			-- self:Error("Separator (;) must not appear twice.")
-		-- end -- Removed becuase it makes more sense!
-	
+		
 		Index = Index + 1
 		Statements[Index] = self:Statement() 
-		
 		
 		if ExitToken and self:AcceptToken(ExitToken) then
 			self:PrevToken()
@@ -780,6 +785,9 @@ function Parser:Statement()
 		
 	elseif self:CheckToken("each") then
 		return self:ForEachLoop()
+		
+	elseif self:CheckToken("swh") then
+		return self:SwitchCase()
 		
 	elseif self:CheckToken("brk") or self:CheckToken("cnt") or self:CheckToken("ret") then
 		return self:ExitStatement()
@@ -1406,6 +1414,7 @@ function Parser:WhileLoop()
 		end
 		
 		local Cond = self:Expression()
+		
 		if !self:AcceptToken("rpa") then
 			self:Error("Right parenthesis ()) missing, after loop condition")
 		end
@@ -1514,6 +1523,101 @@ function Parser:ExitStatement()
 		
 		return self:Instruction("return", self:TokenTrace(), self:Expression())
 	end
+end
+
+/*==============================================================================================
+	Section: Switch Case
+	Purpose: Cus TechBot will give me Admin!
+	Creditors: Rusketh
+==============================================================================================*/
+function Parser:SwitchCase()
+	if self:AcceptToken("swh") then
+		local Trace = self:TokenTrace()
+		
+		if !self:AcceptToken("lpa") then
+			self:Error("Left parenthesis (() missing, after 'switch'")
+		end
+		
+		local Expr = self:Expression()
+		
+		if !self:AcceptToken("rpa") then
+			self:Error("Right parenthesis ()) missing, after loop condition")
+		end
+		
+		if !self:AcceptToken("lcb") then
+			self:Error("Left curly bracket ({) expected after to start switch block")
+		end
+		
+		local Cases, Statments, Index, Default = { }, {}, 0
+		
+		while true do
+			if self:CheckToken("rcb") or !self:HasTokens() then
+				break -- No code left!
+			elseif self:AcceptToken("cse") then
+				if self:AcceptToken("dft") then
+					if !self:AcceptToken("col") then
+						self:Error("colon (:) expected after default in switch block")
+					elseif Default then
+						self:Error("default case must not appear twice")
+					else
+						Index, Default = Index + 1, true
+						Statments[Index] = self:CaseBlock( )
+					end
+				else
+					Index = Index + 1
+					
+					if self:CheckToken("num") then
+						Cases[Index] = self:GetNumber()
+					elseif self:AcceptToken("str") then -- Create a string from a string token.
+						Cases[Index] = self:Instruction("string", self:TokenTrace(), self.TokenData)
+					else
+						self:Error("number or string expected, after case")
+					end
+					
+					if !self:AcceptToken("col") then
+						self:Error("colon (:) expected after case in switch block")
+					else
+						Statments[Index] = self:CaseBlock( )
+					end
+				end
+			else
+				self:Error("case expected inside case block")
+			end
+		end
+		
+		if !self:AcceptToken("rcb") then
+			self:Error("Right curly bracket (}) missing, to close %s", Name or "condition")
+		end
+		
+		return self:Instruction("switch", Trace, Expr, Cases, Statments, Index) 
+	end
+end
+
+function Parser:CaseBlock( )
+	self.LoopDepth = self.LoopDepth + 1
+	local Trace, Statements, Index = self:TokenTrace(), { }, 0
+	
+	if !self:HasTokens() or self:CheckToken("rcb") or self:CheckToken("cse") then
+		return nil
+	end
+	
+	while true do
+		self:AcceptToken("sep")
+		
+		Index = Index + 1
+		Statements[Index] = self:Statement()
+		
+		if !self:HasTokens() or self:CheckToken("rcb") or self:CheckToken("cse") then
+			break
+		elseif !self:AcceptToken("sep") and self.NextLine == self.TokenLine then
+			self:Error("Statements must be separated by semicolon (;) or newline")
+		elseif self.ExitStatus then
+			self:Error("Unreachable code after %s", self.ExitStatus)
+		end
+	end
+	
+	self.LoopDepth = self.LoopDepth - 1
+	return self:Instruction("sequence", Trace, Statements) 
 end
 
 /*==============================================================================================

@@ -67,6 +67,7 @@ local Tokens = {
 		{ "$", "dlt", "delta" },
 		{ "#", "len", "length" },
 		{ "~", "trg", "trigger" },
+		{ "->", "wc", "connect" },
 
 	-- BRACKETS:
 	
@@ -351,8 +352,12 @@ function Toker:WordToken( )
 			return self:NewToken( "each", "foreach")
 		elseif RawData == "function" then
 			return self:NewToken( "func", "function")
-		-- elseif RawData == "switch" then
-			-- return self:NewToken( "swh", "switch")
+		elseif RawData == "switch" then
+			return self:NewToken( "swh", "switch")
+		elseif RawData == "case" then
+			return self:NewToken( "cse", "case")
+		elseif RawData == "default" then
+			return self:NewToken( "dft", "default")
 		elseif RawData == "event" then
 			return self:NewToken( "evt", "event")
 		elseif RawData == "try" then

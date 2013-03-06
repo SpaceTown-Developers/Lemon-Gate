@@ -75,7 +75,7 @@ function E_A.TriggerOperator(self, Cell)
 end
 
 /*==============================================================================================
-	Section: Conditonal
+	Section: Conditonal and misc operators
 	Creditors: Rusketh
 ==============================================================================================*/
 E_A:SetCost(EA_COST_NORMAL)
@@ -85,6 +85,22 @@ E_A:RegisterOperator("cnd", "", "", function(self, ValueA, ValueB, ValueC)
 	return (A == 1) and B or C
 end)
 
+E_A:RegisterOperator("iconnect", "", "n", function(self, Name)
+	return IsValid(self.Entity.Inputs[Name].Src) and 1 or 0
+end)
+
+E_A:RegisterOperator("oconnect", "", "n", function(self, Name)
+	local Ports = self.entity.Outputs[Name].Connected
+	local Ret = #Ports
+	
+	for I = 1,Ret do
+		if !IsValid(Ports[I].Entity) then
+			Ret = Ret - 1
+		end
+	end
+	
+	return Ret
+end)
 
 /*==============================================================================================
 	Section: Exit Statments.
@@ -173,7 +189,7 @@ E_A:RegisterOperator("for", "", "", function(self, Assign, Condition, Step, Bloc
 				break
 			elseif Exit == "Continue" then
 				if Depth > 0 then self.ExitDeph = Depth - 1; error("Continue", 0) end
-				break
+				-- break
 			else
 				error(Exit, 0)
 			end
@@ -198,7 +214,7 @@ E_A:RegisterOperator("while", "", "", function(self, Condition, Block)
 				break
 			elseif Exit == "Continue" then
 				if Depth > 0 then self.ExitDeph = Depth - 1; error("Continue", 0) end
-				break
+				-- break
 			else
 				error(Exit, 0)
 			end
@@ -234,6 +250,52 @@ E_A:RegisterOperator("catch", "", "", function(self, Exceptions, Memory, Block, 
 	end
 	
 	return false
+end)
+
+/*==============================================================================================
+	Section: Switch Case
+	Purpose: Wooot i'm Admin.
+	Creditors: Rusketh
+==============================================================================================*/
+E_A:RegisterOperator("switch", "", "", function(self, Expr, Cases, Statments, Index)
+	local Start, Default
+	
+	local Expr, tExpr = Expr( self )
+	local Fake = function() return Expr, tExpr end
+	
+	for I = 1, Index do
+		local Case = Cases[I]
+		if !Case then
+			Default = I
+		elseif Case( self, Case[3][1], Fake ) == 1 then
+			Start = I; break
+		end
+	end
+	
+	if !Start and Default then
+		Start = Default -- We start at default!
+	elseif !Start then
+		return -- Not gona run anything =(
+	end
+	
+	for I = Start, Index do
+		if Statments[I] then
+			local Ok, Exit = Statments[I]:SafeCall(self)
+			
+			if !Ok then
+				local Depth = self.ExitDeph or 0
+				if Exit == "Break" then
+					if Depth > 0 then self.ExitDeph = Depth - 1; error("Break", 0) end
+					break
+				elseif Exit == "Continue" then
+					if Depth > 0 then self.ExitDeph = Depth - 1; error("Continue", 0) end
+					-- break
+				else
+					error(Exit, 0)
+				end
+			end
+		end
+	end
 end)
 
 /*==============================================================================================

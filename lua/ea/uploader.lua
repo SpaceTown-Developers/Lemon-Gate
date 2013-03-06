@@ -181,14 +181,23 @@ if SERVER then
 	local Downloads = Downloader.Downloads
 	
 	util.AddNetworkString( "lemon_download" )
+	util.AddNetworkString( "lemon_download_entity" )
 	util.AddNetworkString( "lemon_download_confirm" )
 	util.AddNetworkString( "lemon_download_request" )
 	
-	function Downloader.Send_Script( Player, Script )
+	function Downloader.Send_Script( Player, Script, Entity )
 		
 		if Downloads[ Player:UniqueID() ] then
 			Player:PrintMessage( HUD_PRINTTALK, "Unable to comply, Juicing in progress!" ) -- CNC reference.
 			return
+		end
+		
+		if Entity then
+			net.Start( "lemon_download_entity" )
+				net.WriteEntity( Entity )
+				net.WriteEntity( Entity.Player )
+				net.WriteString( Entity.GateName )
+			net.Send( Player )
 		end
 		
 		local Data = GetChunks( Script, 65000 )
@@ -231,9 +240,9 @@ if CLIENT then
 		Download.Data[ChunkID] = Data
 		
 		if Download.Chunks == Chunks then -- used to be ChunkID == Chunks
-			local Script = table_concat( Download.Data, "" )
-			-- E_A.Editor.NewTab(Script)
-			E_A.Editor.Open( Script, true )
+			Download.Script = table_concat( Download.Data, "" )
+			E_A.Editor.Open( Download.Script, true )
+			-- E_A.Editor.ReciveDownload( Download )
 			Downloads = nil
 			
 			net.Start( "lemon_download_confirm" )
@@ -242,4 +251,14 @@ if CLIENT then
 	end
 	
 	net.Receive( "lemon_download", Downloader.Rec_Chunk )
+	
+	net.Receive( "lemon_download_entity", function( )
+		if !Downloads then
+			Downloads = { Chunks = 0, Data = { } }
+		end
+		
+		Downloads.Entity = net.ReadEntity( )
+		Downloads.Player = net.ReadEntity( )
+		Downloads.GateName = net.ReadString( )
+	end)
 end
