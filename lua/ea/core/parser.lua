@@ -110,6 +110,7 @@ function Parser:NextToken()
 		self.TokenLine = self.Token[3]
 		self.TokenChar = self.Token[4]
 		self.TokenName = self.Token[1][3]
+		self.LastSeperator = nil
 		
 		local ReadToken = self.Tokens[Pos + 1]
 		if ReadToken then -- Next token information.
@@ -184,9 +185,9 @@ end
 function Parser:AcceptToken(Name)
 	-- Purpose: Is this token of this type.
 
-	if !self.NextTokenType then return false end
-
-	if self.NextTokenType == Name then
+	if !self.NextTokenType then
+		return false
+	elseif self.NextTokenType == Name then
 		self:NextToken()
 		return true
 	end
@@ -224,6 +225,17 @@ function Parser:Instruction(Name, Trace, ...)
 	end
 	
 	return {Name, Trace, {...}}
+end
+
+function Parser:EatSeperators( )
+	if self:AcceptToken("sep") then
+		self.LastSeperator = true
+		while self:AcceptToken("sep") do
+			-- Nom all these seperators!
+		end
+	end
+	
+	return self.LastSeperator
 end
 
 /*==============================================================================================
@@ -717,7 +729,11 @@ function Parser:ExpressionError()
 		self:ExcludeToken("if", "If keyword (if) must not appear inside an equation")
 		self:ExcludeToken("eif", "Else-if keyword (elseif) must be part of an if-statement")
 		self:ExcludeToken("els", "Else keyword (else) must be part of an if-statement")
-
+		
+		self:ExcludeToken("swh", "Switch keyword (switch) must not appear inside an equation")
+		self:ExcludeToken("cse", "Case keyword (case) must be part of an switch-statement")
+		self:ExcludeToken("dft", "Default keyword (default) must be part of an switch-statement")
+		
 		self:Error("Unexpected token found (%s)", self.NextTokenName)
 	else
 		self:TokenError(self.ExprTrace, "Further input required at end of code, incomplete expression")
@@ -753,17 +769,17 @@ function Parser:GetStatements(ExitToken)
 	end
 	
 	while true do
-		self:AcceptToken("sep")
-		
 		Index = Index + 1
 		Statements[Index] = self:Statement() 
+		
+		self:EatSeperators( )
 		
 		if ExitToken and self:AcceptToken(ExitToken) then
 			self:PrevToken()
 			break -- Note: Exit because we have found out exit token
 		elseif !self:HasTokens() then
 			break -- Note: No tokens left so exit
-		elseif !self:AcceptToken("sep") and self.NextLine == self.TokenLine then
+		elseif !self:EatSeperators( ) and self.NextLine == self.TokenLine then
 			self:Error("Statements must be separated by semicolon (;) or newline")
 		elseif self.ExitStatus then
 			self:Error("Unreachable code after %s", self.ExitStatus)
@@ -1488,7 +1504,7 @@ function Parser:ForEachLoop()
 end
 
 function Parser:ExitStatement()
-	local Depth, Level = self.LoopDepth
+	local Depth, Level, Instr = self.LoopDepth
 	
 	if self:AcceptToken("brk") then
 		Level = self:GetNumber(true)
@@ -1500,7 +1516,7 @@ function Parser:ExitStatement()
 		end
 		
 		self.ExitStatus = "break"
-		return self:Instruction("break", self:TokenTrace(), Level)
+		Instr = self:Instruction("break", self:TokenTrace(), Level)
 	
 	elseif self:AcceptToken("cnt") then
 		Level = self:GetNumber(true)
@@ -1512,16 +1528,21 @@ function Parser:ExitStatement()
 		end
 		
 		self.ExitStatus = "continue"
-		return self:Instruction("continue", self:TokenTrace(), Level)
+		Instr = self:Instruction("continue", self:TokenTrace(), Level)
 	
 	elseif self:AcceptToken("ret") then
 		self.ExitStatus = "return"
 		
 		if self:CheckToken("rcb") then
-			return self:Instruction("return", self:TokenTrace())
+			Instr = self:Instruction("return", self:TokenTrace())
+		else
+			Instr = self:Instruction("return", self:TokenTrace(), self:Expression())
 		end
-		
-		return self:Instruction("return", self:TokenTrace(), self:Expression())
+	end
+	
+	if Instr then
+		self:EatSeperators()
+		return Instr
 	end
 end
 
@@ -1554,31 +1575,29 @@ function Parser:SwitchCase()
 			if self:CheckToken("rcb") or !self:HasTokens() then
 				break -- No code left!
 			elseif self:AcceptToken("cse") then
-				if self:AcceptToken("dft") then
-					if !self:AcceptToken("col") then
-						self:Error("colon (:) expected after default in switch block")
-					elseif Default then
-						self:Error("default case must not appear twice")
-					else
-						Index, Default = Index + 1, true
-						Statments[Index] = self:CaseBlock( )
-					end
+				Index = Index + 1
+				
+				if self:CheckToken("num") then
+					Cases[Index] = self:GetNumber()
+				elseif self:AcceptToken("str") then -- Create a string from a string token.
+					Cases[Index] = self:Instruction("string", self:TokenTrace(), self.TokenData)
 				else
-					Index = Index + 1
-					
-					if self:CheckToken("num") then
-						Cases[Index] = self:GetNumber()
-					elseif self:AcceptToken("str") then -- Create a string from a string token.
-						Cases[Index] = self:Instruction("string", self:TokenTrace(), self.TokenData)
-					else
-						self:Error("number or string expected, after case")
-					end
-					
-					if !self:AcceptToken("col") then
-						self:Error("colon (:) expected after case in switch block")
-					else
-						Statments[Index] = self:CaseBlock( )
-					end
+					self:Error("number or string expected, after case")
+				end
+				
+				if !self:AcceptToken("col") then
+					self:Error("colon (:) expected after case in switch block")
+				else
+					Statments[Index] = self:CaseBlock( )
+				end
+			elseif self:AcceptToken("dft") then
+				if !self:AcceptToken("col") then
+					self:Error("colon (:) expected after default in switch block")
+				elseif Default then
+					self:Error("default case must not appear twice")
+				else
+					Index, Default = Index + 1, true
+					Statments[Index] = self:CaseBlock( )
 				end
 			else
 				self:Error("case expected inside case block")
@@ -1597,25 +1616,27 @@ function Parser:CaseBlock( )
 	self.LoopDepth = self.LoopDepth + 1
 	local Trace, Statements, Index = self:TokenTrace(), { }, 0
 	
-	if !self:HasTokens() or self:CheckToken("rcb") or self:CheckToken("cse") then
+	if !self:HasTokens() or self:CheckToken("rcb") or self:CheckToken("cse") or self:CheckToken("dft") then
 		return nil
 	end
 	
 	while true do
-		self:AcceptToken("sep")
 		
 		Index = Index + 1
 		Statements[Index] = self:Statement()
 		
-		if !self:HasTokens() or self:CheckToken("rcb") or self:CheckToken("cse") then
+		self:EatSeperators( )
+		
+		if !self:HasTokens( ) or self:CheckToken("rcb") or self:CheckToken("cse") or self:CheckToken("dft") then
 			break
-		elseif !self:AcceptToken("sep") and self.NextLine == self.TokenLine then
+		elseif !self:EatSeperators( ) and self.NextLine == self.TokenLine then
 			self:Error("Statements must be separated by semicolon (;) or newline")
 		elseif self.ExitStatus then
 			self:Error("Unreachable code after %s", self.ExitStatus)
 		end
 	end
 	
+	self.ExitStatus = nil
 	self.LoopDepth = self.LoopDepth - 1
 	return self:Instruction("sequence", Trace, Statements) 
 end

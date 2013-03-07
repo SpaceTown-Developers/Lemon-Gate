@@ -189,6 +189,7 @@ E_A:RegisterOperator("for", "", "", function(self, Assign, Condition, Step, Bloc
 				break
 			elseif Exit == "Continue" then
 				if Depth > 0 then self.ExitDeph = Depth - 1; error("Continue", 0) end
+				Step(self) -- Next Step
 				-- break
 			else
 				error(Exit, 0)

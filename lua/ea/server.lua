@@ -31,6 +31,8 @@ local UpperStr = string.upper -- Speed
 
 MsgN("Expression Advanced: Pre Loading!")
 
+resource.AddFile("data/ea_version.txt")
+
 /*==============================================================================================
 	Section: Util Zone
 ==============================================================================================*/

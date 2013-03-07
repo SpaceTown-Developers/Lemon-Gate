@@ -124,7 +124,7 @@ end)
 
 
 E_A:RegisterFunction("sub", "s:n", "s", function(self, ValueA, ValueB)
-	return SubStr( ValueA(self), ValueB(self) )
+	return SubStr( ValueA(self), ValueB(self), nil )
 end)
 
 E_A:RegisterFunction("sub", "s:nn", "s", function(self, ValueA, ValueB, ValueC)

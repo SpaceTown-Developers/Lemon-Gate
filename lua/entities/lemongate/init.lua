@@ -33,6 +33,7 @@ local GoodColor = Color(255, 255, 255, 255)
 local BadColor = Color(255, 0, 0, 0)
 
 local MaxPerf = CreateConVar("lemongate_perf", "100000")
+local CaveJohnson = CreateConVar("combustible_lemon", "1")
 
 -- Other Files:
 include("shared.lua")
@@ -85,8 +86,18 @@ function Lemon:OnRemove()
 	self:CallEvent( "final" )
 	API.CallHook( "ShutDown", self )
 	API.RemoveGate( self ) -- Update the API.
+	self:Explode( )
 end
 
+function Lemon:Explode( )
+	if CaveJohnson:GetBool( ) then
+		local ED = EffectData( )
+		ED:SetOrigin( self:GetPos( ) )
+		-- TODO: Scale this!
+		util.Effect( "Explosion", ED )
+	end
+end
+		
 /*==============================================================================================
 	Section: Code Compiler
 ==============================================================================================*/
@@ -95,6 +106,10 @@ function Lemon:GetScript( )
 end
 
 function Lemon:LoadScript( Script )
+	if !self.Errored and self.Context then
+		self:CallEvent( "final" )
+	end -- Incase the gate is already running!
+	
 	API.CallHook( "LoadScript", self, Script )
 	self.Script = Script
 	
@@ -252,6 +267,7 @@ end
 local SafeCall = E_A.SafeCall
 
 function Lemon:Restart()
+	self:CallEvent( "final" )
 	API.CallHook("ShutDown", self)
 	self:RefreshMemory()
 	self:Execute()
