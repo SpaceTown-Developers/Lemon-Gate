@@ -436,7 +436,7 @@ function PANEL:wordLeft( caret )
 		caret = Vector2( caret.x-1, #self.Rows[caret.x-1] )
 		row = self.Rows[caret.x]
 	end
-	local pos = row:sub( 1, caret.y - 1 ):match( "[^%w@]()[%w@]+[^%w@]*$" )
+	local pos = row:sub( 1, caret.y - 1 ):match( "[^%w]+()[%w ]+[^%w ]*$" )
 	caret.y = pos or 1
 	return caret
 end
@@ -449,7 +449,7 @@ function PANEL:wordRight( caret )
 		row = self.Rows[caret.x]
 		if row:sub( 1, 1 ) ~= " " then return caret end
 	end
-	local pos = row:match( "[^%w@]()[%w@]", caret.y )
+	local pos = row:match( "[^%w ]+()[%w ]", caret.y )
 	caret.y = pos or ( #row + 1 )
 	return caret
 end
@@ -650,11 +650,17 @@ function PANEL:_OnKeyCodeTyped( code )
 					Caret.y = 1 
 					Caret = self:MovePosition( Caret, -1 ) 
 					self:SetCaret( Caret )
+				elseif string_match( string_sub( Line, 1, self.Caret.y - 1 ), "{") then 
+					self:SetSelection( "\n" .. string_rep( "    ", math_floor( Count / 4 ) )  .. "    " )
 				else 
 					self:SetSelection( "\n" .. string_rep( "    ", math_floor( Count / 4 ) )  )
 				end 
 			else 
-				self:SetSelection( "\n" .. string_rep( "    ", math_floor( Count / 4 ) )  .. "    " )
+				if string_match( string_sub( Line, 1, self.Caret.y - 1 ), "{") then 
+					self:SetSelection( "\n" .. string_rep( "    ", math_floor( Count / 4 ) )  .. "    " )
+				else 
+					self:SetSelection( "\n" .. string_rep( "    ", math_floor( Count / 4 ) )  )
+				end 
 			end 
 		elseif code == KEY_INSERT then 
 			self.Insert = !self.Insert
@@ -982,6 +988,56 @@ local function ParseIndents( Rows, exit )
 	return foldData 
 end 
 
+local function FindValidLines( Rows ) 
+	local Out = { } 
+	local MultilineComment = false 
+	local Row, Char = 1, 0 
+	
+	while Row < #Rows do 
+		local Line = Rows[Row]
+		while Char < #Line do 
+			Char = Char + 1
+			local Text = Line[Char]
+			
+			if MultilineComment then 
+				if Text == "/" and Line[Char-1] == "*" then 
+					if Out[Row] then 
+						Out[Row] = Out[Row] or { 0, 0 } 
+						Out[Row][2] = Char 
+					else 
+						Out[Row] = { 1, Char }
+					end 
+					MultilineComment = false 
+					continue
+				else 
+					Out[Row] = Out[Row] or false
+					continue 
+				end 
+			end 
+			
+			if Text == "/" then 
+				if Line[Char+1] == "/" then // SingleLine comment
+					Out[Row] = { Char, #Line + 1 }
+					break 
+				elseif Line[Char+1] == "*" then // MultiLine Comment
+					MultilineComment = true 
+					Out[Row] = { Char, #Line + 1 }
+					continue 
+				end 
+			end 
+		end 
+		if not Out[Row] and Out[Row] ~= false then 
+			Out[Row] = true 
+		end 
+			
+		Char = 0 
+		Row = Row + 1 
+	end  
+	
+	return Out 
+end 
+
+local OnlyOnce = false
 local function FindMatchingParam( Rows, Row, Char ) 
 	local Param, EnterParam, ExitParam = ParamPairs[Rows[Row][Char]] 
 	
@@ -996,12 +1052,18 @@ local function FindMatchingParam( Rows, Row, Char )
 	ExitParam = Param[2]
 	
 	local line, pos, level = Row, Char, 0 
+	local ValidLines = FindValidLines( Rows ) 
+	
+	if type( ValidLines[line] ) == "table" and ValidLines[line][1] <= pos and ValidLines[line][2] >= pos then return false end 
 	
 	if Param[3] then -- Look forward 
 		while line < #Rows do 
 			while pos < #Rows[line] do 
 				pos = pos + 1 
 				local Text = Rows[line][pos] 
+				
+				if not ValidLines[line] then break end 
+				if type( ValidLines[line] ) == "table" and ValidLines[line][1] <= pos and ValidLines[line][2] >= pos then continue end 
 				
 				if Text == EnterParam then 
 					level = level + 1 
@@ -1021,6 +1083,9 @@ local function FindMatchingParam( Rows, Row, Char )
 			while pos > 0 do 
 				pos = pos - 1 
 				local Text = Rows[line][pos] 
+				
+				if not ValidLines[line] then break end 
+				if type( ValidLines[line] ) == "table" and ValidLines[line][1] <= pos and ValidLines[line][2] >= pos then continue end 
 				
 				if Text == EnterParam then 
 					level = level + 1 

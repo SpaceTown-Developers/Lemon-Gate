@@ -107,7 +107,7 @@ function API.LoadComponents()
 	MsgN("Expression Advanced: Loading Components!")
 	
 	API.CallHook("PreLoadComponents")
-
+	
 	for _, fName in pairs( file.Find( "ea/components/custom/*.lua", "LUA" ) ) do
 		local File = "ea/components/custom/" .. fName
 		LEMONGATE_COMPONENT = nil
@@ -119,9 +119,23 @@ function API.LoadComponents()
 			include(File)
 		else
 			if SERVER then include(File) end
+		end 
+	end
+	
+	for _, fName in pairs( file.Find("entities/lemongate/custom/*.lua", "LUA") ) do
+		local File = "entities/lemongate/custom/" .. fName
+		LEMONGATE_COMPONENT = nil
+		
+		if fName:match( "^cl_" ) then
+			if SERVER then AddCSLuaFile(File) else include(File) end
+		elseif fName:match( "^sh_" ) then
+			if SERVER then AddCSLuaFile(File) end
+			include(File)
+		else
+			if SERVER then include(File) end
 		end
 	end
-
+	
 	API.CallHook("PostLoadComponents")
 	
 	MsgN("Expression Advanced: Components Loaded!")
