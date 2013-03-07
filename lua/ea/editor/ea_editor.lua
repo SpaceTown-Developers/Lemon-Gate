@@ -650,10 +650,11 @@ function PANEL:_OnKeyCodeTyped( code )
 					Caret.y = 1 
 					Caret = self:MovePosition( Caret, -1 ) 
 					self:SetCaret( Caret )
-				elseif string_match( string_sub( Line, 1, self.Caret.y - 1 ), "{") then 
-					self:SetSelection( "\n" .. string_rep( "    ", math_floor( Count / 4 ) )  .. "    " )
-				else 
+				-- elseif string_match( string_sub( Line, 1, self.Caret.y - 1 ), "{") then 
+				elseif string_match( "{" .. string_sub( Line, 1, self.Caret.y - 1 ) .. "}", "^%b{}.*$" ) then 
 					self:SetSelection( "\n" .. string_rep( "    ", math_floor( Count / 4 ) )  )
+				else 
+					self:SetSelection( "\n" .. string_rep( "    ", math_floor( Count / 4 ) )  .. "    " )
 				end 
 			else 
 				if string_match( string_sub( Line, 1, self.Caret.y - 1 ), "{") then 
@@ -1039,6 +1040,7 @@ end
 
 local OnlyOnce = false
 local function FindMatchingParam( Rows, Row, Char ) 
+	if !Rows[Row] then return false end 
 	local Param, EnterParam, ExitParam = ParamPairs[Rows[Row][Char]] 
 	
 	if not Param then 

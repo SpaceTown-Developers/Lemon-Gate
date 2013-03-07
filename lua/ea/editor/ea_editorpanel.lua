@@ -346,7 +346,7 @@ function PANEL:SaveFile( Path, SaveAs, Tab, bNoSound )
 		Path = Tab.FilePath 
 	end
 	
-	if SaveAs then 
+	if SaveAs or !Path then 
 		Derma_StringRequest( "Save to New File", "", "generic",
 		function( result )
 			result = string.gsub( result, ".", invalid_filename_chars )

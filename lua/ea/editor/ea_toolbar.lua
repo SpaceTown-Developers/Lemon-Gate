@@ -171,7 +171,7 @@ local function SetupHelperFunctions( List, filter, bFunctions, bEvents, bExcepti
 			local funcName = string_match( name, "^[^%(]+" ) 
 			local argTypes = string_match( name, "%(([^%)]*)%)" ) 
 			
-			if string_find( name, "***", nil, true ) or string.find( name, "!", nil, true ) then continue end 
+			if string_find( name, "***", nil, true ) or string_find( name, "!", nil, true ) then continue end 
 			if !string_match( string_lower(funcName), string_lower(filter) ) then continue end 
 			
 			List:AddLine( funcName, argTypes, data[2], data[3] ).OnSelect = function( self ) 
@@ -198,14 +198,6 @@ local function SetupHelperFunctions( List, filter, bFunctions, bEvents, bExcepti
 			end 
 		end 
 	end 
-	
-	--[[ TODO: Add or not to add? Thats the question. 
-	if bExceptions then 
-		for name, data in pairs( LemonGate.Exceptions ) do 
-			List:AddLine( name )
-		end 
-	end 
-	-- ]]
 	
 	List:SortByColumn( 1 )
 end
@@ -262,7 +254,7 @@ local function CreateHelperWindow( )
 	Helper.Search:SetNumeric( false ) 
 	Helper.Search:SetEnabled( true )
 	Helper.Search:SetEnterAllowed( true )
-	
+	Helper.Search:SetZPos( 0 )
 	
 	local Func, Event, Exception 
 	Helper.Search.OnEnter = function( self )
@@ -278,6 +270,8 @@ local function CreateHelperWindow( )
 	Helper.Options:SetTall( 25 ) 
 	Helper.Options:Dock( TOP ) 
 	Helper.Options:DockMargin( 5, 5, 5, 0 ) 
+	
+	Helper.Options:SetZPos( 10 )
 	
 	Helper.Options.ShowFunctions = Helper.Options:Add( "DCheckBoxLabel" ) 
 	Helper.Options.ShowFunctions:Dock( LEFT ) 
@@ -300,19 +294,6 @@ local function CreateHelperWindow( )
 		SetupHelperFunctions( Helper.List, Helper.Search:GetValue( ), Func, Event, Exception )
 	end 
 	Helper.Options.ShowEvents:SetValue( false )
-	
-	Helper.Options.ShowExceptions = Helper.Options:Add( "DCheckBoxLabel" ) 
-	Helper.Options.ShowExceptions:Dock( LEFT ) 
-	Helper.Options.ShowExceptions:DockMargin( 5, 5, 0, 5 ) 
-	Helper.Options.ShowExceptions:SetText( "Show Exceptions" ) 
-	Helper.Options.ShowExceptions:SizeToContents( ) 
-	Helper.Options.ShowExceptions:SetDisabled( true ) 
-	Helper.Options.ShowExceptions.OnChange = function( self, bVal ) 
-		Exception = bVal 
-		SetupHelperFunctions( Helper.List, Helper.Search:GetValue( ), Func, Event, Exception )
-	end 
-	Helper.Options.ShowExceptions:SetValue( false )
-	
 	
 	SetupHelperFunctions( Helper.List, Helper.Search:GetValue( ), Func, Event, Exception )
 end

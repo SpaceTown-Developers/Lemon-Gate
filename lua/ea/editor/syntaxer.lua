@@ -125,7 +125,7 @@ local keywords = {
 	["catch"]    = { true, true }, 
 	["switch"] 	 = { true, true }, 
 	["case"]     = { true, true }, 
-	-- ["default"]  = { true, true }, 
+	["default"]  = { true, true }, 
 
 	-- keywords that cannot be followed by a "(":
 	["else"]     = { true, false },
@@ -415,6 +415,8 @@ function Syntax:Parse( Row )
 			elseif self.char == "/" then // Singleline comment
 				self:NextPattern(".*")
 				tokenname = "comment"
+			else 
+				tokenname = "operator"
 			end
 		else
 			self:NextCharacter()
