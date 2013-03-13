@@ -17,9 +17,11 @@ local PANEL = {}
 
 AccessorFunc( PANEL, "m_sText", 		"Text", FORCE_STRING )
 AccessorFunc( PANEL, "m_bSizable", 		"Sizable", FORCE_BOOL )
+AccessorFunc( PANEL, "m_bScreenLock", 	"ScreenLock", FORCE_BOOL )
 
 AccessorFunc( PANEL, "m_iMinWidth", 	"MinWidth" )
 AccessorFunc( PANEL, "m_iMinHeight", 	"MinHeight" )
+
 
 function PANEL:Init()
 	self:DockPadding( 0, 26, 0, 0 )
@@ -34,12 +36,17 @@ function PANEL:Think( )
 	if self.IsMoving then
 		local _x, _y = ( Vector2( gui.MousePos( ) ) - self.LocalPos )( )
 		
-		x = math.Clamp( _x, 0, ScrW( ) - self:GetWide( ) )
-		y = math.Clamp( _y, 0, ScrH( ) - self:GetTall( ) )
+		if self.m_bScreenLock then 
+			x = math.Clamp( _x, 0, ScrW( ) - self:GetWide( ) )
+			y = math.Clamp( _y, 0, ScrH( ) - self:GetTall( ) )
+			
+			self.LocalPos:Sub( x - _x, y - _y )
+			
+			self:SetPos( x, y )
+		else 
+			self:SetPos( _x, _y )
+		end 
 		
-		self.LocalPos:Sub( x - _x, y - _y )
-		
-		self:SetPos( x, y )
 		self:SetCursor( "blank" )
 		return
 	end
@@ -110,9 +117,9 @@ function PANEL:OnMouseReleased( m )
 			return
 		end
 		
-		if self.m_bSizable then 
-			self.Sizing = false 
-			self:MouseCapture( false ) 
+		if self.m_bSizable then
+			self.Sizing = false
+			self:MouseCapture( false )
 		end 
 	end
 end

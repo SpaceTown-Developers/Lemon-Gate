@@ -513,27 +513,18 @@ concommand.Add("lemon_sync", E_A.SyncClient)
 /*==============================================================================================
 	Section: Prop Friending
 ==============================================================================================*/
-
-function E_A.IsOwner(Player, Entity)
+function E_A.GetOwner( Entity )
 	local Owner = Entity:GetOwner()
 	if Entity.Player then Owner = Entity.Player end
 	if CPPI then Owner = Entity:CPPIGetOwner() or Owner end
 	
-	if !Owner then return false end
-	return Player == Owner
+	return Owner
 end
 
-function E_A.IsFreind(Owner, Player)
-	if CPPI then
-		local Friends = Owner:CPPIGetFriends()
-		if type(Friends) == "table" then
-			for _, Friend in pairs(Friends) do
-				if Friend == Player then return true end
-			end
-		end
-	end
-	
-	return Owner == Player
+function E_A.IsOwner(Player, Entity)
+	local Owner = E_A.GetOwner( Entity )
+	if !Owner then return false end
+	return Player == Owner
 end
 
 local setmetatable, unpack, pcall  = setmetatable, unpack, pcall

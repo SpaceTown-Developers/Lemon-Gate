@@ -178,24 +178,25 @@ end )
 	Home Screen
 ---------------------------------------------------------------------------*/
 local HomeScreen = [[/*===================================================
-Expression Advanced Beta
-- Rusketh, Oskar94, Divran, Syranide, Jerwuqu
-
-For documentation and help visit out wiki.
-Wiki: https://github.com/SpaceTown-Developers/Lemon-Gate/wiki
-
-There are bugs you will find them, there are also ideas and you will have them.
-When you do please post them on your bug tracker to help development.
-Bug Tracker: https://github.com/SpaceTown-Developers/Lemon-Gate/issues
-
-Latest Updates:
-* File library.
-* HTTP library.
-* Changed sound library.
-* Changed function declerations.
-* Variants auto cast on assigmnet.
-
-Thank you for taking part in this Beta!
+    Expression Advanced Beta
+    - Rusketh, Oskar94, Divran, Syranide, Jerwuqu
+    
+    For documentation and help visit out wiki.
+    Wiki: https://github.com/SpaceTown-Developers/Lemon-Gate/wiki
+    
+    There are bugs you will find them, there are also ideas and you will have them.
+    When you do please post them on your bug tracker to help development.
+    Bug Tracker: https://github.com/SpaceTown-Developers/Lemon-Gate/issues
+    
+    Latest Updates:
+    * Editor bookmarks ( ctrl+b to toggle, ctrl+shift+b to jump to next bookmark )
+    * File library.
+    * HTTP library.
+    * Changed sound library.
+    * Changed function declerations.
+    * Variants auto cast on assigmnet.
+    
+    Thank you for taking part in this Beta!
 ===================================================*/
 ]]
 
@@ -231,14 +232,14 @@ function Editor.Create( )
 		local Editor = Tab:GetPanel( ) 
 		Editor:SetCode( HomeScreen ) 
 		Editor.Caret = Vector2( #Editor.Rows, #Editor.Rows[#Editor.Rows] + 1 ) 
-		Editor.Start = Editor.Caret  
+		Editor.Start = Vector2( 1, 1 ) 
 		return true 
 	end
 	
 	Instance:SetSyntaxColorLine( SyntaxColorLine ) 
 	
-    Instance:SetKeyBoardInputEnabled( true )
-    
+	Instance:SetKeyBoardInputEnabled( true )
+	
 	-- Instance:SetSize( 1000, 800 )
 	Instance:SetSize( math.min( 1000, ScrW() * 0.8 ), math.min( 800, ScrH() * 0.8 ) )
 	Instance:Center()

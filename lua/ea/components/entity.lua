@@ -161,6 +161,12 @@ E_A:RegisterFunction("isFrozen", "e:", "n", function(self, Value)
 	return 1
 end)
 
+E_A:RegisterFunction("owner", "e:", "e", function(self, Value)
+	local Ent = Value(self)
+	if !Ent or !Ent:IsValid() then return Entity(-1) end
+	return E_A.GetOwner( Ent ) or Entity(-1)
+end)
+
 /*==============================================================================================
 	Section: Entity Info
 ==============================================================================================*/

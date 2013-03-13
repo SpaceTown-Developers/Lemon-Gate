@@ -43,7 +43,6 @@ function PANEL:Init()
 	self.btnHelp = SetupButton( self, "Open helper", Material( "fugue/question.png" ), RIGHT )
 	self.btnWiki = SetupButton( self, "Open wiki", Material( "fugue/home.png" ), RIGHT )
 	
-	
 	self.lblLink = self.btnWiki:Add( "DLabelURL" ) 
 	self.lblLink:Dock( FILL ) 
 	self.lblLink:SetText( "" ) 
@@ -109,7 +108,7 @@ local function GetArgumentTypes( sArgs )
 				continue 
 			end 
 		end 
-		sArgs = sArgs .. longtp .. ", "
+		sArgs = longtp .. ", " .. sArgs 
 		_sArgs = string_sub( _sArgs, 2 ) 
 	end 
 	

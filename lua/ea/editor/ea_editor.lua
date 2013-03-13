@@ -40,8 +40,6 @@ local input_IsMouseDown 	= input.IsMouseDown
 
 local BookmarkMaterial 		= Material( "diagona-icons/152.png" )
 
--- local ScrollThumb = Material( "oskar/scrollthumb.png" ):CreateTextureBorder( 0, 0, 16, 32, 8, 8, 8, 8 )
-
 local ParamPairs = {
 	["{"] = { "{", "}", true }, 
 	["["] = { "[", "]", true }, 
@@ -75,6 +73,7 @@ function PANEL:Init( )
 	self.LineNumberWidth = 2
 	self.FoldingWidth = 16 
 	self.CaretRow = 0 
+	self.LongestRow = 0 
 	
 	self.TextEntry = self:Add( "TextEntry" ) 
 	self.TextEntry:SetMultiline( true )
@@ -92,30 +91,25 @@ function PANEL:Init( )
 	self.ScrollBar = self:Add( "DVScrollBar" )
 	self.ScrollBar:SetUp( 1, 1 ) 
 	
-	/*
-		self.ScrollBar.btnGrip.Paint = function( scroll, w, h ) 
-			ScrollThumb( 0, 0, 16, h )
-		end 
+	self.ScrollBar.btnUp.DoClick = function ( self ) self:GetParent( ):AddScroll( -4 ) end
+	self.ScrollBar.btnDown.DoClick = function ( self ) self:GetParent( ):AddScroll( 4 ) end
+	
+	function self.ScrollBar:AddScroll( dlta )
+		local OldScroll = self:GetScroll( )
 		
-		self.ScrollBar.Paint = function( scroll, w, h ) 
-			surface_SetDrawColor( 128, 128, 128, 255 )
-			surface_DrawRect( 0, 0, w, h )
-		end 
+		dlta = dlta
+		self:SetScroll( self:GetScroll( ) + dlta )
 		
-		self.ScrollBar.btnUp:Remove( ) 
-		self.ScrollBar.btnUp = self.ScrollBar:Add( "EA_ImageButton" ) 
-		self.ScrollBar.btnUp:SetIconCentered( true ) 
-		self.ScrollBar.btnUp:SetIconFading( false ) 
-		self.ScrollBar.btnUp:SetMaterial( Material( "picol/arrow_sans_up_16.png" ) )
-		self.ScrollBar.btnUp.DoClick = function ( self ) self:GetParent():AddScroll( -.1 ) end 
-		
-		self.ScrollBar.btnDown:Remove( ) 
-		self.ScrollBar.btnDown = self.ScrollBar:Add( "EA_ImageButton" ) 
-		self.ScrollBar.btnDown:SetIconCentered( true ) 
-		self.ScrollBar.btnDown:SetIconFading( false ) 
-		self.ScrollBar.btnDown:SetMaterial( Material( "picol/arrow_sans_down_16.png" ) )
-		self.ScrollBar.btnDown.DoClick = function ( self ) self:GetParent():AddScroll( .1 ) end 
-	*/
+		return OldScroll == self:GetScroll( ) 
+	end
+	
+	function self.ScrollBar:OnMouseWheeled( dlta )
+		if ( !self:IsVisible() ) then return false end
+		return self:AddScroll( dlta * -4 )
+	end
+	
+	self.hScrollBar = self:Add( "EA_HScrollBar")
+	self.hScrollBar:SetUp( 1, 10 ) 
 	
 	surface_SetFont( "Fixedsys" )
 	self.FontWidth, self.FontHeight = surface_GetTextSize( " " )
@@ -240,6 +234,7 @@ function PANEL:ScrollCaret( )
 	end
 
 	self.ScrollBar:SetScroll( self.Scroll.x - 1 )
+	self.hScrollBar:SetScroll( self.Scroll.y - 1 )
 end
 
 /*---------------------------------------------------------------------------
@@ -309,6 +304,7 @@ function PANEL:SetArea( selection, text, isundo, isredo, before, after )
 	
 	if !text or text == "" then
 		self.ScrollBar:SetUp( self.Size.x, #self.Rows + ( math_floor( self:GetTall( ) / self.FontHeight ) - 2 ) - table_Count( table_KeysFromValue( self.FoldedRows, true ) ))
+		self:CalculateHScroll( )
 		self.PaintRows = { }
 		self:OnTextChanged( )
 		
@@ -343,6 +339,7 @@ function PANEL:SetArea( selection, text, isundo, isredo, before, after )
 	self.Rows[stop.x] = self.Rows[stop.x] .. remainder
 	
 	self.ScrollBar:SetUp( self.Size.x, #self.Rows + ( math_floor( self:GetTall( ) / self.FontHeight ) - 2 ) - table_Count( table_KeysFromValue( self.FoldedRows, true ) ))
+	self:CalculateHScroll( )
 	self.PaintRows = { }
 	self:OnTextChanged( )
 	
@@ -1125,13 +1122,15 @@ function PANEL:Paint( w, h )
 	local n = #self.Rows + ( math_floor( self:GetTall( ) / self.FontHeight ) - 2 ) - offset
 	
 	// Disabled
-	if self.CanvasSize ~= n and false then 
+	/*if self.CanvasSize ~= n and false then 
 		self.ScrollBar:SetUp( self.Size.x, n ) 
+		self:CalculateHScroll( )
 		-- self.ScrollBar:InvalidateLayout( true ) 
 		self.CanvasSize = n 
-	end 
+	end */
 	
 	self.Scroll.x = math_floor( self.ScrollBar:GetScroll( ) + 1 )
+	self.Scroll.y = math_floor( self.hScrollBar:GetScroll( ) + 1 )
 	
 	self:DrawText( w, h )
 	
@@ -1392,6 +1391,7 @@ Text setters / getters
 
 function PANEL:SetCode( Text ) 
 	self.ScrollBar:SetScroll( 0 ) 
+	self.hScrollBar:SetScroll( 0 ) 
 	
 	self.Rows = string_Explode( "\n", Text ) 
 	
@@ -1403,6 +1403,7 @@ function PANEL:SetCode( Text )
 	self.PaintRows = { } 
 	
 	self.ScrollBar:SetUp( self.Size.x, #self.Rows + ( math_floor( self:GetTall( ) / self.FontHeight ) - 2 ) - table_Count( table_KeysFromValue( self.FoldedRows, true ) )) 
+	self:CalculateHScroll( ) 
 end 
 
 function PANEL:GetCode( )
@@ -1411,20 +1412,35 @@ function PANEL:GetCode( )
 end
 
 function PANEL:OnTextChanged( )
+	// Override 
 end
 
 /*---------------------------------------------------------------------------
 PerformLayout
 ---------------------------------------------------------------------------*/
 
-function PANEL:PerformLayout( )
+function PANEL:CalculateHScroll( )
+	self.LongestRow = 0 
+	for i = 1, #self.Rows do
+		self.LongestRow = math.max( self.LongestRow, #self.Rows )
+	end
+	self.hScrollBar:SetUp( self.Size.y, self.LongestRow ) 
+end 
+
+function PANEL:PerformLayout( ) 
+	local NumberPadding = self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth
+	
 	self.ScrollBar:SetSize( 16, self:GetTall( ) )
 	self.ScrollBar:SetPos( self:GetWide( ) - self.ScrollBar:GetWide( ), 0 )
-
+	
+	self.hScrollBar:SetSize( self:GetWide( ) - NumberPadding - self.ScrollBar:GetWide( ), 16 )
+	self.hScrollBar:SetPos( NumberPadding, self:GetTall( ) - 16 )
+	
 	self.Size.x = math_floor( self:GetTall( ) / self.FontHeight ) - 1
-	self.Size.y = math_floor( ( self:GetWide( ) - ( self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth ) - self.ScrollBar:GetWide( ) ) / self.FontWidth ) - 1
-
+	self.Size.y = math_floor( ( self:GetWide( ) - NumberPadding - self.ScrollBar:GetWide( ) ) / self.FontWidth ) - 1
+	
 	self.ScrollBar:SetUp( self.Size.x, #self.Rows + ( math_floor( self:GetTall( ) / self.FontHeight ) - 2 ) ) 
+	self:CalculateHScroll( )
 end
 
 vgui.Register( "EA_Editor", PANEL, "EditablePanel" )

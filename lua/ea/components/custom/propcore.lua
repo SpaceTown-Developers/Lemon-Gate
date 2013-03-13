@@ -223,7 +223,7 @@ E_A:RegisterFunction("unparent","e:","",
 	function(self, Value)
 		Check_Enabled( self )
 		
-		local Ent, Freeze = A( self ), B( self )
+		local Ent = Value( self )
 		if PropValid( self, Ent ) then
 			Ent:SetParent( nil )
 		end
