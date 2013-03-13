@@ -66,7 +66,7 @@ if SERVER then
 	/****************************************************************************************************/
 	
 	function Lemon:CanInteract( Entity )
-		return E_A.IsFreind(Entity.Player, self:GetOwner())
+		return E_A.IsFriend(Entity.Player, self:GetOwner())
 	end
 	
 	function Lemon:Reload( Trace )

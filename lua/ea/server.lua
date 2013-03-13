@@ -527,6 +527,17 @@ function E_A.IsOwner(Player, Entity)
 	return Player == Owner
 end
 
+function E_A.IsFriend(Owner, Player)
+	if CPPI then
+		local Friends = Owner:CPPIGetFriends()
+		if type(Friends) == "table" then
+			for _, Friend in pairs(Friends) do
+				if Friend == Player then return true end
+			end
+		end
+	end
+end
+
 local setmetatable, unpack, pcall  = setmetatable, unpack, pcall
 /*==============================================================================================
 	Section: Script Context
