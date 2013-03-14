@@ -70,37 +70,40 @@ end
 /*==============================================================================================
 	Section: Component Loader
 ==============================================================================================*/
-function API.LoadComponents()
-	
+function API.LoadComponents( )
 	LEMONGATE_COMPONENT = "core" -- Prevents the core being modified
 	Comps["core"] = true
 	
 	if SERVER then
+		// First load the core
 		include( "ea/components/core.lua" )
 		
+		// Then load the external parts of the core ( Why rusk?!?! )
 		include( "ea/components/angle.lua" )
-		include( "ea/components/buffer.lua" )
 		include( "ea/components/color.lua" )
-		include( "ea/components/concmd.lua" )
-		include( "ea/components/egplib.lua" )
 		include( "ea/components/entity.lua" )
-		include( "ea/components/event.lua" )
-		include( "ea/components/file.lua" )
-		include( "ea/components/function.lua" )
-		include( "ea/components/hologram.lua" )
-		include( "ea/components/http.lua" )
 		include( "ea/components/matrix.lua" )
 		include( "ea/components/number.lua" )
 		include( "ea/components/player.lua" )
 		include( "ea/components/selfaware.lua" )
-		include( "ea/components/sound.lua" )
 		include( "ea/components/string.lua" )
 		include( "ea/components/table.lua" )
-		include( "ea/components/timers.lua" )
-		include( "ea/components/trace.lua" )
 		include( "ea/components/vector.lua" )
 		include( "ea/components/vector2.lua" )
 		include( "ea/components/wirelink.lua" )
+		include( "ea/components/timers.lua" )
+		include( "ea/components/trace.lua" )
+		include( "ea/components/event.lua" )
+		
+		// Now to local the normal components 
+		include( "ea/components/buffer.lua" )
+		include( "ea/components/concmd.lua" )
+		include( "ea/components/egplib.lua" )
+		include( "ea/components/file.lua" )
+		include( "ea/components/function.lua" )
+		include( "ea/components/hologram.lua" )
+		include( "ea/components/http.lua" )
+		include( "ea/components/sound.lua" )
 		
 		AddCSLuaFile( "ea/components/cl_file.lua" )
 	else
@@ -142,7 +145,6 @@ function API.LoadComponents()
 	API.CallHook( "PostLoadComponents" )
 	
 	MsgN( "Expression Advanced: Components Loaded!" )
-	
 end
 
 /*==============================================================================================

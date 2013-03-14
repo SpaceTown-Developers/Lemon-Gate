@@ -4,8 +4,9 @@
 	Author: Oskar
 ==============================================================================================*/
 local E_A = LemonGate
+local API = E_A.API 
 
-E_A.API.NewComponent( "Sound", true )
+API.NewComponent( "Sound", true )
 
 local type = type
 local CurTime = CurTime
@@ -29,12 +30,12 @@ local function RemoveSounds(Entity)
 	end
 end
 
-E_A.API.AddHook("BuildContext", function(Entity)
+API.AddHook("BuildContext", function(Entity)
 	RemoveSounds(Entity)
-	Sounds[Entity] = { }
+	Sounds[Entity] = { } 
 end)
 
-E_A.API.AddHook("ShutDown", function(Entity)
+API.AddHook("ShutDown", function(Entity)
 	RemoveSounds(Entity)
 	Sounds[Entity] = nil
 end)
