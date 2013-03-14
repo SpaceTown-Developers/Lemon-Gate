@@ -193,8 +193,8 @@ local HomeScreen = [[/*===================================================
     * File library.
     * HTTP library.
     * Changed sound library.
-    * Changed function declerations.
-    * Variants auto cast on assigmnet.
+    * Changed function decelerations.
+    * Variants auto cast on assignment.
     
     Thank you for taking part in this Beta!
 ===================================================*/

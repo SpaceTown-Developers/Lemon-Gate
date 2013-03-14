@@ -60,7 +60,6 @@ function PANEL:Init( )
 	self.Undo = { }
 	self.Redo = { }
 	self.PaintRows = { }
-	self.Chunks = { }
 	self.FoldButtons = { }
 	self.FoldData = { } 
 	self.FoldedRows = { } 
@@ -78,6 +77,7 @@ function PANEL:Init( )
 	self.TextEntry = self:Add( "TextEntry" ) 
 	self.TextEntry:SetMultiline( true )
 	self.TextEntry:SetSize( 0, 0 )
+	self.TextEntry:SetFocusTopLevel( true )
 	
 	self.TextEntry.m_bDisableTabbing = true // OH GOD YES!!!!! NO MORE HACKS!!!
 	self.TextEntry.OnTextChanged = function( ) self:_OnTextChanged( ) end
@@ -96,10 +96,7 @@ function PANEL:Init( )
 	
 	function self.ScrollBar:AddScroll( dlta )
 		local OldScroll = self:GetScroll( )
-		
-		dlta = dlta
 		self:SetScroll( self:GetScroll( ) + dlta )
-		
 		return OldScroll == self:GetScroll( ) 
 	end
 	
@@ -109,7 +106,7 @@ function PANEL:Init( )
 	end
 	
 	self.hScrollBar = self:Add( "EA_HScrollBar")
-	self.hScrollBar:SetUp( 1, 10 ) 
+	self.hScrollBar:SetUp( 1, 1 ) 
 	
 	surface_SetFont( "Fixedsys" )
 	self.FontWidth, self.FontHeight = surface_GetTextSize( " " )
@@ -1035,7 +1032,6 @@ local function FindValidLines( Rows )
 	return Out 
 end 
 
-local OnlyOnce = false
 local function FindMatchingParam( Rows, Row, Char ) 
 	if !Rows[Row] then return false end 
 	local Param, EnterParam, ExitParam = ParamPairs[Rows[Row][Char]] 
@@ -1422,7 +1418,7 @@ PerformLayout
 function PANEL:CalculateHScroll( )
 	self.LongestRow = 0 
 	for i = 1, #self.Rows do
-		self.LongestRow = math.max( self.LongestRow, #self.Rows )
+		self.LongestRow = math.max( self.LongestRow, #self.Rows[i] )
 	end
 	self.hScrollBar:SetUp( self.Size.y, self.LongestRow ) 
 end 
