@@ -48,7 +48,7 @@ E_A:RegisterFunction("buffer", "", "b", function(self)
 	return { T = { }, D = { }, R = 0, W = 0 }
 end)
 
-E_A:RegisterFunction("getType", "", "b", function(self, Value)
+E_A:RegisterFunction("getType", "b:", "s", function(self, Value)
 	local Buff = Value(self)
 	
 	local Pos = Buff.R + 1

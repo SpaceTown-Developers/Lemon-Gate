@@ -63,7 +63,7 @@ E_A:RegisterFunction( "convar", "s", "s",
 		end
 	end )
 	
-E_A:RegisterFunction( "convar", "s", "n",
+E_A:RegisterFunction( "convarnum", "s", "n",
 	function( self, Value )
 		local Command = Value( self )
 		
