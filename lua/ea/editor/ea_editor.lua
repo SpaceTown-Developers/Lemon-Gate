@@ -541,12 +541,50 @@ function PANEL:_OnKeyCodeTyped( code )
 				self:GetParent( ):GetParent( ):SaveFile( true )
 			end 
 		elseif code == KEY_UP then
-			self.Scroll.x = self.Scroll.x - 1
-			if self.Scroll.x < 1 then self.Scroll.x = 1 end
-			self.ScrollBar:SetScroll( self.Scroll.x -1 )
+			if shift then 
+				if self:HasSelection( ) then 
+					local start, stop = self:MakeSelection( self:Selection( ) )
+					if start.x > 1 then 
+						local data = table_remove( self.Rows, start.x - 1 ) 
+						table_insert( self.Rows, stop.x, data ) 
+						self.Start:Add( -1, 0 )
+						self.Caret:Add( -1, 0 )
+						self.PaintRows = { }
+						self:ScrollCaret( )
+					end 
+				elseif self.Caret.x > 1 then 
+					local data = table_remove( self.Rows, self.Caret.x ) 
+					self:SetCaret( self.Caret:Add( -1, 0 ) ) 
+					table_insert( self.Rows, self.Caret.x, data )
+					self.PaintRows = { }
+				end 
+			else 
+				self.Scroll.x = self.Scroll.x - 1
+				if self.Scroll.x < 1 then self.Scroll.x = 1 end
+				self.ScrollBar:SetScroll( self.Scroll.x -1 )
+			end 
 		elseif code == KEY_DOWN then
-			self.Scroll.x = self.Scroll.x + 1
-			self.ScrollBar:SetScroll( self.Scroll.x -1 )
+			if shift then 
+				if self:HasSelection( ) then 
+					local start, stop = self:MakeSelection( self:Selection( ) )
+					if stop.x < #self.Rows then 
+						local data = table_remove( self.Rows, stop.x + 1 ) 
+						table_insert( self.Rows, start.x, data ) 
+						self.Start:Add( 1, 0 )
+						self.Caret:Add( 1, 0 )
+						self.PaintRows = { }
+						self:ScrollCaret( )
+					end 
+				elseif self.Caret.x < #self.Rows then 
+					local data = table_remove( self.Rows, self.Caret.x ) 
+					self:SetCaret( self.Caret:Add( 1, 0 ) ) 
+					table_insert( self.Rows, self.Caret.x, data )
+					self.PaintRows = { }
+				end 
+			else 
+				self.Scroll.x = self.Scroll.x + 1
+				self.ScrollBar:SetScroll( self.Scroll.x -1 )
+			end 
 		elseif code == KEY_LEFT then
 			if self:HasSelection( ) and not shift then
 				self.Start = self:CopyPosition( self.Caret )
@@ -855,7 +893,11 @@ function PANEL:_OnTextChanged( )
 			self:ScrollCaret( ) 
 		end 
 	elseif #text == 1 and AutoParam[text] then 
-		if self.Rows[self.Caret.x][self.Caret.y] == " " or self.Rows[self.Caret.x][self.Caret.y] == "" then 
+		if 
+			self.Rows[self.Caret.x][self.Caret.y] == " " or 
+			self.Rows[self.Caret.x][self.Caret.y] == "" or 
+			self.Rows[self.Caret.x][self.Caret.y] == AutoParam[text] 
+		then 
 			self:SetSelection( text .. AutoParam[text] ) 
 			self:SetCaret( self:MovePosition( self.Caret, -1 ) ) 
 		elseif SpecialCase[text] and self.Rows[self.Caret.x][self.Caret.y] == text then 

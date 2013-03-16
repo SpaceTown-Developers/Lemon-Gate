@@ -1676,7 +1676,7 @@ function Parser:BuildTable()
 		end
 		
 		if !self:AcceptToken("rcb") then
-			self:Error("Left curly bracket ({) expected, after table contents")
+			self:Error("Right curly bracket ({) expected, after table contents")
 		end
 		
 		return self:Instruction("table", Trace, Keys, Values)
