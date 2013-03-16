@@ -8,9 +8,10 @@
 local gradient_up = Material( "vgui/gradient-d" )
 local gradient_down = Material( "vgui/gradient-u" )
 
-local PANEL = {}
+local PANEL = { }
 
-PANEL.FileTabs = { } 
+PANEL.FileTabs = { }
+PANEL.GateTabs = { }
 
 local invalid_filename_chars = {
 	["*"] = "",
@@ -327,7 +328,7 @@ end
 
 function PANEL:GetCode( Tab )
 	Tab = Tab or self.TabHolder:GetActiveTab( ) 
-	return Tab:GetPanel( ):GetCode( )
+	return Tab:GetPanel( ):GetCode( ), Tab.FilePath
 end
 
 function PANEL:SetCaret( Pos, Tab )
@@ -346,7 +347,7 @@ function PANEL:SaveFile( Path, SaveAs, Tab, bNoSound )
 		Path = Tab.FilePath 
 	end
 	
-	if SaveAs or !Path then 
+	if SaveAs or not Path then 
 		Derma_StringRequest( "Save to New File", "", "generic",
 		function( result )
 			result = string.gsub( result, ".", invalid_filename_chars )
@@ -357,16 +358,16 @@ function PANEL:SaveFile( Path, SaveAs, Tab, bNoSound )
 	end
 	
 	if not ValidPanel( Tab ) then return end 
-	if !string.StartWith( Path, "lemongate/" ) then Path = "lemongate/" .. Path end 
+	if not string.StartWith( Path, "lemongate/" ) then Path = "lemongate/" .. Path end 
 	
 	MakeFolders( Path )
 	
 	file.Write( Path, self:GetCode( Tab ) )
-	if !bNoSound then 
+	if not bNoSound then 
 		surface.PlaySound( "ambient/water/drip3.wav" ) 
 		self.ValidateButton:SetText( "Saved as " .. Path )
 	end 
-	if !Tab.FilePath then 
+	if not Tab.FilePath then 
 		Tab.FilePath = Path:sub( 11 ) 
 		self.FileTabs[Path:sub( 11 )] = Tab 
 	end 
@@ -412,14 +413,14 @@ local function DoRightClick( self )
 	Menu:Open( ) 
 end
 
-function PANEL:NewTab( Code, Path )
+function PANEL:NewTab( Code, Path, Name )
 	if ValidPanel( self.FileTabs[Path] ) then 
 		self.TabHolder:SetActiveTab( self.FileTabs[Path] )
 		self.FileTabs[Path]:GetPanel( ):RequestFocus( ) 
 		return 
 	end 
 	
-	local Sheet = self.TabHolder:AddSheet( Path or "generic", vgui.Create( "EA_Editor" ), "fugue/script-text.png" ) 
+	local Sheet = self.TabHolder:AddSheet( Name or Path or "generic", vgui.Create( "EA_Editor" ), "fugue/script-text.png" ) 
 	self.TabHolder:SetActiveTab( Sheet.Tab ) 
 	Sheet.Panel:RequestFocus( )
 	
@@ -435,7 +436,7 @@ function PANEL:NewTab( Code, Path )
 		Sheet.Tab.FilePath = Path 
 		self.FileTabs[Path] = Sheet.Tab 
 	end 
-	if self:OnTabCreated( Sheet.Tab, Code, Path ) then return end 
+	if not Name and self:OnTabCreated( Sheet.Tab, Code, Path ) then return end 
 	if Code and Code ~= "" then self:SetCode( Code ) end 
 end
 
@@ -534,6 +535,31 @@ function PANEL:Open( Code, NewTab )
 	elseif Code then 
 		self:SetCode( Code ) 
 	end 
+end
+
+function PANEL:ReciveDownload( DownloadData )
+	local Ply = DownloadData.Player -- The owner of the gate
+	local GateName = DownloadData.GateName -- The gates name
+	local Gate = DownloadData.Entity -- The gate itself
+	local Code = DownloadData.Script -- The code 
+	
+	if not IsValid( Gate ) then return end 
+	
+	local Tab = self.GateTabs[Gate] 
+	if not Tab then 
+		self:NewTab( Code, nil, GateName ) 
+		Tab = self.TabHolder:GetActiveTab( )
+		Tab.Entity = Gate 
+		Tab.Player = Ply 
+		self.GateTabs[Gate] = Tab
+	else 
+		self.TabHolder:SetActiveTab( Tab )
+	end 
+	
+	self:SetVisible( true )
+	self:MakePopup( )
+	
+	Tab:GetPanel( ):SetCode( Code )
 end
 
 function PANEL:Close( )

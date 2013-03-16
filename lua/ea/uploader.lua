@@ -241,8 +241,8 @@ if CLIENT then
 		
 		if Download.Chunks == Chunks then -- used to be ChunkID == Chunks
 			Download.Script = table_concat( Download.Data, "" )
-			E_A.Editor.Open( Download.Script, true )
-			-- E_A.Editor.ReciveDownload( Download )
+			-- E_A.Editor.Open( Download.Script, true )
+			E_A.Editor.ReciveDownload( Download )
 			Downloads = nil
 			
 			net.Start( "lemon_download_confirm" )

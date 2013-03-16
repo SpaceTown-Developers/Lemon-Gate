@@ -82,18 +82,18 @@ if SERVER then
 	end
 	
 	function Lemon:RightClick( Trace )
-		local Entity, Player = Trace.Entity, self:GetOwner()
+		local Entity, Player = Trace.Entity, self:GetOwner( )
 		
-		if self:IsLemonGate(Entity) then
-			if self:CanInteract(Entity) then
-				E_A.Downloader.Send_Script( Player, Entity:GetScript( ) )
+		if self:IsLemonGate( Entity ) then
+			if self:CanInteract( Entity ) then
+				E_A.Downloader.Send_Script( Player, Entity:GetScript( ), Entity )
 				return true -- Send the player the Script!
 			end
 			
 			return false
 		end
 		
-		Player:SendLua("LemonGate.Editor.Open()")
+		Player:SendLua( "LemonGate.Editor.Open( )" )
 		
 		return false
 	end

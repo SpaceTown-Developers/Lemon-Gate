@@ -264,12 +264,17 @@ function Editor.GetCode( )
 	end 
 end
 
-function Editor.GetInstance()
-	Editor.Create()
+function Editor.GetInstance( )
+	Editor.Create( )
 	return Editor.Instance
 end
 
-function Editor.Validate()
+function Editor.ReciveDownload( Download )
+	Editor.Create( ) 
+	Editor.Instance:ReciveDownload( Download )
+end
+
+function Editor.Validate( )
 	if Editor.Instance then
 		return Editor.Instance:Validate( Editor.Instance:GetCode( ), nil )
 	end
