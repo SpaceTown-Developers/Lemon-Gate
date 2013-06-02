@@ -3,27 +3,27 @@
 	Purpose: Oh look a shiny new tool.
 	Creditors: Rusketh
 ==============================================================================================*/
-local E_A = LemonGate
-local Lemon = TOOL
+local LEMON = LEMON
+local CITRIS = TOOL
 
 -- Tool Stuffs!
-Lemon.Category		= "Wire - Control"
-Lemon.Name			= "Chip - Expression Advanced"
-Lemon.Command 		= nil
-Lemon.ConfigName 	= nil
-Lemon.Tab			= "Wire"
+CITRIS.Category		= "Wire - Control"
+CITRIS.Name			= "Chip - Expression Advanced"
+CITRIS.Command 		= nil
+CITRIS.ConfigName 	= nil
+CITRIS.Tab			= "Wire"
 
 -- Convars
-Lemon.ClientConVar.Model = "models/mandrac/wire/e3.mdl"
+CITRIS.ClientConVar.Model = "models/mandrac/wire/e3.mdl"
 
-function Lemon:GetModel()
-	local model = self:GetClientInfo("Model")
-	if model and model ~= "" then return Model(model) end
+function CITRIS:GetModel( )
+	local model = self:GetClientInfo( "Model" )
+	if model and model ~= "" then return Model( model ) end
 	
 	return "models/mandrac/wire/e3.mdl"
 end
 
-function Lemon:IsLemonGate(Entity)
+function CITRIS:IsLemonGate(Entity)
 	return Entity and Entity:IsValid() and Entity:GetClass() == "lemongate"
 end
 	
@@ -33,7 +33,7 @@ end
 if SERVER then
 	CreateConVar('sbox_maxlemongates', 20)
 	
-	function E_A.MakeLemonGate(Player, Pos, Ang, Model, Script)
+	function LEMON.MakeLemonGate(Player, Pos, Ang, Model, Script)
 		if Player:CheckLimit("lemongates") then
 			local Entity = ents.Create("lemongate")
             
@@ -59,17 +59,17 @@ if SERVER then
 				return Entity
 			end
 		end
-	end; local MakeLemonGate = E_A.MakeLemonGate
+	end; local MakeLemonGate = LEMON.MakeLemonGate
 
 	duplicator.RegisterEntityClass("lemongate", MakeLemonGate, "Pos", "Ang", "Model", "Script")
 	
 	/****************************************************************************************************/
 	
-	function Lemon:CanInteract( Entity )
-		return E_A.IsFriend(Entity.Player, self:GetOwner())
+	function CITRIS:CanInteract( Entity )
+		return LEMON.API.Util.IsFriend(Entity.Player, self:GetOwner())
 	end
 	
-	function Lemon:Reload( Trace )
+	function CITRIS:Reload( Trace )
 		local Entity = Trace.Entity
 		if self:IsLemonGate(Entity) then
 			if self:CanInteract(Entity) then
@@ -81,29 +81,29 @@ if SERVER then
 		return false
 	end
 	
-	function Lemon:RightClick( Trace )
+	function CITRIS:RightClick( Trace )
 		local Entity, Player = Trace.Entity, self:GetOwner( )
 		
 		if self:IsLemonGate( Entity ) then
 			if self:CanInteract( Entity ) then
-				E_A.Downloader.Send_Script( Player, Entity:GetScript( ), Entity )
+				LEMON.Downloader.Send_Script( Player, Entity:GetScript( ), Entity )
 				return true -- Send the player the Script!
 			end
 			
 			return false
 		end
 		
-		Player:SendLua( "LemonGate.Editor.Open( )" )
+		Player:SendLua( "LEMON.Editor.Open( )" )
 		
 		return false
 	end
 	
-	function Lemon:LeftClick( Trace )
+	function CITRIS:LeftClick( Trace )
 		local Entity, Player = Trace.Entity, self:GetOwner()
 		
 		if self:IsLemonGate(Entity) then -- Check if a gate exists!
 			if self:CanInteract(Entity) then
-				E_A.RequestUpload(Entity, Player)
+				LEMON.RequestUpload(Entity, Player)
 				return true
 			end
 			
@@ -136,7 +136,7 @@ if SERVER then
 				undo.AddEntity( Constraint )
 			undo.Finish()
 			
-			E_A.RequestUpload(Entity, Player)
+			LEMON.RequestUpload(Entity, Player)
 			
 			return true
 		end
@@ -162,7 +162,7 @@ if CLIENT then
 	local Ninty = Angle(90,0,0)
 	local Wooo = Color(255, 255, 255, 200)
 	
-	function Lemon:Think()
+	function CITRIS:Think()
 		local Ghost = self.GhostEntity
 		local Trace = self:GetOwner():GetEyeTrace()
 		local Entity = Trace.Entity
@@ -182,9 +182,8 @@ if CLIENT then
 		end
 	end
 
-	function Lemon.BuildCPanel( Panel )
-		local W, H = Panel:GetSize()
-		local Editor = E_A.Editor.GetInstance()
+	function CITRIS.BuildCPanel( Panel )
+		local W, H = Panel:GetSize( )
 		
 		-- Todo: Model Select & Friend write!
 		-- Add a Wiki Link?
@@ -211,8 +210,8 @@ if CLIENT then
             if !string.EndsWith( Dir, ".txt" ) then return end 
             
             if Node.LastClick and CurTime() - Node.LastClick < 0.5 then 
-                E_A.Editor.Open( ) 
-                Editor:LoadFile( Dir )
+                LEMON.Editor.Open( ) 
+                LEMON.Editor.GetInstance( ):LoadFile( Dir )
                 Node.LastClick = 0
                 return true 
             end 
@@ -223,7 +222,7 @@ if CLIENT then
         
         local LemonNode = vgui.Create( "EA_FileNode" )
         FileBrowser.RootNode:InsertNode( LemonNode )
-        LemonNode:SetText( "Lemongate" ) 
+        LemonNode:SetText( "LemonGate" ) 
         LemonNode:MakeFolder( "lemongate", "DATA", true )  
         LemonNode:SetExpanded( true ) 
         
@@ -249,7 +248,7 @@ if CLIENT then
 		-- FileBrowser.OpenOnSingleClick = Editor
 		-- Panel:AddPanel(FileBrowser)
 		
-		-- FileBrowser:Setup("LemonGate")
+		-- FileBrowser:Setup("CITRISGate")
 		-- FileBrowser:SetSize(W, 300)
 		-- FileBrowser:DockMargin(5, 5, 5, 5)
 		-- FileBrowser:DockPadding(5, 5, 5, 5)
@@ -267,7 +266,7 @@ if CLIENT then
         OpenEditor:SetText( "Open Editor" ) 
         OpenEditor:SetTextCentered( true ) 
 		OpenEditor.DoClick = function(button)
-			E_A.Editor.Open()
+			LEMON.Editor.Open()
 		end
 
 		-- local NewExpression = Panel:Button("New Expression")
@@ -278,7 +277,7 @@ if CLIENT then
         NewExpression:SetText( "New Expression" ) 
         NewExpression:SetTextCentered( true ) 
 		NewExpression.DoClick = function(button)
-			E_A.Editor.Open( nil, true )
+			LEMON.Editor.Open( nil, true )
 		end
 	end
 end

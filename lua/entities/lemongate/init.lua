@@ -3,24 +3,13 @@
 	Purpose: This is the entity that does everything!
 	Creditors: Rusketh
 ==============================================================================================*/
-local E_A = LemonGate
-local API = E_A.API
-
 local Lemon = ENT
+
 Lemon.IsLemonGate = true 
 
-local ShortTypes = E_A.TypeShorts
-local Operators = E_A.OperatorTable
-
-local Tokenizer = E_A.Tokenizer
-local Parser = E_A.Parser
-local Compiler = E_A.Compiler
-
-local CheckType = E_A.CheckType
-local GetLongType = E_A.GetLongType
-local GetShortType = E_A.GetShortType
-local ValueToOp = E_A.ValueToOp
-
+/*==============================================================================================
+	Speed Increases
+==============================================================================================*/
 local UpperStr = string.upper -- Speed
 local FormatStr = string.format -- Speed
 local MathCeil = math.ceil -- Speed
@@ -29,372 +18,356 @@ local CurTime = CurTime -- Speed
 local pairs = pairs -- Speed
 local pcall = pcall -- Speed
 
-local GoodColor = Color(255, 255, 255, 255)
-local BadColor = Color(255, 0, 0, 0)
+local GoodColor = Color( 255, 255, 255, 255 )
+local BadColor = Color( 255, 0, 0, 0 )
 
-local MaxPerf = CreateConVar("lemongate_perf", "100000")
-local CaveJohnson = CreateConVar("combustible_lemon", "1")
-
--- Other Files:
-include("shared.lua")
-AddCSLuaFile("shared.lua")
-AddCSLuaFile("cl_init.lua")
+local MaxPerf = CreateConVar( "lemongate_perf", "100000" )
+local CaveJohnson = CreateConVar( "combustible_lemon", "0" )
 
 /*==============================================================================================
-	Section: Entity
+	Includes
+==============================================================================================*/
+include( "shared.lua" )
+AddCSLuaFile( "shared.lua" )
+AddCSLuaFile( "cl_init.lua" )
+
+/*==============================================================================================
+	Context
+==============================================================================================*/
+local Context = { }
+Context.__index = Context
+
+function Context:Throw( Trace, Type, Message )
+	self.Exception = { Type = Type, Trace = Trace, Message = Message }
+	error( "Exception", 0 )
+end
+
+function Context:Error( Trace, Message )
+	self.ScriptError = Message
+	self.ScriptTrace = Trace
+	error( "Script", 0 )
+end
+
+function Context:PushPerf( Trace, Ammount )
+	self.Perf = self.Perf - Ammount
+	if self.Perf < 0 then
+		self:Error( Trace, "Maxamum operations count exceeded." )
+	end
+end
+
+/*==============================================================================================
+	Script Handeling
+==============================================================================================*/
+function Lemon:BuildContext( )
+	self.Context = setmetatable( { 
+		Perf  = MaxPerf:GetInt( ),
+		Entity = self, Player = self.Player,
+		Memory = { }, Delta = { }, Click = { }, Data = { }
+	}, Context )
+	
+	LEMON.API:CallHook( "BuildContext", self )
+	
+	return self.Context
+end
+
+function Lemon:LoadScript( Script )
+	local Context = self:BuildContext( )
+	
+	if self:IsRunning( ) then
+		self:ShutDown( )
+	end -- TODO: These
+	
+	self.Script = Script
+	
+	local Ok, Instance = LEMON.Compiler.Execute( Script )
+	
+	if !Ok then
+		self:Error( "Compiler Error" )
+		WireLib.ClientError( Instance, self.Player )
+	else
+		self:LoadInstance( Instance )
+	end
+	
+	self:Pcall( Instance.Execute, Context )
+end
+
+function Lemon:LoadInstance( Inst )
+	local _Inputs = self.Inputs
+	local _OutPuts = self.OutPuts
+	
+	local INames, ITypes, I = { }, { }, 1
+	for Variable, Ref in pairs( Inst.InPorts ) do
+		local Cell = Inst.Cells[ Ref ]
+		INames[ I ] = Variable
+		ITypes[ I ] = Cell.Class.WireName
+		I = I + 1
+	end
+	
+	local ONames, OTypes, I = { }, { }, 1
+	for Variable, Ref in pairs( Inst.OutPorts ) do
+		local Cell = Inst.Cells[ Ref ]
+		ONames[ I ] = Variable
+		OTypes[ I ] = Cell.Class.WireName
+		I = I + 1
+	end
+	
+	self.Inputs  = WireLib.CreateSpecialInputs ( self, INames, ITypes )
+	self.OutPuts = WireLib.CreateSpecialOutputs( self, ONames, OTypes )
+	
+	self.InPorts   = Inst.InPorts
+	self.OutPorts  = Inst.OutPorts
+	self.Cells     = Inst.Cells
+	
+	if _InPuts then
+		self:RestoreInputs( _InPuts )
+	end
+	
+	self:TriggerOutputs( )
+end
+
+function Lemon:RestoreInputs( Orig )
+	for Variable, Ref in pairs( self.InPorts ) do
+		local Cell = self.Cells[ Ref ]
+		local Port = Orig[ Variable ]
+		
+		if Port and Port.Type == Cell.Class.WireName then
+			self.Inputs[ Variable ] = Port
+			Cell.Class.Wire_In( self.Context, Ref, Port.Value )
+		end
+	end
+end
+
+function Lemon:GarbageCollect( )
+	if self.Context then
+		local Memory, Delta = self.Context.Memory, self.Context.Delta
+		
+		if Memory then
+			for Ref, Cell in pairs( self.Cells ) do
+				if Cell.NotGarbage then
+					-- Do Nothing
+				elseif Cell.Class.GarbageCollect then
+					Cell.Class:GarbageCollect( self.Context, Ref )
+				else
+					Memory[Ref] = nil
+					Delta[Ref] = nil
+				end
+			end
+		end
+	end
+end -- Woot custom garbage collection =D
+
+function Lemon:Update( )
+	self:API( ):CallHook( "UpdateExecution", self )
+	self:TriggerOutputs( )
+	self:GarbageCollect( )
+	self.Context.Click = { }
+end
+
+/*==============================================================================================
+	Init
 ==============================================================================================*/
 function Lemon:Initialize( )
-	-- Purpose: Initializes the Gate with physics.
-	
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
 	
-	self.Inputs = WireLib.CreateInputs( self, {} )
-	self.Outputs = WireLib.CreateOutputs( self, {} )
-	
+	self.Overlay = "Offline"
 	self.GateName = "LemonGate"
-	self.Errored = nil
+	self:UpdateOverLay( "Offline" )
 	
-	self:SetOverlayText( "LemonGate\nExpression Advanced\nOffline: 0 Ops, 0%" )
-	
-	API.AddGate( self ) -- Let the api know this gate exists!
+	self:API( ):CallHook("Create", self )
 end
 
 function Lemon:Think( )
-	-- Purpose: Makes the entity think?
-	
 	local Time = CurTime( )
 	
-	if !self.Errored and self.Context then
-		if Time > self.PerfTime then
-			self.PerfTime = Time + 1
-			local Cur, _B, Percent = self:CaculatePerf( )
-			self:UpdateOverlay( "Online: %i Ops, %i%%", Cur, Percent )
+	if self:IsRunning( ) then
+		local Context = self.Context
+		
+		if !Context.PerfTime or Context.PerfTime > Time then
+			Context.PerfTime = Time + 1
+			
+			Context.LastPerf = Context.Perf
+			Context.Perf  = MaxPerf:GetInt( )
+			
+			local Perf = Context.Perf - ( Context.LastPerf or 0 )
+			local Perc = (Perf > 0) and math.ceil((Perf / Context.Perf) * 100) or 0
+			self:UpdateOverLay( "Online\n%d ops (%d%%)", Perf, Perc )
 		end
 		
 		self:CallEvent( "think" )
-		API.CallHook( "GateThink", self )
 	end
 	
 	self.BaseClass.Think( self )
 	self:NextThink( Time + 0.1 )
+	
 	return true
 end
 
-function Lemon:OnRemove() 
+function Lemon:OnRemove( ) 
+	self:ShutDown( )
+	
 	self:CallEvent( "final" )
-	API.CallHook( "ShutDown", self )
-	API.RemoveGate( self ) -- Update the API.
-	self:Explode( )
-end
-
-function Lemon:Explode( )
+	self:API( ):CallHook("Remove", self )
+	
 	if CaveJohnson:GetBool( ) then
 		local ED = EffectData( )
 		ED:SetOrigin( self:GetPos( ) )
-		-- TODO: Scale this!
 		util.Effect( "Explosion", ED )
 	end
 end
-		
+
 /*==============================================================================================
-	Section: Code Compiler
+	Section: Stuff.
 ==============================================================================================*/
+function Lemon:API( )
+	return LEMON.API
+end
+
+function Lemon:SetGateName( Name )
+	self.GateName = Name or "LemonGate"
+	self:UpdateOverLay( self.Overlay )
+end
+
+function Lemon:UpdateOverLay( Status, A, ... )
+	if A then Status = string.format( Status, A, ... ) end
+	
+	self.Overlay = Status
+	self:SetOverlayText( Format( "%s\n%s", self.GateName, Status ) )
+end
+
 function Lemon:GetScript( )
 	return self.Script or ""
 end
 
-function Lemon:LoadScript( Script )
-	if !self.Errored and self.Context then
-		self:CallEvent( "final" )
-	end -- Incase the gate is already running!
-	
-	API.CallHook( "LoadScript", self, Script )
-	self.Script = Script
-	
-	local Check, Tokens = Tokenizer.Execute( Script )
-	if !Check then
-		self:UpdateOverlay( "Failed to compile." )
-		return WireLib.ClientError( Tokens, self.Player )
-	end
-	
-	local Check, Instructions = Parser.Execute( Tokens )
-	if !Check then
-		self:UpdateOverlay( "Failed to compile." )
-		return WireLib.ClientError( Instructions, self.Player )
-	end
-	
-	local Check, Executable, Instance = Compiler.Execute( Instructions )
-	if !Check then
-		self:UpdateOverlay( "Failed to compile." )
-		return WireLib.ClientError( Executable, self.Player )
-	end
-	
-	self:LoadInstance( Instance )
-	
-	self.Executable = Executable
-end
-
-function Lemon:LoadInstance( Instance )
-	self.Context = {
-		Types = Instance.VarTypes, StackTrace = { },
-		Memory = { }, Delta = { }, Click = { },
-		Entity = self, Player = self.Player,
-		Events = { }, VariantTypes = { }, WireLinkQue = { },
-		Perf = MaxPerf:GetInt( ), 
-	}
-	
-	setmetatable( self.Context, E_A.Context )
-	
-	self.InMemory = Instance.Inputs
-	self.OutMemory = Instance.Outputs
-	
-	self.LastPerf = 0
-	self.PerfTime = 0
-	
-	self:RefreshMemory()
-	
-end
-
-/*==============================================================================================
-	Section: Memory Handlers.
-==============================================================================================*/
-function Lemon:RefreshMemory( )
-	-- Purpose: Clears and recreates the memory of the entire chip.
-	
-	API.CallHook( "BuildContext", self, Instance )
-	
-	local Context, PortLookUp = self.Context, { }
-	local Memory, Delta, Types = Context.Memory, Context.Delta, Context.Types
-	local InPorts, OutPorts = self.Inputs or {}, self.Outputs or {}
-	
-	--- Inputs:
-	
-	local Inputs, InTypes = { }, { }
-	for Cell, Name in pairs( self.InMemory ) do
-		local Type = ShortTypes[ Types[Cell] ]
-		local WireType = Type[4]
-		PortLookUp[Name] = Cell
-		
-		if !WireType or !Type[5] then
-			return self:ScriptError( "Type '" .. Type[1] .. "' may not be used as input." )
-		elseif InPorts[Name] and InPorts[Name].Type == WireType then
-			Type[5]( Context, Cell, InPorts[Name].Value )
-		else
-			Memory[Cell] = Type[3]( Context )
-			InPorts[Name] = nil
-		end
-		
-		Inputs[#Inputs + 1] = Name
-		InTypes[#InTypes + 1] = WireType
-	end
-	
-	self.Inputs = WireLib.CreateSpecialInputs( self, Inputs, InTypes )
-	
-	for Name, Port in pairs( InPorts ) do
-		self.Inputs[Name] = Port
-	end
-
-	--- Outputs:
-	
-	local Outputs, OutTypes = { }, { }
-	for Cell, Name in pairs( self.OutMemory ) do
-		local Type = ShortTypes[ Types[Cell] ]
-		local WireType = Type[4]
-		PortLookUp[Name] = Cell
-		
-		if !WireType or !Type[6] then
-			return self:ScriptError( "Type '" .. Type[1] .. "' may not be used as output." )
-		elseif !OutPorts[Name] or OutPorts[Name].Type ~= WireType then
-			InPorts[Name] = nil
-		end
-		
-		Memory[Cell] = Type[3]( Context )
-		Outputs[#Outputs + 1] = Name
-		OutTypes[#OutTypes + 1] = WireType
-	end
-	
-	self.Outputs = WireLib.CreateSpecialOutputs( self, Outputs, OutTypes )
-	
-	for Name, Port in pairs( OutPorts ) do
-		self.Outputs[Name] = Port
-	end; self:TriggerOutputs()
-	
-	self.PortLookUp = PortLookUp
-	self.GateName = "LemonGate"
-	self.Errored = nil
-	self.LastPerf = 0
-end
-
-/*==============================================================================================
-	Section: Wire Mod Stuff
-==============================================================================================*/
-function Lemon:TriggerInput( Key, Value )
-	local Context = self.Context
-	
-	if !self.Errored and Context then
-		local Cell = self.PortLookUp[Key]
-		
-		if Cell then
-			ShortTypes[ Context.Types[Cell] ][5]( Context, Cell, Value )
-			Context.Click[Cell] = true
-			self:CallEvent( "trigger", E_A.ValueToOp( Key, "s" ) )
-			Context.Click[Cell] = false
-		end
+function Lemon:Reset( )
+	if self.Script then
+		self:BuildScript( self.Script )
 	end
 end
 
-function Lemon:TriggerOutputs()
-	local Context = self.Context
-	local Memory, Types, Click = Context.Memory, Context.Types, Context.Click
+function Lemon:Pcall( Func, ... )
+	local Ok, Status, Value = pcall( Func, ... )
 	
-	for Cell, Name in pairs( self.OutMemory ) do
-		
-		if Click[Cell] then
-			local Value = ShortTypes[Types[Cell]][6]( Context, Cell )
-			WireLib.TriggerOutput( self, Name, Value )
-			Click[Cell] = false
-		end
+	if Ok or Status == "Exit" then
+		self:Update( )
+		return Ok, Status, Value
+	elseif Status == "Script" then
+		local Cont = self.Context
+		return self:ScriptError( Cont.ScriptTrace, Cont.ScriptError )
+	elseif Status == "Exception" then
+		local Excpt = self.Context.Exception
+		return self:ScriptError( Excpt.Trace, "uncatched exception '" .. Excpt.Type .. "' in main thread" )
+	elseif Status == "Break" or Status == "Continue" then
+		return self:ScriptError( nil, "unexpected use of " .. Status .. " in main thread." )
+	else
+		return self:LuaError( Status )
 	end
-	
-	API.CallHook( "TriggerOutputs", self )
 end
 
-/*==============================================================================================
-	Section: Executions.
-==============================================================================================*/
-local SafeCall = E_A.SafeCall
+function Lemon:IsRunning( )
+	return self.Context ~= nil
+end
 
-function Lemon:Restart()
+function Lemon:ShutDown( )
 	self:CallEvent( "final" )
-	API.CallHook("ShutDown", self)
-	self:RefreshMemory()
-	self:Execute()
+	self:API( ):CallHook( "ShutDown", self, self.Context )
 end
 
-function Lemon:Execute()
-	local Executable, Context = self.Executable, self.Context
-	
-	if Executable and Context then
-		self:SetColor(GoodColor)
-		self:UpdateOverlay("Online: 0%%")
-		
-		local Ok, Exit = SafeCall( Executable, Context )
-	
-		if !Ok and Exit ~= "Exit" then
-			return self:Exit( Exit )
-		end	-- Inproper exit!
-			
-		self:TriggerOutputs()
-	end
-end
-
+/*==============================================================================================
+	Section: Events
+==============================================================================================*/
 function Lemon:CallEvent( Name, ... )
-	local Context = self.Context
-	
-	if !self.Errored and Context then
-		local Event = Context.Events[ Name ]
+	if self:IsRunning( ) then
+		local Event = self.Context["Event_" .. Name]
+		
 		if Event then
-			Event[1](Context, { ... })
-			local Ok, Exit = SafeCall( Event[2], Context )
-			
-			if Ok or Exit == "Exit" then
-				return self:TriggerOutputs()
-			elseif Exit == "Return" then
-				self:TriggerOutputs()
-				return Context.ReturnValue( Context )
+			local Ok, Status = pcall( Event, ... )
+			if Ok and Status then
+				self:Update( )
+				return Status[1], self
+			elseif Ok or Status == "Exit" then
+				self:Update( )
+			elseif Status == "Script" then
+				local Cont = self.Context
+				return self:ScriptError( Cont.ScriptTrace, Cont.ScriptError )
+			elseif Status == "Exception" then
+				local Excpt = self.Context.Exception
+				return self:ScriptError( Excpt.Trace, "uncatched exception '" .. Excpt.Type .. "' in event " .. Name )
+			elseif Status == "Break" or Status == "Continue" then
+				return self:ScriptError( nil, "unexpected use of " .. Status .. " in event " .. Name )
 			else
-				return self:Exit( Exit )
+				return self:LuaError( Status )
 			end
 		end
 	end
 end
 
 /*==============================================================================================
+	Section: Wire Mod Stuff
+==============================================================================================*/
+function Lemon:TriggerInput( Key, Value )
+	if self:IsRunning( ) then
+		local Ref = self.OutPorts[ Key ]
+		local Cell = self.Cells[ Ref ]
+		
+		if Cell then
+			Cell.Class.Wire_In( self.Context, Ref, Value )
+			self.Context.Click[ Ref ] = true
+		end
+	end
+end
+
+function Lemon:TriggerOutputs( )
+	if self:IsRunning( ) then
+		local Context = self.Context
+		
+		for Name, Ref in pairs( self.OutPorts ) do
+			if Context.Click[ Ref ] then
+				local Value = self.Cells[ Ref ].Class.Wire_Out( Context, Ref )
+				WireLib.TriggerOutput( self, Name, Value )
+			end
+		end
+	end
+end
+	-- TODO: Hook
+
+/*==============================================================================================
 	Section: Erroring!
 ==============================================================================================*/
-function Lemon:Exit( Exit )
-	if Exit == "Exception" and self.Context then
-		local Exception = self.Context.Exception
-		
-		if Exception.Type == "script" then
-			return self:ScriptError( Exception.Msg )
-		else
-			return self:ScriptError("uncatched exception '" .. Exception.Type .. "' in main thread")
-		end
-	elseif Exit == "Return" or Exit == "Break" or Exit == "Continue" then
-		return self:ScriptError("unexpected use of " .. Exit .. " in main thread.")
-	elseif Exit == "LUA" and self.Context.LuaError then
-		return self:LuaError( self.Context.LuaError )
-	else
-		return self:ScriptError("Unexpected untracable error.")
-	end
-end
-
-function Lemon:LuaError(Message)
+function Lemon:LuaError( Message )
+	self.Context = nil -- Shut Down!
+	self:SetColor( BadColor )
+	self:UpdateOverLay( "Lua Error" )
+	
+	
 	Message = Message or "Unkown Error"
-	
-	self.Errored = true
-	self:SetColor(BadColor)
-	API.CallHook("ShutDown", self)
-	self:UpdateOverlay("LUA Error")
-	MsgN("LemonGate LUA: " .. Message)
-	WireLib.ClientError("LemonGate: Suffered a LUA error" , self.Player)
-	WireLib.ClientError("LUA: " .. Message , self.Player)
+	MsgN( "LemonGate LUA: " .. Message )
+	WireLib.ClientError( "LemonGate: Suffered a LUA error" , self.Player )
+	WireLib.ClientError( "LUA: " .. Message , self.Player )
 end
 
-function Lemon:ScriptError(Message)
-	Message = Message or "Unexpected Error"
+function Lemon:ScriptError( Trace, Message )
+	self.Context = nil -- Shut Down!
+	self:SetColor( BadColor )
+	self:UpdateOverLay( "Script Error" )
 	
-	if self.Exception then
-		local StackTrace = self.Exception.Trace
-		local Trace = StackTrace[#StackTrace]
-		if Trace then Message = Message .. " at Line " .. Trace[1] .. " Char " .. Trace[2] end
+	if Trace then
+		print( Trace )
+		Message = string.format( "%s at Line %d Char %d", Message or "Uknown Error", Trace[1], Trace[2] )
+	else
+		Message = Message or "Untrackable Error"
 	end
 	
-	self.Errored = true
-	self:SetColor(BadColor)
-	API.CallHook("ShutDown", self)
-	self:UpdateOverlay("Script Error")
-	WireLib.ClientError(Message, self.Player)
+	WireLib.ClientError( Message, self.Player )
 end
 
-/*==============================================================================================
-	Section: Name and Overlay.
-==============================================================================================*/
-function Lemon:SetGateName(Name)
-	self.GateName = Name or "LemonGate"
-end
-
-function Lemon:UpdateOverlay(Status, Info, ...)
-	if Info then Status = FormatStr(Status, Info, ...) end
+function Lemon:Error( Message )
+	self.Context = nil -- Shut Down!
+	self:SetColor( BadColor )
+	self:UpdateOverLay( Message )
 	
-	self:SetOverlayText( self.GateName .. "\n" .. Status )
-end
-
-/*==============================================================================================
-	Section: Performance points
-==============================================================================================*/
-function Lemon:CaculatePerf(NoUpdate)
-	local Context = self.Context
-	if Context then
-		local Perf, MaxPerf, Percent = Context.Perf, MaxPerf:GetInt(), 0
-		Perf = (MaxPerf - Perf)
-		
-		if !NoUpdate then 
-			Context.Perf = MaxPerf
-			self.LastPerf = Perf
-		end
-			
-		if Perf ~= MaxPerf then
-			Percent = MathCeil((Perf / MaxPerf) * 100)
-		end
-		
-		return Perf, MaxPerf, Percent
-	end
-	
-	return 0, 0, 0
+	WireLib.ClientError( Message, self.Player )
 end
 
 /*==============================================================================================
@@ -405,17 +378,16 @@ function ENT:BuildDupeInfo( )
 	
 	DupeTable.Script = self.Script
 	
-	API.CallHook("BuildDupeInfo", self, DupeTable)
+	self:API( ):CallHook( "BuildDupeInfo", self, self.Context, DupeTable )
 	
 	return DupeTable
 end
 
-function ENT:ApplyDupeInfo(Player, Entity, DupeTable, FromID)
-	self.BaseClass.ApplyDupeInfo(self, Player, Entity, DupeTable, FromID)
+function ENT:ApplyDupeInfo( Player, Entity, DupeTable, FromID )
+	self.BaseClass.ApplyDupeInfo( self, Player, Entity, DupeTable, FromID )
 	self.Player = Player
 	
 	self:LoadScript( DupeTable.Script or "" )
-	self:Execute( )
 	
-	API.CallHook("ApplyDupeInfo", self, DupeTable, FromID)
+	self:API( ):CallHook( "ApplyDupeInfo", self, self.Context, DupeTable, FromID )
 end
