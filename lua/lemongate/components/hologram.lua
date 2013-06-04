@@ -393,9 +393,9 @@ if %Holo and %Holo:IsValid( ) and %Holo.Player == %context.Player then
 	local %Scale = %Holo:OBBMaxs() - %Holo:OBBMins()
 	local %Max = %HoloLib._Size:GetInt()
 
-		%X = math.Clamp(%Units[1] / %Scale.x, -%Max, %Max)
-		%Y = math.Clamp(%Units[2] / %Scale.y, -%Max, %Max)
-		%Z = math.Clamp(%Units[3] / %Scale.z, -%Max, %Max)
+	local %X = math.Clamp(%Units[1] / %Scale.x, -%Max, %Max)
+	local %Y = math.Clamp(%Units[2] / %Scale.y, -%Max, %Max)
+	local %Z = math.Clamp(%Units[3] / %Scale.z, -%Max, %Max)
 
 	if %Holo.ModelAny then
 		%X, %Y, %Z = %HoloLib.RescaleAny(%X, %Y, %Z, %Max, %Scale)

@@ -300,24 +300,31 @@ end
 ==============================================================================================*/
 
 function Compiler:Compile_SEQUENCE( Trace, Statements )
-	local Sequence = { }
+	local Lines, Perf = { }, 0
 	
 	for I = 1, #Statements do
-		local Instr, Lua = Statements[ I ], "\n"
+		local Instr = Statements[ I ]
+		
+		if !Instr then
+			self:TraceError( Trace, "Unpredicted compile error, Sequence got invalid statment." )
+		end
 		
 		if Instr.Perf and Instr.Perf > 0 then
-			Lua = Lua .. "Context:PushPerf( " .. self:CompileTrace( Trace ) .. ", " .. Perf .. " )\n"
+			Perf = Perf + Instr.Perf
 		end
 		
 		if Instr.Prepare and Instr.Prepare ~= "" then
-			Sequence[I] = Lua .. Instr.Prepare .. "\n"
+			Lines[I] = Instr.Prepare
 		elseif Instr.Inline ~= "" and !string.find( Instr.Inline, "^local" ) then
-			Sequence[I] = Lua .. (Instr.Inline or "")
+			Lines[I] = (Instr.Inline or "")
 		end
-		
 	end
 	
-	return self:Instruction( Trace, LEMON_PERF_CHEAP, "", "", "do\n" .. string.Implode( "\n", Sequence ) .. "\nend\n")
+	return self:Instruction( Trace, 0, "", "", [[
+		do
+			Context:PushPerf( ]] .. self:CompileTrace( Trace ) .. ", " .. Perf .. [[ )
+			]] .. string.Implode( "\n", Lines ) .. [[
+		end]] )
 end
 
 /*==============================================================================================
@@ -350,19 +357,18 @@ function Compiler:Compile_CAST( Trace, CastType, Value )
 	end
 	
 	local Op = self:GetOperator( string.lower( CastType.Name ), Value.Return )
-	if Op then return Op.Compile( self, Trace, Value ) end
 	
-	-- Todo: DownCast
-	if CastType.DownCast and CastType.DownCast == Value.Return then
-		return self:Instruction( Trace, LEMON_PERF_CHEAP, CastType.DownCast, Value.Inline, Value.Prepare )
-	end
+	if Op then
+		return Op.Compile( self, Trace, Value )
 	
-	local CastClass = self:Class( Value.Return, true )
-	if CastClass.UpCast[ CastType.Short ] then
+	elseif CastType.DownCast and CastType.DownCast == Value.Return then
+		return self:Instruction( Trace, LEMON_PERF_CHEAP, CastType.Short, Value.Inline, Value.Prepare )
+	
+	elseif CastType.UpCast[ Value.Return ] then
 		return self:Instruction( Trace, LEMON_PERF_CHEAP, CastType.Short, Value.Inline, Value.Prepare )
 	end
 	
-	self:TraceError( "%s can not cast to %s", CastType.Name, CastClass.Name )
+	self:TraceError( Trace, "%s can not cast to %s", CastType.Name, NType( Value.Return ) )
 end
 	
 	-- Apple -> DownCast -> Fruit
@@ -665,17 +671,20 @@ function Compiler:Compile_RETURN( Trace, Expression )
 end
 
 /*==============================================================================================
-	Section: For Loop!
+	Section: Loops!
 ==============================================================================================*/
 function Compiler:Compile_FOR( Trace, Class, Assigment, Condition, Step, Statments )
 	local Op = self:GetOperator( "for", Class )
 	
 	if !Op then
 		self:TraceError( Trace, "%s not compatable with for loops", NType( Class ) )
-	end -- This is total crap, I could make it uniform compatable!
-	-- TODO: ^ (That)
+	end
 	
 	return Op.Compile( self, Trace, Assigment, Condition, Step, Statments )
+end
+
+function Compiler:Compile_WHILE( Trace, Condition, Statments )
+	return self:GetOperator( "while" ).Compile( self, Trace, Condition, Statments )
 end
 
 /*==============================================================================================
@@ -715,6 +724,7 @@ function Compiler:Compile_FUNCTION( Trace, Function, ... )
 end
 
 function Compiler:Compile_METHOD( Trace, Function, Meta, ... )
+	
 	local MetaType = Meta.Return
 	local Perams, Signature, BestMatch = { ... }, ""
 	
@@ -726,19 +736,21 @@ function Compiler:Compile_METHOD( Trace, Function, Meta, ... )
 	end
 	
 	local Op = Functions[ Format( "%s(%s:%s)", Function, MetaType, Signature ) ] or BestMatch
-	if Op then return Op.Compile( self, Trace, Meta, ... ) end
+	
+	if Op then
+		return Op.Compile( self, Trace, Meta, ... )
+	end
 	
 	local Class = API:GetClass( MetaType, true )
 	
 	if Class and Class.DownCast then
-		self.MethodError = true
+		Meta.TrueReturn = Meta.TrueReturn or MetaType
 		Meta.Return = Class.DownCast
 		Op = self:Compile_METHOD( Trace, Function, Meta, ... )
 	end
 	
-	if !Op and !self.MethodError then
-		self.MethodError = nil
-		self:TraceError( Trace, "No such method %s:%s(%s)", MetaType, Function, Signature )
+	if !Op then
+		self:TraceError( Trace, "No such method %s:%s(%s)", Meta.TrueReturn or Meta.Return, Function, Signature )
 	end
 	
 	return Op
@@ -825,8 +837,7 @@ function Compiler:Compile_TRY( Trace, Block, Catch, Final )
 	return self:Instruction( Trace, LEMON_PERF_ABNORMAL, "", "", Lua )	
 end
 
-function Compiler:Compile_CATCH( Trace, Variable, Exceptions, Block, Catch )
-	local Ref = self:Assign( Trace, Variable, "!", CELL_LOCAL )
+function Compiler:Compile_CATCH( Trace, Ref, Exceptions, Block, Catch )
 	local Op = self:GetOperator( "=" )
 	
 	local Lua = !Exections and "true" or string.Implode( " == ExceptionClass or " ) .. " == ExceptionClass "

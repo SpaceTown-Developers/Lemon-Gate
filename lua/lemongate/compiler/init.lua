@@ -113,13 +113,13 @@ function Compiler:Run( Code, NoCompile )
 	
 	self:NextChar( )
 	
+	self.Flags = { }
+	
+	self.Expire = SysTime( ) + 2
+	
 	self.Tokens = { self:GetNextToken( ), self:GetNextToken( ) }
 	
 	self:NextToken( )
-	
-	self.Flags = { }
-	
-	self.Exspire = SysTime( ) + 10
 	
 	self.CompilerRuns = 0
 	
@@ -162,17 +162,17 @@ end
 /*==============================================================================================
 	Section: Operators
 ==============================================================================================*/
-function Compiler:GetOperator( Name, ... )
-	local Params = { ... }
+function Compiler:GetOperator( Name, Param1, ... )
+	local Op = API.Operators[ Format( "%s(%s)", Name, table.concat( { Param1 or "", ... } , "" ) ) ]
 	
-	local Op = API.Operators[ Format( "%s(%s)", Name, table.concat( Params, "" ) ) ]
-	if Op or !Params[1] then return Op end
+	if Op or !Param1 then
+		return Op
+	end
 	
-	local Class = API:GetClass( Params[1], true )
+	local Class = API:GetClass( Param1, true )
 	
 	if Class and Class.DownCast then
-		Params[1] = Class.DownCast
-		return self:GetOperator( Name, unpack( Params ) )
+		return self:GetOperator( Name, Class.DownCast, ... )
 	end
 end
 
@@ -181,10 +181,8 @@ end
 ==============================================================================================*/
 
 function Compiler:TimeCheck( )
-	self.CompilerRuns = self.CompilerRuns + 1
-	
-	if SysTime( ) > self.Exspire then
-		self:Error( "Code took to long to Tokenize (" .. self.CompilerRuns .. ")" )
+	if SysTime( ) > self.Expire then
+		self:Error( "Code took to long to Compile." )
 	end
 end
 

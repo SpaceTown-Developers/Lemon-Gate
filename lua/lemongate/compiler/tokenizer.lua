@@ -180,7 +180,6 @@ function Compiler:SkipComments( )
 
 	if Style then
 		while !self:NextPattern( Style, true ) do
-
 			if !self.Char then 
 				if Style == "*/" then
 					self:Error( 0, "Unterminated multiline comment (/*)", 0 )
@@ -234,7 +233,6 @@ function Compiler:StringToken( StrChar )
 	local PrevChar = self:SkipChar()
 
 	while self.Char do
-
 		if self.Char == StrChar then -- and ( !PrevChar or PrevChar == "\\" ) then
 			break
 		else

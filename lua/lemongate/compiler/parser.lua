@@ -342,7 +342,7 @@ function Compiler:GetValue( RootTrace )
 		self:ExpressionError( )
 	end
 	
-	Value = self:NextValueOperator( Value )
+	Value = self:NextValueOperator( Value, self:GetFlag( "ExprTrace" ) )
 			
 	if CastType then
 		Value = self:Compile_CAST( Trace, CastType, Value )
@@ -363,37 +363,36 @@ function Compiler:BuildTable( RootTrace )
 
 	local Trace = self:TokenTrace( RootTrace )
 	
-	if self:CheckToken( "rcb" ) then
-		return self:Compile_TABLE( Trace, { }, 0 )
-	end
-	
 	local Count, Values, Keys = 0, { }, { }
 	
-	while true do
-		self:ExcludeToken( "com", "Expression seperator (,) can not appear here." )
+	if !self:CheckToken( "rcb" ) then
 		
-		Count = Count + 1
-		
-		local Expression, Key = self:GetExpression( Trace )
-		
-		if self:AcceptToken( "ass" ) then
-			Keys[Count] = Expression
+		while self:HasTokens( ) do
+			self:ExcludeToken( "com", "Expression seperator (,) can not appear here." )
 			
-			Expression = self:GetExpression( Trace )
+			Count = Count + 1
 			
-			if Expression.Return == "..." then
-				self:TraceError( Trace, "Varargs (...) can not have a set index.")
+			local Expression, Key = self:GetExpression( Trace )
+			
+			if self:AcceptToken( "ass" ) then
+				Keys[Count] = Expression
+				
+				Expression = self:GetExpression( Trace )
+				
+				if Expression.Return == "..." then
+					self:TraceError( Trace, "Varargs (...) can not have a set index.")
+				end
 			end
-		end
-		
-		Values[Count] = Expression
-		
-		if !self:AcceptToken( "com" ) then
-			break
+			
+			Values[Count] = Expression
+			
+			if !self:AcceptToken( "com" ) then
+				break
+			end
 		end
 	end
 	
-	self:RequireToken( "rcb", "Right curly bracket ({) expected, after table contents" )
+	self:RequireToken( "rcb", "Right curly bracket (}) expected, after table contents" )
 	
 	return self:Compile_TABLE( Trace, Values, Keys, Count )
 end
@@ -499,10 +498,13 @@ end
 
 function Compiler:NextValueOperator( Value, RootTrace )
 	
-	-- Method
+	
 	
 	if !Value then
+		debug.Trace( )
 		self:TraceError( RootTrace, "Unpredicted compile error, NextValueOperator got no value" )
+	
+	-- Method
 	elseif self:AcceptToken( "col" ) then
 		local Trace = self:TokenTrace( RootTrace ) 
 		
@@ -598,12 +600,17 @@ function Compiler:GetStatements( ExitType, RootTrace )
 	if !self:HasTokens( ) or ( ExitType and self:CheckToken( ExitType ) ) then
 		return self:Instruction( Trace, 0, "", "", "")
 	end
-
+	
 	while true do
+		
 		I = I + 1
 		
 		Statements[I] = self:Statement( Trace ) 
-	
+		
+		if !Statements[I] then
+			self:TraceError( Trace, "This fucker is nill!" )
+		end
+		
 		self:AcceptSeperator( )
 
 		if !self:HasTokens( ) or ( ExitType and self:CheckToken( ExitType ) ) then
@@ -699,7 +706,7 @@ function Compiler:Statment_VAR( RootTrace )
 		return self:Compile_SET( Data[3], Get, Data[1], Instruction, Data[2])
 	
 	else
-		return self:NextValueOperator( self:Compile_VARIABLE( Trace, Variable ) )
+		return self:NextValueOperator( self:Compile_VARIABLE( Trace, Variable ), RootTrace )
 	end
 end
 
@@ -871,7 +878,7 @@ function Compiler:StatmentError( )
 		self:ExcludeToken("str", "String must be part of statement or expression")
 		self:ExcludeToken("var", "Variable must be part of statement or expression")
 
-		self:Error("Unexpected token found (%s)", self.PrepTokenName)
+		self:Error(0, "Unexpected token found (%s)", self.PrepTokenName)
 	else
 		self:TokenError( self:GetFlag( "ExprTrace" ), "Further input required at end of code, incomplete statement / expression")
 	end
@@ -1064,6 +1071,25 @@ function Compiler:Statment_FOR( RootTrace )
 	return self:Compile_FOR( Trace, Class, Assignment, Condition, Step, Block )
 end
 
+
+/*==============================================================================================
+	Section: While Loop
+==============================================================================================*/
+
+function Compiler:Statment_WHL( RootTrace )
+	local Trace = self:TokenTrace( RootTrace )
+	
+	local Cond = self:GetCondition( RootTrace )
+	
+	self:PushFlag( "LoopDepth", self:GetFlag( "LoopDepth", 0 ) + 1 )
+	
+	local Block = self:GetBlock( "while loop", Trace )
+	
+	self:PopFlag( "LoopDepth" )
+	
+	return self:Compile_WHILE( Trace, Condition, Block )
+end
+
 /*==============================================================================================
 	Section: Try Catch
 ==============================================================================================*/
@@ -1109,11 +1135,11 @@ function Compiler:GetCatchStmt( RootTrace )
 		
 		self:RequireToken( "var", "Variable expected for catch" )
 		
-		local Variable = self.TokenData
+		local Ref = self:Assign( Trace, self.TokenData, "!", "Local" ) 
 		
 		self:RequireToken( "rpa", "Right parenthesis ( )) missing, to catch" )
 		
-		return self:Compile_CATCH( Trace, Variable, Exceptions, self:GetBlock( "catch", Trace ), self:GetCatchStmt( RootTrace ) )
+		return self:Compile_CATCH( Trace, Ref, Exceptions, self:GetBlock( "catch", Trace ), self:GetCatchStmt( RootTrace ) )
 	end
 end
 

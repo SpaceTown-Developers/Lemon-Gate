@@ -50,17 +50,17 @@ Core:AddOperator( "^", "a,a", "a", "local %A, %B = value %1, value %2", "{%A[1] 
 
 -- Mumberic Arithmatic:
 
-Core:AddOperator( "+", "v,n", "a", "local %A, %B = value %1, value %2", "{%A[1] + %B, %A[2] + %B, %A[3] + %B}" )
+Core:AddOperator( "+", "a,n", "a", "local %A, %B = value %1, value %2", "{%A[1] + %B, %A[2] + %B, %A[3] + %B}" )
 
-Core:AddOperator( "-", "v,n", "a", "local %A, %B = value %1, value %2", "{%A[1] - %B, %A[2] - %B, %A[3] - %B}" )
+Core:AddOperator( "-", "a,n", "a", "local %A, %B = value %1, value %2", "{%A[1] - %B, %A[2] - %B, %A[3] - %B}" )
 
-Core:AddOperator( "*", "v,n", "a", "local %A, %B = value %1, value %2", "{%A[1] * %B, %A[2] * %B, %A[3] * %B}" )
+Core:AddOperator( "*", "a,n", "a", "local %A, %B = value %1, value %2", "{%A[1] * %B, %A[2] * %B, %A[3] * %B}" )
 
-Core:AddOperator( "/", "v,n", "a", "local %A, %B = value %1, value %2", "{%A[1] / %B, %A[2] / %B, %A[3] / %B}" )
+Core:AddOperator( "/", "a,n", "a", "local %A, %B = value %1, value %2", "{%A[1] / %B, %A[2] / %B, %A[3] / %B}" )
 
-Core:AddOperator( "%", "v,n", "a", "local %A, %B = value %1, value %2", "{%A[1] % %B, %A[2] % %B, %A[3] % %B}" )
+Core:AddOperator( "%", "a,n", "a", "local %A, %B = value %1, value %2", "{%A[1] % %B, %A[2] % %B, %A[3] % %B}" )
 
-Core:AddOperator( "^", "v,n", "a", "local %A, %B = value %1, value %2", "{%A[1] ^ %B, %A[2] ^ %B, %A[3] ^ %B}" )
+Core:AddOperator( "^", "a,n", "a", "local %A, %B = value %1, value %2", "{%A[1] ^ %B, %A[2] ^ %B, %A[3] ^ %B}" )
 
 -- General:
 
@@ -165,11 +165,11 @@ Core:AddFunction("inrange", "a,a,a", "b", "local %A, %B, %C = value %1, value %2
 	Entity Helpers
 ==============================================================================================*/
 Core:AddFunction("toWorld", "e:v", "v", [[
-local %Ent, %A, = value %1, value %2
+local %Ent, %A = value %1, value %2
 local %Val = (%Ent and %Ent:IsValid( )) and %Ent:LocalToWorldAngles( $Vector( %A[1], %A[2], %A[3] ) ) or {0, 0, 0 }
 ]], "%Val" )
 
 Core:AddFunction("toLocal", "e:v", "v", [[
-local %Ent, %A, = value %1, value %2
+local %Ent, %A = value %1, value %2
 local %Val = (%Ent and %Ent:IsValid( )) and %Ent:WorldToLocalAngles( $Vector( %A[1], %A[2], %A[3] ) ) or {0, 0, 0 }
 ]], "%Val" )

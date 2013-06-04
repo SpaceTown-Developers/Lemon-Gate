@@ -11,35 +11,35 @@ Component:AddException( "buffer" )
 /*==============================================================================================
 	Section: Buffer Class
 ==============================================================================================*/
-local Buffer = Component:NewClass( "b", "buffer", { Cells = { }, Types = { }, R = 0, W = 0 } )
+local Buffer = Component:NewClass( "p", "buffer", { Cells = { }, Types = { }, R = 0, W = 0 } )
 
 Component:SetPerf( LEMON_PERF_CHEAP )
 
-Component:AddFunction( "buffer", "", "b", "{ Cells = { }, Types = { }, R = 0, W = 0 }" )
+Component:AddFunction( "buffer", "", "p", "{ Cells = { }, Types = { }, R = 0, W = 0 }" )
 
 -- Operators:
 
-Component:AddOperator( "#", "b", "n", "(#value %1.Cells)" )
+Component:AddOperator( "#", "p", "n", "(#value %1.Cells)" )
 
 -- Write Functions:
 
 Component:SetPerf( LEMON_PERF_NORMAL )
 
-Component:AddFunction( "writeNumber", "b:n", "", [[
+Component:AddFunction( "writeNumber", "p:n", "", [[
 local %Buffer = value %1
 %Buffer.W = %Buffer.W + 1
 %Buffer.Types[ %Buffer.W ] = "n"
 %Buffer.Cells[ %Buffer.W ] = value %2
 ]], "" )
 
-Component:AddFunction( "writeString", "b:s", "", [[
+Component:AddFunction( "writeString", "p:s", "", [[
 local %Buffer = value %1
 %Buffer.W = %Buffer.W + 1
 %Buffer.Types[ %Buffer.W ] = "s"
 %Buffer.Cells[ %Buffer.W ] = value %2
 ]], "" )
 
-Component:AddFunction( "writeEntity", "b:e", "", [[
+Component:AddFunction( "writeEntity", "p:e", "", [[
 local %Buffer = value %1
 %Buffer.W = %Buffer.W + 1
 %Buffer.Types[ %Buffer.W ] = "e"
@@ -48,13 +48,13 @@ local %Buffer = value %1
 
 Component:SetPerf( LEMON_PERF_CHEAP )
 
-Component:AddFunction( "writePos", "b", "n", "(value %1.W)" )
+Component:AddFunction( "writePos", "p", "n", "(value %1.W)" )
 
 -- Read Functions:
 
 Component:SetPerf( LEMON_PERF_ABNORMAL )
 
-Component:AddFunction( "readNumber", "b:", "n", [[
+Component:AddFunction( "readNumber", "p:", "n", [[
 local %Buffer, %Val = value %1
 if !%Buffer.Cells[ %Buffer.R ] then
 	%context:Throw( %trace, "buffer", "Reached end of buffer" )
@@ -65,7 +65,7 @@ else
 	%Buffer.R = %Buffer.R + 1
 end]], "%Val" )
 
-Component:AddFunction( "readString", "b:", "s", [[
+Component:AddFunction( "readString", "p:", "s", [[
 local %Buffer, %Val = value %1
 if !%Buffer.Cells[ %Buffer.R ] then
 	%context:Throw( %trace, "buffer", "Reached end of buffer" )
@@ -76,7 +76,7 @@ else
 	%Buffer.R = %Buffer.R + 1
 end]], "%Val" )
 
-Component:AddFunction( "readEntity", "b:", "e", [[
+Component:AddFunction( "readEntity", "p:", "e", [[
 local %Buffer, %Val = value %1
 if !%Buffer.Cells[ %Buffer.R ] then
 	%context:Throw( %trace, "buffer", "Reached end of buffer" )
@@ -89,15 +89,15 @@ end]], "%Val" )
 
 Component:SetPerf( LEMON_PERF_CHEAP )
 
-Component:AddFunction( "readPos", "b", "n", "(value %1.R)" )
+Component:AddFunction( "readPos", "p", "n", "(value %1.R)" )
 
 -- Misc:
 
-Component:AddFunction( "type", "b:", "s", "local %Buffer = value %1", "%LongType( %Buffer.Types[ %Buffer.R ] )" )
+Component:AddFunction( "type", "p:", "s", "local %Buffer = value %1", "%LongType( %Buffer.Types[ %Buffer.R ] )" )
 
-Component:AddFunction( "type", "b:n", "s", "%LongType( value %1.Types[ value %2 ] )" )
+Component:AddFunction( "type", "p:n", "s", "%LongType( value %1.Types[ value %2 ] )" )
 
-Component:AddFunction( "skip", "b:", "", [[
+Component:AddFunction( "skip", "p:", "", [[
 local %Buffer = value %1
 %Buffer.R = %Buffer.R + 1
 ]], "" )
@@ -107,11 +107,11 @@ local %Buffer = value %1
 ==============================================================================================*/
 Component:SetPerf( LEMON_PERF_NORMAL )
 
-Component:AddEvent( "receiveBuffer", "e,s,b", "" )
+Component:AddEvent( "receiveBuffer", "e,s,p", "" )
 
 Component:SetPerf( LEMON_PERF_EXPENSIVE )
 
-Component:AddFunction( "send", "b:s,e", "", [[
+Component:AddFunction( "send", "p:s,e", "", [[
 local %Buffer, %Ent = value %1, value %3
 if %Ent and %Ent:IsValid( ) and %Ent.IsLemonGate then
 	table.insert( %data.BufferQue, {%Ent, value %2, { Cells = table.Copy( %Buffer.Cells ), Types = table.Copy( %Buffer.Types ), R = %Buffer.R, W = %Buffer.W} } )
@@ -122,9 +122,9 @@ end]] )
 ==============================================================================================*/
 Component:SetPerf( LEMON_PERF_NORMAL )
 
-Component:AddEvent( "saveToDupe", "", "b" )
+Component:AddEvent( "saveToDupe", "", "p" )
 
-Component:AddEvent( "LoadFromDupe", "b", "" )
+Component:AddEvent( "LoadFromDupe", "p", "" )
 
 /*==============================================================================================
 	Section: API Hooks

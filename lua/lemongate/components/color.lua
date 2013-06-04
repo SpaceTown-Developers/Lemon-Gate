@@ -45,17 +45,17 @@ Core:AddOperator( "^", "c,c", "c", "local %A, %B = value %1, value %2", "{math.C
 
 -- Mumberic Arithmatic:
 
-Core:AddOperator( "+", "v,n", "c", "local %A, %B = value %1, value %2", "{math.Clamp(%A[1] + %B, 0, 255), math.Clamp(%A[2] + %B, 0, 255), math.Clamp(%A[3] + %B, 0, 255)}" )
+Core:AddOperator( "+", "c,n", "c", "local %A, %B = value %1, value %2", "{math.Clamp(%A[1] + %B, 0, 255), math.Clamp(%A[2] + %B, 0, 255), math.Clamp(%A[3] + %B, 0, 255)}" )
 
-Core:AddOperator( "-", "v,n", "c", "local %A, %B = value %1, value %2", "{math.Clamp(%A[1] - %B, 0, 255), math.Clamp(%A[2] - %B, 0, 255), math.Clamp(%A[3] - %B, 0, 255)}" )
+Core:AddOperator( "-", "c,n", "c", "local %A, %B = value %1, value %2", "{math.Clamp(%A[1] - %B, 0, 255), math.Clamp(%A[2] - %B, 0, 255), math.Clamp(%A[3] - %B, 0, 255)}" )
 
-Core:AddOperator( "*", "v,n", "c", "local %A, %B = value %1, value %2", "{math.Clamp(%A[1] * %B, 0, 255), math.Clamp(%A[2] * %B, 0, 255), math.Clamp(%A[3] * %B, 0, 255)}" )
+Core:AddOperator( "*", "c,n", "c", "local %A, %B = value %1, value %2", "{math.Clamp(%A[1] * %B, 0, 255), math.Clamp(%A[2] * %B, 0, 255), math.Clamp(%A[3] * %B, 0, 255)}" )
 
-Core:AddOperator( "/", "v,n", "c", "local %A, %B = value %1, value %2", "{math.Clamp(%A[1] / %B, 0, 255), math.Clamp(%A[2] / %B, 0, 255), math.Clamp(%A[3] / %B, 0, 255)}" )
+Core:AddOperator( "/", "c,n", "c", "local %A, %B = value %1, value %2", "{math.Clamp(%A[1] / %B, 0, 255), math.Clamp(%A[2] / %B, 0, 255), math.Clamp(%A[3] / %B, 0, 255)}" )
 
-Core:AddOperator( "%", "v,n", "c", "local %A, %B = value %1, value %2", "{math.Clamp(%A[1] % %B, 0, 255), math.Clamp(%A[2] % %B, 0, 255), math.Clamp(%A[3] % %B, 0, 255)}" )
+Core:AddOperator( "%", "c,n", "c", "local %A, %B = value %1, value %2", "{math.Clamp(%A[1] % %B, 0, 255), math.Clamp(%A[2] % %B, 0, 255), math.Clamp(%A[3] % %B, 0, 255)}" )
 
-Core:AddOperator( "^", "v,n", "c", "local %A, %B = value %1, value %2", "{math.Clamp(%A[1] ^ %B, 0, 255), math.Clamp(%A[2] ^ %B, 0, 255), math.Clamp(%A[3] ^ %B, 0, 255)}" )
+Core:AddOperator( "^", "c,n", "c", "local %A, %B = value %1, value %2", "{math.Clamp(%A[1] ^ %B, 0, 255), math.Clamp(%A[2] ^ %B, 0, 255), math.Clamp(%A[3] ^ %B, 0, 255)}" )
 
 -- General:
 

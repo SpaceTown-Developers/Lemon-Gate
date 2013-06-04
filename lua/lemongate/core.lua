@@ -183,6 +183,7 @@ function API:LoadCoreComponents( )
 		include( "lemongate/components/table.lua" )
 		include( "lemongate/components/hologram.lua" )
 		include( "lemongate/components/communicate.lua" )
+		include( "lemongate/components/timer.lua" )
 	end
 end
 
@@ -306,7 +307,7 @@ if SERVER then
 			Events = self.Events,
 			Externals = self.Raw_Externals,
 			Exceptions = self.Exceptions,
-			Components = ComponentLK,
+			Components = self.ComponentLK,
 		}
 		
 		for Name, Class in pairs( self.Classes ) do
@@ -702,7 +703,10 @@ if SERVER then
 					continue
 				end
 				
-				for Char, Param, Bracket in string.gmatch( Data.Params, "()(%w+)%s*([%[%]]?)()" ) do
+				local Meta = string.find( Data.Params, ":", 1, true )
+				if Meta then
+					local Param = string.sub( Data.Params, 1, Meta - 1 )
+					Data.Params = string.sub( Data.Params, Meta + 1 )
 					
 					local Class = API:GetClass( Param, true )
 					
@@ -710,13 +714,24 @@ if SERVER then
 						MsgN( Format( "%s can't register function %s(%s)\nclass %q doesn't exist." , self.Name, Data.Name, Data.Params, Param ) )
 						continue
 					else
+						Params[1] = Class.Short
+						Signature = Class.Short .. ":"
+					end
+				end
+				
+				for Char, Param, Bracket in string.gmatch( Data.Params, "()(%w+)%s*([%[%]]?)()" ) do
+					
+					local Class = API:GetClass( Param, true )
+					
+					if !Class then
+						MsgN( Format( "%s can't register function %s(%s)\nclass %q doesn't exist." , self.Name, Data.Name, Data.Params, Param ) )
+						break -- continue
+					else
 						Params[#Params + 1] = Class.Short
 						Signature = Signature .. Class.Short
 					end
 					
-					if Char == 1 and Data.Params[ #Param + 1] == ":" then
-						Signature = Signature .. ":"
-					elseif Bracket == "[" and !Optional then
+					if Bracket == "[" and !Optional then
 						Optional = true
 					end 
 					
@@ -908,6 +923,9 @@ function API:BuildFunction( Signature, Perf, ParamTypes, Return, Prepare, Inline
 	-- Biuld the function
 		return function( Compiler, Trace, ... )
 			Trace.Location = Signature
+			
+			file.Write( "lemon_debug.txt", (file.Read( "lemon_debug.txt" ) or "") .. Signature .. "\n"  )
+			
 			
 			if !Inline then
 				Compiler:TraceError( Trace, "Unpredicted compile error, %s has no inline", Signature )

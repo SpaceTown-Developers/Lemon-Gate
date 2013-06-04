@@ -196,6 +196,8 @@ function Lemon:Think( )
 		end
 		
 		self:CallEvent( "think" )
+		
+		self:API( ):CallHook("GateThink", self )
 	end
 	
 	self.BaseClass.Think( self )

@@ -251,6 +251,40 @@ do -- For Loop
 end
 ]], "" )
 
+Core:SetPerf( LEMON_PERF_EXPENSIVE )
+
+-- 1:Ass, 2:Cnd, 3:Step, 4:Statment
+Core:AddOperator( "while", "", "", [[
+do -- While Loop
+	local ExitDeph = ExitDeph or 0
+	
+	%prepare
+	
+	local Statments = function( )
+		prepare %2
+	end
+	
+	while ( value %1 ) do
+		%perf
+		
+		local Ok, Exit = pcall( Statments )
+		
+		if !Ok then
+			if ExitDeph > 0 then 
+				ExitDeph = ExitDeph - 1
+				error( Exit, 0 )
+			elseif Exit == "Continue" then
+				continue
+			elseif Exit == "Break" then
+				break
+			else
+				error( Exit, 0 )
+			end
+		end
+	end
+end
+]], "" )
+
 /*==============================================================================================
 	Section: Exiters
 ==============================================================================================*/
