@@ -181,19 +181,6 @@ function Core:BuildOperators( )
 end
 
 /*==============================================================================================
-	Section: Basic Functions
-==============================================================================================*/
-Core:SetPerf( LEMON_PERF_EXPENSIVE )
-
-Core:AddFunction("print", "...", "", [[
-local %Message = ""
-for _, Peram in pairs( { %... } ) do
-	%Message = %Message .. tostring( Peram[1] ) .. " "
-end
-Context.Player:PrintMessage( 3, string.Left( %Message, 249 ) )
-]], "", "Prints to chat." )
-
-/*==============================================================================================
 	Section: Statments
 ==============================================================================================*/
 Core:SetPerf( LEMON_PERF_NORMAL )

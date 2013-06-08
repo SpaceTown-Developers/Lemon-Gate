@@ -34,7 +34,7 @@ if SERVER then
 		
 	AddCSLuaFile( )
 	
-	AddCSLuaFile( "lemongate/uploader.lua" )
+	AddCSLuaFile( "lemongate/uploader2.lua" )
 	AddCSLuaFile( "lemongate/core.lua" )
 	AddCSLuaFile( "lemongate/compiler/tokenizer.lua" )
 	AddCSLuaFile( "lemongate/compiler/parser.lua" )
@@ -58,6 +58,6 @@ if SERVER then
 end
 
 include( "lemongate/core.lua" )
-include( "lemongate/uploader.lua" )
+include( "lemongate/uploader2.lua" )
 
 

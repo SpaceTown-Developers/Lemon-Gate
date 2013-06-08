@@ -135,7 +135,17 @@ function PANEL:SetupHelperFunctions( filter )
 	self.Functions = { }
 	self.cFunctions = { }
 	
+	local cList = { } 
 	for Name, Data in pairs( API.Classes ) do
+		cList[#cList + 1] = Name 
+	end 
+	
+	table.sort( cList, function(a, b) 
+		return string_lower( a[1] ) < string_lower( b[1] ) 
+	end ) 
+	
+	for I = 1, #cList do
+		local Name, Data = cList[I], API.Classes[cList[I]]
 		local node = self.Browser:AddNode( Name, "fugue/block.png" ) 
 		self.Classes[Data.Short] = { Name, node } 
 	end
@@ -157,15 +167,10 @@ function PANEL:SetupHelperFunctions( filter )
 		else 
 			self.Functions[#self.Functions + 1] = { name, funcName, argType, data }
 		end 
-		
 	end
 	
-	table.sort( self.Functions, function(a,b) 
-		return string_lower( a[1] ) < string_lower( b[1] ) 
-	end ) 
-	
 	for Class, List in pairs( self.cFunctions ) do
-		table.sort( List, function(a,b) 
+		table.sort( List, function(a, b) 
 			return string_lower( a[1] ) < string_lower( b[1] ) 
 		end ) 
 		
@@ -177,6 +182,10 @@ function PANEL:SetupHelperFunctions( filter )
 			Node.Syntax = self.Syntax
 		end 
 	end
+	
+	table.sort( self.Functions, function(a, b) 
+		return string_lower( a[1] ) < string_lower( b[1] ) 
+	end ) 
 	
 	for I = 1, #self.Functions do 
 		local Node = self.Browser:AddNode( self.Functions[I][1], "fugue/script.png" ) 

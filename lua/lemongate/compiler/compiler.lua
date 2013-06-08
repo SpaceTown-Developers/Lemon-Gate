@@ -195,12 +195,18 @@ end
 /*==============================================================================================
 	Section: Compiler
 ==============================================================================================*/
-function Compiler:CompileCode( Code, NoCompile )
+function Compiler:CompileCode( Code, Files, NoCompile )
 	self:InitScopes( )
 	
 	self.LocID = 0
+	self.Files = Files or { }
+	self.FilesLK = { }
 	self.Imports = { }
 	self.ImportsLK = { }
+	self.PrepCode = { }
+	self.PrepCodeLK = { }
+	
+	if SERVER then PrintTable( Files ) end
 	
 	local Lua = self:GetStatements( { 0, 0, Location = "Root" } ).Prepare
 	
@@ -228,7 +234,11 @@ function Compiler:CompileCode( Code, NoCompile )
 			} ) )
 				
 		return function( Context )
-			]] .. Lua .. [[
+			-- Prep Code	
+				]] .. string.Implode( "\n", self.PrepCode ) .. [[
+		
+			-- Main Body:
+				]] .. Lua .. [[
 		end]] )
 	
 	if !NoCompile then
@@ -263,6 +273,14 @@ function Compiler:Import( Value )
 	if !self.ImportsLK[ Value ] then
 		self.Imports[ #self.Imports + 1 ] = "local " .. Value .. " = " .. Value
 		self.ImportsLK[ Value ] = true
+	end
+end
+
+function Compiler:Prepare( Name, Lua )
+	print( type( self.PrepCode ), self.PrepCode )
+	if !self.PrepCodeLK[ Name ] then
+		self.PrepCode[ #self.PrepCode + 1 ] = Lua
+		self.PrepCodeLK[ Name ] = true
 	end
 end
 
@@ -309,9 +327,7 @@ function Compiler:Compile_SEQUENCE( Trace, Statements )
 			self:TraceError( Trace, "Unpredicted compile error, Sequence got invalid statment." )
 		end
 		
-		if Instr.Perf and Instr.Perf > 0 then
-			Perf = Perf + Instr.Perf
-		end
+		Perf = Perf + (Instr.Perf or 0)
 		
 		if Instr.Prepare and Instr.Prepare ~= "" then
 			Lines[I] = Instr.Prepare
@@ -351,24 +367,29 @@ end
 	Section: Casting
 ==============================================================================================*/
 function Compiler:Compile_CAST( Trace, CastType, Value )
+	local CastFrom = Value.Return
 	
-	if CastType.Short == Value.Return then
+	if CastType.Short == CastFrom then
 		self:TraceError( "%s can not be cast to itself", CastType.Name )
+	elseif !CastFrom or CastFrom == "" then
+		self:TraceError( Trace, "Casting operator recives void" )
+	elseif CastFrom == "..." then
+		self:TraceError( Trace, "Invalid use of varargs (...)." )
 	end
 	
-	local Op = self:GetOperator( string.lower( CastType.Name ), Value.Return )
+	local Op = self:GetOperator( string.lower( CastType.Name ), CastFrom )
 	
 	if Op then
 		return Op.Compile( self, Trace, Value )
 	
-	elseif CastType.DownCast and CastType.DownCast == Value.Return then
+	elseif CastType.DownCast and CastType.DownCast == CastFrom then
 		return self:Instruction( Trace, LEMON_PERF_CHEAP, CastType.Short, Value.Inline, Value.Prepare )
 	
 	elseif CastType.UpCast[ Value.Return ] then
 		return self:Instruction( Trace, LEMON_PERF_CHEAP, CastType.Short, Value.Inline, Value.Prepare )
 	end
 	
-	self:TraceError( Trace, "%s can not cast to %s", CastType.Name, NType( Value.Return ) )
+	self:TraceError( Trace, "%s can not cast to %s", CastType.Name, NType( CastFrom ) )
 end
 	
 	-- Apple -> DownCast -> Fruit
@@ -445,7 +466,16 @@ end
 	Section: Assignments
 ==============================================================================================*/
 function Compiler:Compile_ASSIGN( Trace, Variable, Expression )
-	local Ref, Scope = self:SetVariable( Trace, Variable, Expression.Return )
+	local Type = Expression.Return
+	
+	if !Type or Type == "" then
+		self:TraceError( Trace, "Assigment operator recives void" )
+	elseif Type == "..." then
+		self:TraceError( Trace, "Invalid use of varargs (...)." )
+	end
+	
+	local Ref, Scope = self:SetVariable( Trace, Variable, Type )
+	
 	if !Ref then
 		self:TraceError( Trace, "Vaiable %s does not exist", Variable )
 	elseif self:IsInput( Trace, Ref ) then
@@ -454,7 +484,7 @@ function Compiler:Compile_ASSIGN( Trace, Variable, Expression )
 		self:NotGarbage( Trace, Ref )
 	end
 	
-	local Op = self:GetOperator( "=", Expression.Return ) or self:GetOperator( "=" )
+	local Op = self:GetOperator( "=", Type ) or self:GetOperator( "=" )
 	return Op.Compile( self, Trace, Ref, Expression )
 end -- self:TraceError( "Assignment operator (=) does not support %s", Expression.Return )
 
@@ -724,8 +754,14 @@ function Compiler:Compile_FUNCTION( Trace, Function, ... )
 end
 
 function Compiler:Compile_METHOD( Trace, Function, Meta, ... )
-	
 	local MetaType = Meta.Return
+	
+	if !MetaType or MetaType == "" then
+		self:TraceError( Trace, "Can not call method on void" )
+	elseif MetaType == "..." then
+		self:TraceError( Trace, "Invalid use of varargs (...)." )
+	end
+	
 	local Perams, Signature, BestMatch = { ... }, ""
 	
 	for I = 1, #Perams do
@@ -924,4 +960,121 @@ function Compiler:Compile_EVENT( Trace, EventName, Perams, HasVarg, Block )
 	end]]
 	
 	return self:Instruction( Trace, 0, "", "", Lua )
+end
+
+/*==============================================================================================
+	Section: Include
+==============================================================================================*/
+function Compiler:DoScript( Code, File )
+	self:NextChar( )
+	
+	self.Flags = { }
+	
+	self.Tokens = { self:GetNextToken( ), self:GetNextToken( ) }
+	
+	self:NextToken( )
+	
+	return self:GetStatements( { 0, 0, Location = File or "Uknown" } ).Prepare
+end
+
+function Compiler:Compile_INCLUDE( Trace, Path, Scoped )
+	if !self.FilesLK[ Path ] then
+		
+		if CLIENT then
+			self.Files[ Path ] = LEMON.Editor.Instance:GetFileCode( Path )
+		end
+		
+		local Code = self.Files[ Path ]
+		
+		if !Code then
+			self:TraceError( Trace, "Could not include file '%s'", Path )
+		end
+		
+	-- First: Register this!
+		local ID = self:NextLocal( )
+		
+		self.FilesLK[ Path ] = ID
+	
+	-- Second: Back up current state!
+		local Pos = self.Pos
+		self.Pos = 0
+		
+		local TokenPos = self.TokenPos
+		self.TokenPos = -1
+		
+		local Char, ReadData = self.Char, self.ReadData
+		self.Char, self.ReadData = "", ""
+		
+		local ReadChar, ReadLine = self.ReadChar, self.ReadLine
+		self.ReadChar, self.ReadLine = 1, 1
+		
+		local Buffer, Len = self.Buffer, self.Len
+		self.Buffer, self.Len = Code, #Code
+		
+		local Flags = self.Flags
+		self.Flags = { }
+		
+		local Tokens = self.Tokens
+		
+	-- Third: Compile the new code
+	
+		if Scoped then self:PushScope( ) end
+		
+		local Ok, Lua = pcall( self.DoScript, self, Code, Path )
+		
+		if Scoped then self:PopScope( ) end
+		
+		if !Ok then
+			self:Error( Lua .. ", " .. Path, 0 )
+		end -- Error from file!
+		
+		self:Prepare( ID, "local " .. ID .. [[ = function( )
+			]] .. Lua .. [[
+		end]] ) -- Create the include function.
+		
+	-- Fourth: Return to previous state.
+		
+		self.Pos = Pos
+		
+		self.Tokens = Tokens
+		
+		self.TokenPos = TokenPos
+		
+		self.Char, self.ReadData = Char, ReadData
+		
+		self.ReadChar, self.ReadLine = ReadChar, ReadLine
+		
+		self.Buffer, self.Len = Buffer, Len
+		
+		self.Flags = self.Flags
+		
+	-- Now just call it =D
+	
+		return self:Instruction( Trace, LEMON_PERF_ABNORMAL, "", "", ID .. "( )" )
+	end
+	
+	return self:Instruction( Trace, LEMON_PERF_ABNORMAL, "", "", self.FilesLK[ Path ] .. "( )" )
+end
+
+/*==============================================================================================
+	Section: Cystom Syntax Functions
+==============================================================================================*/
+function Compiler:Compile_PRINT( Trace, Values, Count )
+	local Statments, Inline, Perf = { }, { }, LEMON_PERF_NORMAL
+	
+	for I = 1, Count do
+		local Val = Values[ I ]
+		
+		Perf = Perf + ( Val.Perf or 0 )
+		Statments[ I ] = Val.Prepare or ""
+		Inline[ I ] = Val.Inline
+	end
+	
+	return self:Instruction( Trace, 0, "", "", [[do
+		Context:PushPerf( ]] .. self:CompileTrace( Trace ) .. ", " .. Perf .. [[ )
+		
+		]] .. string.Implode( "\n", Statments ) .. [[
+		
+		Context.Player:PrintMessage( 3, string.Left( ]] .. string.Implode( " .. \" \" .. ", Inline ) .. [[, 249 ) )
+	end]] )
 end

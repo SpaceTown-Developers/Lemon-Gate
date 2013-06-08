@@ -148,7 +148,7 @@ function Component:UpdateExecution( Gate )
 end
 
 function Component:BuildDupeInfo( Gate, Context, DupeTable )
-	if self:IsRunning( ) then
+	if Gate:IsRunning( ) then
 		local Buffer = Gate:CallEvent( "saveToDupe" )
 		
 		if Buffer then
@@ -172,7 +172,7 @@ end
 function Component:ApplyDupeInfo( Player, Entity, DupeTable, FromID )
 	local Buffer = DupeTable.Buffer
 	
-	if Buffer then
+	if Buffer and Gate:IsRunning( ) then
 		for I = 1, Buffer.W do
 			if Buffer.Types[I] == "e" then
 				local Ent = FromID( Buffer.Cells[I] )

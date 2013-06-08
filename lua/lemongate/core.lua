@@ -182,6 +182,7 @@ function API:LoadCoreComponents( )
 		include( "lemongate/components/lambda.lua" )
 		include( "lemongate/components/table.lua" )
 		include( "lemongate/components/hologram.lua" )
+		include( "lemongate/components/sound.lua" )
 		include( "lemongate/components/communicate.lua" )
 		include( "lemongate/components/timer.lua" )
 	end

@@ -284,10 +284,10 @@ function PANEL:Init( )
 	file.CreateDir( "Lemongate" )
 end
 
-function PANEL:DoValidate( Goto, NoCompile )
+function PANEL:DoValidate( Goto, NoCompile, Code )
 	if not LEMON.API.Initialized then return self.ValidateButton:SetText( "Downloading Validation Files, Please wait..." ) end
 	
-	local Error = self:Validate( self:GetCode( ), NoCompile )
+	local Error = self:Validate( Code or self:GetCode( ), NoCompile )
 	
 	if Error then
 		self.ValidateButton:SetColor( Color( 255, 0, 0 ) )
@@ -311,7 +311,7 @@ function PANEL:DoValidate( Goto, NoCompile )
 end
 
 function PANEL:Validate( Script, NoCompile )
-	local Ok, Error = LEMON.Compiler.Execute( Script, NoCompile )
+	local Ok, Error = LEMON.Compiler.Execute( Script, nil, NoCompile )
 	if Ok then
 		self.Data = Error
 		return
@@ -330,6 +330,17 @@ function PANEL:GetCode( Tab )
 	Tab = Tab or self.TabHolder:GetActiveTab( )
 	if !Tab then return end
 	return Tab:GetPanel( ):GetCode( ), Tab.FilePath
+end
+
+function PANEL:GetFileCode( Path )
+	if not string.EndsWith( Path, ".txt" ) then Path = Path .. ".txt" end 
+	if not string.StartWith( Path, "lemongate/" ) then Path = "lemongate/" .. Path end
+	if self.FileTabs[Path] then 
+		return self:GetCode( self.FileTabs[Path] )
+	else 
+		if !Path or file.IsDir( Path, "DATA" ) then return end
+		return file.Read( Path )
+	end 
 end
 
 function PANEL:SetCaret( Pos, Tab )
@@ -389,7 +400,10 @@ function PANEL:SetSyntaxColorLine( func )
 		self.TabHolder.Items[i].Panel.SyntaxColorLine = func
 	end
 end
-function PANEL:GetSyntaxColorLine( ) return self.SyntaxColorLine end
+
+function PANEL:GetSyntaxColorLine( ) 
+	return self.SyntaxColorLine 
+end
 
 function PANEL:UpdateSyntaxColors( )
 	for i = 1, #self.TabHolder.Items do

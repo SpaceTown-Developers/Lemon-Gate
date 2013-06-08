@@ -70,7 +70,7 @@ function Lemon:BuildContext( )
 	return self.Context
 end
 
-function Lemon:LoadScript( Script )
+function Lemon:LoadScript( Script, Files )
 	local Context = self:BuildContext( )
 	
 	if self:IsRunning( ) then
@@ -78,8 +78,9 @@ function Lemon:LoadScript( Script )
 	end -- TODO: These
 	
 	self.Script = Script
+	self.Files = Files or { }
 	
-	local Ok, Instance = LEMON.Compiler.Execute( Script )
+	local Ok, Instance = LEMON.Compiler.Execute( Script, Files )
 	
 	if !Ok then
 		self:Error( "Compiler Error" )
@@ -379,6 +380,7 @@ function ENT:BuildDupeInfo( )
 	local DupeTable = self.BaseClass.BuildDupeInfo( self )
 	
 	DupeTable.Script = self.Script
+	DupeTable.Files = self.Files
 	
 	self:API( ):CallHook( "BuildDupeInfo", self, self.Context, DupeTable )
 	
@@ -389,7 +391,7 @@ function ENT:ApplyDupeInfo( Player, Entity, DupeTable, FromID )
 	self.BaseClass.ApplyDupeInfo( self, Player, Entity, DupeTable, FromID )
 	self.Player = Player
 	
-	self:LoadScript( DupeTable.Script or "" )
+	self:LoadScript( DupeTable.Script or "", DupeTable.Files )
 	
 	self:API( ):CallHook( "ApplyDupeInfo", self, self.Context, DupeTable, FromID )
 end

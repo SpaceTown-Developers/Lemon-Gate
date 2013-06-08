@@ -99,7 +99,7 @@ function Compiler.Execute( ... )
 	return pcall( Compiler.Run, setmetatable( { }, Compiler ), ... )
 end
 
-function Compiler:Run( Code, NoCompile )
+function Compiler:Run( Code, Files, NoCompile )
 	
 	self.Pos = 0
 	
@@ -123,7 +123,7 @@ function Compiler:Run( Code, NoCompile )
 	
 	self.CompilerRuns = 0
 	
-	return self:CompileCode( Code, NoCompile )
+	return self:CompileCode( Code, Files, NoCompile )
 end
 
 /*==============================================================================================

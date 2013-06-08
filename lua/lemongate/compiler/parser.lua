@@ -315,9 +315,13 @@ function Compiler:GetValue( RootTrace )
 	
 	elseif self:AcceptToken( "fun" ) then
 		local Trace, Function = self:TokenTrace( RootTrace ), self.TokenData
-		-- Call Function
 		
-		if self:AcceptToken( "lpa" ) then
+		-- Custom Syntax function
+		if self["FUNC_" .. Function] then
+			Value =  self["FUNC_" .. Function]( self, Trace )
+		
+		elseif self:AcceptToken( "lpa" ) then
+			-- Call Function
 			Value = self:Compile_FUNCTION( Trace, Function, self:NextInputPerams( RootTrace ) )
 			
 			self:RequireToken( "rpa", "Right parenthesis ( )) missing, to close function parameters" )
@@ -606,10 +610,6 @@ function Compiler:GetStatements( ExitType, RootTrace )
 		I = I + 1
 		
 		Statements[I] = self:Statement( Trace ) 
-		
-		if !Statements[I] then
-			self:TraceError( Trace, "This fucker is nill!" )
-		end
 		
 		self:AcceptSeperator( )
 
@@ -1079,7 +1079,7 @@ end
 function Compiler:Statment_WHL( RootTrace )
 	local Trace = self:TokenTrace( RootTrace )
 	
-	local Cond = self:GetCondition( RootTrace )
+	local Condition = self:GetCondition( RootTrace )
 	
 	self:PushFlag( "LoopDepth", self:GetFlag( "LoopDepth", 0 ) + 1 )
 	
@@ -1183,11 +1183,64 @@ function Compiler:Statment_EVT( RootTrace )
 	return Inst
 end
 
+/*==============================================================================================
+	Section: Custom Syntax functions
+==============================================================================================*/
+function Compiler:FUNC_include( Trace )
+	Trace.Location = "include(sb)"
+	
+	self:RequireToken( "lpa", "Left parenthesis (( ) missing after include" )
+	
+	self:RequireToken( "str", "Raw String expected for include( \"path\" )" )
+	
+	local Path, Scoped = self.TokenData, true
+	
+	if self:AcceptToken( "com" ) then
+		if self:AcceptToken( "fls" ) then
+			Scoped = false
+		elseif !self:AcceptToken( "tre" ) then
+			self:TraceError( self:TokenTrace( Trace ), "Raw boolean expected for include( String, Boolean )" )
+		end
+	end
+	
+	self:RequireToken( "rpa", "Right parenthesis ( )) missing, to close include" )
+	
+	return self:Compile_INCLUDE( Trace, Path, Scoped )
+end
 
-
-
-
-
+function Compiler:FUNC_print( Trace )
+	Trace.Location = "print(...)"
+	
+	self:RequireToken( "lpa", "Left parenthesis (( ) missing after print" )
+	
+	local Values, Index = { }, 0
+	
+	local String = self:GetClass( Trace, "string" )
+	
+	if !self:CheckToken( "rpa" ) then
+		while self:HasTokens( ) do
+			self:ExcludeToken( "com", "Expression seperator (,) can not appear here." )
+			
+			Index = Index + 1
+			
+			local Value = self:GetExpression( Trace )
+			
+			if Value.Return ~= "s" then
+				Value = self:Compile_CAST( Trace, String, Value )
+			end -- Auto cast to string!
+			
+			Values[ Index ] = Value
+			
+			if !self:AcceptToken( "com" ) then
+				break
+			end
+		end
+	end
+	
+	self:RequireToken( "rpa", "Right parenthesis ( )) missing after print" )
+	
+	return self:Compile_PRINT( Trace, Values, Index )
+end
 
 
 

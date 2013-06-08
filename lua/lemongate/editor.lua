@@ -174,25 +174,17 @@ end )
 	Home Screen
 ---------------------------------------------------------------------------*/
 local HomeScreen = [[/*===================================================
-    Expression Advanced Beta
-    - Rusketh, Oskar94, Divran, Syranide, Jerwuqu
-    
-    For documentation and help visit out wiki.
-    Wiki: https://github.com/SpaceTown-Developers/Lemon-Gate/wiki
-    
-    There are bugs you will find them, there are also ideas and you will have them.
-    When you do please post them on your bug tracker to help development.
-    Bug Tracker: https://github.com/SpaceTown-Developers/Lemon-Gate/issues
-    
-    Latest Updates:
-    * Editor bookmarks ( ctrl+b to toggle, ctrl+shift+b to jump to next bookmark )
-    * File library.
-    * HTTP library.
-    * Changed sound library.
-    * Changed function decelerations.
-    * Variants auto cast on assignment.
-    
-    Thank you for taking part in this Beta!
+	Expression Advanced:
+		Running Tequila (alpha):
+			* Single stage native Lua compiler.
+			* Added booleans (true / false)
+			* Added Include( String File, Boolean Scoped )
+			* Added while loops.
+		
+	Docs: https://github.com/SpaceTown-Developers/Lemon-Gate/wiki (Out dated)
+	Bug Reports: https://github.com/SpaceTown-Developers/Lemon-Gate/issues
+		
+	Credits: Rusketh, Oskar94, Divran, Syranide.
 ===================================================*/
 ]]
 
@@ -266,8 +258,8 @@ function Editor.ReciveDownload( Download )
 	Editor.Instance:ReciveDownload( Download )
 end
 
-function Editor.Validate( )
+function Editor.Validate( Script )
 	if Editor.Instance then
-		return Editor.Instance:DoValidate( )
+		return Editor.Instance:DoValidate( nil, nil, Script )
 	end
 end
