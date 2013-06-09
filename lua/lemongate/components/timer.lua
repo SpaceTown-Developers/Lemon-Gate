@@ -34,20 +34,20 @@ function Component:GateThink( Gate )
 				Timer.Status = 0
 			end
 
-			local Ok, Status = Timer.Lambda( )
-
+			local Ok, Status = pcall( Timer.Lambda )
+			
 			if Ok or Status == "Exit" then
-				self:Update( )
+				Gate:Update( )
 			elseif Status == "Script" then
-				local Cont = self.Context
-				return self:ScriptError( Cont.ScriptTrace, Cont.ScriptError )
+				local Cont = Gate.Context
+				return Gate:ScriptError( Cont.ScriptTrace, Cont.ScriptError )
 			elseif Status == "Exception" then
-				local Excpt = self.Context.Exception
-				return self:ScriptError( Excpt.Trace, "uncatched exception '" .. Excpt.Type .. "' in timer '" .. Key .. "'." )
+				local Excpt = Gate.Context.Exception
+				return Gate:ScriptError( Excpt.Trace, "uncatched exception '" .. Excpt.Type .. "' in timer '" .. Key .. "'." )
 			elseif Status == "Break" or Status == "Continue" then
-				return self:ScriptError( nil, "unexpected use of " .. Status .. " in timer '" .. Key .. "'." )
+				return Gate:ScriptError( nil, "unexpected use of " .. Status .. " in timer '" .. Key .. "'." )
 			else
-				return self:LuaError( Status )
+				return Gate:LuaError( Status )
 			end
 		end
 	end

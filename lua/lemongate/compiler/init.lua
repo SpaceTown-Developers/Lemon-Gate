@@ -162,8 +162,8 @@ end
 /*==============================================================================================
 	Section: Operators
 ==============================================================================================*/
-function Compiler:GetOperator( Name, Param1, ... )
-	local Op = API.Operators[ Format( "%s(%s)", Name, table.concat( { Param1 or "", ... } , "" ) ) ]
+function Compiler:GetOperator( Name, Param1, Param2, ... )
+	local Op = API.Operators[ Format( "%s(%s)", Name, table.concat( { Param1 or "", Param2, ... } , "" ) ) ]
 	
 	if Op or !Param1 then
 		return Op
@@ -172,7 +172,14 @@ function Compiler:GetOperator( Name, Param1, ... )
 	local Class = API:GetClass( Param1, true )
 	
 	if Class and Class.DownCast then
-		return self:GetOperator( Name, Class.DownCast, ... )
+		return self:GetOperator( Name, Class.DownCast, Param2, ... )
+	
+	elseif Param2 then
+		local Class = API:GetClass( Param2, true )
+	
+		if Class and Class.DownCast then
+			return self:GetOperator( Name, Param1, Class.DownCast, ... )
+		end
 	end
 end
 

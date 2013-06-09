@@ -166,10 +166,10 @@ Core:AddFunction("inrange", "a,a,a", "b", "local %A, %B, %C = value %1, value %2
 ==============================================================================================*/
 Core:AddFunction("toWorld", "e:v", "v", [[
 local %Ent, %A = value %1, value %2
-local %Val = (%Ent and %Ent:IsValid( )) and %Ent:LocalToWorldAngles( $Vector( %A[1], %A[2], %A[3] ) ) or {0, 0, 0 }
+local %Val = (%Ent and %Ent:IsValid( )) and %Ent:LocalToWorldAngles( $Angle( %A[1], %A[2], %A[3] ) ) or {0, 0, 0 }
 ]], "%Val" )
 
 Core:AddFunction("toLocal", "e:v", "v", [[
 local %Ent, %A = value %1, value %2
-local %Val = (%Ent and %Ent:IsValid( )) and %Ent:WorldToLocalAngles( $Vector( %A[1], %A[2], %A[3] ) ) or {0, 0, 0 }
+local %Val = (%Ent and %Ent:IsValid( )) and %Ent:WorldToLocalAngles( $Angle( %A[1], %A[2], %A[3] ) ) or {0, 0, 0 }
 ]], "%Val" )

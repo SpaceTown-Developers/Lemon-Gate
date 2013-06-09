@@ -116,7 +116,7 @@ Core:SetPerf( LEMON_PERF_EXPENSIVE )
 
 Core:AddFunction( "trace", "!:n", "t", [[
 local %Result = %Table()
-local %Trace, %Index = value %1, value %2
+local %Trace, %Index = value %1.Trace, value %2
 
 if %Trace.Stack or %Index == 1 then
 	local %Stack = ((%Index == 1) and %Trace or %Trace.Stack[%Index - 1])
@@ -129,7 +129,7 @@ end
 ]], "%Result", "Returns a trace at stack position N" )
 
 Core:AddFunction( "trace", "!:", "t", [[
-local %Trace = value %1
+local %Trace = value %1.Trace
 local %Result, %First = %Table(), %Table()
 
 %First:Set( "line", "n", %Trace[1] )
@@ -148,6 +148,8 @@ if %Trace.Stack then
 end
 ]], "%Result", "Returns a table of traces on the stack." )
 
+Core:AddFunction( "getTable", "!:", "t", "(value %1.Table or %Table())", nil, "Returns information table of exception." )
+
 -- User Exceptions
 
 Core:SetPerf( LEMON_PERF_CHEAP )
@@ -155,6 +157,8 @@ Core:SetPerf( LEMON_PERF_CHEAP )
 Core:AddException( "user" )
 
 Core:AddFunction( "throw", "s", "", "%context:Throw( %trace, \"user\", value %1 )", nil, "Throws a user exception with a message." )
+
+Core:AddFunction( "throw", "s,t", "", "%context:Throw( %trace, \"user\", value %1, value %2 )", nil, "Throws a user exception with a message with a table." )
 
 /*==============================================================================================
 	Section: Variants

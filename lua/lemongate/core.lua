@@ -178,6 +178,7 @@ function API:LoadCoreComponents( )
 		include( "lemongate/components/entity.lua" )
 		include( "lemongate/components/color.lua" )
 		include( "lemongate/components/events.lua" )
+		include( "lemongate/components/wirelink.lua" )
 		
 		include( "lemongate/components/lambda.lua" )
 		include( "lemongate/components/table.lua" )
@@ -504,7 +505,11 @@ function API:GetClass( RawName, NoError )
 	
 	if Class then return Class end
 	
-	if #Name > 1 then Name = "x" .. Name end
+	if #Name > 1 and !( #Name > 2 and Name[1] == "x" ) then
+		Name = "x" .. Name
+	end
+	
+	--if #Name > 1 and Name[1] ~= "x" then Name = "x" .. Name end
 	
 	local Class = self.ClassLU[ Name ]
 	

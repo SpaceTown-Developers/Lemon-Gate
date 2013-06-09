@@ -37,8 +37,8 @@ AddCSLuaFile( "cl_init.lua" )
 local Context = { }
 Context.__index = Context
 
-function Context:Throw( Trace, Type, Message )
-	self.Exception = { Type = Type, Trace = Trace, Message = Message }
+function Context:Throw( Trace, Type, Message, Table )
+	self.Exception = { Type = Type, Trace = Trace, Message = Message, Table = Table }
 	error( "Exception", 0 )
 end
 
@@ -56,13 +56,52 @@ function Context:PushPerf( Trace, Ammount )
 end
 
 /*==============================================================================================
+	WireLinks
+==============================================================================================*/
+function Context:FromWL( Entity, Type, Name, Default )
+	if IsValid( Entity ) and Entity.Outputs then
+		local Output = Entity.Outputs[Name]
+		if Output and Output.Type == Type then
+			return Output.Value or Default
+		end
+	end; return Default
+end
+
+function Context:ToWL( Entity, Type, Name, Value)
+	if IsValid( Entity ) and Entity.Inputs then
+		local Input = Entity.Inputs[ Name ]
+		if Input and Input.Type == Type then
+			local Que = self.WLQueue[ Entity ]
+			
+			if !Que then
+				Que = { }
+				self.WLQueue[ Entity ] = Que
+			end
+			
+			Que[Name] = Value
+		end
+	end
+end
+
+function Context:FlushWLQue( )
+	for Entity, Que in pairs( self.WLQueue ) do
+		if IsValid( Entity ) then
+			for Key, Value in pairs( Que ) do
+				WireLib.TriggerInput( Entity, Key, Value )
+			end 
+		end
+	end; self.WLQueue = { }
+end
+
+/*==============================================================================================
 	Script Handeling
 ==============================================================================================*/
 function Lemon:BuildContext( )
 	self.Context = setmetatable( { 
 		Perf  = MaxPerf:GetInt( ),
 		Entity = self, Player = self.Player,
-		Memory = { }, Delta = { }, Click = { }, Data = { }
+		Memory = { }, Delta = { }, Click = { },
+		Data = { }, WLQueue = { }
 	}, Context )
 	
 	LEMON.API:CallHook( "BuildContext", self )
@@ -162,6 +201,7 @@ function Lemon:Update( )
 	self:TriggerOutputs( )
 	self:GarbageCollect( )
 	self.Context.Click = { }
+	self.Context:FlushWLQue( )
 end
 
 /*==============================================================================================

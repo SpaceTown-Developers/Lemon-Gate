@@ -420,7 +420,7 @@ end]], "{%Scale.x, %Scale.y, %Scale.z}" )
 Component:AddFunction("color", "h:c", "", [[
 local %Holo, %Col = value %1, value %2
 if %Holo and %Holo:IsValid( ) and %Holo.Player == %context.Player then
-	%Holo:SetColor( %Color( %Color[1], %Col[2], %Col[3], %Col[4] ) )
+	%Holo:SetColor( %Color( %Col[1], %Col[2], %Col[3], %Col[4] ) )
 	%Holo:SetRenderMode(%Col[4] == 255 and 0 or 4)
 end]], "" )
 

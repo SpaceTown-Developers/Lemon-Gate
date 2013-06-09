@@ -23,6 +23,8 @@ local net = net
 local type = type 
 local pairs = pairs 
 
+require( "von" ) -- Temporary!
+
 /*==============================================================================================
 	Section: Chunk Chopper
 	Purpose: Sends code from Client to Server.
@@ -46,29 +48,32 @@ end; local GetChunks = LEMON.GetChunks
 	Note: Internal functions, should be used with care.
 ==============================================================================================*/
 local function PackScripts( Scripts )
-	local OutData, FileData = { }, { }
+	-- local OutData, FileData = { }, { }
 	
-	for Name, Script in pairs( Scripts ) do
-		local Data = util_Compress( Script )
-		OutData[#OutData + 1] = Name .. ":" .. #Data 
-		FileData[#FileData + 1] = Data 
-	end 
+	-- for Name, Script in pairs( Scripts ) do
+		-- local Data = util_Compress( Script )
+		-- OutData[#OutData + 1] = Name .. ":" .. #Data 
+		-- FileData[#FileData + 1] = Data 
+	-- end 
 	
-	return table_concat( OutData, ";" ) .. "|" .. table_concat( FileData, "" ) 
+	-- return table_concat( OutData, ";" ) .. "|" .. table_concat( FileData, "" ) 
+	return von.serialize( Scripts )
 end
 
 local function UnpackScripts( Data )
-	local Names, Codes = string_match( Data, "(.+)|(.+)")
-	local Offset, Scripts = 1, { } 
+	-- local Names, Codes = string_match( Data, "(.+)|(.+)")
+	-- local Offset, Scripts = 1, { } 
 	
-	for _, Text in pairs( string_Explode( ";", Names ) ) do
-		local FileName, FileLength = string_match( Text, "(.+):(.+)" ) 
-		local FileData = string_sub( Codes, Offset, Offset + FileLength ) 
-		Offset = Offset + FileLength
-		Scripts[FileName] = util_Decompress( FileData )
-	end
+	-- for _, Text in pairs( string_Explode( ";", Names ) ) do
+		-- local FileName, FileLength = string_match( Text, "(.+):(.+)" ) 
+		-- local FileData = string_sub( Codes, Offset, Offset + FileLength ) 
+		-- Offset = Offset + FileLength
+		-- Scripts[FileName] = util_Decompress( FileData )
+	-- end
 	
-	return Scripts
+	-- return Scripts
+	
+	return von.deserialize( Data )
 end
 
 /*==============================================================================================
