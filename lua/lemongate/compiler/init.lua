@@ -115,7 +115,7 @@ function Compiler:Run( Code, Files, NoCompile )
 	
 	self.Flags = { }
 	
-	self.Expire = SysTime( ) + 2
+	self.Expire = SysTime( ) + 20
 	
 	self.Tokens = { self:GetNextToken( ), self:GetNextToken( ) }
 	
@@ -133,6 +133,7 @@ end
 local Format, error = string.format, error
 
 function Compiler:Error( Offset, Message, A, ... )
+	debug.Trace( )
 	if A then Message = Format( Message, A, ... ) end
 	error( Format( "%s at line %i, char %i", Message, self.ReadLine, self.ReadChar + Offset ), 0 )
 end
@@ -189,7 +190,7 @@ end
 
 function Compiler:TimeCheck( )
 	if SysTime( ) > self.Expire then
-		self:Error( "Code took to long to Compile." )
+		self:Error( 0, "Code took to long to Compile." )
 	end
 end
 
@@ -223,6 +224,14 @@ function Compiler:GetFlag( Flag, Default )
 	end
 	
 	return Default
+end
+
+function Compiler:SetFlag( Flag, Value )
+	local FlagTable = self.Flags[ Flag ]
+	
+	if FlagTable and #FlagTable > 1 then
+		FlagTable[#FlagTable] = Value
+	end
 end
 
 /*==============================================================================================

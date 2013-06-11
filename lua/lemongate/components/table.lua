@@ -109,6 +109,16 @@ function Table:Get( Index, Type )
 	end
 end
 
+local function Itor( Table, Key )
+	local Data = Table.Data
+	local Key = next( Data, Key )
+	return Key, Table.Types[Key], Data[Key]
+end
+
+function Table:Itorate( )
+	return Itor, self
+end
+
 /*==============================================================================================
 	Table Component
 ==============================================================================================*/
@@ -263,12 +273,63 @@ function Component:BuildOperators( )
 				end
 			
 			-- Insert Function:
-				Component:AddFunction( "insert", Format( "t,n,%s", Class.Short ), "",
+				Component:AddFunction( "insert", Format( "t:n,%s", Class.Short ), "",
 					[[%prepare
 					if !value %1:Insert( value %2, type %3, value %3 ) then
+						%context:Throw( "table", "Maxamum table size reached" ) 
+					end]], "" )
+				
+				Component:AddFunction( "insert", Format( "t:%s", Class.Short ), "",
+					[[%prepare
+					if !value %1:Insert( nil, type %2, value %2 ) then
 						%context:Throw( "table", "Maxamum table size reached" ) 
 					end]], "" )
 		end
 	end
 end
 
+/*==============================================================================================
+	ForEach Loop
+==============================================================================================*/
+-- 1 Table, 2 KType
+Component:AddOperator( "foreach", "t", "", [[
+do
+	%prepare
+	
+	local ExitDeph = ExitDeph or 0
+	local VType, KType = value %2, value %3
+	
+	local Statments = function( )
+		prepare %6
+	end
+	
+	for Key, Type, Value in value %1:Itorate( ) do
+		local KeyType = $type( Key )[1]
+		
+		if VType ~= Type and VType ~= "?" then
+			continue
+		elseif KType and ( KType ~= KeyType and KType ~= "?" ) then
+			continue
+		elseif KType then
+			if KType == "?" then Key = { Key, KeyType } end
+			prepare %5
+		end
+		
+		if VType == "?" then Value = { Value, Type } end
+			
+		prepare %4
+		
+		%perf
+		
+		local Ok, Exit = pcall( Statments )
+		
+		if !Ok then
+			if ExitDeph > 0 then
+				ExitDeph = ExitDeph - 1
+				error( Exit, 0 )
+			elseif Exit ~= "Continue" then
+				error( Exit, 0 )
+			end
+		end
+	end
+end]] , "" )

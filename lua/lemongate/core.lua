@@ -628,7 +628,7 @@ if SERVER then
 					continue
 				end
 				
-				for _, Param in string.gmatch( Data.Params, "()(%w+)%s*([%[%]]?)()" ) do
+				for _, Param in string.gmatch( Data.Params, "()([%w%?!]+)%s*([%[%]]?)()" ) do
 					local Class = API:GetClass( Param, true )
 					
 					if !Class then
@@ -725,7 +725,7 @@ if SERVER then
 					end
 				end
 				
-				for Char, Param, Bracket in string.gmatch( Data.Params, "()(%w+)%s*([%[%]]?)()" ) do
+				for Char, Param, Bracket in string.gmatch( Data.Params, "()([%w%?!]+)%s*([%[%]]?)()" ) do
 					
 					local Class = API:GetClass( Param, true )
 					
@@ -959,6 +959,7 @@ function API:BuildFunction( Signature, Perf, ParamTypes, Return, Prepare, Inline
 					-- Optional perams.
 					Inserts[ "type %" .. I ] = "nil"
 					Inserts[ "value %" .. I ] = "nil"
+					Inserts[ "prepare %" .. I ] = ""
 					
 				elseif type( Param ) == "table" then
 					-- Instruction perams.
@@ -977,6 +978,7 @@ function API:BuildFunction( Signature, Perf, ParamTypes, Return, Prepare, Inline
 					Type = ( Type or "?" )
 					Inserts[ "type %" .. I ] = "\"" .. Type .. "\""
 					Inserts[ "value %" .. I ] = Param
+					Inserts[ "prepare %" .. I ] = ""
 				end
 				
 				if VArgs and Param then

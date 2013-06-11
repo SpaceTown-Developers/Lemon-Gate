@@ -10,11 +10,12 @@ local Core = API:GetComponent( "core" )
 	Section: Entity events.
 ==============================================================================================*/
 Core:SetPerf( LEMON_PERF_ABNORMAL )
-Core:AddEvent("think", "", "" )
+Core:AddEvent( "think", "", "" )
 
 Core:SetPerf( LEMON_PERF_NORMAL )
-Core:AddEvent("final", "", "" )
--- E_A:RegisterEvent("trigger", "s", "", "" )
+Core:AddEvent( "final", "", "" )
+
+Core:AddEvent( "trigger", "s", "" )
 
 /*==============================================================================================
 	Section: Tick Event

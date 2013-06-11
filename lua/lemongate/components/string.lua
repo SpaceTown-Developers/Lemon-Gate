@@ -32,7 +32,7 @@ Core:AddOperator( "!=", "s,s", "b", "(value %1 ~= value %2)" )
 
 -- Arithmatic:
 
-Core:AddOperator( "+", "s,s", "n", "(value %1 .. value %2)" )
+Core:AddOperator( "+", "s,s", "s", "(value %1 .. value %2)" )
 
 Core:AddOperator( "#", "s", "n", "string.len(value %1)" )
 

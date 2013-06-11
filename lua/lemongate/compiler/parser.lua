@@ -193,18 +193,20 @@ Compiler.TokenOperators = {
 
 
 function Compiler:GetTokenOperator( Token, ... )
+	local Trace = self:GetFlag( "ExprTrace" )
 	
-	if Token then
-		local Expression = self:GetTokenOperator( ... )
-		
-		while self:AcceptToken( Token ) do
-			Expression = self[ "Compile_" .. string.upper( TokenOperators[Token][1] ) ]( self, self:GetFlag( "ExprTrace" ), Expression, self:GetTokenOperator( Token, ... ) )
-		end
-		
-		return Expression
+	if !Token then
+		return self:GetValue( Trace )
 	end
 	
-	return self:GetValue( self:GetFlag( "ExprTrace" ) )
+	local Compile = self[ "Compile_" .. string.upper( TokenOperators[Token][1] ) ]
+	local Expression = self:GetTokenOperator( ... )
+	
+	while self:AcceptToken( Token ) do
+		Expression = Compile( self, Trace, Expression, self:GetTokenOperator( ... ) )
+	end
+	
+	return Expression
 end
 
 /*==============================================================================================
@@ -243,7 +245,7 @@ function Compiler:GetValue( RootTrace )
 			local Type = self.TokenData
 			
 			if self:AcceptToken( "rpa" ) then
-				CastType = self:GetClass( Trace, Type )
+				CastType = Type
 			else
 				self:PrevToken( )
 			end
@@ -502,8 +504,6 @@ end
 
 function Compiler:NextValueOperator( Value, RootTrace )
 	
-	
-	
 	if !Value then
 		debug.Trace( )
 		self:TraceError( RootTrace, "Unpredicted compile error, NextValueOperator got no value" )
@@ -528,22 +528,23 @@ function Compiler:NextValueOperator( Value, RootTrace )
 	
 	elseif self:AcceptToken( "lsb" ) then
 		local Trace, Expression = self:TokenTrace( RootTrace ), self:GetExpression( RootTrace )
-			
+		
 		if !self:AcceptToken( "com" ) then
 			self:RequireToken( "rsb", "Right square bracket (]) missing, to close indexing operator [Index]" )
 			
-			return self:Compile_GET( Trace, Value, Expression )
-			
-		elseif !self:AcceptToken( "func" ) then
-			self:RequireToken( "fun", "variable type expected after comma (,) in indexing operator [Index, type]" )
+			Value = self:Compile_GET( Trace, Value, Expression )
+		
+		elseif !self:AcceptToken( "fun" ) and !self:AcceptToken( "func" ) then
+			self:TraceError( Trace, "variable type expected after comma (,) in indexing operator [Index, type]" )
+		
+		else
+			local Class = self:GetClass( Trace, self.TokenData )
+		
+			self:RequireToken( "rsb", "Right square bracket (]) missing, to close indexing operator [Index]" )
+		
+			Value = self:Compile_GET( Trace, Value, Expression, Class.Short )
 		end
 		
-		local Class = self:GetClass( Trace, self.TokenData )
-		
-		self:RequireToken( "rsb", "Right square bracket (]) missing, to close indexing operator [Index]" )
-		
-		return self:Compile_GET( Trace, Value, Expression, Class.Short )
-	
 	-- Call
 	
 	elseif self:AcceptToken( "lpa" ) then
@@ -551,11 +552,11 @@ function Compiler:NextValueOperator( Value, RootTrace )
 		Value = self:Compile_CALL( Trace, Value, self:NextInputPerams( RootTrace ) )
 			
 		self:RequireToken( "rpa", "Right parenthesis ( )) missing, to close call operator parameters" )
-		
-		return self:NextValueOperator( Value, RootTrace )
+	else
+		return Value
 	end
 	
-	return Value
+	return self:NextValueOperator( Value, RootTrace )
 end
 
 /*==============================================================================================
@@ -858,13 +859,12 @@ function Compiler:Statment_RET( RootTrace )
 		self:TokenError( "return may not be used outside a function or event" )
 	elseif !self:CheckToken( "rcb" ) then
 		Value = self:GetExpression( RootTrace )
+		self:SetFlag( "ReturnedType", Value.Return )
 	end
 	
 	self:AcceptSeperator( )
 	
 	self.StatmentExit = "return"
-	
-	self:SetFlag( "ReturnedType", Value.Return )
 	
 	return self:Compile_RETURN( Trace, Value )
 end
@@ -1071,11 +1071,9 @@ function Compiler:Statment_FOR( RootTrace )
 	return self:Compile_FOR( Trace, Class, Assignment, Condition, Step, Block )
 end
 
-
 /*==============================================================================================
 	Section: While Loop
 ==============================================================================================*/
-
 function Compiler:Statment_WHL( RootTrace )
 	local Trace = self:TokenTrace( RootTrace )
 	
@@ -1089,6 +1087,52 @@ function Compiler:Statment_WHL( RootTrace )
 	
 	return self:Compile_WHILE( Trace, Condition, Block )
 end
+
+/*==============================================================================================
+	Section: ForEach Loop
+==============================================================================================*/
+function Compiler:Statment_EACH( RootTrace )
+	local Trace = self:TokenTrace( RootTrace )
+	
+	self:RequireToken( "lpa", "Left parenthesis (( ) missing, after for" )
+	
+	if !self:AcceptToken( "fun" ) and !self:AcceptToken( "func" ) then
+		self:TraceError( Trace, "type expected for Variable, in foreach loop" )
+	end
+	
+	local TypeA, TypeB = self:GetClass( Trace, self.TokenData ).Short
+	
+	self:RequireToken( "var", "Variable expected after type, in foreach loop" )
+	
+	local RefA, RefB = self:Assign( Trace, self.TokenData, TypeA, "Local" )
+	
+	if self:AcceptToken( "sep" ) then
+		
+		if !self:AcceptToken( "fun" ) and !self:AcceptToken( "func" ) then
+			self:TraceError( Trace, "type expected for Variable, in foreach loop" )
+		end
+		
+		TypeB = self:GetClass( Trace, self.TokenData ).Short
+		
+		self:RequireToken( "var", "Variable expected after type, in foreach loop" )
+		
+		RefB = self:Assign( Trace, self.TokenData, TypeB, "Local" )
+	end
+	
+	self:RequireToken( "col", "Colon (:) expected berfore table, in foreach loop" )
+	
+	local Value = self:GetExpression( Trace )
+	
+	self:RequireToken( "rpa", "Left parenthesis ( )) missing, after for" )
+	
+	if !TypeB then
+		return self:Compile_FOREACH( Trace, Value, TypeA, RefA, nil, nil, self:GetBlock( "foreach", Trace ) )
+	else
+		return self:Compile_FOREACH( Trace, Value, TypeB, RefB, TypeA, RefA, self:GetBlock( "foreach", Trace ) )
+	end
+end
+
+-- [[ Table 1, KeyType 2, KeyAss 3, ValType 4, ValAss 5, Statments 6
 
 /*==============================================================================================
 	Section: Try Catch
@@ -1215,8 +1259,6 @@ function Compiler:FUNC_print( Trace )
 	
 	local Values, Index = { }, 0
 	
-	local String = self:GetClass( Trace, "string" )
-	
 	if !self:CheckToken( "rpa" ) then
 		while self:HasTokens( ) do
 			self:ExcludeToken( "com", "Expression seperator (,) can not appear here." )
@@ -1226,7 +1268,7 @@ function Compiler:FUNC_print( Trace )
 			local Value = self:GetExpression( Trace )
 			
 			if Value.Return ~= "s" then
-				Value = self:Compile_CAST( Trace, String, Value )
+				Value = self:Compile_CAST( Trace, "string", Value )
 			end -- Auto cast to string!
 			
 			Values[ Index ] = Value

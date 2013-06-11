@@ -89,7 +89,7 @@ if $IsValid(%WL) and %WL.ReadCell then
 	%Val = %WL:ReadCell(value %2) or 0
 end]], "%Val" )
 
-Core:AddFunction("readArray", "wl:n,n", "n", [[
+Core:AddFunction("readArray", "wl:n,n", "t", [[
 local %WL, %Result = value %1, %Table()
 if $IsValid(%WL) and %WL.ReadCell then
 	local Start = value %2
@@ -104,7 +104,13 @@ end]], "%Result" )
 
 -- Read Cell:
 
-Core:AddOperator( "[]", "wl,n,n", "n", [[
+Core:AddOperator( "[]", "wl,n", "n", [[
+local %WL, %Val = value %1, 0
+if $IsValid( %WL ) and %WL.ReadCell then
+	%Val = %WL:ReadCell( value %2 ) or 0
+end]], "%Val" )
+
+Core:AddOperator( "[]", "wl,n, n", "n", [[
 local %WL, %Val = value %1, 0
 if $IsValid( %WL ) and %WL.ReadCell then
 	%Val = %WL:ReadCell( value %2 ) or 0

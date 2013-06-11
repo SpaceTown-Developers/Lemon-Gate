@@ -165,7 +165,9 @@ Core:AddFunction( "throw", "s,t", "", "%context:Throw( %trace, \"user\", value %
 ==============================================================================================*/
 Core:NewClass( "?", "variant" )
 
-Core:AddFunction( "type", "?", "s", "%LongType(type %1)", nil, "Returns the true type of a Variant" )
+Core:AddFunction( "type", "?", "s", "%LongType(value %1[2])", nil, "Returns the true type of a Variant" )
+
+Core:AddFunction( "tostring", "?", "s", "local %Variant = value %1", "( tostring(%Variant[1]) .. \" -> \" .. %LongType(%Variant[2]) )" )
 
 /*==============================================================================================
 	Section: Self Building Operators!
@@ -244,7 +246,6 @@ end
 
 Core:SetPerf( LEMON_PERF_EXPENSIVE )
 
--- 1:Ass, 2:Cnd, 3:Step, 4:Statment
 Core:AddOperator( "while", "", "", [[
 do -- While Loop
 	local ExitDeph = ExitDeph or 0

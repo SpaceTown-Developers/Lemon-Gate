@@ -277,7 +277,6 @@ function Compiler:Import( Value )
 end
 
 function Compiler:Prepare( Name, Lua )
-	print( type( self.PrepCode ), self.PrepCode )
 	if !self.PrepCodeLK[ Name ] then
 		self.PrepCode[ #self.PrepCode + 1 ] = Lua
 		self.PrepCodeLK[ Name ] = true
@@ -367,9 +366,9 @@ end
 	Section: Casting
 ==============================================================================================*/
 function Compiler:Compile_CAST( Trace, CastType, Value )
-	local CastFrom = Value.Return
+	local CastFrom, CastTo = Value.Return, self:GetClass( Trace, CastType )
 	
-	if CastType.Short == CastFrom then
+	if CastTo.Short == CastFrom then
 		self:TraceError( "%s can not be cast to itself", CastType.Name )
 	elseif !CastFrom or CastFrom == "" then
 		self:TraceError( Trace, "Casting operator recives void" )
@@ -377,19 +376,19 @@ function Compiler:Compile_CAST( Trace, CastType, Value )
 		self:TraceError( Trace, "Invalid use of varargs (...)." )
 	end
 	
-	local Op = self:GetOperator( string.lower( CastType.Name ), CastFrom )
+	local Op = self:GetOperator( string.lower( CastTo.Name ), CastFrom )
 	
 	if Op then
 		return Op.Compile( self, Trace, Value )
 	
-	elseif CastType.DownCast and CastType.DownCast == CastFrom then
-		return self:Instruction( Trace, LEMON_PERF_CHEAP, CastType.Short, Value.Inline, Value.Prepare )
+	elseif CastTo.DownCast and CastTo.DownCast == CastFrom then
+		return self:Instruction( Trace, LEMON_PERF_CHEAP, CastTo.Short, Value.Inline, Value.Prepare )
 	
-	elseif CastType.UpCast[ Value.Return ] then
-		return self:Instruction( Trace, LEMON_PERF_CHEAP, CastType.Short, Value.Inline, Value.Prepare )
+	elseif CastTo.UpCast[ Value.Return ] then
+		return self:Instruction( Trace, LEMON_PERF_CHEAP, CastTo.Short, Value.Inline, Value.Prepare )
 	end
 	
-	self:TraceError( Trace, "%s can not cast to %s", CastType.Name, NType( CastFrom ) )
+	self:TraceError( Trace, "%s can not be cast to %s",  NType( CastFrom ), CastTo.Name )
 end
 	
 	-- Apple -> DownCast -> Fruit
@@ -401,7 +400,7 @@ end
 function Compiler:Compile_VARIABLE( Trace, Variable )
 	local Ref, Class = self:GetVariable( Trace, Variable )
 	if !Ref then
-		self:TraceError( Trace, "Vaiable %s does not exist", Variable )
+		self:TraceError( Trace, "Variable %s does not exist", Variable )
 	elseif Scope ~= self.ScopeID and self:GetFlag( "Lambda", self:GetFlag( "Event" ) ) then
 		self:NotGarbage( Trace, Ref )
 	end
@@ -416,7 +415,7 @@ end
 function Compiler:Compile_INCREMENT( Trace, Variable )
 	local Ref, Class = self:GetVariable( Trace, Variable )
 	if !Ref then
-		self:TraceError( Trace, "Vaiable %s does not exist", Variable )
+		self:TraceError( Trace, "Variable %s does not exist", Variable )
 	elseif self:IsInput( Trace, Ref ) then
 		self:TraceError( Trace, "Increment operator (++) can not reach Inport %s", Variable )
 	elseif Scope ~= self.ScopeID and self:GetFlag( "Lambda", self:GetFlag( "Event" ) ) then
@@ -432,7 +431,7 @@ end
 function Compiler:Compile_DECREMENT( Trace, Variable )
 	local Ref, Class = self:GetVariable( Trace, Variable )
 	if !Ref then
-		self:TraceError( Trace, "Vaiable %s does not exist", Variable )
+		self:TraceError( Trace, "Variable %s does not exist", Variable )
 	elseif self:IsInput( Trace, Ref ) then
 		self:TraceError( Trace, "Increment operator (--) can not reach Inport %s", Variable )
 	elseif Scope ~= self.ScopeID and self:GetFlag( "Lambda", self:GetFlag( "Event" ) ) then
@@ -449,7 +448,7 @@ function Compiler:Compile_DELTA( Trace, Variable )
 	local Ref, Class = self:GetVariable( Trace, Variable )
 	
 	if !Ref then
-		self:TraceError( Trace, "Vaiable %s does not exist", Variable )
+		self:TraceError( Trace, "Variable %s does not exist", Variable )
 	-- elseif Scope ~= self.ScopeID and self:GetFlag( "Lambda", self:GetFlag( "Event" ) ) then
 		-- self:NotGarbage( Trace, Ref )
 	end
@@ -477,7 +476,7 @@ function Compiler:Compile_ASSIGN( Trace, Variable, Expression )
 	local Ref, Scope = self:SetVariable( Trace, Variable, Type )
 	
 	if !Ref then
-		self:TraceError( Trace, "Vaiable %s does not exist", Variable )
+		self:TraceError( Trace, "Variable %s does not exist", Variable )
 	elseif self:IsInput( Trace, Ref ) then
 		self:TraceError( Trace, "Assigment operator (=) can not reach Inport %s", Variable )
 	elseif Scope ~= self.ScopeID and self:GetFlag( "Lambda", self:GetFlag( "Event" ) ) then
@@ -525,32 +524,42 @@ function Compiler:Compile_OR( Trace, A, B )
 		return Op.Compile( self, Trace, A, B )
 		
 	elseif A.Return == B.Return then
-		local Op1 = self:GetOperator( "||" )	
-		local Op2 = self:Compile_IS( Trace, A )
+		local Op = self:GetOperator( "||" )
 		local Id = "_" .. Compiler:NextLocal( )
+		local C = self:Compile_IS( Trace, self:FakeInstr( Trace, A.Return, ID ), true )
 		
-		local Instr = Op1.Compile( self, Trace, Id, A, B, Op2.Compile( self, Trace, Id ) )
-		Instr.Return = A.Return
-		return Instr
+		if Op and C then
+			local Instr = Op.Compile( self, Trace, ID, A, B, C )
+			Instr.Return = A.Return
+			return Instr
+		end
 	end
 		
-	self:TraceError( Trace, "No such operator (%s or %s)", NType( A.Return ), NType( B.Return ) )
+	self:TraceError( Trace, "No such operator (%s && %s)", NType( A.Return ), NType( B.Return ) )
 end
 
 function Compiler:Compile_AND( Trace, A, B )
 	local Op = self:GetOperator( "&&", A.Return, B.Return )
 	
-	if Op then return Op.Compile( self, Trace, A, B ) end
+	if Op then
+		return Op.Compile( self, Trace, A, B )
+	end
 	
 	local Op = self:GetOperator( "&&", "b", "b" )
-	return Op.Compile( self, Trace, self:Compile_IS( Trace, A ), self:Compile_IS( Trace, B ) )
+	A, B = self:Compile_IS( Trace, A, true ), self:Compile_IS( Trace, B, true )
+	
+	if Op and A and B then
+		return Op.Compile( self, Trace, A, B )
+	end
+	
+	self:TraceError( Trace, "No such operator (%s || %s)", NType( A.Return ), NType( B.Return ) )
 end
 
 function Compiler:Compile_LENGTH( Trace, Expression )
 	local Op = self:GetOperator( "#", Expression.Return )
 	
 	if Op then return Op.Compile( self, Trace, Expression ) end
-		
+	
 	self:TraceError( Trace, "No such operator (#%s)", NType( Expression.Return ) )
 end
 
@@ -565,16 +574,16 @@ end
 /*==============================================================================================
 	Section: Is and Not Operator
 ==============================================================================================*/
-function Compiler:Compile_IS( Trace, Expression )
+function Compiler:Compile_IS( Trace, Expression, NoError )
 	local Op = self:GetOperator( "is", Expression.Return )
 	
 	if Op and Op.Return == "b" then
 		return Op.Compile( self, Trace, Expression )
 	elseif Expression.Return == "b" then
 		return Expression
+	elseif NoError then
+		self:TraceError( Trace, "No such condition (is %s)", NType( Expression.Return ) )
 	end
-	
-	self:TraceError( Trace, "No such operator (is %s)", NType( Expression.Return ) )
 end
 
 function Compiler:Compile_NOT( Trace, Expression )
@@ -694,7 +703,7 @@ function Compiler:Compile_RETURN( Trace, Expression )
 	if !Expression then
 		return Op.Compile( self, Trace, "{0, \"n\"}" )
 	elseif Expression.Return ~= "?" then
-		Expression = self:Compile_CAST( Trace, "?", Expression )
+		Expression = self:Compile_CAST( Trace, "variant", Expression )
 	end
 	
 	return Op.Compile( self, Trace, Expression )
@@ -715,6 +724,28 @@ end
 
 function Compiler:Compile_WHILE( Trace, Condition, Statments )
 	return self:GetOperator( "while" ).Compile( self, Trace, Condition, Statments )
+end
+
+function Compiler:Compile_FOREACH( Trace, Value, TypeV, RefV, TypeK, RefK, Statments )
+	print( TypeV, RefV, TypeK, RefK )
+	
+	local Op = self:GetOperator( "foreach", Value.Return )
+	
+	if !Op then
+		self:TraceError( Trace, "foreach loop does not support %s", NType( Value.Return ) )
+	end
+	
+	local Op1 = self:GetOperator( "=", TypeV ) or self:GetOperator( "=" )
+	local AssVal, AssKey = Op1.Compile( self, Trace, RefV, "Value" ), ""
+	TypeV = '"' .. TypeV .. '"'
+	
+	if RefK then
+		local Op2 = self:GetOperator( "=", TypeK ) or self:GetOperator( "=" )
+		AssKey = Op2.Compile( self, Trace, RefK, "Key" )
+		TypeK = '"' .. TypeK .. '"'
+	end
+	
+	return Op.Compile( self, Trace, Value, TypeV, TypeK, AssVal, AssKey, Statments )
 end
 
 /*==============================================================================================
@@ -828,8 +859,10 @@ end
 function Compiler:Compile_GET( Trace, Variable, Index, Type )
 	local Op = self:GetOperator( "[]", Variable.Return, Index.Return, Type )
 	
-	if !Op then
+	if !Op and Type then
 		self:TraceError( Trace, "No such operator (%s[%s, %s]).", NType( Variable.Return ), NType( Index.Return ), NType( Type ) )
+	elseif !Op then
+		self:TraceError( Trace, "No such operator (%s[%s]).", NType( Variable.Return ), NType( Index.Return ) )
 	end
 	
 	return Op.Compile( self, Trace, Variable, Index )
@@ -837,7 +870,7 @@ end
 
 function Compiler:Compile_SET( Trace, Variable, Index, Value, Type )
 	if Type and Value.Return ~= Type then
-		Value = self:Compile_CAST( Trace, API:GetClass( Type ), Value )
+		Value = self:Compile_CAST( Trace, Type, Value )
 	end -- Auto Cast!
 	
 	local Op = self:GetOperator( "[]=", Variable.Return, Index.Return, Value.Return )
@@ -895,7 +928,7 @@ end
 	Section: Events Statments
 ==============================================================================================*/
 
-function Compiler:Compile_EVENT( Trace, EventName, Perams, HasVarg, Block )
+function Compiler:Compile_EVENT( Trace, EventName, Perams, HasVarg, Block, Exit )
 	local Event = LEMON.API.Events[ EventName ]
 	
 	if !Event then
@@ -941,13 +974,16 @@ function Compiler:Compile_EVENT( Trace, EventName, Perams, HasVarg, Block )
 		]]
 	end
 	
-	local RetType = self:GetFlag( "ReturnedType", "" )
-	if RetType ~= "" and !Event.Return then
-		self:TraceError( Trace, "Event %s does not accept a return value", EventName )
-	elseif RetType ~= Event.Return then
-		self:TraceError( Trace, "Event %s must return %2", EventName, NType( RetType ) )
+	if Exit and Exit == "Return" then
+		local Return = self:GetFlag( "ReturnedType", "" )
+		if Return == "" then
+			-- DO nothing!
+		elseif Event.Return == "" then
+			self:TraceError( Trace, "Event %s does not accept a return value", EventName )
+		elseif Return != Event.Return then
+			self:TraceError( Trace, "Event %s must return %2", EventName, NType( Return ) )
+		end
 	end
-	
 	
 	Lua = "Context.Event_" .. EventName .. " = function( " .. string.Implode( ",", EventParams ) .. [[ )
 		
