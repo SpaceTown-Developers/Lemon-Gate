@@ -256,22 +256,22 @@ if %Ent and %Ent:IsValid( ) and %IsOwner( %context.Player, %Ent ) then
 		local %Forward = %Ent:GetForward()
 
 		-- apply pitch force
-		if %A[1] ~= 0 and %A[1] < math.huge then
-			local %Pitch = %Up * (%A[1] * 0.5)
+		if %Ang[1] ~= 0 and %Ang[1] < math.huge then
+			local %Pitch = %Up * (%Ang[1] * 0.5)
 			%Phys:ApplyForceOffset( %Forward, %Pitch )
 			%Phys:ApplyForceOffset( %Forward * -1, %Pitch * -1 )
 		end
 
 		-- apply yaw force
-		if %A[2] ~= 0 and %A[2] < math.huge then
-			local %Yaw = %Forward * (%A[2] * 0.5)
+		if %Ang[2] ~= 0 and %Ang[2] < math.huge then
+			local %Yaw = %Forward * (%Ang[2] * 0.5)
 			%Phys:ApplyForceOffset( %Left, %Yaw )
 			%Phys:ApplyForceOffset( %Left * -1, %Yaw * -1 )
 		end
 
 		-- apply roll force
-		if %A[3] ~= 0 and %A[3] < math.huge then
-			local %Roll = %Left * (%A[3] * 0.5)
+		if %Ang[3] ~= 0 and %Ang[3] < math.huge then
+			local %Roll = %Left * (%Ang[3] * 0.5)
 			%Phys:ApplyForceOffset( %Up, %Roll )
 			%Phys:ApplyForceOffset( %Up * -1, %Roll * -1 )
 		end
