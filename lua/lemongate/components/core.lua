@@ -323,7 +323,7 @@ Core:AddFunction( "perfAvailable", "", "n", "($GetConVarNumber(\"lemongate_perf\
 Core:AddFunction( "maxPerf", "", "n", "$GetConVarNumber(\"lemongate_perf\")" )
 
 Core:AddFunction( "maxPerf", "", "n", [[
-local %Perf, %MaxPerf, %Val = %context, $GetConVarNumber("lemongate_perf"), 0
+local %Perf, %MaxPerf, %Val = %context.Perf, $GetConVarNumber("lemongate_perf"), 0
 if %Perf > 0 and %MaxPerf > 0 then
  %Val = math.ceil((%Perf / %MaxPerf) * 100)
 end]], "%Val")

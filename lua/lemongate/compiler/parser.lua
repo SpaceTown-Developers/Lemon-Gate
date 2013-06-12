@@ -1125,10 +1125,16 @@ function Compiler:Statment_EACH( RootTrace )
 	
 	self:RequireToken( "rpa", "Left parenthesis ( )) missing, after for" )
 	
+	self:PushFlag( "LoopDepth", self:GetFlag( "LoopDepth", 0 ) + 1 )
+	
+	local Block = self:GetBlock( "foreach", Trace )
+	
+	self:PopFlag( "LoopDepth" )
+	
 	if !TypeB then
-		return self:Compile_FOREACH( Trace, Value, TypeA, RefA, nil, nil, self:GetBlock( "foreach", Trace ) )
+		return self:Compile_FOREACH( Trace, Value, TypeA, RefA, nil, nil, Block )
 	else
-		return self:Compile_FOREACH( Trace, Value, TypeB, RefB, TypeA, RefA, self:GetBlock( "foreach", Trace ) )
+		return self:Compile_FOREACH( Trace, Value, TypeB, RefB, TypeA, RefA, Block )
 	end
 end
 

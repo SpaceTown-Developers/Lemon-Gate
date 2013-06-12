@@ -66,19 +66,27 @@ function PANEL:Init( )
 		self.btnWiki.Hovered = false 
 	end 
 	
-	if GCompute then 
-		self.btnOpenGCompute = self:SetupButton( "Open native code in GCompute", Material( "fugue/bug.png" ), RIGHT, function( self )
-			self:GetParent( ):GetParent( ):DoValidate( false, true ) 
-			if not self:GetParent( ):GetParent( ).Data then return end
-			
-			self:GetParent( ):GetParent( ):Close( )
-			
-			local view = GCompute.IDE:GetInstance( ):GetFrame( ):CreateCodeView( )
-			view:Select( )
-			view:SetCode( self:GetParent():GetParent().Data.Native )
-			
-			GCompute.IDE:GetInstance( ):GetFrame( ):SetVisible( true )
-		end )
+	local function AddDebugIcon( )
+		if GCompute and !self.btnOpenGCompute then 
+			self.btnOpenGCompute = self:SetupButton( "Open native code in GCompute", Material( "fugue/bug.png" ), RIGHT, function( self )
+				self:GetParent( ):GetParent( ):DoValidate( false, true ) 
+				if not self:GetParent( ):GetParent( ).Data then return end
+				
+				self:GetParent( ):GetParent( ):Close( )
+				
+				local view = GCompute.IDE:GetInstance( ):GetFrame( ):CreateCodeView( )
+				view:Select( )
+				view:SetCode( self:GetParent():GetParent().Data.Native )
+				
+				GCompute.IDE:GetInstance( ):GetFrame( ):SetVisible( true )
+			end )
+		end
+	end
+	
+	if GCompute then
+		AddDebugIcon( )
+	else
+		hook.Add( "GComputeLoaded", "LemonGate", AddDebugIcon )
 	end
 	
 	function self.btnSave:DoClick( )
