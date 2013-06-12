@@ -130,14 +130,14 @@ Core:AddFunction( "passenger", "e:", "e", "local %Ent = value %1", "(($IsValid(%
 ==============================================================================================*/
 Core:SetPerf( LEMON_PERF_ABNORMAL )
 
-Core:AddFunction( "mass", "e:", "n", "local %Ent = value %1", [[
+Core:AddFunction( "mass", "e:", "n", [[
 local %Ent, %Val = value %1, 0
 if %Ent and %Ent:IsValid( ) then
 	local %Phys = %Ent:GetPhysicsObject( )
 	%Val = ((%Phys and %Phys:IsValid( )) and (%Phys:GetMass( ) or 0) or 0)
 end]], "%Val" )
 
-Core:AddFunction( "massCenterWorld", "e:", "v", "local %Ent = value %1", [[
+Core:AddFunction( "massCenterWorld", "e:", "v", [[
 local %Ent, %Val = value %1, {0, 0, 0}
 if %Ent and %Ent:IsValid( ) then
 	local %Phys = %Ent:GetPhysicsObject( )
@@ -147,7 +147,7 @@ if %Ent and %Ent:IsValid( ) then
 	end
 end]], "%Val" )
 
-Core:AddFunction( "massCenter", "e:", "v", "local %Ent = value %1", [[
+Core:AddFunction( "massCenter", "e:", "v", [[
 local %Ent, %Val = value %1, {0, 0, 0}
 if %Ent and %Ent:IsValid( ) then
 	local %Phys = %Ent:GetPhysicsObject( )
@@ -162,7 +162,7 @@ end]], "%Val" )
 ==============================================================================================*/
 Core:SetPerf( LEMON_PERF_NORMAL )
 
-Core:AddFunction( "boxSize", "e:", "v", "local %Ent = value %1", [[
+Core:AddFunction( "boxSize", "e:", "v", [[
 local %Ent, %Val = value %1, {0, 0, 0}
 if %Ent and %Ent:IsValid( ) then
 	local %Size = %Ent:OBBMaxs( ) - %Ent:OBBMins( )
