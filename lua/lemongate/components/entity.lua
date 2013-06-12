@@ -286,7 +286,7 @@ Core:SetPerf( LEMON_PERF_NORMAL )
 Core:AddFunction( "vel", "e:", "v", [[
 local %Ent, %Val = value %1, {0, 0, 0}
 if %Ent and %Ent:IsValid( ) then
-	local %Phys = Ent:GetPhysicsObject()
+	local %Phys = %Ent:GetPhysicsObject()
 	
 	if %Phys and %Phys:IsValid( ) then
 		local %Vel = %Ent:GetVelocity( )
@@ -297,7 +297,7 @@ end]], "%Val" )
 Core:AddFunction( "angVel", "e:", "a", [[
 local %Ent, %Val = value %1, {0, 0, 0}
 if %Ent and %Ent:IsValid( ) then
-	local %Phys = Ent:GetPhysicsObject()
+	local %Phys = %Ent:GetPhysicsObject()
 	
 	if %Phys and %Phys:IsValid( ) then
 		local %Vel = %Ent:GetAngleVelocity( )
