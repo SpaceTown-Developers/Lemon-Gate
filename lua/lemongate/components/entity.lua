@@ -289,7 +289,7 @@ if %Ent and %Ent:IsValid( ) then
 	local %Phys = %Ent:GetPhysicsObject()
 	
 	if %Phys and %Phys:IsValid( ) then
-		local %Vel = %Ent:GetVelocity( )
+		local %Vel = %Phys:GetVelocity( )
 		%Val = {%Vel.x, %Vel.y, %Vel.z}
 	end
 end]], "%Val" )
@@ -300,7 +300,7 @@ if %Ent and %Ent:IsValid( ) then
 	local %Phys = %Ent:GetPhysicsObject()
 	
 	if %Phys and %Phys:IsValid( ) then
-		local %Vel = %Ent:GetAngleVelocity( )
+		local %Vel = %Phys:GetAngleVelocity( )
 		%Val = {%Vel.p, %Vel.y, %Vel.r}
 	end
 end]], "%Val" )
