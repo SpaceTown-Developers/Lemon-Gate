@@ -336,13 +336,17 @@ if SERVER then
 		end
 			
 		-- JSON corupts easily!
-		self.DataPack = util.Compress( von.serialize( DataPack ) ) -- Util.ValueToLua( DataPack ) )
+		self.DataPack = util.Compress( von.serialize( DataPack ) )
 		
 		MsgN( Format( "Datatpack compressed %d bytes.", #self.DataPack  ) )
 		
 		hook.Add( "PlayerInitialSpawn", "Lemon_DataPack", function( Player )
 			self:SendDataPack( Player )
 		end ) -- Its better here!
+		
+		net.Start( "lemon_datapack" )
+			net.WriteData( self.DataPack, #self.DataPack )
+		net.Broadcast( ) -- Sync Clients ( again =D )
 	end
 	
 	util.AddNetworkString( "lemon_datapack" )
@@ -355,8 +359,7 @@ if SERVER then
 
 else
 	net.Receive( "lemon_datapack", function( Bytes )
-		-- RunString( " LEMON.API.DataPack = " .. util.Decompress( net.ReadData( Bytes ) ) )
-		MsgN( Format( "Recived LemonGate Data Pack (%d bytes)", Bytes / 8 ) )
+		MsgN( Format( "Recived LemonGate DataPack (%d bytes)", Bytes / 8 ) )
 		
 		LEMON.API.DataPack = von.deserialize( util.Decompress( net.ReadData( Bytes / 8 ) ) )
 		
@@ -626,6 +629,8 @@ if SERVER then
 				if !Return and Data.Return ~= "" and Data.Return ~= "..." then -- Only operators can return VarArg!
 					MsgN ( Format( "%s can't register operator %s(%s)\nclass %q doesn't exist." , self.Name, Data.Name, Data.Params, Data.Return ) )
 					continue
+				else
+					Data.Return = ( Return and Return.Short or "" )
 				end
 				
 				for _, Param in string.gmatch( Data.Params, "()([%w%?!]+)%s*([%[%]]?)()" ) do
@@ -707,6 +712,8 @@ if SERVER then
 				if !Return and Data.Return ~= "" then
 					MsgN( Format( "%s can't register function %s[%s]\nclass %q doesn't exist." , self.Name, Data.Name, Data.Params, Data.Return ) )
 					continue
+				else
+					Data.Return = ( Return and Return.Short or "" )
 				end
 				
 				local Meta = string.find( Data.Params, ":", 1, true )
@@ -810,6 +817,8 @@ if SERVER then
 				if !Return and ReturnType ~= "" then
 					MsgN ( Format( "%s can't register event %s(%s)\nclass %q doesn't exist." , self.Name, Name, ParamTypes, ReturnType ) )
 					continue
+				else
+					ReturnType = ( Return and Return.Short or "" )
 				end
 			
 				for _, Param in string.gmatch( ParamTypes, "()(%w+)%s*([%[%]]?)()" ) do

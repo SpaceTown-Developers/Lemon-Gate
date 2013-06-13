@@ -206,8 +206,6 @@ function Compiler:CompileCode( Code, Files, NoCompile )
 	self.PrepCode = { }
 	self.PrepCodeLK = { }
 	
-	if SERVER then PrintTable( Files ) end
-	
 	local Lua = self:GetStatements( { 0, 0, Location = "Root" } ).Prepare
 	
 	self.Native = self:LUA_Format( [[
@@ -870,7 +868,7 @@ end
 
 function Compiler:Compile_SET( Trace, Variable, Index, Value, Type )
 	if Type and Value.Return ~= Type then
-		Value = self:Compile_CAST( Trace, Type, Value )
+		Value = self:Compile_CAST( Trace, NType( Type ), Value )
 	end -- Auto Cast!
 	
 	local Op = self:GetOperator( "[]=", Variable.Return, Index.Return, Value.Return )

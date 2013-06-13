@@ -124,6 +124,8 @@ function Lemon:LoadScript( Script, Files )
 	if !Ok then
 		self:Error( "Compiler Error" )
 		WireLib.ClientError( Instance, self.Player )
+	elseif !Instance.Execute then
+		self:Error( "Reload Required" )
 	else
 		self:LoadInstance( Instance )
 	end
@@ -280,7 +282,7 @@ function Lemon:UpdateOverLay( Status, A, ... )
 end
 
 function Lemon:GetScript( )
-	return self.Script or ""
+	return self.Script or "", self.Files or { }
 end
 
 function Lemon:Reset( )

@@ -301,7 +301,7 @@ if %Ent and %Ent:IsValid( ) then
 	
 	if %Phys and %Phys:IsValid( ) then
 		local %Vel = %Phys:GetAngleVelocity( )
-		%Val = {%Vel.p, %Vel.y, %Vel.r}
+		%Val = {%Vel.x, %Vel.y, %Vel.z}
 	end
 end]], "%Val" )
 
