@@ -14,7 +14,6 @@ local setmetatable = setmetatable
 	Table Base Object
 ==============================================================================================*/
 local MAX = 512
-
 local Table = { MaxSize = MAX }
 Table.__index = Table
 
@@ -165,6 +164,10 @@ local Component = API:NewComponent( "table", true )
 Component:AddExternal( "Table", Table )
 
 Component:AddException( "table" )
+
+function Component:GetMetaTable( )
+	return Table
+end
 
 /*==============================================================================================
 	Table Class
