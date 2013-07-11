@@ -1,16 +1,13 @@
 {
 	"title"		:	"LemonGate",
-	"type"		:	"Wiremod Gate",
-	"tags"		:	[ "lemongate", "expression advanced" ],
+	"type"		:	"tool",
+	"tags"		:	[ "build", "fun" ],
 	"description":	"A wiremod based in game script-able gate.",
 	"ignore"	:
 	[
-		"*.psd",
-		"*.vcproj",
-		"*.svn*",
 		"*.txt",
-		".git*",
-		"LICENSE",
 		"README.md",
+		".git*",
+		"pre-commit"
 	]
 }
