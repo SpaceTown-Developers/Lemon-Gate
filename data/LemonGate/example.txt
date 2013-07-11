@@ -1,0 +1,3 @@
+event playerChat(entity Player, string Text) {
+	return "I like trains!"
+}
