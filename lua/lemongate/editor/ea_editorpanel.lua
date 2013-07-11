@@ -67,7 +67,8 @@ function PANEL:Init( )
 	self.TabHolder:DockMargin( 5, 5, 5, 5 )
 	self.TabHolder:SetFadeTime( 0 )
 	timer.Simple( 0.1, function( )
-		self:OpenOldTabs( ) 
+		if self:OpenOldTabs( ) then return end 
+		self:NewTab( ) 
 	end )
 	
 	function self.TabHolder:CloseTab( tab, bRemovePanelToo )
