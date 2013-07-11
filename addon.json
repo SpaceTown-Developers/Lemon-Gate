@@ -1,0 +1,16 @@
+{
+	"title"		:	"LemonGate",
+	"type"		:	"Wiremod Gate",
+	"tags"		:	[ "lemongate", "expression advanced" ],
+	"description":	"A wiremod based in game script-able gate.",
+	"ignore"	:
+	[
+		"*.psd",
+		"*.vcproj",
+		"*.svn*",
+		"*.txt",
+		".git*",
+		"LICENSE",
+		"README.md",
+	]
+}
