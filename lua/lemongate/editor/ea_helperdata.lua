@@ -1,6 +1,4 @@
-LEMON.HelperData = LEMON.HelperData or { } 
-local Data = LEMON.HelperData 
-setmetatable( Data, { __index = function( tbl, index ) return "" end } ) 
+local Data = LEMON.API.HelperData 
 
 /*---------------------------------------------------------------------------
 	Total functions: 415

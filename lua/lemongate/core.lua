@@ -200,8 +200,9 @@ end
 function API:LoadCustomComponents( Path, Recursive )
 	if not Path then return end
 	
-	while Path:match( "//" ) do 
-		Path = Path:gsub( "//", "/" )
+	Path = Path .. "/"
+	while string.match( Path, "//" ) do 
+		Path = string.gsub( Path, "//", "/" )
 	end 
 	
 	local Files = file.Find( Path .. "*.lua", "LUA" ) 
@@ -211,9 +212,9 @@ function API:LoadCustomComponents( Path, Recursive )
 		local File = Path .. fName
 		
 		-- When and if server <> client files need to be separated
-		if fName:match( "^cl_" ) then
+		if string.match( fName, "^cl_" ) then
 			if SERVER then AddCSLuaFile( File ) else include( File ) end
-		elseif fName:match( "^sh_" ) then
+		elseif string.match( fName, "^sh_" ) then
 			if SERVER then AddCSLuaFile( File ) end
 			include( File )
 		else
@@ -221,9 +222,9 @@ function API:LoadCustomComponents( Path, Recursive )
 		end
 	end
 	
-	if Recursive and #Folders > 0 then 
+	if Recursive and Folders and #Folders > 0 then 
 		for _, sFolder in pairs( Folders ) do 
-			self:LoadCustomComponents( Path .. "/" .. Folder, true )
+			self:LoadCustomComponents( Path .. sFolder, true )
 		end 
 	end 
 end
@@ -238,8 +239,11 @@ function API:LoadEditor( )
 			LEMON.Editor = nil 
 		end 
 		
-		include( "lemongate/editor/ea_button.lua" )
+		API.HelperData = {} 
+		setmetatable( API.HelperData, { __index = function( tbl, index ) return "" end } ) 
+		
 		include( "lemongate/editor/ea_browser.lua" )
+		include( "lemongate/editor/ea_button.lua" )
 		include( "lemongate/editor/ea_closebutton.lua" )
 		include( "lemongate/editor/ea_editor.lua" )
 		include( "lemongate/editor/ea_editorpanel.lua" )

@@ -5,8 +5,7 @@
 	Author: Oskar
 ============================================================================================================================================*/
 
-LEMON.HelperData = LEMON.HelperData or { } 
-local LEMON, API, HelperData = LEMON, LEMON.API, LEMON.HelperData
+local LEMON, API, HelperData = LEMON, LEMON.API, LEMON.API.HelperData
 
 local string_match = string.match 
 local string_find = string.find 
