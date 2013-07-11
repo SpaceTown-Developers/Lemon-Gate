@@ -211,7 +211,7 @@ function Compiler:CompileCode( Code, Files, NoCompile )
 	
 	local Lua = self:GetStatements( { 0, 0, Location = "Root" } ).Prepare
 	
-	self.Native = self:LUA_Format( [[
+	self.Native = self:LUA_Format(  [[
 		-- Allow basic libaries & functions
 			local API = LEMON.API
 			local Externals = API.Externals

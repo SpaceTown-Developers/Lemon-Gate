@@ -183,50 +183,47 @@ end]], "%Val" )
 Core:SetPerf( LEMON_PERF_EXPENSIVE )
 
 Core:AddFunction( "applyForce", "e:v", "", [[
-local %Ent = value %1
-if %Ent and %Ent:IsValid( ) and %IsOwner( %context.Player, %Ent ) then
-	local %Phys = %Ent:GetPhysicsObject( )
+if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) then
+	local %Phys = value %1:GetPhysicsObject( )
 	if %Phys and %Phys:IsValid( ) then
 		%Phys:ApplyForceCenter( value %2:Garry( ) )
 	end
 end]], "" )
 
 Core:AddFunction( "applyOffsetForce", "e:v,v", "", [[
-local %Ent = value %1
-if %Ent and %Ent:IsValid( ) and %IsOwner( %context.Player, %Ent ) then
-	local %Phys = %Ent:GetPhysicsObject( )
+if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) then
+	local %Phys = value %1:GetPhysicsObject( )
 	if %Phys and %Phys:IsValid( ) then
 		%Phys:ApplyForceOffset(value %2:Garry( ), value %3:Garry( ))
 	end
 end]], "" )
 
 Core:AddFunction( "applyAngForce", "e:a", "", [[
-local %Ent, %Ang = value %1, value %2
-if %Ent and %Ent:IsValid( ) and %IsOwner( %context.Player, %Ent ) then
-	local %Phys = %Ent:GetPhysicsObject( )
+if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) then
+	local %Phys = value %1:GetPhysicsObject( )
 	if %Phys and %Phys:IsValid( ) then
 		-- assign vectors
-		local %Up = %Ent:GetUp()
-		local %Left = %Ent:GetRight() * -1
-		local %Forward = %Ent:GetForward()
+		local %Up = value %1:GetUp()
+		local %Left = value %1:GetRight() * -1
+		local %Forward = value %1:GetForward()
 
 		-- apply pitch force
-		if %Ang.p ~= 0 and %Ang.p < math.huge then
-			local %Pitch = %Up * (%Ang.p * 0.5)
+		if value %2.p ~= 0 and value %2.p < math.huge then
+			local %Pitch = %Up * (value %2.p * 0.5)
 			%Phys:ApplyForceOffset( %Forward, %Pitch )
 			%Phys:ApplyForceOffset( %Forward * -1, %Pitch * -1 )
 		end
 
 		-- apply yaw force
-		if %Ang.y ~= 0 and %Ang.y < math.huge then
-			local %Yaw = %Forward * (%Ang.y * 0.5)
+		if value %2.y ~= 0 and value %2.y < math.huge then
+			local %Yaw = %Forward * (value %2.y * 0.5)
 			%Phys:ApplyForceOffset( %Left, %Yaw )
 			%Phys:ApplyForceOffset( %Left * -1, %Yaw * -1 )
 		end
 
 		-- apply roll force
-		if %Ang.r ~= 0 and %Ang.r < math.huge then
-			local %Roll = %Left * (%Ang.r * 0.5)
+		if value %2.r ~= 0 and value %2.r < math.huge then
+			local %Roll = %Left * (value %2.r * 0.5)
 			%Phys:ApplyForceOffset( %Up, %Roll )
 			%Phys:ApplyForceOffset( %Up * -1, %Roll * -1 )
 		end

@@ -134,10 +134,16 @@ function API:Init( )
 		self.Config = self.DataPack.Config
 	end
 	
-	MsgN( "Loading components." )
+	MsgN( "[LemonGate] Loading components." )
 	self:LoadCoreComponents( ) 
-	self:LoadCustomComponents( "lemongate/components/custom" ) 
-	self:LoadCustomComponents( GAMEMODE.FolderName .. "/gamemode/EAComponents" )
+	
+	MsgN( "[LemonGate] Loading custom components." ) 
+	
+	self:LoadCustomComponents( "lemongate/components/custom/" ) 
+	self:LoadCustomComponents( GAMEMODE.FolderName .. "/gamemode/EAComponents/" )
+	
+	MsgN( "[LemonGate] Loading awesome editor." ) 
+	
 	self:LoadEditor( )
 	
 	hook.Call( "PRE_LEMONGATE", GAMEMODE or GM )
@@ -192,8 +198,7 @@ function API:LoadCoreComponents( )
 end
 
 function API:LoadCustomComponents( Path, Recursive )
-	if not Path then return end 
-	MsgN( "[LemonGate] Loading custom components." ) 
+	if not Path then return end
 	
 	while Path:match( "//" ) do 
 		Path = Path:gsub( "//", "/" )
@@ -218,7 +223,7 @@ function API:LoadCustomComponents( Path, Recursive )
 	
 	if Recursive and #Folders > 0 then 
 		for _, sFolder in pairs( Folders ) do 
-			self:LoadCustomComponents( Path .. Folder, true )
+			self:LoadCustomComponents( Path .. "/" .. Folder, true )
 		end 
 	end 
 end

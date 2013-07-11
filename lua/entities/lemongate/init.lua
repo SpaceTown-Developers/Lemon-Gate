@@ -419,7 +419,7 @@ end
 /*==============================================================================================
 	Section: Duplication
 ==============================================================================================*/
-function ENT:BuildDupeInfo( )
+function LEMON:BuildDupeInfo( )
 	local DupeTable = self.BaseClass.BuildDupeInfo( self )
 	
 	DupeTable.Script = self.Script
@@ -430,11 +430,13 @@ function ENT:BuildDupeInfo( )
 	return DupeTable
 end
 
-function ENT:ApplyDupeInfo( Player, Entity, DupeTable, FromID )
-	self.BaseClass.ApplyDupeInfo( self, Player, Entity, DupeTable, FromID )
+function LEMON:ApplyDupeInfo( Player, Entity, DupeTable, FromID )
 	self.Player = Player
-	
 	self:LoadScript( DupeTable.Script or "", DupeTable.Files )
+	
+	self.BaseClass.ApplyDupeInfo( self, Player, Entity, DupeTable, FromID )
+	
+	self:CallEvent( "dupePasted" )
 	
 	self:API( ):CallHook( "ApplyDupeInfo", self, self.Context, DupeTable, FromID )
 end

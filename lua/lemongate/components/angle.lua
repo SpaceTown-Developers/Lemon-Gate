@@ -154,6 +154,6 @@ Core:AddFunction("inrange", "a,a,a", "b", "local %A, %B, %C = value %1, value %2
 /*==============================================================================================
 	Entity Helpers
 ==============================================================================================*/
-Core:AddFunction("toWorld", "e:a", "a", "local %Ent = value %1", "($IsValid(%Ent) and %Ent:LocalToWorldAngles(value %2) or Angle(0, 0, 0))" )
+Core:AddFunction("toWorld", "e:a", "a", "( $IsValid( value %1 ) and value %1:LocalToWorldAngles( value %2 ) or Angle(0, 0, 0) )" )
 
-Core:AddFunction("toLocal", "e:a", "a", "local %Ent = value %1", "($IsValid(%Ent) and %Ent:WorldToLocalAngles(value %2) or Angle(0, 0, 0))" )
+Core:AddFunction("toLocal", "e:a", "a", "( $IsValid( value %1 ) and value %1:WorldToLocalAngles( value %2 ) or Angle(0, 0, 0) )" )

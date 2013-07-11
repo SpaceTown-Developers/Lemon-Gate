@@ -165,7 +165,10 @@ Core:AddFunction("heading", "v,a,v", "a", "(value %1:Heading(value %2, value %3)
 /*==============================================================================================
 	Entity Helpers
 ==============================================================================================*/
-Core:AddFunction("toWorld", "e:v", "v", "($IsValid( value %1 ) and value %1:LocalToWorld( value %2:Garry( ) ) or Vector3.Zero)" )
+
+Core:AddFunction("toWorld", "e:v", "v", "Vector3( $IsValid( value %1 ) and value %1:LocalToWorld( value %2:Garry( ) ) or Vector(0, 0, 0) )" )
+
+-- Core:AddFunction("toWorld", "e:v", "v", "($IsValid( value %1 ) and value %1:LocalToWorld( value %2:Garry( ) ) or Vector3.Zero)" )
 
 Core:AddFunction("toLocal", "e:v", "v", "($IsValid( value %1 ) and value %1:WorldToLocal( value %2:Garry( ) ) or Vector3.Zero)" )
 
