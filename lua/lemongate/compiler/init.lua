@@ -273,7 +273,8 @@ function Compiler:ConstructOperator( Types, Second, First, ... )
 	for I = 1, math.Max( #Types, #Values ) do
 			
 			local Prep
-			local Type = Types[I] or "nil"
+			
+			local RType, IType = Types[I] or ""
 			local Input = Values[I] or "nil"
 		
 		-- 1) Read the instruction.
@@ -282,7 +283,7 @@ function Compiler:ConstructOperator( Types, Second, First, ... )
 				Prep = Input.Prepare
 				Value = Input.Inline or "nil"
 				Perf = Perf + ( Input.Perf or 0 )
-				Type = '"' .. (Input.Return or "") .. '"'
+				IType = Input.Return
 			elseif Input then
 				Value = Input
 			end
@@ -315,17 +316,18 @@ function Compiler:ConstructOperator( Types, Second, First, ... )
 		
 		-- 4) Creat a var-arg variant
 			
-			if Variants[1] or Type == "..." then
-				table.insert( Variants, Type ~= "?" and Format("{%s,%q}", Value, Type) or Value )
+			if Variants[1] or RType == "..." then
+				RType = IType
+				table.insert( Variants, RType ~= "?" and Format( "{%s,%q}", Value, RType ) or Value )
 			end
 			
 		-- 5) Replace the inlined data
 			
-			First = string.gsub( First, "type %%" .. I, Type )
+			First = string.gsub( First, "type %%" .. I, Format( "%q", RType or IType or "" ) )
 			First = string.gsub( First, "value %%" .. I, Value )
 			
 			if Second then
-				Second = string.gsub( Second, "type %%" .. I, Type )
+				Second = string.gsub( Second, "type %%" .. I, Format( "%q", RType or IType or "" ) )
 				Second = string.gsub( Second, "value %%" .. I, Value )
 		
 		-- 6) Check for any specific prepare
@@ -341,7 +343,7 @@ function Compiler:ConstructOperator( Types, Second, First, ... )
 	end
 	
 	-- 7) Replace Var-Args
-		local Varargs = "{" .. string.Implode( ",", Variants ) .. "}"
+		local Varargs = string.Implode( ",", Variants )
 		
 		First = string.gsub( First, "(%%%.%.%.)", Varargs )
 		

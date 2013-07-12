@@ -701,7 +701,7 @@ function Compiler:Compile_LAMBDA( Trace, Params, HasVarArg, Sequence )
 		FuncParams[I] = Var
 		FuncPrepare[I] = [[
 			local Trace = ]] .. self:CompileTrace( Trace ) .. [[
-			if ( !]] .. Var .. [[ ) then
+			if ( !]] .. Var .. " or !" .. Var ..[[[1] ) then
 				Context:Throw( Trace, "invoke", "Paramater ]] .. Param[1] .. [[ is a void value" )
 			elseif ( ]] .. Var .. [[[2] ~= "]] .. Param[2] .. [[" ) then
 				Context:Throw( Trace, "invoke", "Paramater ]] .. Param[1] .. [[ got " .. ]] .. Var .. [[[2] .. " ]] .. Param[2].. [[ expected." )
