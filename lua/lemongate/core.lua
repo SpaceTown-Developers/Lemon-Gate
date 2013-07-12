@@ -1035,44 +1035,51 @@ if SERVER then
 	Section: Con Commands
 ==========================================================================*/
 
-	function LEMON.Cmd_Reload( Player, Cmd, Args, Line )
-		if IsValid(Player) and Player:IsAdmin( ) then
-			MsgN( Format( "Player %s is reloading LemonGate!", Player:GetName( ) ) )
-			
-			Player:ChatPrint( "LemonGate reloading!" )
-			
-			API:Init( )
-		elseif !Player then
-			MsgN( "Console %s is reloading LemonGate!" )
-			
-			API:Init( )
+	concommand.Add( "lemon_reload", function ( Ply, Cmd, Args, Line )
+		local Name = "Console"
+		
+		if IsValid( Ply ) then
+			if !Ply:IsAdmin( ) then return "" end
+			Name = Ply:Name( )
 		end
-	end
+		
+		for _, Ply in pairs( player.GetAll( ) ) do
+			Player:ChatPrint( Name .. " has reloaded Lemon-Gate." )
+		end
+		
+		MsgN( Name .. " has reloaded Lemon-Gate." )
+		
+		API:Init( )
+		
+	end )
 
-	concommand.Add( "lemon_reload", LEMON.Cmd_Reload )
 
-	function LEMON.Cmd_Component( Player, Cmd, Args, Line )
-		if !IsValid(Player) or Player:IsAdmin( ) then
-			local Component, Bool = string.lower( Args[1] ), tobool( Args[2] )
-			if Component != "core" and API.Components[ Component ] then
-				API.Components[ Component ] = Bool
-				
-				API:SaveConfig( )
-				
-				local Word = Bool and "enabled" or "disabled"
-				
-				if Player then
-					MsgN( Format( "Player %s has %s lemongate component %s.", Player:GetName( ), Word, Component ) )
-					
-					Player:ChatPrint( Format( "Component %s  %s.", Word, Component ) )
-				else
-					MsgN( "Console has %s lemongate component %s.", Word, Component )
-				end
+	concommand.Add( "lemon_component", function ( Ply, Cmd, Args, Line )
+		local Name = "Console"
+		
+		if IsValid( Ply ) then
+			if !Ply:IsAdmin( ) then return "" end
+			Name = Ply:Name( )
+		end
+		
+		local Component, Bool = string.lower( Args[1] ), tobool( Args[2] )
+		
+		if Component != "core" and API.Components[ Component ] then
+			
+			API.Components[ Component ] = Bool
+			
+			API:SaveConfig( )
+			
+			local Message = Format( "%s has %s Lemon-Gate component %s.", Name, Bool and "enabled" or "disabled", Component )
+			
+			for _, Ply in pairs( player.GetAll( ) ) do
+				Player:ChatPrint( Message )
 			end
+			
+			Msg( Message )
 		end
-	end
-
-	concommand.Add( "lemon_component", LEMON.Cmd_Component )
+		
+	end )
 	
 	-- In Editor
 		concommand.Add( "lemon_editor_open", function( Ply ) Ply:SetNWBool( "Lemon_Editor", true ) end )
@@ -1080,12 +1087,10 @@ if SERVER then
 	
 elseif CLIENT then
 
-	function LEMON.Cmd_Editor( Player, Cmd, Args, Line )
+	concommand.Add( "lemon_reload_editor", function ( Player, Cmd, Args, Line )
 		MsgN( "LemonGate Editor Reloading" )
 		API:LoadEditor( )
 		MsgN( "Editor Reloaded" )
-	end
-	
-	concommand.Add( "lemon_reload_editor", LEMON.Cmd_Editor )
+	end )
 end
 

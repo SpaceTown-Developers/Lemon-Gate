@@ -508,9 +508,9 @@ function PANEL:CloseTab( bSave, Tab )
 end
 
 function PANEL:CloseAll( )
-	while #self.TabHolder.Items > 0 do
-		self:CloseTab( true, self.TabHolder.Items[1].Tab )
-	end
+	for I = #self.TabHolder.Items, 1, -1 do
+		self:CloseTab( true, self.TabHolder.Items[I].Tab )
+	end -- Fixed infer-loop =D
 end
 
 function PANEL:CloseAllBut( pTab )
