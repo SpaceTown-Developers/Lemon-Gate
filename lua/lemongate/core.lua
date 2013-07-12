@@ -1044,7 +1044,7 @@ if SERVER then
 		end
 		
 		for _, Ply in pairs( player.GetAll( ) ) do
-			Player:ChatPrint( Name .. " has reloaded Lemon-Gate." )
+			Ply:ChatPrint( Name .. " has reloaded Lemon-Gate." )
 		end
 		
 		MsgN( Name .. " has reloaded Lemon-Gate." )
@@ -1073,7 +1073,7 @@ if SERVER then
 			local Message = Format( "%s has %s Lemon-Gate component %s.", Name, Bool and "enabled" or "disabled", Component )
 			
 			for _, Ply in pairs( player.GetAll( ) ) do
-				Player:ChatPrint( Message )
+				Ply:ChatPrint( Message )
 			end
 			
 			Msg( Message )

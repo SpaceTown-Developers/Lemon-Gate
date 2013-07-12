@@ -371,6 +371,57 @@ if %Ent and %Ent:IsValid( ) and %IsOwner( %context.Player, %Ent ) then
 end]], "" )
 
 /*==============================================================================================
+	Section: Player Stuff
+==============================================================================================*/
+Core:AddFunction( "isPlayer", "e:", "b", "($IsValid(value %1) and value %1:IsPlayer( ))" )
+
+Core:AddFunction( "isAdmin", "e:", "b", "($IsValid(value %1) and value %1:IsPlayer( ) and value %1:IsAdmin( ))" )
+
+Core:AddFunction( "isSuperAdmin", "e:", "b", "($IsValid(value %1) and value %1:IsPlayer( ) and value %1:IsSuperAdmin( ))" )
+
+/*==============================================================================================
+	Section: Aiming and Eye
+==============================================================================================*/
+
+Core:AddFunction( "shootPos", "e:", "v", "( ($IsValid(value %1) and value %1:IsPlayer( )) and Vector3( value %1:GetShootPos() ) or Vector3.Zero:Clone() )" )
+
+Core:AddFunction( "eye", "e:", "v", "($IsValid(value %1) and (( value %1:IsPlayer( ) and Vector3( value %1:GetAimVector() ) or value %1:GetForward() )) or Vector3.Zero:Clone() )" )
+
+Core:AddFunction( "eyeAngles", "e:", "a", "($IsValid(value %1) and value %1:EyeAngles() or Angle(0, 0, 0))" )
+
+Core:AddFunction( "aimEntity", "e:", "e", "( ($IsValid(value %1) and value %1:IsPlayer( )) and Value %1:GetEyeTraceNoCursor().Entity or %NULL_ENTITY or %NULL_ENTITY)" )
+
+Core:AddFunction( "aimNormal", "e:", "v", "( ($IsValid(value %1) and value %1:IsPlayer( )) and Vector3(Value %1:GetEyeTraceNoCursor().HitNormal) or Vector3.Zero:Clone() )" )
+
+Core:AddFunction( "aimPos", "e:", "v", "( ($IsValid(value %1) and value %1:IsPlayer( )) and Vector3(Value %1:GetEyeTraceNoCursor().HitPos) or Vector3.Zero:Clone() )" )
+
+/*==============================================================================================
+	Section: Player Stats
+==============================================================================================*/
+
+Core:AddFunction( "steamID", "e:", "s", "( ($IsValid(value %1) and value %1:IsPlayer( )) and value %1:SteamID() or \"\" )" )
+
+Core:AddFunction( "armor", "e:", "n", "( ($IsValid(value %1) and value %1:IsPlayer( )) and value %1:Armor() or 0 )" )
+
+Core:AddFunction( "ping", "e:", "n", "( ($IsValid(value %1) and value %1:IsPlayer( )) and value %1:Ping() or 0 )" )
+
+Core:AddFunction( "timeConnected", "e:", "n", "( ($IsValid(value %1) and value %1:IsPlayer( )) and value %1:TimeConnected() or 0 )" )
+
+Core:AddFunction( "vehicle", "e:", "e", "( ($IsValid(value %1) and value %1:IsPlayer( )) and Value %1:GetVehicle() or %NULL_ENTITY or %NULL_ENTITY)" )
+
+Core:AddFunction( "isPlayer", "e:", "b", "($IsValid(value %1) and value %1:IsPlayer( ) and value %1:InVehicle() )" )
+
+Core:AddFunction( "inNoclip", "e:", "b", "($IsValid(value %1) and value %1:IsPlayer( ) and (value %1:GetMoveType() ~= $MOVETYPE_NOCLIP) )" )
+
+/*==============================================================================================
+	Section: Mouse Stuff
+==============================================================================================*/
+
+Core:AddFunction( "leftClick", "e:", "b", "($IsValid(value %1) and value %1:IsPlayer( ) and value %1:KeyDown( $IN_ATTACK ) )" )
+
+Core:AddFunction( "rightClick", "e:", "b", "($IsValid(value %1) and value %1:IsPlayer( ) and value %1:KeyDown( $IN_ATTACK2 ) )" )
+
+/*==============================================================================================
 	Section: Finding
 ==============================================================================================*/
 local FindFilter = { -- E2 filters these.
