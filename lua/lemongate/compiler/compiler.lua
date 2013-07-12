@@ -801,7 +801,6 @@ local Functions = LEMON.API.Functions
 
 function Compiler:Compile_FUNCTION( Trace, Function, ... )
 	if self:GetVariable( Trace, Function ) then
-		print( "THIS IS IT!", Function )
 		return self:Compile_CALL( Trace, self:Compile_VARIABLE( Trace, Function ), ... )
 	end
 	

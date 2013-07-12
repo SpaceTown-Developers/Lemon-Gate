@@ -90,11 +90,11 @@ end
 /*==============================================================================================
     Convars
 ==============================================================================================*/
-HoloLib._Max = CreateConVar( "lemon_hologramsHoloLib._Max", "128" )
+HoloLib._Max = CreateConVar( "lemon_holograms_max", "128" )
 HoloLib._Rate = CreateConVar( "lemon_holograms_per_tick", "20" )
-HoloLib._Clips = CreateConVar( "lemon_hologramsHoloLib._MaxHoloLib._Clips", "5" )
-HoloLib._Size = CreateConVar( "lemon_hologramsHoloLib._MaxHoloLib._Size", "50" )
-HoloLib._Model = CreateConVar( "lemon_hologramsHoloLib._Model_any", "0" )
+HoloLib._Clips = CreateConVar( "lemon_holograms__clips", "5" )
+HoloLib._Size = CreateConVar( "lemon_holograms_Size", "50" )
+HoloLib._Model = CreateConVar( "lemon_holograms_model_any", "1" )
 
 /*==============================================================================================
 	Section: Models
@@ -188,9 +188,9 @@ for _, Model in pairs( HoloLib.ModelList ) do
 end
 
 function HoloLib.Model( Trace, Context, Holo, ModelS )
-	if Holo and Holo:IsValid( ) and Holo.Player == Context.Player then
+	if IsValid( Holo ) and Holo.Player == Context.Player then
         local ValidModel = HoloLib.ModelList[ ModelS ]
-
+		print( "YAY!" )
         if ValidModel then
             Holo:SetModel( "models/Holograms/" .. ValidModel .. ".mdl" )
             Holo.ModelAny = false
@@ -199,8 +199,7 @@ function HoloLib.Model( Trace, Context, Holo, ModelS )
             Holo.ModelAny = true
         else
             Context:Throw( Trace, "hologram", "unknown hologram model used" )
-        end
-		
+        end	
 	end
 end
 	
@@ -237,8 +236,9 @@ function HoloLib.Create( Trace, Context )
 	
 	Recent[Ent] = Burst + 1
     Owners[Owner] = Count + 1
-    Holograms[Ent][Holo] = Holo
-
+    
+	Holograms[Ent][Holo] = Holo -- Hmm?
+	
     Holo:SetModel( "models/Holograms/sphere.mdl" )
     Holo:SetPos( Ent:GetPos( ) )
     Holo:Spawn( )
@@ -313,7 +313,7 @@ Component:SetPerf( LEMON_PERF_EXPENSIVE )
 
 Component:AddFunction( "hologram", "", "h", "%HoloLib.Create( %trace, %context )")
 
-Component:AddFunction("hologram", "s", "h", "%HoloLib.Create( %trace, %context, value %1 )")
+Component:AddFunction("hologram", "s", "h", "%HoloLib.Create2( %trace, %context, value %1 )")
 
 Component:AddFunction( "hologram", "s,v", "h", [[
 local %Holo = %HoloLib.Create( %trace, %context, value %1 )
@@ -327,7 +327,7 @@ Component:SetPerf( LEMON_PERF_NORMAL )
 
 Component:AddFunction( "remove", "h:", "", "%HoloLib.Remove( %context, value %1 )" )
 
-Component:AddFunction( "setModel", "h:s", "", "%HoloLib.Model( %trace, %context, value %1, value %2 )" )
+Component:AddFunction( "setModel", "h:s", "", "%HoloLib.Model( %trace, %context, value %1, value %2 )", "" )
 
 Component:SetPerf( LEMON_PERF_CHEAP )
 
