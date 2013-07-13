@@ -302,7 +302,7 @@ function Compiler:ConstructOperator( Types, Second, First, ... )
 			if Usages > 1 and type( Input ) ~= "number" then
 				if !string.find( Value, "^_[a-zA-z0-9]+" ) then
 					local ID = self:NextLocal( )
-					Prep = Format( "%s\nlocal %s = %s", Prep or "", ID, Value )
+					Prep = Format( "%s\nlocal %s = %s\n", Prep or "", ID, Value )
 					Value = ID
 					
 					if type( Input ) == "table" then
