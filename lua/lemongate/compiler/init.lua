@@ -316,7 +316,7 @@ function Compiler:ConstructOperator( Types, Second, First, ... )
 		
 		-- 4) Creat a var-arg variant
 			
-			if Variants[1] or RType == "..." then
+			if Variants[1] or RType == "..." and IType then
 				RType = IType
 				table.insert( Variants, RType ~= "?" and Format( "{%s,%q}", Value, RType ) or Value )
 			end
