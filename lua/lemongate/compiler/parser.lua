@@ -654,14 +654,14 @@ function Compiler:Statment_VAR( RootTrace )
 	
 	-- Multi Assign/Arithmatic Assign
 	
-	elseif self:CheckToken( "com", "ass", "+=", "-=", "*=", "/=" ) then
+	elseif self:CheckToken( "com", "ass", "aadd", "asub", "amul", "adiv" ) then
 		local Variables, Count = self:GetListedVariables( RootTrace )
 		
 		local Statments, Operator = { }
 		
 		if self:AcceptToken( "ass" ) then
 			-- Nothing!
-		elseif self:AcceptToken( "+=", "-=", "*=", "/=" ) then
+		elseif self:AcceptToken( "aadd", "asub", "amul", "adiv" ) then
 			Operator = "Compile_" .. string.upper( TokenOperators[ string.sub( 2, self.TokenType ) ][1] )
 		else
 			self:TokenError( "Assignment operator (=) expected after Variable" )
@@ -914,6 +914,7 @@ function Compiler:Statment_FUNC( GlobalTrace )
 	
 	self:RequireToken( "fun", "Function variable expected after function Keyword" )
 	local Variable = self.TokenData
+	local State = GlobalTrace and "Global" or "Local"
 	
 	self:ExcludeToken( "aadd", "Assigment operator (+=) can not assign to functions" )
 	self:ExcludeToken( "asub", "Assigment operator (-=) can not assign to functions" )
@@ -921,9 +922,10 @@ function Compiler:Statment_FUNC( GlobalTrace )
 	self:ExcludeToken( "adiv", "Assigment operator (/=) can not assign to functions" )
 	
 	if self:AcceptToken( "ass" ) then
-		return self:Compile_DECLAIR( Trace, GlobalTrace and "Global" or "Local", Variable, "f", self:GetExpression( Trace ) )
+		return self:Compile_DECLAIR( Trace, State, Variable, "f", self:GetExpression( Trace ) )
 	else
-		return self:Compile_DECLAIR( Trace, GlobalTrace and "Global" or "Local", Variable, "f", self:BuildLambda( Trace ) )
+		local Ref = self:Assign( Trace, Variable, "f", State )
+		return self:Compile_ASSIGN( Trace, Variable, self:BuildLambda( Trace ) )
 	end
 end
 
