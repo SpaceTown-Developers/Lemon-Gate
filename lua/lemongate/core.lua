@@ -986,7 +986,7 @@ function API:BuildFunction( Sig, Perf, Types, Ret, Second, First )
 		local PopPerf = false
 		Trace.Location = Sig
 		
-		local First, Second, Perf = Compiler:ConstructOperator( Types, Second, First, ... )
+		local First, Second, Perf = Compiler:ConstructOperator( Perf, Types, Second, First, ... )
 		
 		if Second then
 			for Line in string.gmatch( Second, "local [a-zA-Z_0-9%%, \t]+" ) do

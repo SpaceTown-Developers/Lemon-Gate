@@ -212,7 +212,6 @@ Core:SetPerf( LEMON_PERF_EXPENSIVE )
 -- 1:Ass, 2:Cnd, 3:Step, 4:Statment
 Core:AddOperator( "for", "n", "", [[
 do -- For Loop
-	local ExitDeph = ExitDeph or 0
 	
 	prepare %1
 	
@@ -229,8 +228,11 @@ do -- For Loop
 		prepare %4
 	end
 	
+	ExitDeph = ExitDeph or 0
+	
 	while ( Cnd( ) ) do
 		%perf
+		%context:TestLoop( %trace )
 		
 		local Ok, Exit = pcall( Statments )
 		
@@ -254,7 +256,6 @@ Core:SetPerf( LEMON_PERF_EXPENSIVE )
 
 Core:AddOperator( "while", "", "", [[
 do -- While Loop
-	local ExitDeph = ExitDeph or 0
 	
 	local Cnd = function( )
 		prepare %1
@@ -265,8 +266,11 @@ do -- While Loop
 		prepare %2
 	end
 	
+	ExitDeph = ExitDeph or 0
+	
 	while ( Cnd( ) ) do
 		%perf
+		%context:TestLoop( %trace )
 		
 		local Ok, Exit = pcall( Statments )
 		
@@ -327,15 +331,11 @@ Core:AddFunction( "gateName", "s", "", "%context.Entity:SetGateName( value %1 )"
 ==============================================================================================*/
 Core:AddFunction( "perf", "", "n", "%context.Perf" )
 
-Core:AddFunction( "perfAvailable", "", "n", "($GetConVarNumber(\"lemongate_perf\") - %context.Perf)" )
+Core:AddFunction( "maxPerf", "", "n", "%context.MaxPerf" )
 
-Core:AddFunction( "maxPerf", "", "n", "$GetConVarNumber(\"lemongate_perf\")" )
+Core:AddFunction( "hardPerf", "", "n", "(%context.MaxPerf - %context.Perf)" )
 
-Core:AddFunction( "maxPerf", "", "n", [[
-local %Perf, %MaxPerf, %Val = %context.Perf, $GetConVarNumber("lemongate_perf"), 0
-if %Perf > 0 and %MaxPerf > 0 then
- %Val = math.ceil((%Perf / %MaxPerf) * 100)
-end]], "%Val")
+Core:AddFunction( "softPerf", "", "n", "((%context.MaxPerf * 0.95) - %context.Perf)" )
 
 /*==============================================================================================
 	Section: Things that have no place to go!

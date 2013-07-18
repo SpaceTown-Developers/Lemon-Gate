@@ -347,6 +347,7 @@ do
 	end
 	
 	for Key, Type, Value in value %1:Itorate( ) do
+		%context:TestLoop( %trace )
 		local KeyType = $type( Key )[1]
 		
 		if VType ~= Type and VType ~= "?" then

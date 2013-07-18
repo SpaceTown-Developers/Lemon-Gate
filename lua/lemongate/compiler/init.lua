@@ -261,14 +261,14 @@ end
 	Section: Peram Convertor
 ==========================================================================*/
 
-function Compiler:ConstructOperator( Types, Second, First, ... )
+function Compiler:ConstructOperator( Perf, Types, Second, First, ... )
 	
 	if !First then
 		self:Error( "Unpredicable error: No inline was given!" )
 	end
 	
 	local Values = { ... }
-	local Variants, Prepare, Perf = { }, { }, 0
+	local Variants, Prepare = { }, { }
 	
 	local MaxPerams = math.Max( #Types, #Values )
 	

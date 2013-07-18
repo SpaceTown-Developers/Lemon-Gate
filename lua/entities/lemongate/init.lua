@@ -21,7 +21,8 @@ local pcall = pcall -- Speed
 local GoodColor = Color( 255, 255, 255, 255 )
 local BadColor = Color( 255, 0, 0, 0 )
 
-local MaxPerf = CreateConVar( "lemongate_perf", "100000" )
+local MaxPerf = CreateConVar( "lemongate_perf", "25000" )
+local LoopSafe = CreateConVar( "lemongate_loop_safe", "500" )
 local CaveJohnson = CreateConVar( "combustible_lemon", "0" )
 
 /*==============================================================================================
@@ -49,9 +50,20 @@ function Context:Error( Trace, Message )
 end
 
 function Context:PushPerf( Trace, Ammount )
-	self.Perf = self.Perf - Ammount
-	if self.Perf < 0 then
+	self.Perf = self.Perf + Ammount
+	if self.Perf > self.MaxPerf then
 		self:Error( Trace, "Maxamum operations count exceeded." )
+	end
+end
+
+function Context:TestLoop( Trace )
+	self.Loops = self.Loops + 1
+	self.Perf = self.Perf + LEMON_PERF_NORMAL
+	
+	if self.Perf > self.MaxPerf then
+		self:Error( Trace, "Maxamum operations count exceeded." )
+	elseif self.Loops > LoopSafe:GetInt( ) then
+		self:Error( Trace, "Maxamum looped operations count exceeded." )
 	end
 end
 
@@ -98,10 +110,10 @@ end
 ==============================================================================================*/
 function Lemon:BuildContext( )
 	self.Context = setmetatable( { 
-		Perf  = MaxPerf:GetInt( ),
+		Perf = 0, MaxPerf = MaxPerf:GetInt( ),
 		Entity = self, Player = self.Player,
 		Memory = { }, Delta = { }, Click = { },
-		Data = { }, WLQueue = { }
+		Data = { }, WLQueue = { }, Loops = 0
 	}, Context )
 	
 	LEMON.API:CallHook( "BuildContext", self )
@@ -204,6 +216,7 @@ function Lemon:Update( )
 	self:GarbageCollect( )
 	self.Context.Click = { }
 	self.Context:FlushWLQue( )
+	self.Context.Loops = 0
 end
 
 /*==============================================================================================
@@ -230,12 +243,15 @@ function Lemon:Think( )
 		if !Context.PerfTime or Context.PerfTime > Time then
 			Context.PerfTime = Time + 1
 			
-			Context.LastPerf = Context.Perf
-			Context.Perf  = MaxPerf:GetInt( )
+			local Used = Context.Perf
 			
-			local Perf = Context.Perf - ( Context.LastPerf or 0 )
-			local Perc = (Perf > 0) and math.ceil((Perf / Context.Perf) * 100) or 0
-			self:UpdateOverLay( "Online\n%d ops (%d%%)", Perf, Perc )
+			Context.LastPerf = Used
+			Context.MaxPerf = MaxPerf:GetInt( )
+			Context.Perf = 0
+			
+			local Per = math.ceil( ( Used / Context.MaxPerf ) * 100 )
+			
+			self:UpdateOverLay( "Online\n%d ops (%d%%)", Used, Per )
 		end
 		
 		self:CallEvent( "think" )
@@ -293,7 +309,7 @@ end
 
 function Lemon:Pcall( Func, ... )
 	local Ok, Status, Value = pcall( Func, ... )
-	
+		
 	if Ok or Status == "Exit" then
 		self:Update( )
 		return Ok, Status, Value

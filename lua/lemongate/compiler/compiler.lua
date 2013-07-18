@@ -237,6 +237,7 @@ function Compiler:CompileCode( Code, Files, NoCompile )
 			} ) )
 				
 		return function( Context )
+			
 			-- Prep Code	
 				]] .. string.Implode( "\n", self.PrepCode ) .. [[
 		
@@ -325,7 +326,7 @@ end
 ==============================================================================================*/
 
 function Compiler:Compile_SEQUENCE( Trace, Statements )
-	local Lines, Perf = { }, 0
+	local Lua, Lines, Perf = "", { }, 0
 	
 	for I = 1, #Statements do
 		local Instr = Statements[ I ]
@@ -345,11 +346,19 @@ function Compiler:Compile_SEQUENCE( Trace, Statements )
 		end
 	end
 	
-	return self:Instruction( Trace, 0, "", "", [[
-		do
-			Context:PushPerf( ]] .. self:CompileTrace( Trace ) .. ", " .. Perf .. [[ )
+	if Perf > 0 then
+		Lua = "Context:PushPerf( " .. self:CompileTrace( Trace ) .. ", " .. Perf .. " )\n"
+	end
+	
+	if #Lines > 1 then
+		Lua = Lua .. [[do
 			]] .. string.Implode( "\n", Lines ) .. [[
-		end ]] )
+		end]]
+	else
+		Lua = Lua .. Lines[1]
+	end
+	
+	return self:Instruction( Trace, 0, "", "", Lua )
 end
 
 /*==============================================================================================
