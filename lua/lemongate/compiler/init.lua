@@ -270,7 +270,23 @@ function Compiler:ConstructOperator( Types, Second, First, ... )
 	local Values = { ... }
 	local Variants, Prepare, Perf = { }, { }, 0
 	
-	for I = 1, math.Max( #Types, #Values ) do
+	local MaxPerams = math.Max( #Types, #Values )
+	
+	while ( true ) do
+		local TestPeram = MaxPerams + 1
+		
+		if string.find( First, "value %%" .. TestPeram ) or string.find( First, "prepare %%" .. TestPeram ) then
+			MaxPerams = MaxPerams + 1
+		elseif !Second then
+			break
+		elseif string.find( Second, "value %%" .. TestPeram ) or string.find( Second, "prepare %%" .. TestPeram ) then
+			MaxPerams = MaxPerams + 1
+		else
+			break
+		end
+	end
+	
+	for I = 1, MaxPerams do
 			
 			local Prep
 			

@@ -662,7 +662,7 @@ function Compiler:Statment_VAR( RootTrace )
 		if self:AcceptToken( "ass" ) then
 			-- Nothing!
 		elseif self:AcceptToken( "aadd", "asub", "amul", "adiv" ) then
-			Operator = "Compile_" .. string.upper( TokenOperators[ string.sub( 2, self.TokenType ) ][1] )
+			Operator = "Compile_" .. string.upper( TokenOperators[ string.sub( self.TokenType, 2 ) ][1] )
 		else
 			self:TokenError( "Assignment operator (=) expected after Variable" )
 		end

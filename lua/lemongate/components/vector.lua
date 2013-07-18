@@ -88,11 +88,11 @@ Core:AddFunction("y", "v:", "n", "value %1.y", nil, "Gets the Z of a vector" )
 Core:AddFunction("z", "v:", "n", "value %1.z", nil, "Gets the Z of a vector" )
 
 
-Core:AddFunction("setX", "v:n", "v", "Vector3(value %2, value %1.y, value %1.z)", "Sets the X of a vector" )
+Core:AddFunction("setX", "v:n", "v", "Vector3(value %2, value %1.y, value %1.z)", nil, "Sets the X of a vector" )
 
-Core:AddFunction("setY", "v:n", "v", "Vector3(value %1.x, value %2, value %1.z)", "Sets the Y of a vector" )
+Core:AddFunction("setY", "v:n", "v", "Vector3(value %1.x, value %2, value %1.z)", nil, "Sets the Y of a vector" )
 
-Core:AddFunction("setZ", "v:n", "v", "Vector3(value %1.x, value %1.y, value %2)", "Sets the Z of a vector" )
+Core:AddFunction("setZ", "v:n", "v", "Vector3(value %1.x, value %1.y, value %2)", nil, "Sets the Z of a vector" )
 
 Core:SetPerf( LEMON_PERF_ABNORMAL )
 
@@ -120,7 +120,7 @@ Core:AddExternal( "Deg2Rad", math.pi / 180 )
 ==============================================================================================*/
 Core:SetPerf( LEMON_PERF_NORMAL )
 
-Core:AddOperator( "length", "v", "n", "value %1:Length()" )
+Core:AddOperator( "#", "v", "n", "value %1:Length()" )
 
 Core:AddFunction("length", "v:", "n", "value %1:Length()", nil, "Get the lengh of a vector." )
 

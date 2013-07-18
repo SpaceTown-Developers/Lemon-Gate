@@ -215,7 +215,11 @@ do -- For Loop
 	local ExitDeph = ExitDeph or 0
 	
 	prepare %1
-	prepare %2
+	
+	local Cnd = function( )
+		prepare %2
+		return value %2
+	end
 	
 	local Step = function( )
 		prepare %3
@@ -225,7 +229,7 @@ do -- For Loop
 		prepare %4
 	end
 	
-	while ( value %2 ) do
+	while ( Cnd( ) ) do
 		%perf
 		
 		local Ok, Exit = pcall( Statments )
@@ -252,13 +256,16 @@ Core:AddOperator( "while", "", "", [[
 do -- While Loop
 	local ExitDeph = ExitDeph or 0
 	
-	%prepare
+	local Cnd = function( )
+		prepare %1
+		return value %1
+	end
 	
 	local Statments = function( )
 		prepare %2
 	end
 	
-	while ( value %1 ) do
+	while ( Cnd( ) ) do
 		%perf
 		
 		local Ok, Exit = pcall( Statments )

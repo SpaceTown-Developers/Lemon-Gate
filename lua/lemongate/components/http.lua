@@ -72,15 +72,33 @@ end
 
 function Component:GateThink( Gate )
 	local Context = Gate.Context
-	if !Gate.Errored and Context then
-		for k, Request in pairs( Gate.Context.Data.HTTP ) do
+	if Gate:IsRunning( ) then
+		for Key, Request in pairs( Gate.Context.Data.HTTP ) do
 			if ( Request.Done ) then
-				if(Request.Success)then
-					Request.Func( { Request.Body, "s" } )
+				
+				local Ok, Status
+				
+				if( Request.Success )then
+					Ok, Status = pcall( Request.Func, { Request.Body, "s" } )
+					Request.Done = false
 				else
-					Request.FailFunc( )
+					Ok, Status = pcall( Request.FailFunc )
+					Request.Done = false
 				end
-				Request.Done = false
+				
+				if Ok or Status == "Exit" then
+					Gate:Update( )
+				elseif Status == "Script" then
+					local Cont = Gate.Context
+					return Gate:ScriptError( Cont.ScriptTrace, Cont.ScriptError )
+				elseif Status == "Exception" then
+					local Excpt = Gate.Context.Exception
+					return Gate:ScriptError( Excpt.Trace, "uncatched exception '" .. Excpt.Type .. "' in http " .. (Request.Success and "success" or "fail") .. " callback." )
+				elseif Status == "Break" or Status == "Continue" then
+					return Gate:ScriptError( nil, "unexpected use of " .. Status .. " in http " .. (Request.Success and "success" or "fail") .. " callback." )
+				else
+					return Gate:LuaError( Status )
+				end
 			end
 		end
 	end

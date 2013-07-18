@@ -86,9 +86,9 @@ Core:AddFunction("x", "v2:", "n", "value %1.x", nil, "Gets the X of a vector" )
 Core:AddFunction("y", "v2:", "n", "value %1.y", nil, "Gets the Z of a vector" )
 
 
-Core:AddFunction("setX", "v2:n", "v2", "Vector2(value %2, value %1.y)", "Sets the X of a vector" )
+Core:AddFunction("setX", "v2:n", "v2", "Vector2(value %2, value %1.y)", nil, "Sets the X of a vector" )
 
-Core:AddFunction("setY", "v2:n", "v2", "Vector2(value %1.x, value %2)", "Sets the Y of a vector" )
+Core:AddFunction("setY", "v2:n", "v2", "Vector2(value %1.x, value %2)", nil, "Sets the Y of a vector" )
 
 Core:SetPerf( LEMON_PERF_ABNORMAL )
 
@@ -110,7 +110,7 @@ local %Value = %memory[value %1] or Vector2.Zero
 ==============================================================================================*/
 Core:SetPerf( LEMON_PERF_NORMAL )
 
-Core:AddOperator( "length", "v2", "n", "value %1:Length()" )
+Core:AddOperator( "#", "v2", "n", "value %1:Length()" )
 
 Core:AddFunction("length", "v2:", "n", "value %1:Length()", nil, "Get the lengh of a vector." )
 

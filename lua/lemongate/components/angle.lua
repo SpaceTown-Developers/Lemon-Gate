@@ -84,11 +84,11 @@ Core:AddFunction("y", "a:", "n", "value %1.y", nil, "Gets the yaw of a angle" )
 Core:AddFunction("r", "a:", "n", "value %1.r", nil, "Gets the roll of a angle" )
 
 
-Core:AddFunction("setPitch", "a:n", "a", "local %A = value %1", "Angle(value %2, %A.y, %A.r)", "Sets the pitch of a angle" )
+Core:AddFunction("setPitch", "a:n", "a", "Angle(value %2, value %1.y, value %1.r)", nil, "Sets the pitch of a angle" )
 
-Core:AddFunction("setYaw", "a:n", "a", "local %A = value %1", "Angle(%A.x, value %2, %A.r)", "Sets the yaw of a angle" )
+Core:AddFunction("setYaw", "a:n", "a", "Angle(value %1.x, value %2, value %1.r)", nil, "Sets the yaw of a angle" )
 
-Core:AddFunction("setRoll", "a:n", "a", "local %A = value %1", "Angle(%A.x, %A.y, value %2)", "Sets the roll of a angle" )
+Core:AddFunction("setRoll", "a:n", "a", "Angle(value %1.x, value %1.y, value %2)", nil, "Sets the roll of a angle" )
 
 Core:SetPerf( LEMON_PERF_ABNORMAL )
 
