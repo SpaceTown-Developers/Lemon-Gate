@@ -370,9 +370,9 @@ function Compiler:ConstructOperator( Perf, Types, Second, First, ... )
 	-- 8) Insert global prepare
 		
 		if Second and string.find( Second, "%%prepare" ) then
-			Second = string.gsub( Second, "%%prepare", string.Implode( "\n", Prepare ) )
+			Second = string.gsub( Second, "%%prepare", string.Implode( "\n", Prepare ) ) .. "\n"
 		else
-			Second = string.Implode( "\n", Prepare ) .. ( Second or "" )
+			Second = string.Implode( "\n", Prepare ) .. ( Second or "" ) .. "\n"
 		end
 		
 	-- 9) Import to enviroment

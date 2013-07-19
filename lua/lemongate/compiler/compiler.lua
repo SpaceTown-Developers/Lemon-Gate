@@ -358,7 +358,7 @@ function Compiler:Compile_SEQUENCE( Trace, Statements )
 		Lua = Lua .. Lines[1]
 	end
 	
-	return self:Instruction( Trace, 0, "", "", Lua )
+	return self:Instruction( Trace, 0, "", "", Lua .. "\n" )
 end
 
 /*==============================================================================================
@@ -376,10 +376,6 @@ end
 function Compiler:Compile_BOOLBEAN( Trace, Value )
 	return self:Instruction( Trace, LEMON_PERF_CHEAP, "b", Value and "true" or "false" )
 end
-
--- function Compiler:Compile_NULL( Trace )
-	-- return self:Instruction( Trace, LEMON_PERF_CHEAP, "", "nil" )
--- end
 
 /*==============================================================================================
 	Section: Casting
