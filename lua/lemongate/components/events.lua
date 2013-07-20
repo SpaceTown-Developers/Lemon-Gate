@@ -109,7 +109,13 @@ if Wire_Keyboard_Remap then
 	function numpad.Activate( Ply, Num, Button )
 		local Key = GetKey( Ply, Num, true )
 		
-		if Key then API:CallEvent( "keypress", Key ) end
+		if Key then 
+			for _, Gate in pairs( API:GetEntitys( ) ) do
+				if Gate.Player == Ply then
+					API:CallEvent( "keypress", Key )
+				end
+			end
+		end
 		
 		return Activate( Ply, Num, Button )
 	end
@@ -118,7 +124,13 @@ if Wire_Keyboard_Remap then
 	function numpad.Deactivate( Ply, Num, Button )
 		local Key = GetKey( Ply, Num, nil )
 		
-		if Key then API:CallEvent( "keyrelease", Key ) end
+		if Key then 
+			for _, Gate in pairs( API:GetEntitys( ) ) do
+				if Gate.Player == Ply then
+					API:CallEvent( "keyrelease", Key )
+				end
+			end
+		end
 		
 		return Deactivate( Ply, Num, Button )
 	end
