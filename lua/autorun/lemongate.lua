@@ -2,7 +2,7 @@
 	CLIENT RESORCES
 ==============================================================================================*/
 if SERVER then
-	resource.AddWorkshop( "161755567" ) 
+	resource.AddWorkshop( "161770512" ) 
 	
 	resource.AddFile( "materials/mandrac/wire/e3.2323.vmt" )
 	resource.AddFile( "materials/mandrac/wire/e3.vmt" )
