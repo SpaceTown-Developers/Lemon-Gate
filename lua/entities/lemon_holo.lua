@@ -3,6 +3,7 @@
 	Purpose: Makes holograms, Based on work by McLovin.
 	Creditors: Rusketh, McLovin
 ==============================================================================================*/
+if !WireLib or !LEMON then return end
 AddCSLuaFile( )
 
 local E_A = LemonGate

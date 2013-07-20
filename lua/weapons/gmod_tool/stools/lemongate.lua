@@ -3,6 +3,8 @@
 	Purpose: Oh look a shiny new tool.
 	Creditors: Rusketh
 ==============================================================================================*/
+if !WireLib or !LEMON then return end
+
 local LEMON = LEMON
 local CITRIS = TOOL
 

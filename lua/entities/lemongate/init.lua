@@ -3,6 +3,8 @@
 	Purpose: This is the entity that does everything!
 	Creditors: Rusketh
 ==============================================================================================*/
+if !WireLib or !LEMON then return end
+
 local Lemon = ENT
 
 Lemon.IsLemonGate = true 

@@ -1,3 +1,5 @@
+if !WireLib or !LEMON then return end
+
 include('shared.lua')
 
 ENT.RenderGroup = RENDERGROUP_OPAQUE

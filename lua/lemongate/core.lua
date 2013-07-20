@@ -112,6 +112,12 @@ end
 function API:Init( )
 	MsgN( "Loading LemonGate:" )
 	
+	if !WireLib then
+		LEMON = nil
+		MsgN( "Failed to load LemonGate wiremod is missing!" )
+		return -- Uninstall if wiremod is missing!
+	end
+		
 	self.Classes = { }
 	self.ClassLU = { }
 	self.Operators = { }
@@ -1034,9 +1040,9 @@ if SERVER then
 	hook.Add( "Initialize", "LEMON_INIT", function( )
 		MsgN( "Loading LemonGate (Expression Advanced)" )
 		
-		API:Init( )
-		
-		MsgN( "Done..." )
+		if API:Init( ) then
+			MsgN( "Done..." )
+		end
 	end )
 
 /*==========================================================================
