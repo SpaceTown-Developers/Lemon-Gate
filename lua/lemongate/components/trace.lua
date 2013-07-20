@@ -46,29 +46,29 @@ Component:AddFunction( "filter", "tr:e", "", "table.insert(value %1.filter, valu
 	Section: Usage
 ==============================================================================================*/
 
-Component:AddFunction( "update", "tr", "", "value %1.result = $util.TraceLine(value %1)", LEMON_PREPARE_ONLY )
-Component:AddFunction( "entity", "tr", "e", "value %1.result = value %1.result or $util.TraceLine(value %1)", "value %1.result.Entity or %NULL_ENTITY" )
-Component:AddFunction( "fraction", "tr", "n", "value %1.result = value %1.result or $util.TraceLine(value %1)", "value %1.result.Fraction or 0" )
-Component:AddFunction( "fractionLeftSolid", "tr", "n", "value %1.result = value %1.result or $util.TraceLine(value %1)", "value %1.result.FractionLeftSolid or 0" )
-Component:AddFunction( "hit", "tr", "b", "value %1.result = value %1.result or $util.TraceLine(value %1)", "value %1.result.Hit" )
-Component:AddFunction( "hitNoDraw", "tr", "b", "value %1.result = value %1.result or $util.TraceLine(value %1)", "value %1.result.HitNoDraw" )
-Component:AddFunction( "hitNonWorld", "tr", "b", "value %1.result = value %1.result or $util.TraceLine(value %1)", "value %1.result.HitNonWorld" )
-Component:AddFunction( "hitSky", "tr", "b", "value %1.result = value %1.result or $util.TraceLine(value %1)", "value %1.result.HitSky" )
-Component:AddFunction( "hitWorld", "tr", "b", "value %1.result = value %1.result or $util.TraceLine(value %1)", "value %1.result.HitWorld" )
-Component:AddFunction( "startSolid", "tr", "b", "value %1.result = value %1.result or $util.TraceLine(value %1)", "value %1.result.StartSolid" )
-Component:AddFunction( "hitBox", "tr", "n", "value %1.result = value %1.result or $util.TraceLine(value %1)", "(value %1.result.HitBox or 0)" )
-Component:AddFunction( "hitGroup", "tr", "n", "value %1.result = value %1.result or $util.TraceLine(value %1)", "(value %1.result.HitGroup or 0)" )
-Component:AddFunction( "hitMaterial", "tr", "n", "value %1.result = value %1.result or $util.TraceLine(value %1)", "(value %1.result.MatType or 0)" )
-Component:AddFunction( "hitBone", "tr", "n", "value %1.result = value %1.result or $util.TraceLine(value %1)", "(value %1.result.PhysicsBone or 0)" )
-Component:AddFunction( "hitNormal", "tr", "v", "value %1.result = value %1.result or $util.TraceLine(value %1)", "Vector3(value %1.result.HitNormal or Vector(0, 0, 0))" )
-Component:AddFunction( "hitPos", "tr", "v", "value %1.result = value %1.result or $util.TraceLine(value %1)", "Vector3(value %1.result.HitPos or Vector(0, 0, 0))" )
-Component:AddFunction( "normal", "tr", "v", "value %1.result = value %1.result or $util.TraceLine(value %1)", "Vector3(value %1.result.Normal or Vector(0, 0, 0))" )
-Component:AddFunction( "hitTexture", "tr", "s", "value %1.result = value %1.result or $util.TraceLine(value %1)", "(value %1.result.HitTexture or \"\")" )
+Component:AddFunction( "update", "tr:", "", "value %1.result = $util.TraceLine(value %1)", LEMON_PREPARE_ONLY )
+Component:AddFunction( "entity", "tr:", "e", "value %1.result = value %1.result or $util.TraceLine(value %1)", "value %1.result.Entity or %NULL_ENTITY" )
+Component:AddFunction( "fraction", "tr:", "n", "value %1.result = value %1.result or $util.TraceLine(value %1)", "value %1.result.Fraction or 0" )
+Component:AddFunction( "fractionLeftSolid", "tr:", "n", "value %1.result = value %1.result or $util.TraceLine(value %1)", "value %1.result.FractionLeftSolid or 0" )
+Component:AddFunction( "hit", "tr:", "b", "value %1.result = value %1.result or $util.TraceLine(value %1)", "value %1.result.Hit" )
+Component:AddFunction( "hitNoDraw", "tr:", "b", "value %1.result = value %1.result or $util.TraceLine(value %1)", "value %1.result.HitNoDraw" )
+Component:AddFunction( "hitNonWorld", "tr:", "b", "value %1.result = value %1.result or $util.TraceLine(value %1)", "value %1.result.HitNonWorld" )
+Component:AddFunction( "hitSky", "tr:", "b", "value %1.result = value %1.result or $util.TraceLine(value %1)", "value %1.result.HitSky" )
+Component:AddFunction( "hitWorld", "tr:", "b", "value %1.result = value %1.result or $util.TraceLine(value %1)", "value %1.result.HitWorld" )
+Component:AddFunction( "startSolid", "tr:", "b", "value %1.result = value %1.result or $util.TraceLine(value %1)", "value %1.result.StartSolid" )
+Component:AddFunction( "hitBox", "tr:", "n", "value %1.result = value %1.result or $util.TraceLine(value %1)", "(value %1.result.HitBox or 0)" )
+Component:AddFunction( "hitGroup", "tr:", "n", "value %1.result = value %1.result or $util.TraceLine(value %1)", "(value %1.result.HitGroup or 0)" )
+Component:AddFunction( "hitMaterial", "tr:", "n", "value %1.result = value %1.result or $util.TraceLine(value %1)", "(value %1.result.MatType or 0)" )
+Component:AddFunction( "hitBone", "tr:", "n", "value %1.result = value %1.result or $util.TraceLine(value %1)", "(value %1.result.PhysicsBone or 0)" )
+Component:AddFunction( "hitNormal", "tr:", "v", "value %1.result = value %1.result or $util.TraceLine(value %1)", "Vector3(value %1.result.HitNormal or Vector(0, 0, 0))" )
+Component:AddFunction( "hitPos", "tr:", "v", "value %1.result = value %1.result or $util.TraceLine(value %1)", "Vector3(value %1.result.HitPos or Vector(0, 0, 0))" )
+Component:AddFunction( "normal", "tr:", "v", "value %1.result = value %1.result or $util.TraceLine(value %1)", "Vector3(value %1.result.Normal or Vector(0, 0, 0))" )
+Component:AddFunction( "hitTexture", "tr:", "s", "value %1.result = value %1.result or $util.TraceLine(value %1)", "(value %1.result.HitTexture or \"\")" )
 
 /*==============================================================================================
 	Section: Masks
 ==============================================================================================*/
-Component:AddFunction( "getHitState", "tr", "n", "(value %1.mask or 0)", LEMON_INLINE_ONLY )
+Component:AddFunction( "getHitState", "tr:", "n", "(value %1.mask or 0)", LEMON_INLINE_ONLY )
 Component:AddFunction( "setHitState", "tr:n", "", "value %1.mask = value %2", LEMON_PREPARE_ONLY )
 
 Component:AddExternal( "CONTENTS_SOLID", CONTENTS_SOLID )
