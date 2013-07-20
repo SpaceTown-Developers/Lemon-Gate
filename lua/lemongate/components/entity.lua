@@ -493,22 +493,5 @@ for _, Find_Entity in pairs( $ents.FindInCone($Vector(%A[1], %A[2], %A[3]), $Vec
 	end
 end]], "%Res" )
 
-/*==============================================================================================
-	Section: Player Trace
-==============================================================================================*/
-Core:SetPerf( LEMON_PERF_EXPENSIVE )
 
-Core:AddFunction( "eyeTrace", "e:", "t", [[
-local %Ent = value %1
-local %Val = $IsValid( %Ent ) and %Table.From( %Ent:GetEyeTraceNoCursor( ) ) and %Table( )
-]], "%Val" )
 
-/*==============================================================================================
-	Section: Trace Stuff
-==============================================================================================*/
-Core:AddFunction( "trace", "v,v[,b,t]", "t", "local %F = value %4",
-"%Table.From( $util.TraceLine( { start = value %1:Garry( ), endpos = value %2:Garry( ), mask = (value %3 and MASK_WATER or nil), filter = (%F and %F.Data or nil) } ) )" )
-
-Core:AddFunction( "traceHull", "v,v,v[,b,t]", "t", [[
-local %O, %F = value %3:Garry( ), value %5
-]], "%Table.From( $util.TraceHull( { start = value %1:Garry( ), endpos = value %2:Garry( ), mins = %O / 2, maxs = -(%O / 2), mask = (value %4 and MASK_WATER or nil), filter = (%F and %F.Data or nil) } ) )" )

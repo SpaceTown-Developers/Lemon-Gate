@@ -194,6 +194,7 @@ function API:LoadCoreComponents( )
 		include( "lemongate/components/timer.lua" )
 		include( "lemongate/components/kinect.lua" )
 		include( "lemongate/components/http.lua" )
+		include( "lemongate/components/trace.lua" )
 	end
 end
 
@@ -600,6 +601,13 @@ if SERVER then
 		self.Perf = Value
 	end
 
+/*==========================================================================
+	Section: Neat yet usless enums
+==========================================================================*/
+	LEMON_INLINE_ONLY = nil
+	LEMON_PREPARE_ONLY = ""
+	// As i said usless =D
+	
 /*==========================================================================
 	Section: Operators
 ==========================================================================*/
