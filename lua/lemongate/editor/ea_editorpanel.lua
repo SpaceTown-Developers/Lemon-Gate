@@ -485,6 +485,10 @@ function PANEL:CloseTab( bSave, Tab )
 		self.FileTabs[Tab.FilePath] = nil
 	end
 	
+	if Tab.Entity and self.GateTabs[Tab.Entity] then 
+		self.GateTabs[Tab.Entity] = nil 
+	end 
+	
 	local idx
 	for k, v in pairs( self.TabHolder.Items ) do
 		if v.Tab ~= Tab then continue end
@@ -510,7 +514,7 @@ end
 function PANEL:CloseAll( )
 	for I = #self.TabHolder.Items, 1, -1 do
 		self:CloseTab( true, self.TabHolder.Items[I].Tab )
-	end -- Fixed infer-loop =D
+	end 
 end
 
 function PANEL:CloseAllBut( pTab )

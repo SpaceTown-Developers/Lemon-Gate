@@ -246,8 +246,8 @@ function API:LoadEditor( )
 			LEMON.Editor = nil 
 		end 
 		
-		API.HelperData = {} 
-		setmetatable( API.HelperData, { __index = function( tbl, index ) return "" end } ) 
+		self.HelperData = setmetatable( {}, { __index = function( tbl, index ) return "" end } )  
+		
 		
 		include( "lemongate/editor/ea_browser.lua" )
 		include( "lemongate/editor/ea_button.lua" )
