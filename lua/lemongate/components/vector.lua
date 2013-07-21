@@ -212,3 +212,10 @@ Core:AddFunction("clamp", "v,v,v", "v",
 
 Core:AddFunction("inrange", "v,v,v", "b",
 "(!(value %1.x < value %2.x or value %1.x > value %3.x or value %1.y < value %2.y or value %1.y > value %3.y or value %1.z < value %2.z or value %1.z > value %3.z))" )
+
+/*==============================================================================================
+	Interpolation
+==============================================================================================*/
+Core:AddFunction("mix", "v,v,n", "v", [[
+local %Shift = 1 - value %3
+]], "Vector3(value %1.x * value %3 + value %2.x * %Shift, value %1.y * value %3 + value %2.y * %Shift, value %1.z * value %3 + value %2.z * %Shift)" )
