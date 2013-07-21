@@ -181,7 +181,7 @@ function Core:BuildOperators( )
 		-- Variants:
 			Core:AddOperator( "variant", Class.Short, "?", "{value %1, type %1}" )
 		
-			Core:AddOperator( Name, "?", Class.Short, "(value %1[2] == \"" .. Class.Short .. "\" and value %1[1] or Context:Throw( %trace, \"cast\", \"Attempt to cast value\" .. value %1[2] .. \" to " .. Name .. "\"))")
+			Core:AddOperator( Name, "?", Class.Short, "(value %1[2] == \"" .. Class.Short .. "\" and value %1[1] or Context:Throw( %trace, \"cast\", \"Attempt to cast value \" .. LongType(value %1[2]) .. \" to " .. Name .. "\"))")
 		
 		-- Functions:
 			Core:AddFunction( "type", Class.Short, "s", "\"" .. Name .. "\"", nil, "A usless function that ways returns \"" .. Name .. "\"")

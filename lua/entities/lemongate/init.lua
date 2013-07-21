@@ -123,28 +123,34 @@ function Lemon:BuildContext( )
 	return self.Context
 end
 
+local function CompileSoftly( Entity, Script, Files )
+	local Ok, Instance = LEMON.Compiler.Execute( Script, Files )
+	
+	if !Ok then
+		Entity:Error( "Compiler Error" )
+		WireLib.ClientError( Instance, Entity.Player )
+	elseif !Instance.Execute then
+		Entity:Error( "Reload Required" )
+	else
+		Entity:SetColor( GoodColor )
+		Entity:SetNWBool( "Crashed", false )
+		Entity:LoadInstance( Instance )
+	end
+	
+	Entity:Pcall( Instance.Execute, Entity.Context )
+end
+
 function Lemon:LoadScript( Script, Files )
 	local Context = self:BuildContext( )
 	
 	if self:IsRunning( ) then
 		self:ShutDown( )
-	end -- TODO: These
+	end
 	
 	self.Script = Script
 	self.Files = Files or { }
 	
-	local Ok, Instance = LEMON.Compiler.Execute( Script, Files )
-	
-	if !Ok then
-		self:Error( "Compiler Error" )
-		WireLib.ClientError( Instance, self.Player )
-	elseif !Instance.Execute then
-		self:Error( "Reload Required" )
-	else
-		self:LoadInstance( Instance )
-	end
-	
-	self:Pcall( Instance.Execute, Context )
+	coroutine.resume( coroutine.create( CompileSoftly ), self, Script, Files )
 end
 
 function Lemon:LoadInstance( Inst )
@@ -402,11 +408,9 @@ end
 function Lemon:LuaError( Message )
 	self.Context = nil -- Shut Down!
 	self:SetColor( BadColor )
+	self:SetNWBool( "Crashed", true )
 	self:UpdateOverLay( "Lua Error" )
 	
-	
-	Message = Message or "Unkown Error"
-	MsgN( "LemonGate LUA: " .. Message )
 	WireLib.ClientError( "LemonGate: Suffered a LUA error" , self.Player )
 	WireLib.ClientError( "LUA: " .. Message , self.Player )
 end
@@ -414,10 +418,10 @@ end
 function Lemon:ScriptError( Trace, Message )
 	self.Context = nil -- Shut Down!
 	self:SetColor( BadColor )
+	self:SetNWBool( "Crashed", true )
 	self:UpdateOverLay( "Script Error" )
 	
 	if Trace then
-		print( Trace )
 		Message = string.format( "%s at Line %d Char %d", Message or "Uknown Error", Trace[1], Trace[2] )
 	else
 		Message = Message or "Untrackable Error"
@@ -429,6 +433,7 @@ end
 function Lemon:Error( Message )
 	self.Context = nil -- Shut Down!
 	self:SetColor( BadColor )
+	self:SetNWBool( "Crashed", true )
 	self:UpdateOverLay( Message )
 	
 	WireLib.ClientError( Message, self.Player )

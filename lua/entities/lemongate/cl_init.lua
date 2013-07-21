@@ -16,7 +16,7 @@ timer.Create( "Lemon_Editor_Animation", 1, 0, function( )
 	RollDelta = -RollDelta
 	
 	for _, Ply in pairs( player.GetAll( ) ) do
-		if Ply:GetNWBool( "Lemon_Editor", false ) and !Ply == LocalPlayer( ) then
+		if Ply:GetNWBool( "Lemon_Editor", false ) and Ply ~= LocalPlayer( ) then
 			local BoneIndx = Ply:LookupBone("ValveBiped.Bip01_Head1") or Ply:LookupBone("ValveBiped.HC_Head_Bone") or 0
 			local BonePos, BoneAng = Ply:GetBonePosition( BoneIndx )
 			
@@ -24,7 +24,7 @@ timer.Create( "Lemon_Editor_Animation", 1, 0, function( )
 				local Particle = Emitter:Add("omicron/lemongear", BonePos + Vector(0, 0, 10) )
 			
 				if Particle then
-					Particle:SetColor( 255, 244,79 )
+					Particle:SetColor( 255, 244, 79 )
 					Particle:SetVelocity( Vector( math.random(-8, 8), math.random(-8, 8), math.random(5, 15) ) )
 
 					Particle:SetDieTime( 3 )
@@ -38,6 +38,35 @@ timer.Create( "Lemon_Editor_Animation", 1, 0, function( )
 
 					Particle:SetRollDelta( RollDelta )
 				end
+			end
+		end
+	end
+end )
+
+/*==========================================================================
+	Section: Crash Animation
+==========================================================================*/
+timer.Create( "Lemon_Crash_Animation", 1, 0, function( )
+	
+	for _, Gate in pairs( ents.FindByClass( "lemongate" ) ) do
+		if Gate:GetNWBool( "Crashed" ) then
+			
+			local Particle = Emitter:Add("omicron/lemongear", (Gate:GetPos( ) + Gate:GetUp( ) * 3) )
+			
+			if Particle then
+				Particle:SetColor( 255, 0, 0 )
+				Particle:SetVelocity( (Gate:GetUp( ) * 5) + Vector( 0, 0, 5 ) )
+
+				Particle:SetDieTime( 3 )
+				Particle:SetLifeTime( 0 )
+
+				Particle:SetStartSize( 0 )
+				Particle:SetEndSize( 3 )
+
+				Particle:SetStartAlpha( 255 )
+				Particle:SetEndAlpha( 0 )
+
+				Particle:SetRollDelta( RollDelta )
 			end
 		end
 	end

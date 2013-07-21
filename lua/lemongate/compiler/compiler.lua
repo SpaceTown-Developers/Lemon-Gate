@@ -215,7 +215,10 @@ function Compiler:CompileCode( Code, Files, NoCompile )
 		-- Allow basic libaries & functions
 			local API = LEMON.API
 			local Externals = API.Externals
-			local LongType = API.GetLongClassName
+			
+			local function LongType( Type )
+				return API:GetClass( Type ).Name
+			end
 			
 		-- Allow basic libaries & functions	
 			local pcall, error = pcall, error

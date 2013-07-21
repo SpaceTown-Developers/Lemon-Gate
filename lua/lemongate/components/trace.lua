@@ -14,7 +14,9 @@ local Class = Component:NewClass( "tr", "trace" )
 
 Component:SetPerf( LEMON_PERF_NORMAL )
 
-Component:AddOperator( "default", "tr", "tr", "{ start = Vector(0, 0, 0), endpos = Vector(0, 0, 0), filter = { } }", LEMON_INLINE_ONLY )
+local DEFAULT_TRACE = "{ start = Vector(0, 0, 0), endpos = Vector(0, 0, 0), filter = { } }"
+
+Component:AddOperator( "default", "tr", "tr", DEFAULT_TRACE, LEMON_INLINE_ONLY )
 
 /*==============================================================================================
 	Section: Constructors
@@ -23,6 +25,13 @@ Component:AddOperator( "default", "tr", "tr", "{ start = Vector(0, 0, 0), endpos
 Component:AddFunction( "trace", "", "tr", "{ start = Vector(0, 0, 0), endpos = Vector(0, 0, 0), filter = { } }", LEMON_INLINE_ONLY )
 
 Component:AddFunction( "trace", "v,v", "tr", "{ start = value %1:Garry(), endpos = value %2:Garry(), filter = { } }", LEMON_INLINE_ONLY )
+
+Component:AddFunction( "trace", "v,v,n", "tr", [[
+local %Start = value %1:Garry()
+local %End = %Start + ( value %2:Garry() * value %3 )
+]], "{ start = %Start, endpos = %End, filter = { } }" )
+
+Component:AddFunction( "eyeTrace", "e:", "tr", "($IsValid(value %1) and $util.GetPlayerTrace( value %1 ) or " .. DEFAULT_TRACE .. ")", LEMON_INLINE_ONLY )
 
 /*==============================================================================================
 	Section: Start / End

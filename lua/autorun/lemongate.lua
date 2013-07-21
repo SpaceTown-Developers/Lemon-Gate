@@ -10,6 +10,7 @@ if SERVER then
 	
 	resource.AddFile( "materials/omicron/lemongear.vmt" )
 	resource.AddFile( "materials/omicron/lemongear.vtf" )
+	resource.AddFile( "models/shadowscion/lemongate/gate.mdl" )
 	
 	// Editor Textures
 	resource.AddFile( "materials/fugue/block.png" )

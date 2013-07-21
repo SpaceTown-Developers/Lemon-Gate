@@ -385,18 +385,18 @@ end]], "" )
 Component:AddFunction("scaleUnits", "h:v", "", [[
 if $IsValid( value %1 ) and value %1.Player == %context.Player then
 	local %Scale = value %1:OBBMaxs() - value %1:OBBMins()
-	local %Max = value %1Lib._Size:GetInt()
+	local %Max = HoloLib._Size:GetInt()
 
 	local %X = math.Clamp(value %2.x / %Scale.x, -%Max, %Max)
 	local %Y = math.Clamp(value %2.y / %Scale.y, -%Max, %Max)
 	local %Z = math.Clamp(value %2.z / %Scale.z, -%Max, %Max)
 
 	if value %1.ModelAny then
-		%X, %Y, %Z = value %1Lib.RescaleAny(%X, %Y, %Z, %Max, %Scale)
+		%X, %Y, %Z = HoloLib.RescaleAny(%X, %Y, %Z, %Max, %Scale)
 	end
 
 	if value %1:SetScale(%X, %Y, %Z) then
-		value %1Lib.QueueHologram( value %1 )
+		HoloLib.QueueHologram( value %1 )
 	end
 end]], "" )
 
