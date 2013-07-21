@@ -54,7 +54,7 @@ end
 function Context:PushPerf( Trace, Ammount )
 	self.Perf = self.Perf + Ammount
 	if self.Perf > self.MaxPerf then
-		self:Error( Trace, "Maxamum operations count exceeded." )
+		self:Error( Trace, "Maximum operations count exceeded." )
 	end
 end
 
@@ -63,9 +63,9 @@ function Context:TestLoop( Trace )
 	self.Perf = self.Perf + LEMON_PERF_NORMAL
 	
 	if self.Perf > self.MaxPerf then
-		self:Error( Trace, "Maxamum operations count exceeded." )
+		self:Error( Trace, "Maximum operations count exceeded." )
 	elseif self.Loops > LoopSafe:GetInt( ) then
-		self:Error( Trace, "Maxamum looped operations count exceeded." )
+		self:Error( Trace, "Maximum looped operations count exceeded." )
 	end
 end
 

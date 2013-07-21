@@ -94,9 +94,9 @@ function PropCore.Spawn( Trace, Context, Model, Freeze )
 	local PRate, PCount = PlayerRate[P] or 0, PlayerCount[P] or 0
 
 	if PCount >= PropCore.Prop_Max:GetInt( ) then
-		Context:Throw("propcore", "Max total props reached (" .. CV_Max:GetInt( ) .. ")." )
+		Context:Throw("propcore", "Max total props reached (" .. PropCore.Prop_Max:GetInt( ) .. ")." )
 	elseif PRate >= PropCore.Prop_Rate:GetInt( ) then
-		Context:Throw("propcore", "Max prop spawn rate reached (" .. CV_Rate:GetInt( ) .. ")." )
+		Context:Throw("propcore", "Max prop spawn rate reached (" ..PropCore.Prop_Rate:GetInt( ) .. ")." )
 	elseif !util.IsValidModel( Model ) or !util.IsValidProp( Model ) then
 		Context:Throw("propcore", "Invalid model for prop spawn." )
 	end
