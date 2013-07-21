@@ -123,3 +123,10 @@ Core:AddFunction( "normalized", "v2:", "v2", "value %1:Normalize( )" )
 Core:AddFunction( "dot", "v2:v", "n", "value %1:Dot( value %2 )" )
 
 Core:AddFunction( "cross", "v2:v", "v2", "value %1:Cross( value %2 )" )
+
+/*==============================================================================================
+	Interpolation
+==============================================================================================*/
+Core:AddFunction("mix", "v2,v2,n", "v2", [[
+local %Shift = 1 - value %3
+]], "Vector2(value %1.x * value %3 + value %2.x * %Shift, value %1.y * value %3 + value %2.y * %Shift)" )

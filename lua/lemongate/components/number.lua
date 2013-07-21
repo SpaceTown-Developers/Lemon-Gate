@@ -161,6 +161,7 @@ Core:AddFunction( "inrange", "n,n,n", "n", "((value %1 < value %2 or value %1 > 
 
 Core:AddFunction( "sign", "n", "n", "(value %1 > %Round and 1 or (value %1 < -%Round and -1 or 0)" )
 
+Core:AddFunction("mix", "n,n,n", "n", "value %1 * value %3 + value %2 * (1 - value %3)" )
 
 /*==============================================================================================
 	Section: Random Numbers

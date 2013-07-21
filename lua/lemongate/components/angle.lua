@@ -157,3 +157,10 @@ Core:AddFunction("inrange", "a,a,a", "b", "local %A, %B, %C = value %1, value %2
 Core:AddFunction("toWorld", "e:a", "a", "( $IsValid( value %1 ) and value %1:LocalToWorldAngles( value %2 ) or Angle(0, 0, 0) )" )
 
 Core:AddFunction("toLocal", "e:a", "a", "( $IsValid( value %1 ) and value %1:WorldToLocalAngles( value %2 ) or Angle(0, 0, 0) )" )
+
+/*==============================================================================================
+	Interpolation
+==============================================================================================*/
+Core:AddFunction("mix", "a,a,n", "a", [[
+local %Shift = 1 - value %3
+]], "Angle(value %1.p * value %3 + value %2.p * %Shift, value %1.y * value %3 + value %2.y * %Shift, value %1.r * value %3 + value %2.r * %Shift)" )

@@ -350,6 +350,10 @@ Data["min(nn n)"] = ""
 Data["min(nnn n)"] = ""
 Data["min(nnnn n)"] = ""
 Data["min(nnnnn n)"] = ""
+Data["mix(aan a)"] = "Linearly interpolate between two angles"
+Data["mix(nnn n)"] = "Linearly interpolate between two numbers"
+Data["mix(vvn v)"] = "Linearly interpolate between two vectors"
+Data["mix(xv2xv2n xv2)"] = "Linearly interpolate between two 2D vectors"
 Data["model(e: s)"] = ""
 
 // N
