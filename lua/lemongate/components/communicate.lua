@@ -46,6 +46,20 @@ local %Buffer = value %1
 %Buffer.Cells[ %Buffer.W ] = value %2
 ]], "" )
 
+Component:AddFunction( "writeAngle", "p:a", "", [[
+local %Buffer = value %1
+%Buffer.W = %Buffer.W + 1
+%Buffer.Types[ %Buffer.W ] = "a"
+%Buffer.Cells[ %Buffer.W ] = value %2
+]], "" )
+
+Component:AddFunction( "writeVector", "p:v", "", [[
+local %Buffer = value %1
+%Buffer.W = %Buffer.W + 1
+%Buffer.Types[ %Buffer.W ] = "v"
+%Buffer.Cells[ %Buffer.W ] = value %2
+]], "" )
+
 Component:SetPerf( LEMON_PERF_CHEAP )
 
 Component:AddFunction( "writePos", "p", "n", "(value %1.W)" )
@@ -86,6 +100,29 @@ else
 	%Val = Buffer.Cells[ %Buffer.R ]
 	%Buffer.R = %Buffer.R + 1
 end]], "%Val" )
+
+Component:AddFunction( "readAngle", "p:", "a", [[
+local %Buffer, %Val = value %1
+if !%Buffer.Cells[ %Buffer.R ] then
+	%context:Throw( %trace, "buffer", "Reached end of buffer" )
+elseif %Buffer.Types[ %Buffer.R ] != \"a\" then
+	%context:Throw( %trace, "buffer", "Attempted to read angle from " .. %LongType( %Buffer.Types[ %Buffer.R ] ) )
+else
+	%Val = Buffer.Cells[ %Buffer.R ]
+	%Buffer.R = %Buffer.R + 1
+end]], "%Val" )
+
+Component:AddFunction( "readVector", "p:", "v", [[
+local %Buffer, %Val = value %1
+if !%Buffer.Cells[ %Buffer.R ] then
+	%context:Throw( %trace, "buffer", "Reached end of buffer" )
+elseif %Buffer.Types[ %Buffer.R ] != \"v\" then
+	%context:Throw( %trace, "buffer", "Attempted to read angle from " .. %LongType( %Buffer.Types[ %Buffer.R ] ) )
+else
+	%Val = Buffer.Cells[ %Buffer.R ]
+	%Buffer.R = %Buffer.R + 1
+end]], "%Val" )
+
 
 Component:SetPerf( LEMON_PERF_CHEAP )
 
@@ -174,7 +211,10 @@ function Component:ApplyDupeInfo( Player, Entity, DupeTable, FromID )
 	
 	if Buffer and Gate:IsRunning( ) then
 		for I = 1, Buffer.W do
-			if Buffer.Types[I] == "e" then
+			local Type = Buffer.Types[I]
+			local Class = API:GetClass( Type, true )
+			
+			if Type == "e" then
 				local Ent = FromID( Buffer.Cells[I] )
 				
 				if Ent and Ent:IsValid() then
@@ -182,9 +222,93 @@ function Component:ApplyDupeInfo( Player, Entity, DupeTable, FromID )
 				else
 					Buffer.Cells[I] = Entity(-1)
 				end
+			elseif Class and Class.__MetaTable then	
+				setmetatable( Buffer.Cells[I], Class.__MetaTable )
 			end
 		end
 		
 		Gate:CallEvent( "LoadFromDupe", Buffer )
 	end
 end
+
+
+/*==============================================================================================
+	Section: Special Table function!
+==============================================================================================*/
+/* AN ATTEMPT TO GET TABLES INTO BUFFERS!
+   FAILED DUE TO SPEED / KEY-ENTITYS!
+   
+local IsTable = { ["table"] = true, ["Vector"] = true, ["Angle"] = true }
+local setmetatable, getmetatable = setmetatable, getmetatable
+local CopyTable, ExportTable, ImportTable
+
+function CopyTable( Table )
+	local New = setmetatable( { }, getmetatable( Table ) )
+	
+	for Key, Value in pairs( Table ) do
+		if IsTable[ type( Key ) ] then
+			Key = CopyTable( Key )
+		end
+		
+		if IsTable[ type( Value ) ] then
+			Value = CopyTable( Value )
+		end
+		
+		New[ Key ] = Value
+	end
+	
+	return New
+end
+
+local function ExportBuffer( Buffer )
+	Buffer.Data = Buffer.Cells
+	ExportTable( Buffer )
+	Buffer.Cells = Buffer.Data
+	Buffer.Data = nil
+end
+
+function ExportTable( Table )
+	for Index, Type in pairs( Table.Types ) do
+		if Type == "e" then
+			local Entity = Table.Data[ Index ]
+			Table.Data[ Index ] = IsValid( Entity ) and Entity:EntIndex( ) or -1
+		elseif Type == "t" then
+			ExportTable( Table.Data[ Index ] )
+		elseif Type == "p" then
+			ExportBuffer( Table.Data[ Index ] )
+		end
+		
+		if type( Index ) == "Entity" then
+			NewIndex = 
+		end
+	end
+end
+
+local function ImportBuffer( Buffer, FromID )
+	Buffer.Data = Buffer.Cells
+	ImportTable( Buffer, FromID )
+	Buffer.Cells = Buffer.Data
+	Buffer.Data = nil
+end
+
+function ImportTable( Table, FromID )
+	for Index, Type in pairs( Table.Types ) do
+		if Type == "e" then
+			local Ent = FromID( Buffer.Cells[I] )
+			
+			if Ent and Ent:IsValid() then
+				Buffer.Cells[I] = Ent
+			else
+				Buffer.Cells[I] = Entity(-1)
+			end
+		
+		
+			local Entity = Table.Data[ Index ]
+			Table.Data[ Index ] = IsValid( Entity ) and Entity:EntIndex( ) or -1
+		elseif Type == "t" then
+			ExportTable( Table.Data[ Index ] )
+		elseif Type == "p" then
+			ExportBuffer( Table.Data[ Index ] )
+		end
+	end
+end */

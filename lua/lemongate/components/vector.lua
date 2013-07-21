@@ -12,6 +12,8 @@ require( "vector3" )
 ==============================================================================================*/
 local Vector3 = Core:NewClass( "v", "vector" )
 
+Vector3:UsesMetaTable( FindMetaTable( "Vector3" ) )
+
 -- WireMod
 
 Vector3:Wire_Name( "VECTOR" )
@@ -47,7 +49,7 @@ Core:AddOperator( "*", "v,v", "v", "(value %1 * value %2)" )
 
 Core:AddOperator( "/", "v,v", "v", "(value %1 / value %2)" )
 
-Core:AddOperator( "%", "v,v", "v", "(value %1 % value %2)" )
+Core:AddOperator( "%", "v,v", "v", "(value %1 %% value %2)" )
 
 Core:AddOperator( "^", "v,v", "v", "(value %1 ^ value %2)" )
 
@@ -61,7 +63,7 @@ Core:AddOperator( "*", "v,n", "v", "(value %1 * Vector3(value %2, value %2, valu
 
 Core:AddOperator( "/", "v,n", "v", "(value %1 / Vector3(value %2, value %2, value %2))" )
 
-Core:AddOperator( "%", "v,n", "v", "(value %1 % Vector3(value %2, value %2, value %2))" )
+Core:AddOperator( "%", "v,n", "v", "(value %1 %% Vector3(value %2, value %2, value %2))" )
 
 Core:AddOperator( "^", "v,n", "v", "(value %1 ^ Vector3(value %2, value %2, value %2))" )
 
@@ -189,16 +191,16 @@ Core:AddFunction("rotate", "v:a", "v", "(value %1:Garry( ):Rotate( value %2 ))" 
 /*==============================================================================================
 	Ceil / Floor / Round
 ==============================================================================================*/
-Core:AddFunction("ceil", "v", "v", "Vector3(value %1.x - value %1.x % -1, value %1.y - value %1.y % -1, value %1.z - value %1.z % -1)" )
+Core:AddFunction("ceil", "v", "v", "Vector3(value %1.x - value %1.x %% -1, value %1.y - value %1.y %% -1, value %1.z - value %1.z %% -1)" )
 
 Core:AddFunction("floor", "v", "v", "Vector3(math.floor(value %1.x), math.floor(value %1.y), math.floor(value %1.z))" )
 
 Core:AddFunction("ceil", "v,n", "v", [[
 local %Shift = 10 ^ math.floor(value %2 + 0.5)
-]], "Vector3(value %1.x - ((value %1.x * %Shift) % -1) / %Shift, value %1.y - ((value %1.y * %Shift) % -1) / %Shift, value %1.z - ((value %1.z * %Shift) % -1) / %Shift)" )
+]], "Vector3(value %1.x - ((value %1.x * %Shift) %% -1) / %Shift, value %1.y - ((value %1.y * %Shift) %% -1) / %Shift, value %1.z - ((value %1.z * %Shift) %% -1) / %Shift)" )
 
 Core:AddFunction("round", "v", "v",
-"Vector3(V.x - (V.x + 0.5) % 1 + 0.5, value %1.y - (value %1.y + 0.5) % 1 + 0.5, value %1.z - (value %1.z + 0.5) % 1 + 0.5)" )
+"Vector3(V.x - (V.x + 0.5) %% 1 + 0.5, value %1.y - (value %1.y + 0.5) %% 1 + 0.5, value %1.z - (value %1.z + 0.5) %% 1 + 0.5)" )
 
 Core:AddFunction("round", "v,n", "v", [[
 local %Shift = 10 ^ math.floor(value %2 + 0.5)
@@ -212,3 +214,10 @@ Core:AddFunction("clamp", "v,v,v", "v",
 
 Core:AddFunction("inrange", "v,v,v", "b",
 "(!(value %1.x < value %2.x or value %1.x > value %3.x or value %1.y < value %2.y or value %1.y > value %3.y or value %1.z < value %2.z or value %1.z > value %3.z))" )
+
+/*==============================================================================================
+	Interpolation
+==============================================================================================*/
+Core:AddFunction("mix", "v,v,n", "v", "local %Shift = 1 - value %3",
+"Vector3(value %1.x * value %3 + value %2.x * %Shift, value %1.y * value %3 + value %2.y * %Shift, value %1.z * value %3 + value %2.z * %Shift)",
+"Linearly interpolate between two vectors" )

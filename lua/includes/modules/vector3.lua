@@ -150,5 +150,5 @@ do
 
 	Vector3 = {} 
 	setmetatable( Vector3, Vec3 ) 
-	debug.getregistry().Vector3 = Vector3
+	debug.getregistry().Vector3 = meta
 end 

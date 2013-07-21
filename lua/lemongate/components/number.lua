@@ -60,7 +60,7 @@ Core:AddOperator( "*", "n,n", "n", "(value %1 * value %2)" )
 
 Core:AddOperator( "/", "n,n", "n", "(value %1 / value %2)" )
 
-Core:AddOperator( "%", "n,n", "n", "(value %1 % value %2)" )
+Core:AddOperator( "%", "n,n", "n", "(value %1 %% value %2)" )
 
 Core:AddOperator( "^", "n,n", "n", "(value %1 ^ value %2)" )
 
@@ -143,17 +143,17 @@ Core:AddFunction( "floor", "n", "n", "math.floor(value %1)" )
 
 Core:AddFunction( "abs", "n", "n", "((value %1 >= 0) and value %1 or -value %1)" )
 
-Core:AddFunction( "ceil", "n", "n", "(value %1 - value %1 % -1)" )
+Core:AddFunction( "ceil", "n", "n", "(value %1 - value %1 %% -1)" )
 
-Core:AddFunction( "ceil", "n,n", "n", "local %B = 10 ^ math.floor(value %2 + 0.5)", "(value %1 - ((value %1 * %B) % -1) / %B)" )
+Core:AddFunction( "ceil", "n,n", "n", "local %B = 10 ^ math.floor(value %2 + 0.5)", "(value %1 - ((value %1 * %B) %% -1) / %B)" )
 
-Core:AddFunction( "round", "n", "n", "(value %1 - (value %1 + 0.5) % 1 + 0.5)" )
+Core:AddFunction( "round", "n", "n", "(value %1 - (value %1 + 0.5) %% 1 + 0.5)" )
 
 Core:AddFunction( "round", "n,n", "n", "local %A = 10 ^ math.floor(value %2 + 0.5)", "(math.floor(value %1 * %A + 0.5) / %A)" )
 
-Core:AddFunction( "int", "n", "n", "((value %1 >= 0) and value %1 - value %1 % 1 or value %1 - value %1 % -1)" )
+Core:AddFunction( "int", "n", "n", "((value %1 >= 0) and value %1 - value %1 %% 1 or value %1 - value %1 %% -1)" )
 
-Core:AddFunction( "frac", "n", "n", "(value %1 >= 0 and value %1 % 1 or value %1 % -1)" )
+Core:AddFunction( "frac", "n", "n", "(value %1 >= 0 and value %1 %% 1 or value %1 %% -1)" )
 
 Core:AddFunction( "clamp", "n,n,n", "n", "(value %1 < value %2 and value %2 or (value %1 > value %3 and value %3 or value %1))" )
 
@@ -259,6 +259,8 @@ Core:AddFunction( "log2", "n", "n", "(math.log(value %1) * (1 / math.log(2)))" )
 Core:AddFunction( "log10", "n", "n", "math.log10(value %1)" )
 
 Core:AddFunction( "log", "n,n", "n", "(math.log(value %1) / math.log(value %2))" )
+
+Core:AddFunction("mix", "n,n,n", "n", "(value %1 * value %3 + value %2 * (1 - value %3))", LEMON_INLINE_ONLY , "Linearly interpolate between two numbers" )
 
 /*==============================================================================================
 	Section: BINARY

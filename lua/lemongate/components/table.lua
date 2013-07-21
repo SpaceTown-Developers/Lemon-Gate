@@ -121,11 +121,13 @@ end
 /*==============================================================================================
 	Convertor
 ==============================================================================================*/
-function Table.From( From )
+local FromLua
+
+function FromLua( LuaTable )
 	local Data, Types = { }, { }
 	local Size, Count = 0, 0
 	
-	for Key, Value in pairs( From ) do
+	for Key, Value in pairs( LuaTable ) do
 		local Type = type( Value )
 		
 		if Type == "boolean" then
@@ -138,23 +140,23 @@ function Table.From( From )
 			Data[ Key ], Types[ Key ] = Value, "s"
 			Size, Count = Size + 1, Count + 1
 		elseif Type == "Vector" then
-			Data[ Key ], Types[ Key ] = { Value.x, Value.y, Value.z } , "v"
+			Data[ Key ], Types[ Key ] = Vector3( Value.x, Value.y, Value.z ) , "v"
 			Size, Count = Size + 1, Count + 1
 		elseif Type == "Angle" then
-			Data[ Key ], Types[ Key ] = { Value.p, Value.y, Value.r } , "a"
+			Data[ Key ], Types[ Key ] = Angle( Value.p, Value.y, Value.r ) , "a"
 			Size, Count = Size + 1, Count + 1
 		elseif IsValid( Value ) then
 			Data[ Key ], Types[ Key ] = Value , "e"
 			Size, Count = Size + 1, Count + 1
 		elseif Type == "table" then
-			Value = Table.From( Value )
+			Value = FromLua( Value )
 			Data[ Key ], Types[ Key ] = Value , "t"
 			Size, Count = Size + Value.Size, Count + 1
 		end
 	end
 	
 	return setmetatable( { Data = Data, Types = Types, Size = Size, Count = Count }, Table )
-end
+end; Table.From = FromLua
 
 /*==============================================================================================
 	Table Component
@@ -172,7 +174,9 @@ end
 /*==============================================================================================
 	Table Class
 ==============================================================================================*/
-Component:NewClass( "t", "table" )
+local Class = Component:NewClass( "t", "table" )
+
+Class:UsesMetaTable( Table )
 
 Component:SetPerf( LEMON_PERF_CHEAP )
 

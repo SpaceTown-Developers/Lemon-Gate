@@ -357,7 +357,7 @@ function Compiler:Compile_SEQUENCE( Trace, Statements )
 		Lua = Lua .. [[do
 			]] .. string.Implode( "\n", Lines ) .. [[
 		end]]
-	else
+	elseif Lines[1] then
 		Lua = Lua .. Lines[1]
 	end
 	
@@ -1114,7 +1114,7 @@ function Compiler:Compile_INCLUDE( Trace, Path, Scoped )
 		if Scoped then self:PopScope( ) end
 		
 		if !Ok then
-			self:Error( Lua .. ", " .. Path, 0 )
+			self:Error( 0, Lua .. ", " .. Path )
 		end -- Error from file!
 		
 		self:Prepare( ID, "local " .. ID .. [[ = function( )
@@ -1137,6 +1137,8 @@ function Compiler:Compile_INCLUDE( Trace, Path, Scoped )
 		
 		self.Flags = self.Flags
 		
+		self:PrevToken( )
+		self:NextToken( )
 	-- Now just call it =D
 	
 		return self:Instruction( Trace, LEMON_PERF_ABNORMAL, "", "", ID .. "( )" )

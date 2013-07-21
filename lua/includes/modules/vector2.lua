@@ -115,7 +115,7 @@ do
 		return setmetatable({x = a or 0, y = b or 0}, meta) 
 	end 
 
-	Vector2 = {} 
+	Vector2 = { } 
 	setmetatable( Vector2, Vec2 ) 
-	debug.getregistry().Vector2 = Vector2
+	debug.getregistry().Vector2 = meta
 end 

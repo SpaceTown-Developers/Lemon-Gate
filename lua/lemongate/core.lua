@@ -577,7 +577,11 @@ if SERVER then
 	function Class:Wire_Name( Name )
 		self.WireName = Name
 	end
-
+	
+	function Class:UsesMetaTable( Meta )
+		self.__MetaTable = Meta
+	end
+	
 	function Component:LoadClasses( )
 		if self.Enabled then
 			self:CallHook( "BuildClasses" )

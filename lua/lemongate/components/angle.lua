@@ -11,6 +11,8 @@ local Core = API:GetComponent( "core" )
 ==============================================================================================*/
 local Class = Core:NewClass( "a", "angle", { 0, 0, 0 } )
 
+Class:UsesMetaTable( FindMetaTable( "Angle" ) )
+
 -- WireMod
 
 Class:Wire_Name( "ANGLE" )
@@ -43,7 +45,7 @@ Core:AddOperator( "*", "a,a", "a", "(value %1 * value %2)" )
 
 Core:AddOperator( "/", "a,a", "a", "(value %1 / value %2)" )
 
-Core:AddOperator( "%", "a,a", "a", "(value %1 % value %2)" )
+Core:AddOperator( "%", "a,a", "a", "(value %1 %% value %2)" )
 
 Core:AddOperator( "^", "a,a", "a", "(value %1 ^ value %2)" )
 
@@ -57,7 +59,7 @@ Core:AddOperator( "*", "a,n", "a", "local %Value = value %2", "(value %1 * Angle
 
 Core:AddOperator( "/", "a,n", "a", "local %Value = value %2", "(value %1 / Angle(%Value, %Value, %Value))" )
 
-Core:AddOperator( "%", "a,n", "a", "local %Value = value %2", "(value %1 % Angle(%Value, %Value, %Value))" )
+Core:AddOperator( "%", "a,n", "a", "local %Value = value %2", "(value %1 %% Angle(%Value, %Value, %Value))" )
 
 Core:AddOperator( "^", "a,n", "a", "local %Value = value %2", "(value %1 ^ Angle(%Value, %Value, %Value))" )
 
@@ -100,7 +102,7 @@ Core:AddOperator( "string", "a", "s", "tostring(value %1)" )
 
 Core:AddOperator( "=", "a", "", [[
 local %Value = %memory[value %1] or Angle(0, 0, 0)
-local %Value2 = value %1
+local %Value2 = value %2
 %delta[value %1] = Angle( %Value.p, %Value.y, %Value.r )
 %memory[value %1] = Angle( %Value2.p, %Value2.y, %Value2.r )
 %click[value %1] = true
@@ -110,7 +112,7 @@ local %Value2 = value %1
 	Section: General
 ==============================================================================================*/
 Core:AddFunction( "angnorm", "a", "a", "local %A = value %1",
-"{(%A[1] + 180) % 360 - 180,(%A[2] + 180) % 360 - 180,(%A[3] + 180) % 360 - 180}" ) 
+"{(%A[1] + 180) %% 360 - 180,(%A[2] + 180) %% 360 - 180,(%A[3] + 180) %% 360 - 180}" ) 
 
 
 /*==============================================================================================
@@ -125,17 +127,17 @@ Core:AddFunction("up", "a:", "a", "value %1:Up( )" )
 /*==============================================================================================
 	Ceil / Floor / Round
 ==============================================================================================*/
-Core:AddFunction("ceil", "v", "v", "local %V = value %1", "Angle(%V.p - %V.p % -1, %V.y - %V.y % -1, %V.r - %V.r % -1)" )
+Core:AddFunction("ceil", "v", "v", "local %V = value %1", "Angle(%V.p - %V.p %% -1, %V.y - %V.y %% -1, %V.r - %V.r %% -1)" )
 
 Core:AddFunction("floor", "v", "v", "local %V = value %1", "Angle(math.floor(%V.p), math.floor(%V.y), math.floor(%V.r))" )
 
 Core:AddFunction("ceil", "v,n", "v", [[
 local %A, %B = value %1, value %2
 local %Shift = 10 ^ math.floor(%B + 0.5)
-]], "Angle(%A.p - ((%A.p * %Shift) % -1) / %Shift, %A.y - ((%A.y * %Shift) % -1) / %Shift, %A.r - ((%A.r * %Shift) % -1) / %Shift)" )
+]], "Angle(%A.p - ((%A.p * %Shift) %% -1) / %Shift, %A.y - ((%A.y * %Shift) %% -1) / %Shift, %A.r - ((%A.r * %Shift) %% -1) / %Shift)" )
 
 Core:AddFunction("round", "v", "v", "local %V = value %1",
-"Angle(V.p - (V.p + 0.5) % 1 + 0.5, %V.y - (%V.y + 0.5) % 1 + 0.5, %V.r - (%V.r + 0.5) % 1 + 0.5)" )
+"Angle(V.p - (V.p + 0.5) %% 1 + 0.5, %V.y - (%V.y + 0.5) %% 1 + 0.5, %V.r - (%V.r + 0.5) %% 1 + 0.5)" )
 
 Core:AddFunction("round", "v,n", "v", [[
 local %A, %B = value %1, value %2
@@ -152,8 +154,16 @@ Core:AddFunction("inrange", "a,a,a", "b", "local %A, %B, %C = value %1, value %2
 "(!(%A.p < %B.p or %A.p > %C.p or %A.y < %B.y or %A.y > %C.y or %A.r < %B.r or %A.r > %C.r))" )
 
 /*==============================================================================================
+	Interpolation
+==============================================================================================*/
+Core:AddFunction("mix", "a,a,n", "a", "local %Shift = 1 - value %3",
+"Angle(value %1.p * value %3 + value %2.p * %Shift, value %1.y * value %3 + value %2.y * %Shift, value %1.r * value %3 + value %2.r * %Shift)",
+"Linearly interpolate between two angles" )
+
+/*==============================================================================================
 	Entity Helpers
 ==============================================================================================*/
 Core:AddFunction("toWorld", "e:a", "a", "( $IsValid( value %1 ) and value %1:LocalToWorldAngles( value %2 ) or Angle(0, 0, 0) )" )
 
 Core:AddFunction("toLocal", "e:a", "a", "( $IsValid( value %1 ) and value %1:WorldToLocalAngles( value %2 ) or Angle(0, 0, 0) )" )
+

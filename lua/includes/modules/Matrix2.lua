@@ -298,4 +298,4 @@ Matrix2 = { }
 
 setmetatable( Matrix2, M2 ) 
 
-debug.getregistry().Matrix2 = Matrix2
+debug.getregistry().Matrix2 = Meta
