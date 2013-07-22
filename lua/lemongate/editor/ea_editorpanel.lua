@@ -630,18 +630,10 @@ function PANEL:Close( )
 	cookie.Set( "eaeditor_w", self:GetWide( ) )
 	cookie.Set( "eaeditor_h", self:GetTall( ) )
 	
-	if GLOBALDERMAPANEL and GLOBALDERMAPANEL == self then
-		self:Remove( )
-		if ValidPanel( LEMON.Helper ) and LEMON.Helper:IsVisible( ) then
-			LEMON.Helper:Close( )
-			LEMON.Helper:Remove( )
-		end
-	else
-		self:SetVisible( false )
-		if ValidPanel( LEMON.Helper ) and LEMON.Helper:IsVisible( ) then
-			self.OpenHelper = true
-			LEMON.Helper:Close( )
-		end
+	self:SetVisible( false )
+	if ValidPanel( LEMON.Helper ) and LEMON.Helper:IsVisible( ) then
+		self.OpenHelper = true
+		LEMON.Helper:Close( )
 	end
 end
 

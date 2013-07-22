@@ -1,16 +1,16 @@
 local Data = LEMON.API.HelperData
 
 /*---------------------------------------------------------------------------
-	Total functions: 488
+	Total functions: 504
 	Total events: 12
 	
-	Documented functions: 64
+	Documented functions: 92
 	Documented events: 0
 	
-	Undocumented functions: 424
+	Undocumented functions: 412
 	Undocumented events: 12
 	
-	Generated at: 07/21/13 03:17:36
+	Generated at: 07/22/13 15:01:54
 ---------------------------------------------------------------------------*/
 
 /*---------------------------------------------------------------------------
@@ -142,6 +142,7 @@ Data["explode(s:s t)"] = ""
 Data["explodePattern(s:s t)"] = ""
 Data["eye(e: v)"] = ""
 Data["eyeAngles(e: a)"] = ""
+Data["eyeTrace(e: xtr)"] = ""
 
 // F
 Data["fade(xsd:n)"] = ""
@@ -232,6 +233,8 @@ Data["httpRequest(sff)"] = ""
 Data["ignoreNoDraw(xtr:b)"] = ""
 Data["inNoclip(e: b)"] = ""
 Data["index(s:n s)"] = ""
+Data["inertia(e: v)"] = ""
+Data["inertiaA(e: a)"] = "Shifts vector inertia into angular form."
 Data["inputType(xwl:s s)"] = ""
 Data["inrange(aaa b)"] = ""
 Data["inrange(nnn n)"] = ""
@@ -353,6 +356,10 @@ Data["min(nn n)"] = ""
 Data["min(nnn n)"] = ""
 Data["min(nnnn n)"] = ""
 Data["min(nnnnn n)"] = ""
+Data["mix(aan a)"] = "Linearly interpolate between two angles"
+Data["mix(nnn n)"] = "Linearly interpolate between two numbers"
+Data["mix(vvn v)"] = "Linearly interpolate between two vectors"
+Data["mix(xv2xv2n xv2)"] = "Linearly interpolate between two 2D vectors"
 Data["model(e: s)"] = ""
 
 // N
@@ -388,12 +395,14 @@ Data["r(a: n)"] = "Gets the roll of a angle"
 Data["radius(e: n)"] = ""
 Data["random( n)"] = ""
 Data["random(n n)"] = ""
+Data["readAngle(p: a)"] = ""
 Data["readArray(xwl:nn t)"] = ""
 Data["readCell(xwl:n n)"] = ""
 Data["readEntity(p: e)"] = ""
 Data["readNumber(p: n)"] = ""
 Data["readPos(p n)"] = ""
 Data["readString(p: s)"] = ""
+Data["readVector(p: v)"] = ""
 Data["red(c: n)"] = "Gets the red of a angle"
 Data["remove(e:)"] = ""
 Data["remove(h:)"] = ""
@@ -449,6 +458,10 @@ Data["setY(xv2:n xv2)"] = "Sets the Y of a vector"
 Data["setYaw(a:n a)"] = "Sets the yaw of a angle"
 Data["setZ(v:n v)"] = "Sets the Z of a vector"
 Data["shading(h:b)"] = ""
+Data["shiftL(a a)"] = ""
+Data["shiftL(v v)"] = ""
+Data["shiftR(a a)"] = ""
+Data["shiftR(v v)"] = ""
 Data["shootPos(e: v)"] = ""
 Data["sign(n n)"] = ""
 Data["sin(n n)"] = ""
@@ -512,6 +525,7 @@ Data["trace( xtr)"] = ""
 Data["trace(!: t)"] = "Returns a table of traces on the stack."
 Data["trace(!:n t)"] = "Returns a trace at stack position N"
 Data["trace(vv xtr)"] = ""
+Data["trace(vvn xtr)"] = ""
 Data["trim(s: s)"] = ""
 Data["trim(s:s s)"] = ""
 Data["trimLeft(s:s s)"] = ""
@@ -557,6 +571,7 @@ Data["volume(xsd: n)"] = ""
 Data["volume(xsd:n)"] = ""
 
 // W
+Data["writeAngle(p:a)"] = ""
 Data["writeCell(xwl:nn b)"] = ""
 Data["writeEntity(p:e)"] = ""
 Data["writeNumber(p:n)"] = ""
@@ -573,6 +588,7 @@ Data["writeString(xwl:snnnc)"] = ""
 Data["writeString(xwl:snnncb)"] = ""
 Data["writeString(xwl:snnnn)"] = ""
 Data["writeString(xwl:snnnnb)"] = ""
+Data["writeVector(p:v)"] = ""
 
 // X
 Data["x(v: n)"] = "Gets the X of a vector"
