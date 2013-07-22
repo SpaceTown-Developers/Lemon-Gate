@@ -20,7 +20,7 @@ timer.Create( "Lemon_Editor_Animation", 1, 0, function( )
 			local BoneIndx = Ply:LookupBone("ValveBiped.Bip01_Head1") or Ply:LookupBone("ValveBiped.HC_Head_Bone") or 0
 			local BonePos, BoneAng = Ply:GetBonePosition( BoneIndx )
 			
-			for I = 1, math.random( 0, 5 ) do
+			for I = 1, math.random( 0, 2 ) do
 				local Particle = Emitter:Add("omicron/lemongear", BonePos + Vector(0, 0, 10) )
 			
 				if Particle then

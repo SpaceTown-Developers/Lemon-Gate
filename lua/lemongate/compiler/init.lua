@@ -304,8 +304,6 @@ function Compiler:ConstructOperator( Perf, Types, Second, First, ... )
 				Value = Input or "nil"
 			end
 			
-			Value = string.gsub( Value, "(%%)", "%%%%" )
-			
 		-- 2) Count usage of instruction.
 			
 			local _, Usages = string.gsub( First, "value %%" .. I, "" )
@@ -331,7 +329,9 @@ function Compiler:ConstructOperator( Perf, Types, Second, First, ... )
 					end
 				end
 			end
-		
+			
+			Value = string.gsub( Value, "(%%)", "%%%%" )
+			
 		-- 4) Creat a var-arg variant
 			
 			if Variants[1] or RType == "..." and IType then
