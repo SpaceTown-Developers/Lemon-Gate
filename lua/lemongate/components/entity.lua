@@ -63,6 +63,16 @@ Core:AddFunction( "pos", "e:", "v", "($IsValid(value %1) and Vector3( value %1:G
 Core:AddFunction( "ang", "e:", "a", "($IsValid(value %1) and value %1:GetAngles() or Angle(0, 0, 0) )" )
 
 /*==============================================================================================
+	Section: Direction
+==============================================================================================*/
+
+Core:AddFunction( "forward", "e:", "v", "($IsValid(value %1) and Vector3( value %1:GetForward() ) or Vector3.Zero:Clone( ) )" )
+
+Core:AddFunction( "right", "e:", "v", "($IsValid(value %1) and Vector3( value %1:GetRight() ) or Vector3.Zero:Clone( ) )" )
+
+Core:AddFunction( "up", "e:", "v", "($IsValid(value %1) and Vector3( value %1:GetUp() ) or Vector3.Zero:Clone( ) )" )
+
+/*==============================================================================================
 	Section: Ent is something
 ==============================================================================================*/
 Core:AddFunction( "isNPC", "e:", "b", "($IsValid(value %1) and value %1:IsNPC( ))" )
@@ -111,9 +121,9 @@ Core:AddFunction( "radius", "e:", "n", "($IsValid(value %1) and (value %1:Boundi
 ==============================================================================================*/
 Core:AddFunction( "isVehicle", "e:", "b", "($IsValid(value %1) and value %1:IsVehicle( ))" )
 
-Core:AddFunction( "driver", "e:", "e", "(($IsValid(value %1) and value %1:IsVehicle( )) and (value %1:GetDriver( ) or %NULL_ENTITY) or NULL_ENTITY))" )
+Core:AddFunction( "driver", "e:", "e", "(($IsValid(value %1) and value %1:IsVehicle( )) and (value %1:GetDriver( ) or %NULL_ENTITY) or NULL_ENTITY)" )
 
-Core:AddFunction( "passenger", "e:", "e", "(($IsValid(value %1) and value %1:IsVehicle( )) and (value %1:GetPassenger( ) or %NULL_ENTITY) or NULL_ENTITY))" )
+Core:AddFunction( "passenger", "e:", "e", "(($IsValid(value %1) and value %1:IsVehicle( )) and (value %1:GetPassenger(0) or %NULL_ENTITY) or NULL_ENTITY)" )
 
 
 /*==============================================================================================
@@ -409,11 +419,11 @@ Core:AddFunction( "eye", "e:", "v", "($IsValid(value %1) and (( value %1:IsPlaye
 
 Core:AddFunction( "eyeAngles", "e:", "a", "($IsValid(value %1) and value %1:EyeAngles() or Angle(0, 0, 0))" )
 
-Core:AddFunction( "aimEntity", "e:", "e", "( ($IsValid(value %1) and value %1:IsPlayer( )) and Value %1:GetEyeTraceNoCursor().Entity or %NULL_ENTITY or %NULL_ENTITY)" )
+Core:AddFunction( "aimEntity", "e:", "e", "( ($IsValid(value %1) and value %1:IsPlayer( )) and value %1:GetEyeTraceNoCursor().Entity or %NULL_ENTITY or %NULL_ENTITY)" )
 
-Core:AddFunction( "aimNormal", "e:", "v", "( ($IsValid(value %1) and value %1:IsPlayer( )) and Vector3(Value %1:GetEyeTraceNoCursor().HitNormal) or Vector3.Zero:Clone() )" )
+Core:AddFunction( "aimNormal", "e:", "v", "( ($IsValid(value %1) and value %1:IsPlayer( )) and Vector3(value %1:GetEyeTraceNoCursor().HitNormal) or Vector3.Zero:Clone() )" )
 
-Core:AddFunction( "aimPos", "e:", "v", "( ($IsValid(value %1) and value %1:IsPlayer( )) and Vector3(Value %1:GetEyeTraceNoCursor().HitPos) or Vector3.Zero:Clone() )" )
+Core:AddFunction( "aimPos", "e:", "v", "( ($IsValid(value %1) and value %1:IsPlayer( )) and Vector3(value %1:GetEyeTraceNoCursor().HitPos) or Vector3.Zero:Clone() )" )
 
 /*==============================================================================================
 	Section: Player Stats
@@ -427,7 +437,7 @@ Core:AddFunction( "ping", "e:", "n", "( ($IsValid(value %1) and value %1:IsPlaye
 
 Core:AddFunction( "timeConnected", "e:", "n", "( ($IsValid(value %1) and value %1:IsPlayer( )) and value %1:TimeConnected() or 0 )" )
 
-Core:AddFunction( "vehicle", "e:", "e", "( ($IsValid(value %1) and value %1:IsPlayer( )) and Value %1:GetVehicle() or %NULL_ENTITY or %NULL_ENTITY)" )
+Core:AddFunction( "vehicle", "e:", "e", "( ($IsValid(value %1) and value %1:IsPlayer( )) and value %1:GetVehicle() or %NULL_ENTITY or %NULL_ENTITY)" )
 
 Core:AddFunction( "isPlayer", "e:", "b", "($IsValid(value %1) and value %1:IsPlayer( ) and value %1:InVehicle() )" )
 

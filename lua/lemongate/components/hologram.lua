@@ -402,7 +402,7 @@ end]], "" )
 
 Component:SetPerf( LEMON_PERF_CHEAP )
 
-Component:AddFunction("getScale", "h:", "v", "local %Holo = value %1", "($IsValid(%Holo) and Vector3(%.Scale or Vector(0, 0, 0)) or Vector3.Zero:Clone())" )
+Component:AddFunction("getScale", "h:", "v", "local %Holo = value %1", "($IsValid(%Holo) and Vector3(%Holo.Scale or Vector(0, 0, 0)) or Vector3.Zero:Clone())" )
 
 /*==============================================================================================
     Color

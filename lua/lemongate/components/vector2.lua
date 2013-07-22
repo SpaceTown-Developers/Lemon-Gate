@@ -114,7 +114,7 @@ Core:SetPerf( LEMON_PERF_NORMAL )
 
 Core:AddOperator( "#", "v2", "n", "value %1:Length()" )
 
-Core:AddFunction("length", "v2:", "n", "value %1:Length()", nil, "Get the lengh of a vector." )
+Core:AddFunction("length", "v2:", "n", "value %1:Length()", nil, "Get the length of a vector." )
 
 Core:AddFunction( "distance", "v2:v", "n", "value %1:Distance( value %2 )", nil, "Get the distance between vectors." )
 
@@ -130,5 +130,4 @@ Core:AddFunction( "cross", "v2:v", "v2", "value %1:Cross( value %2 )" )
 	Interpolation
 ==============================================================================================*/
 Core:AddFunction("mix", "v2,v2,n", "v2", "local %Shift = 1 - value %3",
-"Vector2(value %1.x * value %3 + value %2.x * %Shift, value %1.y * value %3 + value %2.y * %Shift)",
-"Linearly interpolate between two 2D vectors" )
+"Vector2(value %1.x * value %3 + value %2.x * %Shift, value %1.y * value %3 + value %2.y * %Shift)" )

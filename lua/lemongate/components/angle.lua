@@ -86,9 +86,9 @@ Core:AddFunction("r", "a:", "n", "value %1.r", LEMON_INLINE_ONLY, "Gets the roll
 
 Core:AddFunction("setPitch", "a:n", "a", "Angle(value %2, value %1.y, value %1.r)", LEMON_INLINE_ONLY, "Sets the pitch of a angle" )
 
-Core:AddFunction("setYaw", "a:n", "a", "Angle(value %1.x, value %2, value %1.r)", LEMON_INLINE_ONLY, "Sets the yaw of a angle" )
+Core:AddFunction("setYaw", "a:n", "a", "Angle(value %1.p, value %2, value %1.r)", LEMON_INLINE_ONLY, "Sets the yaw of a angle" )
 
-Core:AddFunction("setRoll", "a:n", "a", "Angle(value %1.x, value %1.y, value %2)", LEMON_INLINE_ONLY, "Sets the roll of a angle" )
+Core:AddFunction("setRoll", "a:n", "a", "Angle(value %1.p, value %1.y, value %2)", LEMON_INLINE_ONLY, "Sets the roll of a angle" )
 
 Core:SetPerf( LEMON_PERF_ABNORMAL )
 
@@ -155,8 +155,7 @@ Core:AddFunction("inrange", "a,a,a", "b",
 	Interpolation
 ==============================================================================================*/
 Core:AddFunction("mix", "a,a,n", "a", "local %Shift = 1 - value %3",
-"Angle(value %1.p * value %3 + value %2.p * %Shift, value %1.y * value %3 + value %2.y * %Shift, value %1.r * value %3 + value %2.r * %Shift)",
-"Linearly interpolate between two angles" )
+"Angle(value %1.p * value %3 + value %2.p * %Shift, value %1.y * value %3 + value %2.y * %Shift, value %1.r * value %3 + value %2.r * %Shift)" )
 
 /*==============================================================================================
 	Entity Helpers

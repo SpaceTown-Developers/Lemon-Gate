@@ -179,7 +179,7 @@ Core:AddFunction("toLocal", "e:v", "v", "($IsValid( value %1 ) and value %1:Worl
 ==============================================================================================*/
 Core:AddOperator("angle", "v", "a", "value %1:Angle( )" )
 
-Core:AddFunction("toAngle", "v:", "a", "value %1:Angle( )" )
+Core:AddFunction("toAngle", "v:", "a", "value %1:Garry( ):Angle( )" )
 
 Core:AddFunction("toAngle", "v:v", "a", "(value %1:Garry( ):AngleEx( value %2:Garry( ) ))" )
 
@@ -226,5 +226,4 @@ Core:AddFunction("inrange", "v,v,v", "b",
 	Interpolation
 ==============================================================================================*/
 Core:AddFunction("mix", "v,v,n", "v", "local %Shift = 1 - value %3",
-"Vector3(value %1.x * value %3 + value %2.x * %Shift, value %1.y * value %3 + value %2.y * %Shift, value %1.z * value %3 + value %2.z * %Shift)",
-"Linearly interpolate between two vectors" )
+"Vector3(value %1.x * value %3 + value %2.x * %Shift, value %1.y * value %3 + value %2.y * %Shift, value %1.z * value %3 + value %2.z * %Shift)")
