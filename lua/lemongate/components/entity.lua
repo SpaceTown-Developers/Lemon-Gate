@@ -343,7 +343,7 @@ Core:SetPerf( LEMON_PERF_NORMAL )
 Core:AddFunction("setColor", "e:c", "", [[
 local %Ent, %Col = value %1, value %2
 if %Ent and %Ent:IsValid( ) and %IsOwner( %context.Player, %Ent ) then
-	%Ent:SetColor( %Color( %Color[1], %Col[2], %Col[3], %Col[4] ) )
+	%Ent:SetColor( %Color( %Col[1], %Col[2], %Col[3], %Col[4] ) )
 	%Ent:SetRenderMode(%Col[4] == 255 and 0 or 4)
 end]], "" )
 
@@ -367,7 +367,7 @@ end]], "%Val" )
 Core:AddFunction( "setMaterial", "e:s", "", [[
 local %Ent = value %1
 if %Ent and %Ent:IsValid( ) and %IsOwner( %context.Player, %Ent ) then
-	Ent:SetMaterial(value %2)
+	%Ent:SetMaterial(value %2)
 end]], "" )
 
 /*==============================================================================================
@@ -388,7 +388,7 @@ if $IsValid(value %1) then
 		local %Inertia = %Phys:GetInertia( )
 		%util = Angle(%Inertia.y, %Inertia.z, %Inertia.x)
 	end
-end]], "(%util or Angle(0, 0, 0)) ", "Shifts vector inertia into angular form.")
+end]], "(%util or Angle(0, 0, 0))")
 
 /*==============================================================================================
 	Section: Player Stuff

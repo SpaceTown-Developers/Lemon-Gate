@@ -407,7 +407,7 @@ Component:AddFunction("getScale", "h:", "v", "local %Holo = value %1", "($IsVali
 /*==============================================================================================
     Color
 ==============================================================================================*/
-Component:AddFunction("color", "h:c", "", [[
+Component:AddFunction("setColor", "h:c", "", [[
 if IsValid( value %1 ) and value %1.Player == %context.Player then
 	value %1:SetColor( $Color( value %2[1], value %2[2], value %2[3], value %2[4] ) )
 	value %1:SetRenderMode(value %2[4] == 255 and 0 or 4)
@@ -418,6 +418,20 @@ local %Val = {0, 0, 0, 0}
 if $IsValid( value %1 ) then
 	local %C = value %1:GetColor( )
 	%Val = { %C.r, %C.g, %C.b, %C.a }
+end]], "%Val" )
+
+/*==============================================================================================
+	Material
+==============================================================================================*/
+Component:AddFunction( "setMaterial", "h:s", "", [[
+if $IsValid( value %1 ) and value %1.Player == %context.Player then
+	value %1:SetMaterial(value %2)
+end]], "" )
+
+Component:AddFunction( "getMaterial", "h:", "s", [[
+local %Val = ""
+if $IsValid( value %1 ) then
+	%Val = value %1:GetMaterial( ) or ""
 end]], "%Val" )
 
 /*==============================================================================================
