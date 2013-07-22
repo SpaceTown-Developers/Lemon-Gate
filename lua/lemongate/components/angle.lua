@@ -27,9 +27,7 @@ end
 
 -- Compare:
 
-Core:AddOperator( "&&", "a,a", "b", "local %A, %B = value %1, value %2", "((%A.p >= 1 and %A.y >= 1 and %A.r >= 1) and (%B.p >= 1 and %B.y >= 1 and %B.r >= 1))" )
-
--- Core:AddOperator( "||", "a,a", "a", "local %A = value %1", "((%A[1] >= 1 and %A[2] >= 1 and %A[3] >= 1) and %A or value %2)" )
+Core:AddOperator( "&&", "a,a", "b", "((value %1.p >= 1 and value %1.y >= 1 and value %1.r >= 1) and (value %2.p >= 1 and value %2.y >= 1 and value %2.r >= 1))" )
 
 Core:AddOperator( "==", "a,a", "b", "(value %1 == value %2)" )
 
@@ -37,37 +35,37 @@ Core:AddOperator( "!=", "a,a", "b", "(value %1 != value %2)" )
 	   
 -- Arithmatic:
 
-Core:AddOperator( "+", "a,a", "a", "(value %1 + value %2)" )
+Core:AddOperator( "+", "a,a", "a", "(value %1 + value %2)", LEMON_INLINE_ONLY )
 
-Core:AddOperator( "-", "a,a", "a", "(value %1 - value %2)" )
+Core:AddOperator( "-", "a,a", "a", "(value %1 - value %2)", LEMON_INLINE_ONLY )
 
-Core:AddOperator( "*", "a,a", "a", "(value %1 * value %2)" )
+Core:AddOperator( "*", "a,a", "a", "Angle(value %1.p * value %2.p, value %1.y * value %2.y, value %1.r * value %2.r)", LEMON_INLINE_ONLY )
 
-Core:AddOperator( "/", "a,a", "a", "(value %1 / value %2)" )
+Core:AddOperator( "/", "a,a", "a", "Angle(value %1.p / value %2.p, value %1.y / value %2.y, value %1.r / value %2.r)", LEMON_INLINE_ONLY )
 
-Core:AddOperator( "%", "a,a", "a", "(value %1 %% value %2)" )
+Core:AddOperator( "%", "a,a", "a", "Angle(value %1.p % value %2.p, value %1.y % value %2.y, value %1.r % value %2.r)", LEMON_INLINE_ONLY )
 
-Core:AddOperator( "^", "a,a", "a", "(value %1 ^ value %2)" )
+Core:AddOperator( "^", "a,a", "a", "Angle(value %1.p ^ value %2.p, value %1.y ^ value %2.y, value %1.r ^ value %2.r)", LEMON_INLINE_ONLY )
 
 -- Mumberic Arithmatic:
 
-Core:AddOperator( "+", "a,n", "a", "local %Value = value %2", "(value %1 + Angle(%Value, %Value, %Value))" )
+Core:AddOperator( "+", "a,n", "a", "(value %1 + Angle(value %2, value %2, value %2))", LEMON_INLINE_ONLY )
 
-Core:AddOperator( "-", "a,n", "a", "local %Value = value %2", "(value %1 - Angle(%Value, %Value, %Value))" )
+Core:AddOperator( "-", "a,n", "a", "(value %1 - Angle(value %2, value %2, value %2))", LEMON_INLINE_ONLY )
 
-Core:AddOperator( "*", "a,n", "a", "local %Value = value %2", "(value %1 * Angle(%Value, %Value, %Value))" )
+Core:AddOperator( "*", "a,n", "a", "Angle(value %1.p * value %2, value %1.y * value %2, value %1.r * value %2)", LEMON_INLINE_ONLY )
 
-Core:AddOperator( "/", "a,n", "a", "local %Value = value %2", "(value %1 / Angle(%Value, %Value, %Value))" )
+Core:AddOperator( "/", "a,n", "a", "Angle(value %1.p / value %2, value %1.y / value %2, value %1.r / value %2)", LEMON_INLINE_ONLY )
 
-Core:AddOperator( "%", "a,n", "a", "local %Value = value %2", "(value %1 %% Angle(%Value, %Value, %Value))" )
+Core:AddOperator( "%", "a,n", "a", "Angle(value %1.p % value %2, value %1.y % value %2, value %1.r % value %2)", LEMON_INLINE_ONLY )
 
-Core:AddOperator( "^", "a,n", "a", "local %Value = value %2", "(value %1 ^ Angle(%Value, %Value, %Value))" )
+Core:AddOperator( "^", "a,n", "a", "Angle(value %1.p ^ value %2, value %1.y ^ value %2, value %1.r ^ value %2)", LEMON_INLINE_ONLY )
 
 
 -- General:
-Core:AddOperator( "is", "a", "b", "local %A = value %1", "(%A.p >= 1 and %A.y >= 1 and %A.r >= 1)" )
+Core:AddOperator( "is", "a", "b", "(value %1.p >= 1 and value %1.y >= 1 and value %1.r >= 1)" )
 
-Core:AddOperator( "not", "a", "b", "local %A = value %1", "(%A.p < 1 and %A.y < 1 and %A.r < 1)" )
+Core:AddOperator( "not", "a", "b", "(value %1.p < 1 and value %1.y < 1 and value %1.r < 1)" )
 
 Core:AddOperator( "-", "a", "a", "(-value %1)" )
 
@@ -75,28 +73,28 @@ Core:AddOperator( "$", "a", "a", "((%delta[value %1] or Angle(0, 0, 0)) - (%memo
 
 -- Constructors:
 
-Core:AddFunction("ang", "n,n,n", "a", "Angle(value %1, value %2, value %3)", nil, "Creates a angle" )
+Core:AddFunction("ang", "n,n,n", "a", "Angle(value %1, value %2, value %3)", LEMON_INLINE_ONLY, "Creates a angle" )
 
 -- Co-ords:
 
-Core:AddFunction("p", "a:", "n", "value %1.p", nil, "Gets the pitch of a angle" )
+Core:AddFunction("p", "a:", "n", "value %1.p", LEMON_INLINE_ONLY, "Gets the pitch of a angle" )
 
-Core:AddFunction("y", "a:", "n", "value %1.y", nil, "Gets the yaw of a angle" )
+Core:AddFunction("y", "a:", "n", "value %1.y", LEMON_INLINE_ONLY, "Gets the yaw of a angle" )
 
-Core:AddFunction("r", "a:", "n", "value %1.r", nil, "Gets the roll of a angle" )
+Core:AddFunction("r", "a:", "n", "value %1.r", LEMON_INLINE_ONLY, "Gets the roll of a angle" )
 
 
-Core:AddFunction("setPitch", "a:n", "a", "Angle(value %2, value %1.y, value %1.r)", nil, "Sets the pitch of a angle" )
+Core:AddFunction("setPitch", "a:n", "a", "Angle(value %2, value %1.y, value %1.r)", LEMON_INLINE_ONLY, "Sets the pitch of a angle" )
 
-Core:AddFunction("setYaw", "a:n", "a", "Angle(value %1.x, value %2, value %1.r)", nil, "Sets the yaw of a angle" )
+Core:AddFunction("setYaw", "a:n", "a", "Angle(value %1.x, value %2, value %1.r)", LEMON_INLINE_ONLY, "Sets the yaw of a angle" )
 
-Core:AddFunction("setRoll", "a:n", "a", "Angle(value %1.x, value %1.y, value %2)", nil, "Sets the roll of a angle" )
+Core:AddFunction("setRoll", "a:n", "a", "Angle(value %1.x, value %1.y, value %2)", LEMON_INLINE_ONLY, "Sets the roll of a angle" )
 
 Core:SetPerf( LEMON_PERF_ABNORMAL )
 
 -- Casting:
 
-Core:AddOperator( "string", "a", "s", "tostring(value %1)" )
+Core:AddOperator( "string", "a", "s", "tostring(value %1)", LEMON_INLINE_ONLY )
 
 -- Assigment:
 
@@ -106,52 +104,52 @@ local %Value2 = value %2
 %delta[value %1] = Angle( %Value.p, %Value.y, %Value.r )
 %memory[value %1] = Angle( %Value2.p, %Value2.y, %Value2.r )
 %click[value %1] = true
-]], "" )
+]], LEMON_PREPARE_ONLY )
 
 /*==============================================================================================
 	Section: General
 ==============================================================================================*/
-Core:AddFunction( "angnorm", "a", "a", "local %A = value %1",
-"{(%A[1] + 180) %% 360 - 180,(%A[2] + 180) %% 360 - 180,(%A[3] + 180) %% 360 - 180}" ) 
+Core:AddFunction( "angnorm", "a", "a", "Angle((value %1.p + 180) % 360 - 180,(value %1.y + 180) % 360 - 180,(value %1.r + 180) % 360 - 180)", LEMON_INLINE_ONLY ) 
 
+Core:AddFunction("shiftL", "a", "a", "Angle(value %1.y, value %1.r, value %1.p)", LEMON_INLINE_ONLY )
+
+Core:AddFunction("shiftR", "a", "a", "Angle(value %1.r, value %1.p, value %1.y)", LEMON_INLINE_ONLY )
 
 /*==============================================================================================
 	Section: Directional
 ==============================================================================================*/
-Core:AddFunction("forward", "a:", "a", "value %1:Forward( )" )
+Core:AddFunction("forward", "a:", "a", "value %1:Forward( )", LEMON_INLINE_ONLY )
 
-Core:AddFunction("right", "a:", "a", "value %1:Right( )" )
+Core:AddFunction("right", "a:", "a", "value %1:Right( )", LEMON_INLINE_ONLY )
 
-Core:AddFunction("up", "a:", "a", "value %1:Up( )" )
+Core:AddFunction("up", "a:", "a", "value %1:Up( )", LEMON_INLINE_ONLY )
 
 /*==============================================================================================
 	Ceil / Floor / Round
 ==============================================================================================*/
-Core:AddFunction("ceil", "v", "v", "local %V = value %1", "Angle(%V.p - %V.p %% -1, %V.y - %V.y %% -1, %V.r - %V.r %% -1)" )
+Core:AddFunction("ceil", "v", "v", "Angle(value %1.p - value %1.p % -1, value %1.y - value %1.y % -1, value %1.r - value %1.r % -1)", LEMON_INLINE_ONLY )
 
-Core:AddFunction("floor", "v", "v", "local %V = value %1", "Angle(math.floor(%V.p), math.floor(%V.y), math.floor(%V.r))" )
+Core:AddFunction("floor", "v", "v", "Angle(math.floor(value %1.p), math.floor(value %1.y), math.floor(value %1.r))", LEMON_INLINE_ONLY )
 
 Core:AddFunction("ceil", "v,n", "v", [[
 local %A, %B = value %1, value %2
 local %Shift = 10 ^ math.floor(%B + 0.5)
-]], "Angle(%A.p - ((%A.p * %Shift) %% -1) / %Shift, %A.y - ((%A.y * %Shift) %% -1) / %Shift, %A.r - ((%A.r * %Shift) %% -1) / %Shift)" )
+]], "Angle(%A.p - ((%A.p * %Shift) % -1) / %Shift, %A.y - ((%A.y * %Shift) % -1) / %Shift, %A.r - ((%A.r * %Shift) % -1) / %Shift)" )
 
-Core:AddFunction("round", "v", "v", "local %V = value %1",
-"Angle(V.p - (V.p + 0.5) %% 1 + 0.5, %V.y - (%V.y + 0.5) %% 1 + 0.5, %V.r - (%V.r + 0.5) %% 1 + 0.5)" )
+Core:AddFunction("round", "v", "v", "Angle(V.p - (V.p + 0.5) % 1 + 0.5, value %1.y - (value %1.y + 0.5) % 1 + 0.5, value %1.r - (value %1.r + 0.5) % 1 + 0.5)" )
 
 Core:AddFunction("round", "v,n", "v", [[
-local %A, %B = value %1, value %2
-local %Shift = 10 ^ math.floor(%B + 0.5)
-]], "Angle(math.floor(%A.p * %Shift+0.5) / %Shift, math.floor(%A.y * %Shift+0.5) / %Shift, math.floor(%A.r * %Shift+0.5) / %Shift)" )
+local %Shift = 10 ^ math.floor(value %2 + 0.5)
+]], "Angle(math.floor(value %1.p * %Shift+0.5) / %Shift, math.floor(value %1.y * %Shift+0.5) / %Shift, math.floor(value %1.r * %Shift+0.5) / %Shift)" )
 
 /*==============================================================================================
 	math.Clamping and Inrange
 ==============================================================================================*/
-Core:AddFunction("math.Clamp", "a,a,a", "a", "local %A, %B, %C = value %1, value %2, value %3",
-"Angle( math.Clamp(%A.p, %B.p, %C.p), math.Clamp(%A.y, %B.y, %C.y), math.Clamp(%A.r, %B.r, %C.r) )" )
+Core:AddFunction("math.Clamp", "a,a,a", "a",
+"Angle( math.Clamp(value %1.p, value %2.p, value %3.p), math.Clamp(value %1.y, value %2.y, value %3.y), math.Clamp(value %1.r, value %2.r, value %3.r) )", LEMON_INLINE_ONLY )
 
-Core:AddFunction("inrange", "a,a,a", "b", "local %A, %B, %C = value %1, value %2, value %3",
-"(!(%A.p < %B.p or %A.p > %C.p or %A.y < %B.y or %A.y > %C.y or %A.r < %B.r or %A.r > %C.r))" )
+Core:AddFunction("inrange", "a,a,a", "b",
+"(!(value %1.p < value %2.p or value %1.p > value %3.p or value %1.y < value %2.y or value %1.y > value %3.y or value %1.r < value %2.r or value %1.r > value %3.r))", LEMON_INLINE_ONLY )
 
 /*==============================================================================================
 	Interpolation
@@ -163,7 +161,7 @@ Core:AddFunction("mix", "a,a,n", "a", "local %Shift = 1 - value %3",
 /*==============================================================================================
 	Entity Helpers
 ==============================================================================================*/
-Core:AddFunction("toWorld", "e:a", "a", "( $IsValid( value %1 ) and value %1:LocalToWorldAngles( value %2 ) or Angle(0, 0, 0) )" )
+Core:AddFunction("toWorld", "e:a", "a", "( $IsValid( value %1 ) and value %1:LocalToWorldAngles( value %2 ) or Angle(0, 0, 0) )", LEMON_INLINE_ONLY )
 
-Core:AddFunction("toLocal", "e:a", "a", "( $IsValid( value %1 ) and value %1:WorldToLocalAngles( value %2 ) or Angle(0, 0, 0) )" )
+Core:AddFunction("toLocal", "e:a", "a", "( $IsValid( value %1 ) and value %1:WorldToLocalAngles( value %2 ) or Angle(0, 0, 0) )", LEMON_INLINE_ONLY )
 

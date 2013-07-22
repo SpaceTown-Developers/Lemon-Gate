@@ -371,6 +371,26 @@ if %Ent and %Ent:IsValid( ) and %IsOwner( %context.Player, %Ent ) then
 end]], "" )
 
 /*==============================================================================================
+	Section: Inertia
+==============================================================================================*/
+
+Core:AddFunction( "inertia", "e:", "v", [[
+	if $IsValid(value %1) then
+		%util = value %1:GetPhysicsObject( )
+	end
+]], "($IsValid(%util) and Vector3( %util:GetInertia( ) ) or Vector3.Zero:Clone( ) )")
+
+Core:AddFunction( "inertiaA", "e:", "a", [[
+if $IsValid(value %1) then
+	local %Phys = value %1:GetPhysicsObject( )
+	
+	if %Phys and %Phys:IsValid( ) then
+		local %Inertia = %Phys:GetInertia( )
+		%util = Angle(%Inertia.y, %Inertia.z, %Inertia.x)
+	end
+end]], "(%util or Angle(0, 0, 0)) ", "Shifts vector inertia into angular form.")
+
+/*==============================================================================================
 	Section: Player Stuff
 ==============================================================================================*/
 Core:AddFunction( "isPlayer", "e:", "b", "($IsValid(value %1) and value %1:IsPlayer( ))" )

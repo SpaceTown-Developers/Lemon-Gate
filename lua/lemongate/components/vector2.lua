@@ -49,7 +49,7 @@ Core:AddOperator( "*", "v2,v2", "v2", "(value %1 * value %2)" )
 
 Core:AddOperator( "/", "v2,v2", "v2", "(value %1 / value %2)" )
 
-Core:AddOperator( "%", "v2,v2", "v2", "(value %1 %% value %2)" )
+Core:AddOperator( "%", "v2,v2", "v2", "(value %1 % value %2)" )
 
 Core:AddOperator( "^", "v2,v2", "v2", "(value %1 ^ value %2)" )
 
@@ -63,7 +63,7 @@ Core:AddOperator( "*", "v2,n", "v2", "(value %1 * Vector2(value %2, value %2))" 
 
 Core:AddOperator( "/", "v2,n", "v2", "(value %1 / Vector2(value %2, value %2))" )
 
-Core:AddOperator( "%", "v2,n", "v2", "(value %1 %% Vector2(value %2, value %2))" )
+Core:AddOperator( "%", "v2,n", "v2", "(value %1 % Vector2(value %2, value %2))" )
 
 Core:AddOperator( "^", "v2,n", "v2", "(value %1 ^ Vector2(value %2, value %2))" )
 

@@ -297,13 +297,19 @@ function Compiler:ConstructOperator( Perf, Types, Second, First, ... )
 			
 			if type( Input ) == "table" then
 				Prep = Input.Prepare
-				Value = Input.Inline or "nil"
+				Value = Input.Inline
 				Perf = Perf + ( Input.Perf or 0 )
 				IType = Input.Return
 			elseif Input then
-				Value = Input
+				Value = Input or "nil"
 			end
-		
+			
+			Value = string.gsub( Value, "(%%)", "%%%%" )
+			
+			if Prep then
+				Prep = string.gsub( Prep, "(%%)", "%%%%" )
+			end
+			
 		-- 2) Count usage of instruction.
 			
 			local _, Usages = string.gsub( First, "value %%" .. I, "" )
