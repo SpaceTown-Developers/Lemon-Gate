@@ -60,7 +60,7 @@ Core:SetPerf( LEMON_PERF_CHEAP )
 
 Core:AddFunction( "pos", "e:", "v", "($IsValid(value %1) and Vector3( value %1:GetPos() ) or Vector3.Zero:Clone( ) )" )
 
-Core:AddFunction( "ang", "e:", "a", "($IsValid(value %1) and Vector3( value %1:GetAngles() ) or Angle(0, 0, 0) )" )
+Core:AddFunction( "ang", "e:", "a", "($IsValid(value %1) and value %1:GetAngles() or Angle(0, 0, 0) )" )
 
 /*==============================================================================================
 	Section: Ent is something
