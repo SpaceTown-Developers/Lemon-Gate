@@ -306,10 +306,6 @@ function Compiler:ConstructOperator( Perf, Types, Second, First, ... )
 			
 			Value = string.gsub( Value, "(%%)", "%%%%" )
 			
-			if Prep then
-				Prep = string.gsub( Prep, "(%%)", "%%%%" )
-			end
-			
 		-- 2) Count usage of instruction.
 			
 			local _, Usages = string.gsub( First, "value %%" .. I, "" )
