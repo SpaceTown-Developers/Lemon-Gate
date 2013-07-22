@@ -1018,7 +1018,6 @@ end
 function Compiler:GetCondition( RootTrace )
 	self:RequireToken( "lpa", "Left parenthesis (( ) missing, to open condition" )
 	
-	print( "YO!" )
 	local Expression = self:Compile_IS( self:TokenTrace( RootTrace ), self:GetExpression( RootTrace ) )
 	
 	self:RequireToken( "rpa", "Right parenthesis ( )) missing, to close condition" )

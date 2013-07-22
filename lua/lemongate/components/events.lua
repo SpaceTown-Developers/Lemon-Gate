@@ -105,8 +105,7 @@ if Wire_Keyboard_Remap then
 		end
 	end
 	
-	local Activate = numpad.Activate
-	function numpad.Activate( Ply, Num, Button )
+	hook.Add( "PlayerButtonDown", "LemonGate", function( Ply, Num, Button )
 		local Key = GetKey( Ply, Num, true )
 		
 		if Key then 
@@ -116,12 +115,9 @@ if Wire_Keyboard_Remap then
 				end
 			end
 		end
-		
-		return Activate( Ply, Num, Button )
-	end
+	end )
 	
-	local Deactivate = numpad.Deactivate
-	function numpad.Deactivate( Ply, Num, Button )
+	hook.Add( "PlayerButtonUp", "LemonGate", function( Ply, Num, Button )
 		local Key = GetKey( Ply, Num, nil )
 		
 		if Key then 
@@ -131,7 +127,5 @@ if Wire_Keyboard_Remap then
 				end
 			end
 		end
-		
-		return Deactivate( Ply, Num, Button )
-	end
+	end )
 end

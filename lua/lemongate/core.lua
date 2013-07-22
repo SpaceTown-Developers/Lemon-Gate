@@ -81,11 +81,33 @@ end
 	Section: Prop Friending
 ==============================================================================================*/
 function Util.GetOwner( Entity )
-	local Owner = Entity:GetOwner( )
-	if Entity.Player then Owner = Entity.Player end
-	if CPPI then Owner = Entity:CPPIGetOwner( ) or Owner end
-
-	return Owner
+	if !IsValid( Entity ) then
+		return nil
+	elseif CPPI then
+		local Owner = Entity:CPPIGetOwner( )
+		
+		if IsValid( Owner ) then
+			return Owner
+		end
+	end
+	
+	if Entity.GetPlayer then
+		return Entity:GetPlayer( )
+	end
+	
+	local ODF = Entity.OnDieFunctions
+	
+	if ODF and ODF.GetCountUpdate and ODF.GetCountUpdate.Args then
+		return ODF.GetCountUpdate.Args[1]
+	elseif ODF and ODF.undo1 and ODF.undo1.Args then
+		return ODF.undo1.Args[2]
+	end -- Garry it sadens me we have to do stuff like this =(
+	
+	if Entity.GetOwner then
+		return Entity:GetOwner( )
+	end
+	
+	return Entity.player or Entity.Player
 end
 
 function Util.IsOwner(Player, Entity)
