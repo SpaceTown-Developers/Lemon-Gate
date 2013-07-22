@@ -84,7 +84,7 @@ Core:AddFunction("setRed", "c:n", "c", "{ math.Clamp(value %2, 0, 255), value %1
 
 Core:AddFunction("setGreen", "c:n", "c", "{ value %1[1], math.Clamp(value %2, 0, 255), value %1[3], value %1[4] }", nil, "Sets the green of a angle" )
 
-Core:AddFunction("setBlue", "c:n", "c",  "{ value %1[1], %A[2], math.Clamp(value %2, 0, 255), value %1[4] }", nil, "Sets the blue of a angle" )
+Core:AddFunction("setBlue", "c:n", "c",  "{ value %1[1], value %1[2], math.Clamp(value %2, 0, 255), value %1[4] }", nil, "Sets the blue of a angle" )
 
 Core:AddFunction("setAlpha", "c:n", "c", "{ value %1[1], value %1[2], value %1[3], math.Clamp(value %2, 0, 255) }", nil, "Sets the alpha of a angle" )
 

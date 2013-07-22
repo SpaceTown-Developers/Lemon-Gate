@@ -256,7 +256,7 @@ Core:AddFunction( "log10", "n", "n", "math.log10(value %1)" )
 
 Core:AddFunction( "log", "n,n", "n", "(math.log(value %1) / math.log(value %2))" )
 
-Core:AddFunction("mix", "n,n,n", "n", "(value %1 * value %3 + value %2 * (1 - value %3))", LEMON_INLINE_ONLY , "Linearly interpolate between two numbers" )
+Core:AddFunction("mix", "n,n,n", "n", "(value %1 * value %3 + value %2 * (1 - value %3))", LEMON_INLINE_ONLY )
 
 /*==============================================================================================
 	Section: BINARY
