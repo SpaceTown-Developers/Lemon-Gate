@@ -300,9 +300,9 @@ Core:SetPerf( LEMON_PERF_EXPENSIVE )
 Core:AddFunction( "getConstraints", "e:", "t", [[
 local %Ent, %Ret = value %1, %Table( )
 if %Ent and %Ent:IsValid( ) and $constraint.HasConstraints( %Ent ) then
-	for _, %Con in pairs( $constraint.GetAllConstrainedEntities( %Ent ) ) do
-		if %Con and %Con:IsValid() and %Con ~= %Ent then
-			%Ret:Insert(nil, "e", %Con)
+	for _, Con in pairs( $constraint.GetAllConstrainedEntities( %Ent ) ) do
+		if Con and Con:IsValid() and Con ~= %Ent then
+			%Ret:Insert(nil, "e", Con)
 		end
 	end
 end]], "%Ret" )
