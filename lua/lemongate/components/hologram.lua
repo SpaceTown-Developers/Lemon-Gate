@@ -39,7 +39,7 @@ function HoloLib.RemoveAll( Gate )
         for _, Holo in pairs( Holograms[Gate] ) do
             if Holo:IsValid( ) then
                 if table.Count( Holo.Clips ) > 0 then 
-                    net.Start( "lemon_hologram_removeHoloLib._Clips" )
+                    net.Start( "lemon_hologram_remove_clips" )
                         net.WriteUInt( Holo:EntIndex( ), 16 )
                     net.Broadcast( )
                 end 
@@ -515,7 +515,7 @@ end]], "%Val", "Gets the parent entity of a hologram" )
 ==============================================================================================*/
 local net = net
 util.AddNetworkString( "lemon_hologram" )
-util.AddNetworkString( "lemon_hologram_removeHoloLib._Clips" )
+util.AddNetworkString( "lemon_hologram_remove_clips" )
 
 hook.Add("Tick", "Lemon_Holograms", function()
     if NeedsSync then

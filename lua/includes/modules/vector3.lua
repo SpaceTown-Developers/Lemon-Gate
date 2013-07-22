@@ -87,8 +87,9 @@ do
 		return self.x * other.x + self.y * other.y + self.z * other.z 
 	end 
 
-	function meta:Normalize( ) 
-		return self * ( 1 / #self ) 
+	function meta:Normalize( )
+		local Len = self:Length( ) 
+		return Vector3( self.x / Len, self.y / Len, self.z / Len )
 	end 
 
 	function meta:Round( dec ) 
@@ -119,26 +120,26 @@ do
 		return Vector( self.x, self.y, self.z )
 	end
 	
-	local setmetatable = setmetatable 
-	local Vec3 = { Zero = setmetatable({ x = 0, y = 0, z = 0 },meta) } 
-	Vec3.__index = Vec3 
-	
 	local Rad2Deg = 180 / math.pi
 	
-	function Vec3:Bearing( angle, vector )
+	function meta:Bearing( angle, vector )
 		local v, a = WorldToLocal(vector:Garry( ), Angle(0,0,0), self:Garry( ), angle)
 		return Rad2Deg * math.asin(v.z / v:Length( )) 
 	end
 	
-	function Vec3:Elevation( angle, vector )
+	function meta:Elevation( angle, vector )
 		local v, a = WorldToLocal(vector:Garry( ), Angle(0,0,0), self:Garry( ), angle)
 		return Rad2Deg * -math.atan2( v.y, v.x )
 	end
 	
-	function Vec3:Heading( angle, vector )
+	function meta:Heading( angle, vector )
 		local v, a = WorldToLocal(vector:Garry( ), Angle(0,0,0), self:Garry( ), angle)
 		return Angle( Rad2Deg * math.asin(v.z / v:Length( )) , Rad2Deg * -math.atan2( v.y, v.x ), 0 )
 	end
+	
+	local setmetatable = setmetatable 
+	local Vec3 = { Zero = setmetatable({ x = 0, y = 0, z = 0 },meta) } 
+	Vec3.__index = Vec3 
 	
 	function Vec3:__call( a, b, c ) 
 		if type( a ) == "Vector" then

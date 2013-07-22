@@ -86,9 +86,9 @@ Core:SetPerf( LEMON_PERF_ABNORMAL )
 
 Core:AddFunction( "trim", "s:s", "s", "string.Trim(value %1, string.gsub(value %2, \"[%-%^%$%(%)%%%.%[%]%*%+%?]\", \"%%%1\"))" )
 
-Core:AddFunction( "trimLeft", "s:s", "s", "string.sub(value %1, \"^\" .. string.gsub(value %2, \"[%-%^%$%(%)%%%.%[%]%*%+%?]\", \"%%%1\") .. \"*(.+)$\", \"%1\" )" )
+Core:AddFunction( "trimLeft", "s:s", "s", "string.gsub(value %1, \"^\" .. string.gsub(value %2, \"[%-%^%$%(%)%%%.%[%]%*%+%?]\", \"%%%1\") .. \"*(.+)$\", \"%1\" )" )
 
-Core:AddFunction( "trimRight", "s:s", "s", "string.sub(value %1, \"^(.-)\" .. string.gsub(value %2, \"[%-%^%$%(%)%%%.%[%]%*%+%?]\", \"%%%1\") .. \"*$\", \"%1\" )" )
+Core:AddFunction( "trimRight", "s:s", "s", "string.gsub(value %1, \"^(.-)\" .. string.gsub(value %2, \"[%-%^%$%(%)%%%.%[%]%*%+%?]\", \"%%%1\") .. \"*$\", \"%1\" )" )
 
 /*==============================================================================================
 	Section: Char / Byte Functions

@@ -186,7 +186,10 @@ Core:AddFunction("toAngle", "v:v", "a", "(value %1:Garry( ):AngleEx( value %2:Ga
 /*==============================================================================================
 	Rotation
 ==============================================================================================*/
-Core:AddFunction("rotate", "v:a", "v", "(value %1:Garry( ):Rotate( value %2 ))" )
+Core:AddFunction("rotate", "v:a", "v", [[
+local %Garry = value %1:Garry( )
+Garry:Rotate( value %2 )
+]], "Vector3(%Garry)" )
 
 Core:AddFunction("shiftL", "v", "v", "Vector3(value %1.y, value %1.z, value %1.x)" )
 

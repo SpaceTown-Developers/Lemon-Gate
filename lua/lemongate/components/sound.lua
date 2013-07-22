@@ -7,6 +7,58 @@ local LEMON, API = LEMON, LEMON.API
 local Component = API:NewComponent( "sound", true )
 
 /*==============================================================================================
+	API!
+==============================================================================================*/
+local Sounds = { }
+
+function Component:RemoveSounds( Entity )
+	if Sounds[Entity] then
+		for _, Sound in pairs( Sounds[Entity] ) do
+			Sound:Stop()
+		end
+	end
+end
+
+function Component:Create( Gate )
+	Sounds[ Gate ] = { }
+end
+
+function Component:BuildContext( Gate )
+	self:RemoveSounds( Gate )
+end
+
+function Component:Remove( Gate )
+	self:RemoveSounds( Gate )
+end
+
+function Component:ShutDown( Gate )
+	self:RemoveSounds( Gate )
+end
+
+timer.Create("LemonSounds", 0.1, 0, function( )
+	local Time = CurTime()
+
+	for Gate, Sounds in pairs( Sounds ) do 
+		for _, Sound in pairs( Sounds ) do
+			if Sound and Sound.Duration > 0 and Sound:IsPlaying( ) then
+				if Time > Sound.Duration + Sound.Start then
+					if Sound.Fade > 0 then
+						Sound:FadeOut( Sound.Fade )
+					else
+						Sound:Stop( )
+					end
+				end
+				
+			elseif !Sound.Entity or !Sound.Entity:IsValid( ) then
+				Sound:Stop( )
+				Sound.Sound = nil
+				Sounds[ Sound ] = nil
+			end
+		end
+	end
+end)
+
+/*==============================================================================================
 	Sound Object
 ==============================================================================================*/
 local Sound = { }
@@ -14,7 +66,7 @@ Sound.__index = Sound
 
 setmetatable( Sound, Sound )
 
-function Sound.__call( Path, Entity, Gate )
+function Sound.__call( _, Path, Entity, Gate )
     if !string.match( Path, '["?]' ) then
 		Path = string.gsub( Path:Trim( ), "\\", "/" ) 
 
@@ -95,58 +147,6 @@ function Sound:Stop( )
 end
 
 Component:AddExternal( "Sound", Sound )
-
-/*==============================================================================================
-	API!
-==============================================================================================*/
-local Sounds = { }
-
-function Component:RemoveSounds( Entity )
-	if Sounds[Entity] then
-		for _, Sound in pairs( Sounds[Entity] ) do
-			Sound:Stop()
-		end
-	end
-end
-
-function Component:Create( Gate )
-	Sounds[ Gate ] = { }
-end
-
-function Component:BuildContext( Gate )
-	self:RemoveSounds( Gate )
-end
-
-function Component:Remove( Gate )
-	self:RemoveSounds( Gate )
-end
-
-function Component:ShutDown( Gate )
-	self:RemoveSounds( Gate )
-end
-
-timer.Create("LemonSounds", 0.1, 0, function( )
-	local Time = CurTime()
-
-	for Gate, Sounds in pairs( Sounds ) do 
-		for _, Sound in pairs( Sounds ) do
-			if Sound and Sound.Duration > 0 and Sound:IsPlaying( ) then
-				if Time > Sound.Duration + Sound.Start then
-					if Sound.Fade > 0 then
-						Sound:FadeOut( Sound.Fade )
-					else
-						Sound:Stop( )
-					end
-				end
-				
-			elseif !Sound.Entity or !Sound.Entity:IsValid( ) then
-				Sound:Stop( )
-				Sound.Sound = nil
-				Sounds[ Sound ] = nil
-			end
-		end
-	end
-end)
 
 function Sound.GetAll( Gate )
 	return Sounds[ Gate ]

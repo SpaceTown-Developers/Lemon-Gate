@@ -63,7 +63,7 @@ do
 	end 
 
 	function meta:Normalize( ) 
-		return self * ( 1 / #self ) 
+		return Vector2( self.x / Len, self.y / Len ) 
 	end 
 
 	function meta:Round( dec ) 
