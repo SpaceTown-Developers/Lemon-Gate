@@ -1017,16 +1017,18 @@ end
 function API:BuildFunction( Sig, Perf, Types, Ret, Second, First )
 	
 	if !First then
-		First = Second
+		First = string.gsub( Second, " %% ", " %%%% " )
 		Second = nil
+	else
+		First = string.gsub( First, " %% ", " %%%% " )
+		Second = string.gsub( Second, " %% ", " %%%% " )
 	end
+	
 	
 	return function( Compiler, Trace, ... )
 		local Local_Values = { }
 		local PopPerf = false
 		Trace.Location = Sig
-		
-		local First, Second, Perf = Compiler:ConstructOperator( Perf, Types, Second, First, ... )
 		
 		if Second then
 			for Line in string.gmatch( Second, "local [a-zA-Z_0-9%%, \t]+" ) do
@@ -1035,8 +1037,8 @@ function API:BuildFunction( Sig, Perf, Types, Ret, Second, First )
 				end
 			end
 			
-			Second = Replace_Context( Second )
 			Second = Replace_Externals( Second, Local_Values )
+			Second = Replace_Context( Second )
 			Second, PopPerf = Replace_Internals( Second, Perf, Trace )
 			
 			if string.find( Second, "%%util" ) then
@@ -1047,8 +1049,10 @@ function API:BuildFunction( Sig, Perf, Types, Ret, Second, First )
 		end
 		
 		First = Replace_Context( First )
-		First = Replace_Externals( First, Local_Values )
 		First = Replace_Internals( First, Perf, Trace )
+		First = Replace_Externals( First, Local_Values )
+		
+		local First, Second, Perf = Compiler:ConstructOperator( Perf, Types, Second, First, ... )
 		
 		if PopPerf then
 			Perf = 0

@@ -45,7 +45,7 @@ Core:AddOperator( "[]=", "wl,s,s", "", [[%context:ToWL( value %1, "STRING", valu
 
 Core:AddOperator( "[]=", "wl,s,e", "", [[%context:ToWL( value %1, "ENTITY", value %2, value %3 )]], "" )
 
-Core:AddOperator( "[]=", "wl,s,v", "", [[%context:ToWL( value %1, "VECTOR", value %2, value %3 )]], "" )
+Core:AddOperator( "[]=", "wl,s,v", "", [[%context:ToWL( value %1, "VECTOR", value %2, value %3:Garry() )]], "" )
 
 Core:AddOperator( "[]=", "wl,s,a", "", [[%context:ToWL( value %1, "ANGLE", value %2, value %3 )]], "" )
 

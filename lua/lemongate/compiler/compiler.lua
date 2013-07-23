@@ -211,7 +211,7 @@ function Compiler:CompileCode( Code, Files, NoCompile )
 	
 	local Lua = self:GetStatements( { 0, 0, Location = "Root" } ).Prepare
 	
-	self.Native = self:LUA_Format( [[
+	self.Native = self:LUA_Format( string.gsub( [[
 		-- Allow basic libaries & functions
 			local API = LEMON.API
 			local Externals = API.Externals
@@ -246,7 +246,7 @@ function Compiler:CompileCode( Code, Files, NoCompile )
 		
 			-- Main Body:
 				]] .. Lua .. [[
-		end]] )
+		end]], "%%%%", "%%" ) )
 	
 	if !NoCompile then
 		local Compiled = CompileString( self.Native, "LemonCompiler", false )
@@ -316,6 +316,7 @@ end
 function Compiler:NextLocal( )
 	local ID = self:NextBufferIndex( self.LocID, false )
 	self.LocID = self.LocID + 1
+	print( "Local:", self.LocID, "_" .. ID )
 	return "_" .. ID
 end
 
@@ -709,7 +710,7 @@ function Compiler:Compile_LAMBDA( Trace, Params, HasVarArg, Sequence )
 		FuncParams[I] = Var
 		FuncPrepare[I] = [[
 			local Trace = ]] .. self:CompileTrace( Trace ) .. [[
-			if ( !]] .. Var .. " or !" .. Var ..[[[1] ) then
+			if ( !]] .. Var .. " or (" .. Var ..[[[1] == nil) ) then
 				Context:Throw( Trace, "invoke", "Paramater ]] .. Param[1] .. [[ is a void value" )
 			elseif ( ]] .. Var .. [[[2] ~= "]] .. Param[2] .. [[" ) then
 				Context:Throw( Trace, "invoke", "Paramater ]] .. Param[1] .. [[ got " .. ]] .. Var .. [[[2] .. " ]] .. Param[2].. [[ expected." )

@@ -288,7 +288,7 @@ function Compiler:ConstructOperator( Perf, Types, Second, First, ... )
 	
 	for I = 1, MaxPerams do
 			
-			local Prep
+			local Prep, Value
 			
 			local RType, IType = Types[I] or ""
 			local Input = Values[I] or "nil"
@@ -315,22 +315,11 @@ function Compiler:ConstructOperator( Perf, Types, Second, First, ... )
 		
 		-- 3) Replace instruction with variable if needed.
 			
-			if Usages > 1 and type( Input ) ~= "number" then
-				if !string.find( Value, "^_[a-zA-z0-9]+" ) then
-					local ID = self:NextLocal( )
-					Prep = Format( "%s\nlocal %s = %s\n", Prep or "", ID, Value )
-					Value = ID
-					
-					if type( Input ) == "table" then
-						-- THIS IS A TEMPORARY TEST!
-						Input.Perf = 0
-						Input.Inline = ID
-						Input.Prepare = nil
-					end
-				end
+			if Usages > 1 and type( Input ) ~= "number" and !string.find( Value, "^_([a-zA-z0-9]+)" ) then
+				local ID = self:NextLocal( )
+				Prep = Format( "%s\nlocal %s = %s\n", Prep or "", ID, string.gsub( Value, "(%%)", "%%%%" ) )
+				Value = ID
 			end
-			
-			Value = string.gsub( Value, "(%%)", "%%%%" )
 			
 		-- 4) Creat a var-arg variant
 			
@@ -340,8 +329,10 @@ function Compiler:ConstructOperator( Perf, Types, Second, First, ... )
 			end
 			
 		-- 5) Replace the inlined data
+			Value = string.gsub( Value, "(%%)", "%%%%" )
 			
 			First = string.gsub( First, "type %%" .. I, Format( "%q", RType or IType or "" ) )
+			
 			First = string.gsub( First, "value %%" .. I, Value )
 			
 			if Second then

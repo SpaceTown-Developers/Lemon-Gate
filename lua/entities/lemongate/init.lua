@@ -155,7 +155,7 @@ end
 
 function Lemon:LoadInstance( Inst )
 	local _Inputs = self.Inputs
-	local _OutPuts = self.OutPuts
+	local _Outputs = self.OutPuts
 	
 	local INames, ITypes, I = { }, { }, 1
 	for Variable, Ref in pairs( Inst.InPorts ) do
@@ -173,28 +173,21 @@ function Lemon:LoadInstance( Inst )
 		I = I + 1
 	end
 	
-	self.Inputs  = WireLib.CreateSpecialInputs ( self, INames, ITypes )
-	self.OutPuts = WireLib.CreateSpecialOutputs( self, ONames, OTypes )
+	self.Inputs  = WireLib.AdjustSpecialInputs( self, INames, ITypes )
+	self.Outputs = WireLib.AdjustSpecialOutputs( self, ONames, OTypes )
 	
 	self.InPorts   = Inst.InPorts
 	self.OutPorts  = Inst.OutPorts
 	self.Cells     = Inst.Cells
 	
-	if _InPuts then
-		self:RestoreInputs( _InPuts )
-	end
-	
-	self:TriggerOutputs( )
-end
-
-function Lemon:RestoreInputs( Orig )
-	for Variable, Ref in pairs( self.InPorts ) do
-		local Cell = self.Cells[ Ref ]
-		local Port = Orig[ Variable ]
+	for Variable, Port in pairs( self.Inputs ) do
+		local Ref = self.InPorts[ Variable ]
 		
-		if Port and Port.Type == Cell.Class.WireName then
-			self.Inputs[ Variable ] = Port
-			Cell.Class.Wire_In( self.Context, Ref, Port.Value )
+		if Ref then
+			local Cell = self.Cells[ Ref ]
+			if Cell and Port.Type == Cell.Class.WireName then
+				Cell.Class.Wire_In( self.Context, Ref, Port.Value )
+			end
 		end
 	end
 end
@@ -234,6 +227,9 @@ function Lemon:Initialize( )
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
+	
+	self.Inputs = WireLib.CreateInputs( self, { } )
+	self.Outputs = WireLib.CreateOutputs( self, { } )
 	
 	self.Overlay = "Offline"
 	self.GateName = "LemonGate"
@@ -311,7 +307,7 @@ end
 
 function Lemon:Reset( )
 	if self.Script then
-		self:BuildScript( self.Script )
+		self:LoadScript( self:GetScript( ) )
 	end
 end
 
