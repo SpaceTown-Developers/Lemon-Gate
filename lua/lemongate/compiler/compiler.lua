@@ -316,7 +316,6 @@ end
 function Compiler:NextLocal( )
 	local ID = self:NextBufferIndex( self.LocID, false )
 	self.LocID = self.LocID + 1
-	print( "Local:", self.LocID, "_" .. ID )
 	return "_" .. ID
 end
 

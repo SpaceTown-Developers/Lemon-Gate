@@ -218,6 +218,7 @@ if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) then
 		local %Forward = value %1:GetForward()
 
 		-- apply pitch force
+		
 		if value %2.p ~= 0 and value %2.p < math.huge then
 			local %Pitch = %Up * (value %2.p * 0.5)
 			%Phys:ApplyForceOffset( %Forward, %Pitch )

@@ -118,11 +118,11 @@ Core:AddFunction("shiftR", "a", "a", "Angle(value %1.r, value %1.p, value %1.y)"
 /*==============================================================================================
 	Section: Directional
 ==============================================================================================*/
-Core:AddFunction("forward", "a:", "a", "value %1:Forward( )", LEMON_INLINE_ONLY )
+Core:AddFunction("forward", "a:", "v", "value %1:Forward( )", LEMON_INLINE_ONLY )
 
-Core:AddFunction("right", "a:", "a", "value %1:Right( )", LEMON_INLINE_ONLY )
+Core:AddFunction("right", "a:", "v", "value %1:Right( )", LEMON_INLINE_ONLY )
 
-Core:AddFunction("up", "a:", "a", "value %1:Up( )", LEMON_INLINE_ONLY )
+Core:AddFunction("up", "a:", "v", "value %1:Up( )", LEMON_INLINE_ONLY )
 
 /*==============================================================================================
 	Ceil / Floor / Round

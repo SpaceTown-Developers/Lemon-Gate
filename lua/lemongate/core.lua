@@ -1008,7 +1008,8 @@ end
 
 local function Replace_Externals( Line, Local_Values )
 	Line = string.gsub( Line, "(%%[a-zA-Z0-9_]+)", Local_Values )
-	return string.gsub( Line, "(%%[a-zA-Z0-9_]+)", API.Raw_Externals )
+	Line = string.gsub( Line, "(%%[a-zA-Z0-9_]+)", API.Raw_Externals )
+	return string.gsub( Line, "(%%%%%%)", "%%%%" )
 end
 
 /*==========================================================================
@@ -1037,7 +1038,6 @@ function API:BuildFunction( Sig, Perf, Types, Ret, Second, First )
 				end
 			end
 			
-			Second = Replace_Externals( Second, Local_Values )
 			Second = Replace_Context( Second )
 			Second, PopPerf = Replace_Internals( Second, Perf, Trace )
 			
@@ -1050,9 +1050,12 @@ function API:BuildFunction( Sig, Perf, Types, Ret, Second, First )
 		
 		First = Replace_Context( First )
 		First = Replace_Internals( First, Perf, Trace )
-		First = Replace_Externals( First, Local_Values )
 		
 		local First, Second, Perf = Compiler:ConstructOperator( Perf, Types, Second, First, ... )
+		
+		if Second then
+			Second = Replace_Externals( Second, Local_Values )
+		end; First = Replace_Externals( First, Local_Values )
 		
 		if PopPerf then
 			Perf = 0
