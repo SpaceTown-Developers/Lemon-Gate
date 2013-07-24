@@ -357,7 +357,7 @@ if %Ent and %Ent:IsValid( ) then
 end]], "%Val" )
 
 /*==============================================================================================
-    Color 
+    Section: Color 
 ==============================================================================================*/
 Core:SetPerf( LEMON_PERF_NORMAL )
 
@@ -376,7 +376,7 @@ if %Ent and %Ent:IsValid( ) then
 end]], "%Val" )
 
 /*==============================================================================================
-	Section: Material
+	Section: Material / Skin / Bodygroup
 ==============================================================================================*/
 Core:AddFunction( "getMaterial", "e:", "s", [[
 local %Ent, %Val = value %1, ""
@@ -384,17 +384,39 @@ if %Ent and %Ent:IsValid( ) then
 	%Val = %Ent:GetMaterial( ) or ""
 end]], "%Val" )
 
-
 Core:AddFunction( "setMaterial", "e:s", "", [[
 local %Ent = value %1
 if %Ent and %Ent:IsValid( ) and %IsOwner( %context.Player, %Ent ) then
 	%Ent:SetMaterial(value %2)
 end]], "" )
 
+Core:AddFunction( "getSkin", "e:", "n", [[
+local %Ent, %Val = value %1, ""
+if %Ent and %Ent:IsValid( ) then
+	%Val = %Ent:GetSkin( ) or 0
+end]], "%Val" )
+
+Core:AddFunction( "getSkinCount", "e:", "n", [[
+local %Ent, %Val = value %1, ""
+if %Ent and %Ent:IsValid( ) then
+	%Val = %Ent:SkinCount( ) or 0
+end]], "%Val" )
+
+Core:AddFunction( "setSkin", "e:n", "", [[
+local %Ent = value %1
+if %Ent and %Ent:IsValid( ) and %IsOwner( %context.Player, %Ent ) then
+	%Ent:SetSkin(value %2)
+end]], "" )
+
+Core:AddFunction( "setBodygroup", "e:n,n", "", [[
+local %Ent = value %1
+if %Ent and %Ent:IsValid( ) and %IsOwner( %context.Player, %Ent ) then
+	%Ent:SetBodygroup(value %2, value %3)
+end]], "" )
+
 /*==============================================================================================
 	Section: Inertia
 ==============================================================================================*/
-
 Core:AddFunction( "inertia", "e:", "v", [[
 	if $IsValid(value %1) then
 		%util = value %1:GetPhysicsObject( )

@@ -88,7 +88,7 @@ function HoloLib.RescaleAny( X, Y, Z, Max, Size )
 end
 
 /*==============================================================================================
-    Convars
+    Section: Convars
 ==============================================================================================*/
 HoloLib._Max = CreateConVar( "lemon_holograms_max", "128" )
 HoloLib._Rate = CreateConVar( "lemon_holograms_per_tick", "20" )
@@ -307,13 +307,13 @@ if !$IsValid( value %1 ) or !value %1.IsHologram then
 end ]], "value %1" )
 
 /*==============================================================================================
-    Creator Functions
+    Section: Creator Functions
 ==============================================================================================*/
 Component:SetPerf( LEMON_PERF_EXPENSIVE )
 
 Component:AddFunction( "hologram", "", "h", "%HoloLib.Create( %trace, %context )")
 
-Component:AddFunction("hologram", "s", "h", "%HoloLib.Create2( %trace, %context, value %1 )")
+Component:AddFunction( "hologram", "s", "h", "%HoloLib.Create2( %trace, %context, value %1 )")
 
 Component:AddFunction( "hologram", "s,v", "h", [[
 local %Holo = %HoloLib.Create( %trace, %context, value %1 )
@@ -321,7 +321,7 @@ local %Holo = %HoloLib.Create( %trace, %context, value %1 )
 ]], "%Holo" )
 
 /*==============================================================================================
-    Util
+    Section: Util
 ==============================================================================================*/
 Component:SetPerf( LEMON_PERF_NORMAL )
 
@@ -331,20 +331,20 @@ Component:AddFunction( "setModel", "h:s", "", "%HoloLib.Model( %trace, %context,
 
 Component:SetPerf( LEMON_PERF_CHEAP )
 
-Component:AddFunction("isHologram", "e:", "b", "local %Holo = value %1", "(%Holo and %Holo:IsValid( ) and %Holo.IsHologram)" )
+Component:AddFunction( "isHologram", "e:", "b", "local %Holo = value %1", "(%Holo and %Holo:IsValid( ) and %Holo.IsHologram)" )
 
 -- CVars:
 
-Component:AddFunction("maxHolograms", "", "n", "%HoloLib._Max:GetInt( )" )
+Component:AddFunction( "maxHolograms", "", "n", "%HoloLib._Max:GetInt( )" )
 
-Component:AddFunction("maxHologramClips", "", "n", "%HoloLib._Clips:GetInt( )" )
+Component:AddFunction( "maxHologramClips", "", "n", "%HoloLib._Clips:GetInt( )" )
 
 Component:SetPerf( LEMON_PERF_EXPENSIVE )
 
-Component:AddFunction("holograms", "", "t", "%Table.Results( %HoloLib.GetAll( %context.Entity ), \"h\" )" )
+Component:AddFunction( "holograms", "", "t", "%Table.Results( %HoloLib.GetAll( %context.Entity ), \"h\" )" )
 
 /*==============================================================================================
-    Position and angles
+    Section: Position and Angles
 ==============================================================================================*/
 Component:SetPerf( LEMON_PERF_NORMAL )
 
@@ -359,7 +359,7 @@ if $IsValid( value %1 ) and value %1.Player == %context.Player then
 end]], "" )
 
 /*==============================================================================================
-    Scale
+    Section: Scale
 ==============================================================================================*/
 Component:SetPerf( LEMON_PERF_ABNORMAL )
 
@@ -405,7 +405,7 @@ Component:SetPerf( LEMON_PERF_CHEAP )
 Component:AddFunction("getScale", "h:", "v", "local %Holo = value %1", "($IsValid(%Holo) and Vector3(%Holo.Scale or Vector(0, 0, 0)) or Vector3.Zero:Clone())" )
 
 /*==============================================================================================
-    Color
+    Section: Color
 ==============================================================================================*/
 Component:AddFunction("setColor", "h:c", "", [[
 if IsValid( value %1 ) and value %1.Player == %context.Player then
@@ -421,7 +421,7 @@ if $IsValid( value %1 ) then
 end]], "%Val" )
 
 /*==============================================================================================
-	Material
+	Section: Material / Skin / Bodygroup
 ==============================================================================================*/
 Component:AddFunction( "setMaterial", "h:s", "", [[
 if $IsValid( value %1 ) and value %1.Player == %context.Player then
@@ -434,8 +434,30 @@ if $IsValid( value %1 ) then
 	%Val = value %1:GetMaterial( ) or ""
 end]], "%Val" )
 
+Component:AddFunction( "getSkin", "h:", "n", [[
+local %Val = ""
+if $IsValid( value %1 ) then
+	%Val = value %1:GetSkin( ) or 0
+end]], "%Val" )
+
+Component:AddFunction( "getSkinCount", "h:", "n", [[
+local %Val = ""
+if $IsValid( value %1 ) then
+	%Val = value %1:SkinCount( ) or 0
+end]], "%Val" )
+
+Component:AddFunction( "setSkin", "h:n", "", [[
+if $IsValid( value %1 ) and value %1.Player == %context.Player then
+	value %1:SetSkin(value %2)
+end]], "" )
+
+Component:AddFunction( "setBodygroup", "h:n,n", "", [[
+if $IsValid( value %1 ) and value %1.Player == %context.Player then
+	value %1:SetBodygroup(value %2, value %3)
+end]], "" )
+
 /*==============================================================================================
-    Rendering
+    Section: Rendering
 ==============================================================================================*/
 Component:SetPerf( LEMON_PERF_CHEAP )
 
@@ -454,7 +476,7 @@ if $IsValid( value %1 ) and value %1.Player == %context.Player then
 end]], "" )
 
 /*==============================================================================================
-    Clipping
+    Section: Clipping
 ==============================================================================================*/
 Component:SetPerf( LEMON_PERF_NORMAL )
 
@@ -480,7 +502,7 @@ if $IsValid( value %1 ) and value %1.Player == %context.Player and value %1:Enab
 end]], "" )
 
 /*==============================================================================================
-    Parent
+    Section: Parent
 ==============================================================================================*/
 Component:SetPerf( LEMON_PERF_CHEAP )
 
@@ -511,7 +533,7 @@ if $IsValid( value %1 ) then
 end]], "%Val" )
 
 /*==============================================================================================
-    Sync
+    Section: Sync
 ==============================================================================================*/
 local net = net
 util.AddNetworkString( "lemon_hologram" )
