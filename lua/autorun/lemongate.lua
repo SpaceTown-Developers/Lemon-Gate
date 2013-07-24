@@ -69,6 +69,8 @@ if SERVER then
 	AddCSLuaFile( "lemongate/editor/ea_imagebutton.lua" )
 	AddCSLuaFile( "lemongate/editor/ea_toolbar.lua" )
 	AddCSLuaFile( "lemongate/editor/syntaxer.lua" )
+	AddCSLuaFile( "lemongate/editor/repo.lua" )
+	AddCSLuaFile( "ea_version.lua" )
 	
 	AddCSLuaFile( "lemongate/editor.lua" )
 end

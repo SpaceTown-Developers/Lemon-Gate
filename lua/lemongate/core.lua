@@ -285,6 +285,7 @@ function API:LoadEditor( )
 		include( "lemongate/editor/ea_toolbar.lua" )
 		include( "lemongate/editor/syntaxer.lua" )
 		include( "lemongate/editor.lua" )
+		include( "lemongate/editor/repo.lua" )
 		
 		include( "lemongate/components/kinect.lua" )
 	end
