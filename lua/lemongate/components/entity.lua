@@ -354,7 +354,7 @@ Core:SetPerf( LEMON_PERF_NORMAL )
 Core:AddFunction("setColor", "e:c", "", [[
 local %Ent, %Col = value %1, value %2
 if %Ent and %Ent:IsValid( ) and %IsOwner( %context.Player, %Ent ) then
-	%Ent:SetColor( %Color( %Col[1], %Col[2], %Col[3], %Col[4] ) )
+	%Ent:SetColor( $Color( %Col[1], %Col[2], %Col[3], %Col[4] ) )
 	%Ent:SetRenderMode(%Col[4] == 255 and 0 or 4)
 end]], "" )
 

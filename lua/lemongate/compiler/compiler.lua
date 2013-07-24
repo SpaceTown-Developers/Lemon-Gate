@@ -1067,7 +1067,9 @@ function Compiler:DoScript( Code, File )
 end
 
 function Compiler:Compile_INCLUDE( Trace, Path, Scoped )
-	if !self.FilesLK[ Path ] then
+	local LkPath = Path .. "_" .. tostring( Scoped or false )
+	
+	if !self.FilesLK[ LkPath ] then
 		
 		if CLIENT then
 			self.Files[ Path ] = LEMON.Editor.Instance:GetFileCode( Path )
@@ -1080,9 +1082,11 @@ function Compiler:Compile_INCLUDE( Trace, Path, Scoped )
 		end
 		
 	-- First: Register this!
+		
+		
 		local ID = self:NextLocal( )
 		
-		self.FilesLK[ Path ] = ID
+		self.FilesLK[ LkPath ] = ID
 	
 	-- Second: Back up current state!
 		local Pos = self.Pos
@@ -1117,7 +1121,7 @@ function Compiler:Compile_INCLUDE( Trace, Path, Scoped )
 			self:Error( 0, Lua .. ", " .. Path )
 		end -- Error from file!
 		
-		self:Prepare( ID, "local " .. ID .. [[ = function( )
+		self:Prepare( ID, "function Context.Include" .. ID .. [[( )
 			]] .. Lua .. [[
 		end]] ) -- Create the include function.
 		
@@ -1141,10 +1145,10 @@ function Compiler:Compile_INCLUDE( Trace, Path, Scoped )
 		self:NextToken( )
 	-- Now just call it =D
 	
-		return self:Instruction( Trace, LEMON_PERF_ABNORMAL, "", "", ID .. "( )" )
+		return self:Instruction( Trace, LEMON_PERF_ABNORMAL, "", "", "Context.Include" .. ID .. "( )" )
 	end
 	
-	return self:Instruction( Trace, LEMON_PERF_ABNORMAL, "", "", self.FilesLK[ Path ] .. "( )" )
+	return self:Instruction( Trace, LEMON_PERF_ABNORMAL, "", "", "Context.Include" .. self.FilesLK[ Path ] .. "( )" )
 end
 
 /*==============================================================================================

@@ -165,10 +165,10 @@ Core:SetPerf( LEMON_PERF_ABNORMAL )
 
 Core:AddFunction( "random", "", "n", "math.random( )" )
 Core:AddFunction( "random", "n", "n", "(math.random( ) * value %1)" )
-Core:AddFunction( "random", "n", "n", "(value %1 + math.random( ) * (value %2 - value %1))" )
+Core:AddFunction( "random", "n,n", "n", "(value %1 + math.random( ) * (value %2 - value %1))" )
 
 Core:AddFunction( "random", "n", "n", "math.random( value %1 )" )
-Core:AddFunction( "random", "n", "n", "math.random( math.min( value %1, value %2 ), math.max( value %1, value %2 ) )" )
+Core:AddFunction( "random", "n,n", "n", "math.random( math.min( value %1, value %2 ), math.max( value %1, value %2 ) )" )
 
 
 /*==============================================================================================
