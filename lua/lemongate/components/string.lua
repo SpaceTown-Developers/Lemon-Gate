@@ -59,7 +59,7 @@ Core:AddOperator( "number", "n", "s", "$tonumber(value %1)" )
 ==============================================================================================*/
 Core:SetPerf( LEMON_PERF_CHEAP )
 
-Core:AddFunction( "length", "s:", "n", "(#value %1)", nil, "Returns the length of a string" )
+Core:AddFunction( "length", "s:", "n", "(#value %1)", nil )
 
 Core:AddFunction( "lower", "s:", "s", "string.lower(value %1)" )
 

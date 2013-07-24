@@ -110,9 +110,9 @@ Core:AddOperator( "string", "b", "s", "tostring(value %1)" )
 ==============================================================================================*/
 local Exception = Core:NewClass( "!", "exception" )
 
-Core:AddFunction( "type", "!:", "s", "(value %1.Type)", nil, "Returns the true type of an Exception" )
+Core:AddFunction( "type", "!:", "s", "(value %1.Type)", nil )
 
-Core:AddFunction( "message", "!:", "s", "(value %1.Message)", nil, "Returns the current exceptions message" )
+Core:AddFunction( "message", "!:", "s", "(value %1.Message)", nil )
 
 Core:SetPerf( LEMON_PERF_EXPENSIVE )
 
@@ -150,7 +150,7 @@ if %Trace.Stack then
 end
 ]], "%Result", "Returns a table of traces on the stack." )
 
-Core:AddFunction( "getTable", "!:", "t", "(value %1.Table or %Table())", nil, "Returns information table of exception." )
+Core:AddFunction( "getTable", "!:", "t", "(value %1.Table or %Table())", nil )
 
 -- User Exceptions
 
@@ -158,9 +158,9 @@ Core:SetPerf( LEMON_PERF_CHEAP )
 
 Core:AddException( "user" )
 
-Core:AddFunction( "throw", "s", "", "%context:Throw( %trace, \"user\", value %1 )", nil, "Throws a user exception with a message." )
+Core:AddFunction( "throw", "s", "", "%context:Throw( %trace, \"user\", value %1 )", nil )
 
-Core:AddFunction( "throw", "s,t", "", "%context:Throw( %trace, \"user\", value %1, value %2 )", nil, "Throws a user exception with a message with a table." )
+Core:AddFunction( "throw", "s,t", "", "%context:Throw( %trace, \"user\", value %1, value %2 )", nil )
 
 /*==============================================================================================
 	Section: Variants
@@ -184,7 +184,7 @@ function Core:BuildOperators( )
 			Core:AddOperator( Name, "?", Class.Short, "(value %1[2] == \"" .. Class.Short .. "\" and value %1[1] or Context:Throw( %trace, \"cast\", \"Attempt to cast value \" .. LongType(value %1[2]) .. \" to " .. Name .. "\"))")
 		
 		-- Functions:
-			Core:AddFunction( "type", Class.Short, "s", "\"" .. Name .. "\"", nil, "A usless function that ways returns \"" .. Name .. "\"")
+			Core:AddFunction( "type", Class.Short, "s", "\"" .. Name .. "\"", nil)
 	end
 end
 
@@ -313,9 +313,9 @@ Core:AddOperator( "vararg", "...", "...", "%..." )
 /*==============================================================================================
 	Section: Self Aware
 ==============================================================================================*/
-Core:AddFunction( "self", "", "e", "%context.Entity", nil, "Gets the entity of the executing lemongate." )
+Core:AddFunction( "self", "", "e", "%context.Entity", nil )
 
-Core:AddFunction( "owner", "", "e", "%context.Player", nil, "Gets the owner of the executing lemongate." )
+Core:AddFunction( "owner", "", "e", "%context.Player", nil )
 
 Core:AddFunction( "selfDestruct", "", "e", "%context.Entity:Remove( )" )
 

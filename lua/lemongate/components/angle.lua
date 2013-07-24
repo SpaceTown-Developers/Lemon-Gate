@@ -73,22 +73,22 @@ Core:AddOperator( "$", "a", "a", "((%delta[value %1] or Angle(0, 0, 0)) - (%memo
 
 -- Constructors:
 
-Core:AddFunction("ang", "n,n,n", "a", "Angle(value %1, value %2, value %3)", LEMON_INLINE_ONLY, "Creates a angle" )
+Core:AddFunction("ang", "n,n,n", "a", "Angle(value %1, value %2, value %3)", LEMON_INLINE_ONLY )
 
 -- Co-ords:
 
-Core:AddFunction("p", "a:", "n", "value %1.p", LEMON_INLINE_ONLY, "Gets the pitch of a angle" )
+Core:AddFunction("p", "a:", "n", "value %1.p", LEMON_INLINE_ONLY )
 
-Core:AddFunction("y", "a:", "n", "value %1.y", LEMON_INLINE_ONLY, "Gets the yaw of a angle" )
+Core:AddFunction("y", "a:", "n", "value %1.y", LEMON_INLINE_ONLY )
 
-Core:AddFunction("r", "a:", "n", "value %1.r", LEMON_INLINE_ONLY, "Gets the roll of a angle" )
+Core:AddFunction("r", "a:", "n", "value %1.r", LEMON_INLINE_ONLY )
 
 
-Core:AddFunction("setPitch", "a:n", "a", "Angle(value %2, value %1.y, value %1.r)", LEMON_INLINE_ONLY, "Sets the pitch of a angle" )
+Core:AddFunction("setPitch", "a:n", "a", "Angle(value %2, value %1.y, value %1.r)", LEMON_INLINE_ONLY )
 
-Core:AddFunction("setYaw", "a:n", "a", "Angle(value %1.p, value %2, value %1.r)", LEMON_INLINE_ONLY, "Sets the yaw of a angle" )
+Core:AddFunction("setYaw", "a:n", "a", "Angle(value %1.p, value %2, value %1.r)", LEMON_INLINE_ONLY )
 
-Core:AddFunction("setRoll", "a:n", "a", "Angle(value %1.p, value %1.y, value %2)", LEMON_INLINE_ONLY, "Sets the roll of a angle" )
+Core:AddFunction("setRoll", "a:n", "a", "Angle(value %1.p, value %1.y, value %2)", LEMON_INLINE_ONLY )
 
 Core:SetPerf( LEMON_PERF_ABNORMAL )
 
@@ -145,7 +145,7 @@ local %Shift = 10 ^ math.floor(value %2 + 0.5)
 /*==============================================================================================
 	math.Clamping and Inrange
 ==============================================================================================*/
-Core:AddFunction("math.Clamp", "a,a,a", "a",
+Core:AddFunction("clamp", "a,a,a", "a",
 "Angle( math.Clamp(value %1.p, value %2.p, value %3.p), math.Clamp(value %1.y, value %2.y, value %3.y), math.Clamp(value %1.r, value %2.r, value %3.r) )", LEMON_INLINE_ONLY )
 
 Core:AddFunction("inrange", "a,a,a", "b",

@@ -67,26 +67,26 @@ Core:AddOperator( "$", "c", "c", "local %V, %D = %memory[value %1], %delta[value
 
 -- Constructors:
 
-Core:AddFunction("color", "n,n,n[,n]", "c", "{ value %1, value %2, value %3, value %4 or 255 }", nil, "Creates a color" )
+Core:AddFunction("color", "n,n,n[,n]", "c", "{ value %1, value %2, value %3, value %4 or 255 }", nil )
 
 -- Co-ords:
 
-Core:AddFunction("red", "c:", "n", "value %1[1]", nil, "Gets the red of a angle" )
+Core:AddFunction("red", "c:", "n", "value %1[1]", nil )
 
-Core:AddFunction("green", "c:", "n", "value %1[2]", nil, "Gets the green of a angle" )
+Core:AddFunction("green", "c:", "n", "value %1[2]", nil )
 
-Core:AddFunction("blue", "c:", "n", "value %1[3]", nil, "Gets the blue of a angle" )
+Core:AddFunction("blue", "c:", "n", "value %1[3]", nil )
 
-Core:AddFunction("alpha", "c:", "n", "value %1[4]", nil, "Gets the alpha of a angle" )
+Core:AddFunction("alpha", "c:", "n", "value %1[4]", nil )
 
 
-Core:AddFunction("setRed", "c:n", "c", "{ math.Clamp(value %2, 0, 255), value %1[2], value %1[3], value %1[4] }", nil, "Sets the red of a angle" )
+Core:AddFunction("setRed", "c:n", "c", "{ math.Clamp(value %2, 0, 255), value %1[2], value %1[3], value %1[4] }", nil )
 
-Core:AddFunction("setGreen", "c:n", "c", "{ value %1[1], math.Clamp(value %2, 0, 255), value %1[3], value %1[4] }", nil, "Sets the green of a angle" )
+Core:AddFunction("setGreen", "c:n", "c", "{ value %1[1], math.Clamp(value %2, 0, 255), value %1[3], value %1[4] }", nil )
 
-Core:AddFunction("setBlue", "c:n", "c",  "{ value %1[1], value %1[2], math.Clamp(value %2, 0, 255), value %1[4] }", nil, "Sets the blue of a angle" )
+Core:AddFunction("setBlue", "c:n", "c",  "{ value %1[1], value %1[2], math.Clamp(value %2, 0, 255), value %1[4] }", nil )
 
-Core:AddFunction("setAlpha", "c:n", "c", "{ value %1[1], value %1[2], value %1[3], math.Clamp(value %2, 0, 255) }", nil, "Sets the alpha of a angle" )
+Core:AddFunction("setAlpha", "c:n", "c", "{ value %1[1], value %1[2], value %1[3], math.Clamp(value %2, 0, 255) }", nil )
 
 Core:SetPerf( LEMON_PERF_ABNORMAL )
 

@@ -79,18 +79,18 @@ Core:AddOperator( "$", "v2", "v2", "((%delta[value %1] or Vector2(0, 0)) - (%mem
 
 -- Constructors:
 
-Core:AddFunction("vec2", "n,n", "v2", "Vector2( value %1, value %2)", nil, "Creates a 2 dimentional vector." )
+Core:AddFunction("vec2", "n,n", "v2", "Vector2( value %1, value %2)", nil )
 
 -- Co-ords:
 
-Core:AddFunction("x", "v2:", "n", "value %1.x", nil, "Gets the X of a vector" )
+Core:AddFunction("x", "v2:", "n", "value %1.x", nil )
 
-Core:AddFunction("y", "v2:", "n", "value %1.y", nil, "Gets the Z of a vector" )
+Core:AddFunction("y", "v2:", "n", "value %1.y", nil )
 
 
-Core:AddFunction("setX", "v2:n", "v2", "Vector2(value %2, value %1.y)", nil, "Sets the X of a vector" )
+Core:AddFunction("setX", "v2:n", "v2", "Vector2(value %2, value %1.y)", nil )
 
-Core:AddFunction("setY", "v2:n", "v2", "Vector2(value %1.x, value %2)", nil, "Sets the Y of a vector" )
+Core:AddFunction("setY", "v2:n", "v2", "Vector2(value %1.x, value %2)", nil )
 
 Core:SetPerf( LEMON_PERF_ABNORMAL )
 
@@ -114,9 +114,9 @@ Core:SetPerf( LEMON_PERF_NORMAL )
 
 Core:AddOperator( "#", "v2", "n", "value %1:Length()" )
 
-Core:AddFunction("length", "v2:", "n", "value %1:Length()", nil, "Get the length of a vector." )
+Core:AddFunction("length", "v2:", "n", "value %1:Length()", nil )
 
-Core:AddFunction( "distance", "v2:v", "n", "value %1:Distance( value %2 )", nil, "Get the distance between vectors." )
+Core:AddFunction( "distance", "v2:v", "n", "value %1:Distance( value %2 )", nil )
 
 /**********************************************************************************************/
 

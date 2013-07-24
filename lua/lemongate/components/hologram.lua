@@ -487,7 +487,7 @@ Component:SetPerf( LEMON_PERF_CHEAP )
 Component:AddFunction("parent", "h:e", "", [[
 if $IsValid( value %1 ) and value %1.Player == %context.Player and $IsValid( value %2 )then
 	value %1:SetParent(value %2)
-end]], "" , "Sets the parent of a hologram" )
+end]], "" )
 
 Component:AddFunction("getParentHolo", "h:", "h", [[
 local %Val = %NULL_ENTITY
@@ -498,7 +498,7 @@ if %IsValid( value %1 ) then
 	if %Parent and %Parent:IsValid( ) and %Parent.IsHologram then
 		%Val = %Parent
 	end
-end]], "%Val", "Gets the parent hologram of a hologram" )
+end]], "%Val" )
 
 Component:AddFunction("getParent", "h:", "e", [[
 local %Val = %NULL_ENTITY
@@ -508,7 +508,7 @@ if $IsValid( value %1 ) then
 	if %Parent and %Parent:IsValid( ) then
 		%Val = %Parent
 	end
-end]], "%Val", "Gets the parent entity of a hologram" )
+end]], "%Val" )
 
 /*==============================================================================================
     Sync

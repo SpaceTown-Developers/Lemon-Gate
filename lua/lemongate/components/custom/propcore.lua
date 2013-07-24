@@ -175,23 +175,14 @@ if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) then
 end]], "" )
 
 /*==============================================================================================
-    Color
+    Parent
 ==============================================================================================*/
-Component:SetPerf( LEMON_PERF_CHEAP )
-
-Component:AddFunction("color", "e:c", "", [[
-if IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) then
-	value %1:SetColor( $Color( value %2[1], value %2[2], value %2[3], value %2[4] ) )
-	value %1:SetRenderMode(value %2[4] == 255 and 0 or 4)
-end]], "" )
-
 Component:SetPerf( LEMON_PERF_CHEAP )
 
 Component:AddFunction("parent", "e:e", "", [[
 if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) and $IsValid( value %2 ) then
 	value %1:SetParent(value %2)
-end]], "" , "Sets the parent of a entity" )
-
+end]], "" )
 
 /*==============================================================================================
 	Section: Freeze

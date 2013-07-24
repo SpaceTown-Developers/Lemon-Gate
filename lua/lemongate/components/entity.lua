@@ -256,6 +256,16 @@ if %Ent and %Ent:IsValid( ) then
 	end
 end]], "%Val" )
 
+Core:AddFunction( "velL", "e:", "v", [[
+local %Ent, %Val = value %1, Vector3(0, 0, 0)
+if %Ent and %Ent:IsValid( ) then
+	local %Phys = %Ent:GetPhysicsObject()
+	
+	if %Phys and %Phys:IsValid( ) then
+		%Val = Vector3( %Ent:WorldToLocal(%Phys:GetVelocity() + %Ent:GetPos()) )
+	end
+end]], "%Val" )
+
 Core:AddFunction( "angVel", "e:", "a", [[
 local %Ent, %Val = value %1, Angle(0, 0, 0)
 if %Ent and %Ent:IsValid( ) then

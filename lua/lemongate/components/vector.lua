@@ -79,22 +79,22 @@ Core:AddOperator( "$", "v", "v", "((%delta[value %1] or Vector3(0, 0, 0)) - (%me
 
 -- Constructors:
 
-Core:AddFunction("vec", "n,n,n", "v", "Vector3( value %1, value %2, value %3 )", nil, "Creates a 3 dimentional vector." )
+Core:AddFunction("vec", "n,n,n", "v", "Vector3( value %1, value %2, value %3 )", nil )
 
 -- Co-ords:
 
-Core:AddFunction("x", "v:", "n", "value %1.x", nil, "Gets the X of a vector" )
+Core:AddFunction("x", "v:", "n", "value %1.x", nil )
 
-Core:AddFunction("y", "v:", "n", "value %1.y", nil, "Gets the Z of a vector" )
+Core:AddFunction("y", "v:", "n", "value %1.y", nil )
 
-Core:AddFunction("z", "v:", "n", "value %1.z", nil, "Gets the Z of a vector" )
+Core:AddFunction("z", "v:", "n", "value %1.z", nil )
 
 
-Core:AddFunction("setX", "v:n", "v", "Vector3(value %2, value %1.y, value %1.z)", nil, "Sets the X of a vector" )
+Core:AddFunction("setX", "v:n", "v", "Vector3(value %2, value %1.y, value %1.z)", nil )
 
-Core:AddFunction("setY", "v:n", "v", "Vector3(value %1.x, value %2, value %1.z)", nil, "Sets the Y of a vector" )
+Core:AddFunction("setY", "v:n", "v", "Vector3(value %1.x, value %2, value %1.z)", nil )
 
-Core:AddFunction("setZ", "v:n", "v", "Vector3(value %1.x, value %1.y, value %2)", nil, "Sets the Z of a vector" )
+Core:AddFunction("setZ", "v:n", "v", "Vector3(value %1.x, value %1.y, value %2)", nil )
 
 Core:SetPerf( LEMON_PERF_ABNORMAL )
 
@@ -124,9 +124,9 @@ Core:SetPerf( LEMON_PERF_NORMAL )
 
 Core:AddOperator( "#", "v", "n", "value %1:Length()" )
 
-Core:AddFunction("length", "v:", "n", "value %1:Length()", nil, "Get the lengh of a vector." )
+Core:AddFunction("length", "v:", "n", "value %1:Length()", nil )
 
-Core:AddFunction( "distance", "v:v", "n", "value %1:Distance( value %2 )", nil, "Get the distance between vectors." )
+Core:AddFunction( "distance", "v:v", "n", "value %1:Distance( value %2 )", nil )
 
 Core:AddFunction( "length2", "v:", "n", "value %1:RawLength()" )
 
