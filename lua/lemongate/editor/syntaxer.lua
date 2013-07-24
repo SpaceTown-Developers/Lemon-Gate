@@ -5,10 +5,16 @@
 ============================================================================================================================================*/
 
 local table_concat = table.concat 
-local string_sub = string.sub 
-local string_gsub = string.gsub 
+
+local string_find = string.find 
 local string_gmatch = string.gmatch 
+local string_gsub = string.gsub 
 local string_match = string.match 
+local string_sub = string.sub 
+
+local tonumber = tonumber 
+local pairs = pairs 
+local Color = Color 
 
 Syntax = { } 
 local Syntax = { } 
@@ -50,7 +56,7 @@ local function SetupEventsTable( )
 	Syntax.Events = Events
 end
 
-SetupFunctionTable( ) 
+SetupFunctionTable( )
 SetupEventsTable( )
 Syntax.UserFunctions = { } 
 
@@ -104,8 +110,8 @@ function Syntax:NextCharacter( )
 	self.tokendata = self.tokendata .. self.char
 	self.position = self.position + 1
 
-	if self.position <= self.line:len() then
-		self.char = self.line:sub(self.position, self.position)
+	if self.position <= #self.line then
+		self.char = string_sub( self.line, self.position, self.position)
 	else
 		self.char = nil
 	end
@@ -113,10 +119,10 @@ end
 
 function Syntax:NextPattern( pattern, skip )
 	if !self.char then return false end
-	local startpos, endpos, text = self.line:find( pattern, self.position )
+	local startpos, endpos, text = string_find( self.line, pattern, self.position )
 	
 	if startpos ~= self.position then return false end
-	local buf = self.line:sub( startpos, endpos )
+	local buf = string_sub( self.line, startpos, endpos )
 	text = text or buf
 	
 	if !skip then 
@@ -125,7 +131,7 @@ function Syntax:NextPattern( pattern, skip )
 	
 	self.position = endpos + 1
 	if self.position <= #self.line then
-		self.char = self.line:sub( self.position, self.position )
+		self.char = string_sub( self.line, self.position, self.position )
 	else
 		self.char = nil
 	end
@@ -152,7 +158,7 @@ local keywords = {
 	["break"]    = { true, false },
 	["continue"] = { true, false },
 	["return"]   = { true, false },
-	["local"]    = { true, false },
+	-- ["local"]    = { true, false },
 	["global"]   = { true, false },
 	["input"]    = { true, false },
 	["output"]   = { true, false },
@@ -165,26 +171,25 @@ local keywords = {
 setmetatable( keywords, { __index = function( tbl, index ) return { } end } )
 
 /*
+	
+	"wire_expression2_editor_color_comment"			"128_128_128"
+	"wire_expression2_editor_color_constant"		"140_200_50"
+	"wire_expression2_editor_color_directive"		"100_200_255"
+	"wire_expression2_editor_color_function"		"80_160_240"
+	"wire_expression2_editor_color_keyword"			"0_120_240"
+	"wire_expression2_editor_color_notfound"		"240_160_0"
+	"wire_expression2_editor_color_number"			"0_200_0"
+	"wire_expression2_editor_color_operator"		"255_0_0"
+	"wire_expression2_editor_color_ppcommand"		"255_255_255"
+	"wire_expression2_editor_color_string"			"100_50_200"
+	"wire_expression2_editor_color_typename"		"80_160_240"
+	"wire_expression2_editor_color_userfunction"	"102_122_102"
+	"wire_expression2_editor_color_variable"		"0_180_80"
 
-"wire_expression2_editor_color_comment"			"128_128_128"
-"wire_expression2_editor_color_constant"		"140_200_50"
-"wire_expression2_editor_color_directive"		"100_200_255"
-"wire_expression2_editor_color_function"		"80_160_240"
-"wire_expression2_editor_color_keyword"			"0_120_240"
-"wire_expression2_editor_color_notfound"		"240_160_0"
-"wire_expression2_editor_color_number"			"0_200_0"
-"wire_expression2_editor_color_operator"		"255_0_0"
-"wire_expression2_editor_color_ppcommand"		"255_255_255"
-"wire_expression2_editor_color_string"			"100_50_200"
-"wire_expression2_editor_color_typename"		"80_160_240"
-"wire_expression2_editor_color_userfunction"	"102_122_102"
-"wire_expression2_editor_color_variable"		"0_180_80"
 
-
-wire_expression2_editor_color_comment 128_128_128;wire_expression2_editor_color_constant 140_200_50;wire_expression2_editor_color_directive 100_200_255;wire_expression2_editor_color_function 80_160_240;wire_expression2_editor_color_keyword 0_120_240;
-wire_expression2_editor_color_notfound 240_160_0;wire_expression2_editor_color_number 0_200_0;wire_expression2_editor_color_operator 255_0_0;wire_expression2_editor_color_ppcommand 255_255_255;wire_expression2_editor_color_string 100_50_200;
-wire_expression2_editor_color_typename 80_160_240;wire_expression2_editor_color_userfunction 102_122_102;wire_expression2_editor_color_variable 0_180_80
-
+	wire_expression2_editor_color_comment 128_128_128;wire_expression2_editor_color_constant 140_200_50;wire_expression2_editor_color_directive 100_200_255;wire_expression2_editor_color_function 80_160_240;wire_expression2_editor_color_keyword 0_120_240;
+	wire_expression2_editor_color_notfound 240_160_0;wire_expression2_editor_color_number 0_200_0;wire_expression2_editor_color_operator 255_0_0;wire_expression2_editor_color_ppcommand 255_255_255;wire_expression2_editor_color_string 100_50_200;
+	wire_expression2_editor_color_typename 80_160_240;wire_expression2_editor_color_userfunction 102_122_102;wire_expression2_editor_color_variable 0_180_80
 */
 
 local colors = { 
@@ -200,7 +205,7 @@ local colors = {
 	["notfound"]     = Color( 240, 160,   0 ), 
 	["number"]       = Color(   0, 200,   0 ), 
 	["operator"]     = Color( 240,   0,   0 ),  
-	["string"]       = Color( 100,  50, 200 ), 
+	["string"]       = Color( 188, 188, 188 ), 
 	["typename"]     = Color( 140, 200,  50 ), 
 	["userfunction"] = Color( 102, 122, 102 ), 
 	["variable"]     = Color(   0, 180,  80 ), 
@@ -213,7 +218,7 @@ local colors_defaults = { }
 local colors_convars = { }
 local function UpdateSyntaxColors( bNoUpdate, ... )
 	for k,v in pairs( colors_convars ) do
-		local r, g, b = v:GetString( ):match( "(%d+)_(%d+)_(%d+)" )
+		local r, g, b = string_match( v:GetString( ), "(%d+)_(%d+)_(%d+)" )
 		local def = colors_defaults[k]
 		colors[k] = Color( tonumber( r ) or def.r, tonumber( g ) or def.g, tonumber( b ) or def.b )
 	end 
@@ -225,7 +230,7 @@ end
 
 local function UpdateSyntaxColor( sCVar, sOld, sNew ) 
 	local cvar = string_match( sCVar, ".+_(.+)$" ) 
-	local r, g, b = sNew:match( "(%d+)_(%d+)_(%d+)" )
+	local r, g, b = string_match( sNew, "(%d+)_(%d+)_(%d+)" )
 	local def = colors_defaults[cvar]
 	colors[cvar] = Color( tonumber( r ) or def.r, tonumber( g ) or def.g, tonumber( b ) or def.b )
 	
@@ -241,7 +246,23 @@ for k,v in pairs( colors ) do
 end
 UpdateSyntaxColors( true )
 
-local cols = {} 
+do 
+	local reset = CreateClientConVar( "lemon_editor_resetcolors", "0", true, false ) 
+	
+	cvars.AddChangeCallback( "lemon_editor_resetcolors", function( sCVar, sOld, sNew )
+		if sNew ~= "0" then 
+			RunConsoleCommand( "lemon_editor_resetcolors", "0" ) 
+			
+			for k, v in pairs( colors_defaults ) do
+				RunConsoleCommand( "lemon_editor_color_" .. k, v.r .. "_" .. v.g .. "_" .. v.b )
+			end 
+			
+			UpdateSyntaxColors( ) 
+		end 
+	end )
+end 
+
+local cols = { } 
 local lastcol 
 local function addToken(tokenname, tokendata)
 	local color = colors[tokenname]
@@ -255,12 +276,12 @@ end
 
 function Syntax:InfProtect( )
 	self.Loops = self.Loops + 1
-	if SysTime() > self.Expire then 
+	if SysTime( ) > self.Expire then 
 		error( "Code took to long to parse (" .. self.Loops .. ")" )
 	end
 end
 
-function Syntax:AddUserfunction( Row, Name ) 
+function Syntax:AddUserFunction( Row, Name ) 
 	if self.Functions[Name] then return end  
 	self.UserFunctions[Name] = Row
 end 
@@ -287,7 +308,7 @@ function Syntax:Parse( Row )
 		
 		addToken( "comment", self.tokendata )
 	elseif self.multilinestring then
-		while self.char do -- Find the ending " or ''
+		while self.char do -- Find the ending " or '
 			if self.char == self.multilinestring then
 				self.multilinestring = nil
 				self:NextCharacter()
@@ -315,16 +336,6 @@ function Syntax:Parse( Row )
 			local keyword = ( self.char or "" ) != "(" 
 				
 			tokenname = "notfound" 
-			
-			if self:NextPattern( "^ *= *" ) then 
-				tokenname = self.Functions[word] and "function" or "userfunction"
-				self:AddUserfunction( Row, word ) 
-				addToken( tokenname, word )
-				tokenname = "operator"
-				self.tokendata = self.tokendata:match( " *= *" )
-				addToken( tokenname, self.tokendata )
-				continue 
-			end 
 			
 			if self.Functions[self.tokendata] then 
 				tokenname = "function"
@@ -360,26 +371,28 @@ function Syntax:Parse( Row )
 					continue 
 				end 
 				
+				if string_match( self.line, "^[a-z][a-zA-Z0-9_]* *=", self.position ) then 
+					tokenname = "typename"
+					addToken( tokenname, self.tokendata  ) 
+					self.tokendata = ""
+					self:NextPattern( "^[a-z][a-zA-Z0-9_]*" ) 
+					addToken( "userfunction", self.tokendata )
+					self:AddUserFunction( Row, self.tokendata )
+					continue 
+				end 
+				
 				addToken( tokenname, self.tokendata  ) 
 				self.tokendata = ""
 				
 				if self:NextPattern( "^[a-z][a-zA-Z0-9_]*" ) then 
-					if istype( self.tokendata ) then 
-						self:NextPattern( " *" ) 
-						tokenname = "typename" 
-						addToken( tokenname, self.tokendata )
-						self.tokendata = "" 
-						if !self:NextPattern( "^[a-z][a-zA-Z0-9_]*" ) then continue end 
-					end 
 					tokenname = "userfunction" 
-					self:AddUserfunction( Row, self.tokendata )
+					self:AddUserFunction( Row, self.tokendata )
 					addToken( tokenname, self.tokendata ) 
 				end 
 				
 				continue 
 			end 
 			
-			-- [[ TODO: Fix when we have events again 
 			if word == "event" then 
 				tokenname = "keyword"
 				self:NextPattern( " *" ) 
@@ -398,9 +411,8 @@ function Syntax:Parse( Row )
 				
 				continue 
 			end 
-			-- ]]
 			
-			/* TODO: Fix when we have exeptions again 
+			--[[ TODO: Fix when we have exeptions again 
 			if word == "catch" then 
 				self:NextPattern( " *" ) 
 				addToken( tokenname, self.tokendata )
@@ -416,7 +428,7 @@ function Syntax:Parse( Row )
 						local exception = self.tokendata 
 						self:NextPattern( " *" ) 
 						
-						if LemonGate.Exceptions[ exception ] then 
+						if LEMON.API.Exceptions[ exception ] then 
 							addToken( "exception", self.tokendata )
 						else 
 							addToken( "notfound", self.tokendata )
@@ -426,7 +438,7 @@ function Syntax:Parse( Row )
 				
 				continue 
 			end 
-			*/
+			-- ]]
 		elseif self:NextPattern("^0[xb][0-9A-F]+") then
 			tokenname = "number"
 		elseif self:NextPattern("^[0-9][0-9.e]*") then

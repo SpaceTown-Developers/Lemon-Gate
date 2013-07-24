@@ -160,7 +160,9 @@ function PANEL:Init( )
 						file.CreateDir( "lemongate/" .. result )
 					end )
 				end )
-				-- Menu:AddOption( "Delete", function( ) end )
+				Menu:AddOption( "Delete", function( ) 
+					Derma_Query( "Do you realy want to delete " .. Dir, "Delete file?", "Yes", function( ) file.Delete( Dir ) timer.Simple( 0, function( ) self:Update( ) end ) end, "No", function( ) end )
+				end )
 				
 				Menu:Open( )
 			else
@@ -363,7 +365,6 @@ function PANEL:SaveFile( Path, SaveAs, Tab, bNoSound )
 		Derma_StringRequest( "Save to New File", "", "generic",
 		function( result )
 			result = string.gsub( result, ".", invalid_filename_chars )
-			print( result )
 			self:SaveFile( result .. ".txt", nil, Tab, bNoSound )
 		end )
 		return
