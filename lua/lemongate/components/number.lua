@@ -217,10 +217,10 @@ Core:AddFunction( "tan", "n", "n", "math.tan(value %1 * (%tau / 360))" )
 Core:AddFunction( "cot", "n", "n", "(1 / math.tan(value %1 * (%tau / 360)))" )
 
 Core:AddFunction( "cosh", "n", "n", "math.cosh(value %1 * (%tau / 360))" )
-Core:AddFunction( "sech", "n", "n", "(1 / math.cos(value %1))" )
+Core:AddFunction( "sech", "n", "n", "(1 / math.cosh(value %1 * (%tau / 360)))" )
 
-Core:AddFunction( "sinh", "n", "n", "math.sin(value %1)" )
-Core:AddFunction( "csch", "n", "n", "(1 / math.sin(value %1 * (%tau / 360)))" )
+Core:AddFunction( "sinh", "n", "n", "math.sinh(value %1 * (%tau / 360))" )
+Core:AddFunction( "csch", "n", "n", "(1 / math.sinh(value %1 * (%tau / 360)))" )
 
 Core:AddFunction( "tanh", "n", "n", "math.tanh(value %1 * (%tau / 360))" )
 Core:AddFunction( "coth", "n", "n", "(1 / math.tanh(value %1 * (%tau / 360)))" )
