@@ -53,6 +53,8 @@ function PANEL:Init( )
 	self.lblLink:SetText( "" ) 
 	self.lblLink:SetURL( "http://github.com/SpaceTown-Developers/Lemon-Gate/wiki" )
 	
+	self.repoLink = self:SetupButton( "Open repository", Material( "github.png" ), RIGHT )
+	
 	local OnCursorEntered = self.lblLink.OnCursorEntered 
 	local OnCursorExited = self.lblLink.OnCursorExited 
 	
@@ -110,7 +112,12 @@ function PANEL:Init( )
 	end 
 	
 	function self.btnOptions:DoClick( ) end 
-	function self.btnWiki:DoClick( ) end 
+	function self.btnWiki:DoClick( ) end
+	
+	function self.repoLink:DoClick( )
+		LEMON.Repo.OpenMenu( )
+	end
+	
 end 
 
 function PANEL:OpenHelper( ) 

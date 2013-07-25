@@ -284,8 +284,8 @@ function API:LoadEditor( )
 		include( "lemongate/editor/ea_imagebutton.lua" )
 		include( "lemongate/editor/ea_toolbar.lua" )
 		include( "lemongate/editor/syntaxer.lua" )
-		include( "lemongate/editor.lua" )
 		include( "lemongate/editor/repo.lua" )
+		include( "lemongate/editor.lua" )
 		
 		include( "lemongate/components/kinect.lua" )
 	end
@@ -639,7 +639,6 @@ if SERVER then
 ==========================================================================*/
 	LEMON_INLINE_ONLY = nil
 	LEMON_PREPARE_ONLY = ""
-	// As i said usless =D
 	
 /*==========================================================================
 	Section: Operators
@@ -653,21 +652,22 @@ if SERVER then
 			Return = Return,
 			Perf = self.Perf,
 			First = First,
-			Second = Second
+			Second = Second,
 		}
 	end
 
-	function Component:AddReversableOperator( Name, Params, Return, First, Second )
+	--[[ Need to actualy fix this!
+	function Component:AddReversableOperator( Name, Params, Return, First, Second, Flag )
 		Util.CheckParams( 1, Name, "string", false, Params, "string", false, Return, "string", false, First, "string", false, Second, "string", true )
 		
 		local S = Find( Params, ",", 0, true )
-		self:AddOperator( Name, Params, Return, First, Second )
+		self:AddOperator( Name, Params, Return, First, Second, Flag )
 		
 		if S then -- Now S+N will become N+S
 			local Params = string.sub( Params, 1, S - 1 ) .. string.sub( Params, S + 1 )
-			self:AddOperator( Name, Params, Return, First, Second )
+			self:AddOperator( Name, Params, Return, First, Second, Flag )
 		end
-	end
+	end ]]
 	
 	function Component:LoadOperators( )
 		if self.Enabled then
@@ -719,6 +719,7 @@ function API:NewOperator( Component, Name, Signature, Params, Return, Perf, Firs
 		Component = Component,
 		Params = Params,
 		Return = Return,
+		HasPrep = (First and Second),
 		
 		DataPack = SERVER and { 
 			Component = Component,
@@ -737,7 +738,7 @@ end
 	Section: Functions
 ==========================================================================*/
 if SERVER then
-	function Component:AddFunction( Name, Params, Return, First, Second, Desc )
+	function Component:AddFunction( Name, Params, Return, First, Second, Flag, Desc )
 		Util.CheckParams( 1, Name, "string", false, Params, "string", false, Return, "string", false, First, "string", false, Second, "string", true, Desc, "string", true )
 		
 		self.Functions[  #self.Functions + 1 ] = { 
@@ -833,7 +834,8 @@ function API:NewFunction( Component, Name, Signature, Params, Return, Perf, Firs
 		Component = Component,
 		Params = Params,
 		Return = Return,
-		Desc = Desc,
+		HasPrep = (First and Second),
+		Desc = CLIENT and Desc or nil,
 		
 		DataPack = SERVER and {
 			Component = Component,
@@ -1007,12 +1009,6 @@ local function Replace_Internals( Line, Perf, Trace )
 	return Line, PopPerf
 end
 
-local function Replace_Externals( Line, Local_Values )
-	Line = string.gsub( Line, "(%%[a-zA-Z0-9_]+)", Local_Values )
-	Line = string.gsub( Line, "(%%[a-zA-Z0-9_]+)", API.Raw_Externals )
-	return string.gsub( Line, "(%%%%%%)", "%%%%" )
-end
-
 /*==========================================================================
 	Section: API Builder
 ==========================================================================*/
@@ -1052,15 +1048,13 @@ function API:BuildFunction( Sig, Perf, Types, Ret, Second, First )
 		First = Replace_Context( First )
 		First = Replace_Internals( First, Perf, Trace )
 		
+		Compiler.OperatorExternals = Local_Values
+		
 		local First, Second, Perf = Compiler:ConstructOperator( Perf, Types, Second, First, ... )
 		
-		if Second then
-			Second = Replace_Externals( Second, Local_Values )
-		end; First = Replace_Externals( First, Local_Values )
+		Compiler.OperatorExternals = nil
 		
-		if PopPerf then
-			Perf = 0
-		end
+		if PopPerf then Perf = 0 end
 		
 		return Compiler:Instruction( Trace, Perf, Ret, First, Second )
 	end

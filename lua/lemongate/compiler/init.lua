@@ -258,13 +258,18 @@ function Compiler:IsPreparable( Line )
 end
 
 /*==========================================================================
-	Section: Peram Convertor
+	Section: CompileMode
 ==========================================================================*/
 
+function Compiler:Replace_Externals( Line )
+	Line = string.gsub( Line, "(%%[a-zA-Z0-9_]+)", self.OperatorExternals )
+	Line = string.gsub( Line, "(%%[a-zA-Z0-9_]+)", API.Raw_Externals )
+	return string.gsub( Line, "(%%%%%%)", "%%%%" )
+end
+
 function Compiler:ConstructOperator( Perf, Types, Second, First, ... )
-	
 	if !First then
-		self:Error( "Unpredicable error: No inline was given!" )
+		self:Error( 0, "Unpredicable error: No inline was given!" )
 	end
 	
 	local Values = { ... }
@@ -384,8 +389,12 @@ function Compiler:ConstructOperator( Perf, Types, Second, First, ... )
 			end
 		end
 		
+		First = self:Replace_Externals( First )
+		if Second then Second = self:Replace_Externals( Second ) end
+		
 	return First, Second, Perf
 end
+
 
 /*==============================================================================================
 	Section: Load the Compiler Stages!

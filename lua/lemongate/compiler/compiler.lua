@@ -273,6 +273,27 @@ function Compiler:FakeInstr( Trace, Return, Inline, A, ... )
 	return self:Instruction( Trace, 0, Return, Inline )
 end -- Makes hacky stuff look less hacky!
 
+function Compiler:Evaluate( Trace, Instr )
+	if type( Instr ) != "table" or !Instr.Prepare then
+		return Instr
+	end -- No need to evaluate here!
+	
+	local Inline, Prepare = Instr.Inline, Instr.Prepare
+	local Perf, Return = Instr.Perf, Instr.Return
+	
+	local ID = self:NextLocal( )
+	
+	local Lua = "local " .. ID .. " = function( )\n"
+	
+	if Perf and Perf > 0 then
+		Lua = Lua .. "Context:PushPerf( " .. self:CompileTrace( Trace ) .. ", " .. Perf .. " )\n"
+	end
+	
+	Lua = Lua ..( Prepare or "" ) .. "\nreturn " .. Inline .. "\nend\n"
+	
+	return self:Instruction( Trace, 0, Return or "", ID .. "()", Lua )
+end
+
 /*==============================================================================================
 	Section: Importing
 ==============================================================================================*/
@@ -443,7 +464,7 @@ function Compiler:Compile_INCREMENT( Trace, Variable, Second )
 	local Op = Second and self:GetOperator( "i++", Class ) or self:GetOperator( "++i", Class )
 	if !Op then self:TraceError( "Increment operator (++) does not support %s", NType( Class ) ) end
 	
-	return Op.Compile( self, Trace, Ref )
+	return self:Evaluate( Trace, Op.Compile( self, Trace, Ref ) )
 end
 
 function Compiler:Compile_DECREMENT( Trace, Variable, First )
@@ -459,7 +480,7 @@ function Compiler:Compile_DECREMENT( Trace, Variable, First )
 	local Op = Second and self:GetOperator( "i--", Class ) or self:GetOperator( "--i", Class )
 	if !Op then self:TraceError( "Decrement operator (--) does not support %s", NType( Class ) ) end
 	
-	return Op.Compile( self, Trace, Ref )
+	return self:Evaluate( Trace, Op.Compile( self, Trace, Ref ) )
 end
 
 function Compiler:Compile_DELTA( Trace, Variable )
@@ -550,6 +571,7 @@ for _, Operator in pairs( TokenOperators ) do
 end
 
 function Compiler:Compile_OR( Trace, A, B )
+	
 	local Op = self:GetOperator( "||", A.Return, B.Return )
 	
 	if Op then

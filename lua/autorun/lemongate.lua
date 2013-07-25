@@ -42,6 +42,8 @@ if SERVER then
 	resource.AddFile( "materials/picol/arrow_sans_down_16.png" )
 	resource.AddFile( "materials/picol/arrow_sans_up_16.png" )
 	
+	resource.AddFile( "materials/github.png" )
+	
 		
 	AddCSLuaFile( )
 	

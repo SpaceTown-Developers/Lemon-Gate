@@ -71,11 +71,7 @@ end )
 ---------------------------------------------------------------------------*/
 local HomeScreen = [[/*===================================================
 	Expression Advanced:
-		Running Tequila (alpha):
-			* Single stage native Lua compiler.
-			* Added booleans (true / false)
-			* Added Include( String File, Boolean Scoped )
-			* Added while loops.
+		* Check out our new repo browser!
 		
 	Docs: https://github.com/SpaceTown-Developers/Lemon-Gate/wiki
 	Bug Reports: https://github.com/SpaceTown-Developers/Lemon-Gate/issues

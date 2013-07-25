@@ -1,21 +1,36 @@
+local GitPage, NodeID = 0, 1
 local GitVer_Receive, GitVer_Fail
 local GitLog_Receive, GitLog_Fail
-local CurVer, NewVer, GitPage, NodeID = tonumber( file.Read( "ea_version.lua", "LUA" ) ), 0, 1
 local GitLog = "https://api.github.com/repos/SpaceTown-Developers/Lemon-Gate/commits?per_page=100"
-local GitVer = "https://raw.github.com/SpaceTown-Developers/Lemon-Gate/master/data/ea_version.lua"
+local GitVer = "https://api.github.com/repos/SpaceTown-Developers/Lemon-Gate/contents/lua/ea_version.lua"
 
-local RepoFrame
+--"https://raw.github.com/SpaceTown-Developers/Lemon-Gate/master/data/ea_version.lua"
 
-function LEMON.Editor.OpenRepo( )
-	if IsValid( RepoFrame ) then
-		RepoFrame:Remove( )
-		RepoFrame = nil
+/************************************************************************************************/
+LEMON.Repo = { }
+local Repo = LEMON.Repo
+
+Repo.NewestVerison = 0
+Repo.CurrentVerison = tonumber( file.Read( "ea_version.lua", "LUA" ) )
+
+function Repo.CheckVer( )
+	http.Fetch( GitVer, GitVer_Receive, GitVer_Fail )
+end
+
+function Repo.OpenMenu( )
+	if IsValid( Repo.Menu ) then
+		Repo.Menu:Show( )
+		return
 	end
 	
 	local Frame = vgui.Create( "EA_Frame" )
 	Frame:SetText( "LemonGate Repo:" )
 	Frame:SetSize( 615, 500 )
-
+	
+	function Frame:Close( )
+		self:Hide()
+	end
+	
 	local Banner = Frame:Add( "EA_Button" )
 	Banner:Dock( TOP )
 	Banner:DockMargin( 5, 5, 5, 5 )
@@ -23,7 +38,7 @@ function LEMON.Editor.OpenRepo( )
 	Banner:SetFading( false )
 	Banner:SetColor( Color( 0, 0, 255 ) )
 	Banner:SetTextColor( Color( 0, 0, 0 ) )
-	Banner:SetText( "Checking ..." )
+	Banner:SetText( "Querying Repository ..." )
 	Banner:SetFont( "Trebuchet20")
 	
 	local Version = vgui.Create( "DLabel", Banner )
@@ -36,13 +51,6 @@ function LEMON.Editor.OpenRepo( )
 		local X = Banner:GetWide( ) - self:GetWide( ) - 5
 		local Y = Banner:GetTall( ) - self:GetTall( ) - 5
 		self:SetPos( X, Y )
-	end
-	
-	function Banner:DoClick( )
-		Version:SetText( "" )
-		self:SetText( "Updating ..." )
-		self:SetColor( Color( 0, 0, 255, 255 ) )
-		http.Fetch( GitVer, GitVer_Receive, GitVer_Fail )
 	end
 	
 	Browser = Frame:Add( "DTree" )
@@ -65,46 +73,59 @@ function LEMON.Editor.OpenRepo( )
 	
 	Frame:MakePopup( )
 	
-	RepoFrame = Frame
+	Repo.Menu = Frame
 	
-	http.Fetch( GitVer, GitVer_Receive, GitVer_Fail )
+	Repo.CheckVer( )
+end
+
+function Repo.CloseMenu( )
+	if IsValid( Repo.Menu ) then
+		Repo.Menu:Remove( )
+		Repo.Menu = nil
+	end
 end
 
 /***********************************************************************/
 
-function GitVer_Receive( Contents )
-	NewVer = tonumber( string.match( Contents , "^[^0-9]*([0-9]+)" ) )
+function GitVer_Receive( JSon )
+	local Contents = util.JSONToTable( JSon )
+	local File = util.Base64Decode( Contents.content )
 	
-	if IsValid( RepoFrame ) then
-		local Frame = RepoFrame
-		
-		if NewVer == CurVer then
-			Frame.Banner:SetColor( Color( 0, 255, 0, 255 ) )
-			Frame.Banner:SetText( "Lemongate is up to date." )
-			Frame.Version:SetUp( "Version: " .. CurVer )
-			
-		elseif NewVer > CurVer then
-			Frame.Banner:SetColor( Color( 255, 0, 0, 255 ) )
-			Frame.Banner:SetText( "Lemongate is out dated." )
-			Frame.Version:SetUp( Format("Version: %s (you) / %s (repo)", CurVer, NewVer ) )
-		else
-			Frame.Banner:SetColor( Color( 255, 0, 0, 255 ) )
-			Frame.Banner:SetText( "Lemongate succeeds repo." )
-			Frame.Version:SetUp( Format("Version: %s (you) / %s (repo)", CurVer, NewVer ) )
+	Repo.NewestVerison = tonumber( File ) or 0
+	NodeID, GitPage = Repo.NewestVerison + 1, 1
+	
+	if IsValid( Repo.Menu ) then
+		if Repo.NewestVerison == Repo.CurrentVerison then
+			Repo.Menu.Banner:SetColor( Color( 0, 255, 0, 255 ) )
+			Repo.Menu.Banner:SetText( "Lemongate is up to date." )
+			Repo.Menu.Version:SetUp( "Version: " .. Repo.CurrentVerison )
+		elseif Repo.NewestVerison == 0 then
+			Repo.Menu.Banner:SetColor( Color( 255, 0, 0, 255 ) )
+			Repo.Menu.Banner:SetText( "Failed to query repository." )
+			Repo.Menu.Version:SetUp( "Version: " .. Repo.CurrentVerison )	
+		elseif Repo.NewestVerison > Repo.CurrentVerison then
+			Repo.Menu.Banner:SetColor( Color( 255, 0, 0, 255 ) )
+			Repo.Menu.Banner:SetText( "Lemongate is out dated." )
+			Repo.Menu.Version:SetUp( Format("Version: %s (you) / %s (repo)", Repo.CurrentVerison, Repo.NewestVerison ) )
+		elseif Repo.NewestVerison < Repo.CurrentVerison then
+			Repo.Menu.Banner:SetColor( Color( 255, 0, 0, 255 ) )
+			Repo.Menu.Banner:SetText( "Lemongate succeeds repo." )
+			Repo.Menu.Version:SetUp( Format("Version: %s (you) / %s (repo)", Repo.CurrentVerison, Repo.NewestVerison ) )
 		end
+		
+		Repo.Menu.Banner = nil
+		
+		http.Fetch( GitLog, GitLog_Receive, GitLog_Fail )
 	end
-	
-	NodeID, GitPage = NewVer + 1, 1
-	http.Fetch( GitLog, GitLog_Receive, GitLog_Fail )
 end
 
 function GitVer_Fail(  )
-	if IsValid( RepoFrame ) then
-		local Frame = RepoFrame
+	if IsValid( Repo.Menu ) then
+		Repo.Menu.Banner:SetColor( Color( 255, 0, 0, 255 ) )
+		Repo.Menu.Banner:SetText( "Failed to query repository." )
+		Repo.Menu.Version:SetUp( "Click to retry." )
 		
-		Frame.Banner:SetColor( Color( 255, 0, 0, 255 ) )
-		Frame.Banner:SetText( "Failed to query repo." )
-		Frame.Version:SetUp( "Version: " .. CurVer )
+		Repo.Menu.Banner = Repo.CheckVer( )
 	end
 end
 
@@ -165,15 +186,38 @@ local function Process( Frame, Contents )
 end
 	
 function GitLog_Receive( Contents )
-	if IsValid( RepoFrame ) then
-		coroutine.resume( coroutine.create( Process ), RepoFrame, Contents )
+	if IsValid( Repo.Menu ) then
+		coroutine.resume( coroutine.create( Process ), Repo.Menu, Contents )
 	end
 end
 
 function GitLog_Fail( )
-	if IsValid( RepoFrame ) then
-		RepoFrame.Messages:SetText( "Failed to query commits of repo." )
+	if IsValid( Repo.Menu ) then
+		Repo.Menu.Messages:SetText( "Failed to query commits of repo." )
 	end
 end
 
- 
+Repo.CheckVer( )
+
+/************************************************************************************************************/
+
+-- Lua 5.1+ base64 v3.0 (c) 2009 by Alex Kloss <alexthkloss@web.de>
+-- licensed under the terms of the LGPL2
+
+-- character table string
+local b = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+
+function util.Base64Decode( data )
+    data = string.gsub(data, '[^'..b..'=]', '')
+    return (data:gsub('.', function(x)
+        if (x == '=') then return '' end
+        local r,f='',(b:find(x)-1)
+        for i=6,1,-1 do r=r..(f%2^i-f%2^(i-1)>0 and '1' or '0') end
+        return r;
+    end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x)
+        if (#x ~= 8) then return '' end
+        local c=0
+        for i=1,8 do c=c+(x:sub(i,i)=='1' and 2^(8-i) or 0) end
+        return string.char(c)
+    end))
+end

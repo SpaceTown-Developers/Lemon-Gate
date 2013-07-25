@@ -162,8 +162,8 @@ end
 Compiler.TokenOperators = {
 
 	-- Conditional
-		["or"] = { "or", "||" },
-		["and"] = { "and", "&&" },
+		["or"] = { "or", "||", true },
+		["and"] = { "and", "&&", true },
 		--["qsm"] = { "cnd", "?" },
 		
 	-- Comparason
@@ -192,19 +192,21 @@ Compiler.TokenOperators = {
 		
 }; TokenOperators = Compiler.TokenOperators -- Speed mainly!
 
-
 function Compiler:GetTokenOperator( Token, ... )
+	
 	local Trace = self:GetFlag( "ExprTrace" )
+	if !Token then return self:GetValue( Trace ) end
 	
-	if !Token then
-		return self:GetValue( Trace )
-	end
-	
-	local Compile = self[ "Compile_" .. string.upper( TokenOperators[Token][1] ) ]
+	local Operator = TokenOperators[Token]
 	local Expression = self:GetTokenOperator( ... )
+	local Compile = self[ "Compile_" .. string.upper( Operator[1] ) ]
 	
-	while self:AcceptToken( Token ) do
-		Expression = Compile( self, Trace, Expression, self:GetTokenOperator( ... ) )
+	if self:AcceptToken( Token ) then
+		local Second = self:GetTokenOperator( Token, ... )
+		
+		if Operator[3] then Second = self:Evaluate( Trace, Second ) end
+		
+		Expression = Compile( self, Trace, Expression, Second )
 	end
 	
 	return Expression
@@ -256,9 +258,11 @@ function Compiler:GetValue( RootTrace )
 		end
 	end
 	
+	if CastType then -- Returning is better here!
+		return self:Compile_CAST( Trace, CastType, self:GetExpression( Trace ) )
 	
 	-- Group Equation
-	if self:AcceptToken( "lpa" ) then
+	elseif self:AcceptToken( "lpa" ) then
 		Value = self:GetExpression( RootTrace )
 		
 		self:RequireToken( "rpa", "Right parenthesis ( )) missing, to close grouped equation" )
@@ -358,9 +362,9 @@ function Compiler:GetValue( RootTrace )
 	
 	Value = self:NextValueOperator( Value, self:GetFlag( "ExprTrace" ) )
 			
-	if CastType then
-		Value = self:Compile_CAST( Trace, CastType, Value )
-	end
+	-- if CastType then
+		-- Value = self:Compile_CAST( Trace, CastType, Value )
+	-- end
 
 	if PreInstr then
 		Value = self["Compile_" .. PreInstr]( self, Trace, Value )

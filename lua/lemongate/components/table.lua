@@ -13,7 +13,7 @@ local setmetatable = setmetatable
 /*==============================================================================================
 	Table Base Object
 ==============================================================================================*/
-local MAX = 512
+--local MAX = 512
 local Table = { MaxSize = MAX }
 Table.__index = Table
 
@@ -54,7 +54,7 @@ function Table:Set( Index, Type, Value )
 	self.Size = Size
 	self.Count = Count
 
-	return true
+	--return true
 end
 
 function Table:Insert( Index, Type, Value )
@@ -67,7 +67,7 @@ function Table:Insert( Index, Type, Value )
 	Count = Count + 1
 
 	if Type == "t" then Size = Size + Value.Size end
-	if Size > MAX then return false end -- Table is too big!
+	--if Size > MAX then return false end -- Table is too big!
 
 	TableInsert( Data, Index, Value )
 	TableInsert( Types, Index, Type )
@@ -75,7 +75,7 @@ function Table:Insert( Index, Type, Value )
 	self.Size = Size
 	self.Count = Count
 
-	return true
+	--return true
 end
 
 function Table:Remove( Index )
@@ -116,6 +116,10 @@ end
 
 function Table:Itorate( )
 	return Itor, self
+end
+
+function Table.__tostring( Table )
+	return string.Format( "table[%s/%s]", Table.Count, Table.Size )
 end
 
 /*==============================================================================================
@@ -228,34 +232,15 @@ Component:AddFunction( "exists", "t:e", "b", "(value %1.Data[value %2] ~= nil)" 
 ==============================================================================================*/
 Component:SetPerf( LEMON_PERF_EXPENSIVE )
 
-Component:AddOperator( "[]=", "t,n,?", "",
-	[[%prepare
-	local %A = value %3
-	if !value %1:Set( value %2, %A[2], %A[1] ) then
-		%context:Throw( "table", "Maxamum table size reached" ) 
-	end]], "" )
+Component:AddOperator( "[]=", "t,n,?", "", "value %1:Set( value %2, value %3[2], value %3[1] )" )
 
-Component:AddOperator( "[]=", "t,s,?", "",
-	[[%prepare
-	local %A = value %3
-	if !value %1:Set( value %2, %A[2], %A[1] ) then
-		%context:Throw( "table", "Maxamum table size reached" ) 
+Component:AddOperator( "[]=", "t,s,?", "", "value %1:Set( value %2, value %3[2], value %3[1] )" ) 
 	end]], "" )
 	
-Component:AddOperator( "[]=", "t,e,?", "",
-	[[%prepare
-	local %A = value %3
-	if !value %1:Set( value %2, %A[2], %A[1] ) then
-		%context:Throw( "table", "Maxamum table size reached" ) 
-	end]], "" )
+Component:AddOperator( "[]=", "t,e,?", "", "value %1:Set( value %2, value %3[2], value %3[1] )" ) 
 
 -- Insert
-Component:AddOperator( "[]+", "t,?", "",
-	[[%prepare
-	local %A = value %2
-	if !value %1:Set( nil, %A[2], %A[1] ) then
-		%context:Throw( "table", "Maxamum table size reached" ) 
-	end]], "" )
+Component:AddOperator( "[]+", "t,?", "", "value %1:Set( nil, value %2[2],value %2[1] )" )
 	
 /*==============================================================================================
 	Index Operators
@@ -294,43 +279,25 @@ function Component:BuildOperators( )
 				
 				if Class.Short ~= "?" then
 					Component:AddOperator( "[]=", Format( "t,n,%s", Class.Short ), "",
-						[[%prepare
-						if !value %1:Set( value %2, type %3, value %3 ) then
-							%context:Throw( "table", "Maxamum table size reached" ) 
-						end]], "" )
+						"value %1:Set( value %2, type %3, value %3 )" )
 					
 					Component:AddOperator( "[]=", Format( "t,s,%s", Class.Short ), "",
-						[[%prepare
-						if !value %1:Set( value %2, type %3, value %3 ) then
-							%context:Throw( "table", "Maxamum table size reached" ) 
-						end]], "" )
+						"value %1:Set( value %2, type %3, value %3 )" )
 						
 					Component:AddOperator( "[]=", Format( "t,e,%s", Class.Short ), "",
-						[[%prepare
-						if !value %1:Set( value %2, type %3, value %3 ) then
-							%context:Throw( "table", "Maxamum table size reached" ) 
-						end]], "" )
+						"value %1:Set( value %2, type %3, value %3 )" )
 					
 				-- Insert
 					Component:AddOperator( "[]+", Format( "t,%s", Class.Short ), "",
-						[[%prepare
-						if !value %1:Insert( nil, type %2, value %2 ) then
-							%context:Throw( "table", "Maxamum table size reached" ) 
-						end]], "" )
+						"value %1:Insert( nil, type %2, value %2 )" )
 				end
 			
 			-- Insert Function:
 				Component:AddFunction( "insert", Format( "t:n,%s", Class.Short ), "",
-					[[%prepare
-					if !value %1:Insert( value %2, type %3, value %3 ) then
-						%context:Throw( "table", "Maxamum table size reached" ) 
-					end]], "" )
+					"value %1:Insert( value %2, type %3, value %3 )" )
 				
 				Component:AddFunction( "insert", Format( "t:%s", Class.Short ), "",
-					[[%prepare
-					if !value %1:Insert( nil, type %2, value %2 ) then
-						%context:Throw( "table", "Maxamum table size reached" ) 
-					end]], "" )
+					"value %1:Insert( nil, type %2, value %2 )" )
 		end
 	end
 end
