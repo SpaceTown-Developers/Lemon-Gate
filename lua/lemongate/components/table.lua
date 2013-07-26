@@ -235,7 +235,6 @@ Component:SetPerf( LEMON_PERF_EXPENSIVE )
 Component:AddOperator( "[]=", "t,n,?", "", "value %1:Set( value %2, value %3[2], value %3[1] )" )
 
 Component:AddOperator( "[]=", "t,s,?", "", "value %1:Set( value %2, value %3[2], value %3[1] )" ) 
-	end]], "" )
 	
 Component:AddOperator( "[]=", "t,e,?", "", "value %1:Set( value %2, value %3[2], value %3[1] )" ) 
 
