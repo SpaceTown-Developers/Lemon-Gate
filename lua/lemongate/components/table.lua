@@ -14,7 +14,7 @@ local setmetatable = setmetatable
 	Table Base Object
 ==============================================================================================*/
 --local MAX = 512
-local Table = { MaxSize = MAX }
+local Table = { }
 Table.__index = Table
 
 setmetatable( Table, Table )
@@ -30,80 +30,48 @@ function Table.Results( Data, Type )
 end
 
 function Table:Set( Index, Type, Value )
-	local Data, Types = self.Data, self.Types
-	local Size , Count = self.Size, self.Count
-	local OldVal, OldTyp = Data[Index], Types[Index]
-
-	if OldVal and OldTyp == "t" then
-		Size = Size - OldVal.Size
-	end -- Allows us to free memory used up by old tables.
-
-	if Type == "t" then
-		Size = Size + Value.Size
+	local Data = self.Data
+	
+	if Data[Index] == nil then
+		self.Size = self.Size + 1
 	end
-
-	if !OldVal then
-		Size = Size + 1 -- Update the memory and index count!
-		Count = Count + 1
-	end
-
-	if Size > MAX then return false end -- Table is too big!
-
+	
 	Data[Index] = Value
-	Types[Index] = Type
-	self.Size = Size
-	self.Count = Count
-
-	--return true
+	self.Types[Index] = Type
+	
+	self.Count = #Data
 end
 
 function Table:Insert( Index, Type, Value )
-	local Data, Types = self.Data, self.Types
-	local Size , Count = self.Size, self.Count
-
-	Index = Index or #self.Data + 1
-
-	Size = Size + 1
-	Count = Count + 1
-
-	if Type == "t" then Size = Size + Value.Size end
-	--if Size > MAX then return false end -- Table is too big!
-
+	local Data = self.Data
+	local Index = Index or (#Data + 1)
+	
 	TableInsert( Data, Index, Value )
-	TableInsert( Types, Index, Type )
+	TableInsert( self.Types, Index, Type )
 
-	self.Size = Size
-	self.Count = Count
-
-	--return true
+	self.Count = #Data
+	self.Size = self.Size + 1
 end
 
 function Table:Remove( Index )
-	local Data, Types, Size = self.Data, self.Types, self.Size
-	local OldVal, OldTyp = Data[Index], Types[Index]
+	local Data = self.Data
 
-	if OldVal then
-		Size = Size - 1
-		self.Count = self.Count - 1
+	if Data[Index] ~= nil then
+		self.Size = self.Size - 1
 	end
-
-	if OldVal and OldTyp == "t" then
-		Size = Size - OldVal.Size
-	end
-
+	
 	Data[Index] = nil
-	Types[Index] = nil
-	self.Size = Size
-
-	-- return OldVal, OldTyp
+	self.Types[Index] = nil
+	
+	self.Count = #Data
 end
 
 function Table:Get( Index, Type )
 	local Object = self.Data[Index]
 	
-	if Type == "?" and Object then
+	if Type == "?" and Object ~= nil then
 		return { self.Data[Index], self.Types[Index] }
-	elseif Object and self.Types[Index] == Type then
+	elseif Object ~= nil and self.Types[Index] == Type then
 		return Object
 	end
 end
@@ -188,7 +156,7 @@ Component:AddOperator( "default", "t", "t", "%Table()" )
 
 -- Size Operators
 
-Component:AddOperator( "#", "t", "n", "(#value %1.Data)" )
+Component:AddOperator( "#", "t", "n", "(value %1.Count)" )
 
 Component:AddFunction( "size", "t:", "n", "(value %1.Size)" )
 

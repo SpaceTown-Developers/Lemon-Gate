@@ -1168,9 +1168,10 @@ function Compiler:Compile_INCLUDE( Trace, Path, Scoped )
 	-- Now just call it =D
 	
 		return self:Instruction( Trace, LEMON_PERF_ABNORMAL, "", "", "Context.Include" .. ID .. "( )" )
-	end
+	else
 	
-	return self:Instruction( Trace, LEMON_PERF_ABNORMAL, "", "", "Context.Include" .. self.FilesLK[ Path ] .. "( )" )
+		return self:Instruction( Trace, LEMON_PERF_ABNORMAL, "", "", "Context.Include" .. self.FilesLK[ LkPath ] .. "( )" )
+	end
 end
 
 /*==============================================================================================
