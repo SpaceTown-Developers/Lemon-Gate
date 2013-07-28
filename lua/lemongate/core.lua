@@ -223,6 +223,7 @@ function API:LoadCoreComponents( )
 		include( "lemongate/components/kinect.lua" )
 		include( "lemongate/components/http.lua" )
 		include( "lemongate/components/trace.lua" )
+		include( "lemongate/components/egp.lua" )
 	end
 end
 
