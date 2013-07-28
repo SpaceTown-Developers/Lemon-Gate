@@ -894,11 +894,12 @@ end
 function Compiler:Compile_TABLE( Trace, Values, Keys, Count )
 	if Count == 0 then
 		return self:Instruction( Trace, LEMON_PERF_ABNORMAL, "t", "Externals.Table( )" )
-	else
+	end--else
 		local ID = self:NextLocal( )
 		local Statements = { }
 		
 		for I = 1, Count do
+			
 			local Value, Key = Values[I], Keys[I]
 			
 			if Key then
@@ -918,18 +919,19 @@ function Compiler:Compile_TABLE( Trace, Values, Keys, Count )
 				
 				Statements[I] = Op.Compile( self, Trace, ID, Value )
 			end
+			
 		end
-		
-		local First = "local " .. ID .. " = Externals.Table( ) "
+		local First = "local " .. ID .. " = Externals.Table( )"
 		
 		local Inst = self:Compile_SEQUENCE( Trace, Statements )
+		
 		Inst.Prepare = First .. "\n" .. Inst.Prepare
 		Inst.Perf = LEMON_PERF_ABNORMAL
 		Inst.Return = "t"
 		Inst.Inline = ID
 		
 		return Inst
-	end
+	--end
 end
 
 function Compiler:Compile_GET( Trace, Variable, Index, Type )

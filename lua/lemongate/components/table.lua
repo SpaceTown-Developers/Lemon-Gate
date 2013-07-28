@@ -38,7 +38,7 @@ function Table:Set( Index, Type, Value )
 	
 	Data[Index] = Value
 	self.Types[Index] = Type
-	
+	print( "SET:", Index, #Data )
 	self.Count = #Data
 end
 
@@ -49,6 +49,7 @@ function Table:Insert( Index, Type, Value )
 	TableInsert( Data, Index, Value )
 	TableInsert( self.Types, Index, Type )
 
+	print( "INSERT:", Index, #Data )
 	self.Count = #Data
 	self.Size = self.Size + 1
 end

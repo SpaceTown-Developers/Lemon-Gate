@@ -1009,6 +1009,12 @@ local function Replace_Internals( Line, Perf, Trace )
 	return Line, PopPerf
 end
 
+function Replace_Externals( Line, Internals )
+	Line = string.gsub( Line, "(%%[a-zA-Z0-9_]+)", Internals )
+	Line = string.gsub( Line, "(%%[a-zA-Z0-9_]+)", API.Raw_Externals )
+	return string.gsub( Line, "(%%%%%%)", "%%%%" )
+end
+
 /*==========================================================================
 	Section: API Builder
 ==========================================================================*/
@@ -1048,14 +1054,12 @@ function API:BuildFunction( Sig, Perf, Types, Ret, Second, First )
 		First = Replace_Context( First )
 		First = Replace_Internals( First, Perf, Trace )
 		
-		Compiler.OperatorExternals = Local_Values
-		
 		local First, Second, Perf = Compiler:ConstructOperator( Perf, Types, Second, First, ... )
 		
-		Compiler.OperatorExternals = nil
+		First = Replace_Externals( First, Local_Values )
+		if Second then Second = Replace_Externals( Second, Local_Values ) end
 		
 		if PopPerf then Perf = 0 end
-		
 		return Compiler:Instruction( Trace, Perf, Ret, First, Second )
 	end
 end

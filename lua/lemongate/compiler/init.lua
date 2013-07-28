@@ -253,19 +253,13 @@ local Valid_Words = {
 
 function Compiler:IsPreparable( Line )
 	Line = string.Trim( Line )
-	local _, _, Word = string.find( Line, "^([a-zA-Z][a-zA-Z0-9_]*)" )
+	local _, _, Word = string.find( Line, "^([a-zA-Z_][a-zA-Z0-9_]*)" )
 	return Valid_Words[ Word ] or (Word and string.find( Line, "[=%(]" ))
 end
 
 /*==========================================================================
 	Section: CompileMode
 ==========================================================================*/
-
-function Compiler:Replace_Externals( Line )
-	Line = string.gsub( Line, "(%%[a-zA-Z0-9_]+)", self.OperatorExternals )
-	Line = string.gsub( Line, "(%%[a-zA-Z0-9_]+)", API.Raw_Externals )
-	return string.gsub( Line, "(%%%%%%)", "%%%%" )
-end
 
 function Compiler:ConstructOperator( Perf, Types, Second, First, ... )
 	if !First then
@@ -388,9 +382,6 @@ function Compiler:ConstructOperator( Perf, Types, Second, First, ... )
 				self:Import( What )
 			end
 		end
-		
-		First = self:Replace_Externals( First )
-		if Second then Second = self:Replace_Externals( Second ) end
 		
 	return First, Second, Perf
 end
