@@ -17,13 +17,14 @@ function API.EGPAction( Entity, Context, ... )
 	
 	EGP:DoAction( Entity, EMU, ... )
 	
-	if EMU.prf > 0 then Contex.Perf = Context.Perf + ( EMU.prf * 0.1 ) end
+	if EMU.prf > 0 then Contex.Perf = Context.Perf + EMU.prf end
 end
 
 /*==============================================================================================
 	Section: API Hooks
 ==============================================================================================*/
 local Component = API:NewComponent( "egp", true )
+
 function Component:BuildContext( Gate )
 	Gate.Context.Data.EGP = { }
 end
@@ -262,7 +263,7 @@ if $EGP:ValidEGP( value %1 ) then //and %IsOwner( %context.Player, value %1 ) th
 	end
 end]], LEMON_NO_INLINE )
 
-Component:AddFunction( "egpCircleOutline", "wl:nv2v2", "", [[
+Component:AddFunction( "egpCircleOutline", "wl:n,v2,v2", "", [[
 if $EGP:ValidEGP( value %1 ) then //and %IsOwner( %context.Player, value %1 ) then
 	local %Bool, %Obj = EGP:CreateObject( value %1, EGP.Objects.Names["CircleOutline"], { index = value %2, x = value %3.x, y = value %3.y, w = value %4.x, h = value %4.y }, %context.Player )
     if %Bool then
@@ -316,7 +317,7 @@ end]], LEMON_NO_INLINE )
 /*==============================================================================================
 	Section: 3D Tracker
 ==============================================================================================*/
-Component:AddFunction( "egp3DTracker", "wl:n,v3", "", [[ 
+Component:AddFunction( "egp3DTracker", "wl:n,v", "", [[ 
 if $EGP:ValidEGP( value %1 ) then //and %IsOwner( %context.Player, value %1 ) then
 	local %Bool, %Obj = EGP:CreateObject( value %1, EGP.Objects.Names["3DTracker"], { index = value %2, target_x = value %3.x, target_x = value %3.y, target_x = value %3.z }, %context.Player )
     if %Bool then
@@ -325,7 +326,7 @@ if $EGP:ValidEGP( value %1 ) then //and %IsOwner( %context.Player, value %1 ) th
 	end
 end]], LEMON_NO_INLINE ) -- Was v2 but made no sense
 
-Component:AddFunction( "egpPos", "wl:n,v3", "", [[
+Component:AddFunction( "egpPos", "wl:n,v", "", [[
 if $EGP:ValidEGP( value %1 ) then //and %IsOwner( %context.Player, value %1 ) then
 	local %Bool, %A, %B = EGP:HasObject( value %1, value %2 )
 		
@@ -473,38 +474,36 @@ if $EGP:ValidEGP( value %1 ) then //and %IsOwner( %context.Player, value %1 ) th
 	%util = (%Bool and %B.fidelity) and %B.fidelity or 0
 end]], "%util" )
 
-/*
+
 ----------------------------
 -- Parenting
 ----------------------------
-Component:AddFunction( "egpParent", "wl:nn", "", function( self, ValueA, ValueB, ValueC ) 
-    local value %1, tValueA = ValueA( self )
-    local index, tValueB = ValueB( self )
-    local parentindex, tValueC = ValueC( self )
+Component:AddFunction( "egpParent", "wl:n,n", "", [[
+if $EGP:ValidEGP( value %1 ) then //and %IsOwner( %context.Player, value %1 ) then
+	local %Bool, %B = EGP:SetParent( value %1, value %2, value %3 )
+		
+	if %Bool then
+		API.EGPAction( value %1, %context, "SendObject", %B )
+		%data.EGP[value %1] = true
+	end
+end]], LEMON_NO_INLINE )
 
-    if (!CanUseEGP( self, value %1 )) then return end
-    local bool, v = EGP:SetParent( value %1, index, parentindex )
-    if (bool) then EGP:DoAction( value %1, { player = %context.Player, entity = self.Entity, prf = 0 }, "SendObject", v ) Update(self,value %1) end
-end )
+
 
 -- Entity parenting (only for 3Dtracker - does nothing for any other object)
-Component:AddFunction( "egpParent", "wl:ne", "", function( self, ValueA, ValueB, ValueC ) 
-    local value %1, tValueA = ValueA( self )
-    local index, tValueB = ValueB( self )
-    local parent, tValueC = ValueC( self )
-
-    if not parent or not parent:IsValid() then return end
-    if (!CanUseEGP( self, value %1 )) then return end
-
-    local bool, k, v = EGP:HasObject( value %1, index )
-    if bool and v.Is3DTracker then
-        if v.parententity == parent then return end -- Already parented to that
-        v.parententity = parent
-
-        EGP:DoAction( value %1, { player = %context.Player, entity = self.Entity, prf = 0 }, "SendObject", v )
-        Update(self,value %1)
-    end
-end )
+Component:AddFunction( "egpParent", "wl:n,e", "", [[
+if $IsValid( value %3 ) and $EGP:ValidEGP( value %1 ) then //and %IsOwner( %context.Player, value %1 ) then
+	local %Bool, %A, %B = EGP:HasObject( value %1, value %2 )
+		
+	if %Bool and %B.Is3DTracker then
+		if %B.parententity ~= value %3 then
+			%B.parententity = value %3
+			API.EGPAction( value %1, %context, "SendObject", %B )
+			%data.EGP[value %1] = true
+		end
+	end
+end]], LEMON_NO_INLINE )
+/*
 
 -- Returns the entity a tracker is parented to
 Component:AddFunction( "egpTrackerParent", "wl:n", "e", function( self, ValueA, ValueB ) 
