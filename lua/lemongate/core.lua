@@ -422,8 +422,8 @@ if SERVER then
 		local New = setmetatable( {
 				Name = Name,
 				LName = string.lower( Name ),
-				Default = Enabled or true,
-				Enabled = tobool( API.Config[ string.lower( Name ) ] ) or Enabled or true,
+				Default = Enabled or false,
+				Enabled = false,
 				
 				Classes = { }, -- Class's by Name.
 				Operators = { }, -- Operators.
@@ -455,25 +455,26 @@ if SERVER then
 			return self[Hook]( self, ... )
 		end
 	end
-
+		
 	function Component:Enable( )
-		local Check = API.Config[ self.LName ]
+		local Config, IsEnabled = API.Config[ self.LName ], self.Default
 		
-		if Check == nil then
-			Check = self.Default
+		if Config then
+			IsEnabled = tobool( Config )
 		end
 		
-		if Check and self:CallHook( "OnEnable" ) then
-			Check = false -- OnEnabled returned true
+		if IsEnabled and self:CallHook( "OnEnable" ) then
+			IsEnabled = false -- OnEnabled returned true
 		end
 		
-		self.Enabled = Check or false
+		self.Enabled = IsEnabled
 		
 		if self.Enabled then
 			self.ID = #API.ComponentLK + 1
 			API.ComponentLK[ self.ID ] = self.Name
-			API.Config[ self.LName ] = tostring( Check )
 		end
+		
+		API.Config[ self.LName ] = IsEnabled and 1 or 0
 		
 		return Check
 	end
@@ -1115,7 +1116,7 @@ if SERVER then
 		
 		if Component != "core" and API.Components[ Component ] then
 			
-			API.Components[ Component ] = Bool
+			API.Config[ Component ] = Bool and 1 or 0
 			
 			API:SaveConfig( )
 			
