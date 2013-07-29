@@ -285,7 +285,7 @@ function Compiler:ConstructOperator( Perf, Types, Second, First, ... )
 		end
 	end
 	
-	for I = 1, MaxPerams do
+	for I = MaxPerams, 1, -1 do
 			
 			local Prep, Value
 			
@@ -316,7 +316,7 @@ function Compiler:ConstructOperator( Perf, Types, Second, First, ... )
 			
 			if Usages > 1 and type( Input ) ~= "number" and !string.find( Value, "^_([a-zA-z0-9]+)" ) then
 				local ID = self:NextLocal( )
-				Prep = Format( "%s\nlocal %s = %s\n", Prep or "", ID, string.gsub( Value, "(%%)", "%%%%" ) )
+				Prep = Format( "\nlocal %s = %s\n%s", ID, string.gsub( Value, "(%%)", "%%%%" ), Prep or "" )
 				Value = ID
 			end
 			
@@ -324,7 +324,7 @@ function Compiler:ConstructOperator( Perf, Types, Second, First, ... )
 			
 			if Variants[1] or RType == "..." and IType then
 				RType = IType
-				table.insert( Variants, RType ~= "?" and Format( "{%s,%q}", Value, RType ) or Value )
+				table.insert( Variants, 1, RType ~= "?" and Format( "{%s,%q}", Value, RType ) or Value )
 			end
 			
 		-- 5) Replace the inlined data
@@ -346,7 +346,7 @@ function Compiler:ConstructOperator( Perf, Types, Second, First, ... )
 			end
 				
 			if Prep then
-				table.insert( Prepare, Prep )
+				table.insert( Prepare, 1, Prep )
 			end
 	end
 	
