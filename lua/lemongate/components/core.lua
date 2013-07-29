@@ -72,7 +72,7 @@ Core:AddOperator( "=", "", "", [[
 %click[value %1] = true
 ]], "" )
 
-Core:AddOperator( "variable", "", "", "(%memory[value %1])" )
+Core:AddOperator( "variable", "", "", "%memory[value %1]" )
 
 Core:AddOperator( "||", "", "", "( value %1 or value %2 )" )
 

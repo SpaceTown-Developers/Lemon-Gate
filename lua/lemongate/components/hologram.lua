@@ -349,7 +349,11 @@ Component:AddFunction( "maxHologramClips", "", "n", "%HoloLib._Clips:GetInt( )" 
 
 Component:SetPerf( LEMON_PERF_EXPENSIVE )
 
-Component:AddFunction( "holograms", "", "t", "%Table.Results( %HoloLib.GetAll( %context.Entity ), \"h\" )" )
+Component:AddFunction( "holograms", "", "t", [[
+local %Results = %Table( )
+for _, Holo in pairs( %HoloLib.GetAll( %context.Entity ) ) do
+	%Results:Insert( nil, "h", Holo )
+end]], "%Results" )
 
 /*==============================================================================================
     Section: Position and Angles
