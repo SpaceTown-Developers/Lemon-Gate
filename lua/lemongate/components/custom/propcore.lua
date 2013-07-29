@@ -223,3 +223,11 @@ if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) then
 		Phys:EnableMotion( false)
 	end
 end]], "" )
+
+/*==============================================================================================
+	Section: Properties
+==============================================================================================*/
+Component:AddFunction("setPhysProp", "e:s,b", "", [[
+if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) then
+	$construct.SetPhysProp( %context.Player, value %1, 0, nil, { GravityToggle = value %3, Material = value %2 } )
+end]], "" )

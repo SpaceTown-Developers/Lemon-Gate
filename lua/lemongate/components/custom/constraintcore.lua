@@ -49,14 +49,6 @@ end]], LEMON_NO_INLINE )
 ----------------------------
 -- Weld
 ----------------------------
-Component:AddFunction("weldTo", "e:e,n", "", [[
-if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) then
-	if $IsValid( value %2 ) and %IsOwner( %context.Player, value %2 ) then
-		local %Constraint = $constraint.Weld( value %1, value %2, 0, 0, 0, value %4 )
-		%ConstraintCore.AddConstraint( %Constraint, %context )
-	end
-end]], LEMON_NO_INLINE )
-
 Component:AddFunction("weldTo", "e:e,n,n", "", [[
 if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) then
 	if $IsValid( value %2 ) and %IsOwner( %context.Player, value %2 ) then
@@ -79,14 +71,6 @@ end]], LEMON_NO_INLINE )
 ----------------------------
 -- Ballsocket
 ----------------------------
-Component:AddFunction("ballsocketTo", "e:e,v,n", "", [[
-if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) then
-	if $IsValid( value %2 ) and %IsOwner( %context.Player, value %2 ) then
-		local %Constraint = $constraint.Ballsocket( value %1, value %2, 0, 0, value %3:Garry(), 0, 0, value %4 )
-		%ConstraintCore.AddConstraint( %Constraint, %context )
-	end
-end]], LEMON_NO_INLINE )
-
 Component:AddFunction("ballsocketTo", "e:e,v,n,n,n", "", [[
 if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) then
 	if $IsValid( value %2 ) and %IsOwner( %context.Player, value %2 ) then

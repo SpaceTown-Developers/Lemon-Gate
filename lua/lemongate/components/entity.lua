@@ -131,6 +131,15 @@ Core:AddFunction( "passenger", "e:", "e", "(($IsValid(value %1) and value %1:IsV
 ==============================================================================================*/
 Core:SetPerf( LEMON_PERF_ABNORMAL )
 
+Core:AddFunction( "setMass", "e:n", "", [[
+local %Ent = value %1
+if %Ent and %Ent:IsValid( ) then
+	local %Phys = %Ent:GetPhysicsObject( )
+	if %Phys and %Phys:IsValid( ) then
+		%Phys:SetMass( math.Clamp( value %2, 0.001, 50000 ) )
+	end
+end]], LEMON_NO_INLINE )
+
 Core:AddFunction( "mass", "e:", "n", [[
 	if $IsValid(value %1) then
 		%util = value %1:GetPhysicsObject( )
@@ -418,10 +427,9 @@ end]], "" )
 	Section: Inertia
 ==============================================================================================*/
 Core:AddFunction( "inertia", "e:", "v", [[
-	if $IsValid(value %1) then
-		%util = value %1:GetPhysicsObject( )
-	end
-]], "($IsValid(%util) and Vector3( %util:GetInertia( ) ) or Vector3.Zero:Clone( ) )")
+if $IsValid(value %1) then
+	%util = value %1:GetPhysicsObject( )
+end]], "($IsValid(%util) and Vector3( %util:GetInertia( ) ) or Vector3.Zero:Clone( ) )")
 
 Core:AddFunction( "inertiaA", "e:", "a", [[
 if $IsValid(value %1) then
