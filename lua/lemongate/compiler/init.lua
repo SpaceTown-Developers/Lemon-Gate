@@ -266,19 +266,26 @@ function Compiler:ConstructOperator( Perf, Types, Second, First, ... )
 		self:Error( 0, "Unpredicable error: No inline was given!" )
 	end
 	
-	local Values = { ... }
+	local Values, Vargs = { ... }
 	local Variants, Prepare = { }, { }
 	
+	local TestPeram = 1
 	local MaxPerams = math.Max( #Types, #Values )
 	
-	while ( true ) do
-		local TestPeram = MaxPerams + 1
+	while ( TestPeram < MaxPerams ) do
+		local Type = Types[ TestPeram ]
+		
+		if Type and Type == "..." then
+			Vargs = TestPeram
+		end
 		
 		if string.find( First, "value %%" .. TestPeram ) or string.find( First, "prepare %%" .. TestPeram ) then
+			TestPeram = TestPeram + 1
 			MaxPerams = MaxPerams + 1
 		elseif !Second then
 			break
 		elseif string.find( Second, "value %%" .. TestPeram ) or string.find( Second, "prepare %%" .. TestPeram ) then
+			TestPeram = TestPeram + 1
 			MaxPerams = MaxPerams + 1
 		else
 			break
@@ -300,7 +307,7 @@ function Compiler:ConstructOperator( Perf, Types, Second, First, ... )
 				Perf = Perf + ( Input.Perf or 0 )
 				IType = Input.Return
 			elseif Input then
-				Value = Input or "nil"
+				Value = Input
 			end
 			
 		-- 2) Count usage of instruction.
@@ -322,9 +329,14 @@ function Compiler:ConstructOperator( Perf, Types, Second, First, ... )
 			
 		-- 4) Creat a var-arg variant
 			
-			if Variants[1] or RType == "..." and IType then
+			if Values[I] and Vargs and I >= Vargs then
 				RType = IType
-				table.insert( Variants, 1, RType ~= "?" and Format( "{%s,%q}", Value, RType ) or Value )
+				
+				if RType == "?" then
+					table.insert( Variants, 1, Value )
+				else
+					table.insert( Variants, 1, Format( "{%s,%q}", Value, RType ) )
+				end
 			end
 			
 		-- 5) Replace the inlined data
@@ -351,12 +363,14 @@ function Compiler:ConstructOperator( Perf, Types, Second, First, ... )
 	end
 	
 	-- 7) Replace Var-Args
-		local Varargs = string.Implode( ",", Variants )
+		if Vargs then
+			local Varargs = string.Implode( ",", Variants )
 		
-		First = string.gsub( First, "(%%%.%.%.)", Varargs )
-		
-		if Second then
-			Second = string.gsub( Second, "(%%%.%.%.)", Varargs )
+			First = string.gsub( First, "(%%%.%.%.)", Varargs )
+			
+			if Second then
+				Second = string.gsub( Second, "(%%%.%.%.)", Varargs )
+			end
 		end
 		
 	-- 8) Insert global prepare
