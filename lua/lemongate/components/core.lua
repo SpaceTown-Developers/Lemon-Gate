@@ -213,36 +213,28 @@ Core:SetPerf( LEMON_PERF_EXPENSIVE )
 Core:AddOperator( "for", "n", "", [[
 do -- For Loop
 	
-	prepare %1
-	
-	local Cnd = function( )
-		prepare %2
-		return value %2
-	end
-	
-	local Step = function( )
-		prepare %3
-	end
+	%prepare
 	
 	local Statments = function( )
 		prepare %4
+		return value %4
 	end
 	
 	ExitDeph = ExitDeph or 0
 	
-	while ( Cnd( ) ) do
+	while ( value %2 ) do
 		%perf
 		%context:TestLoop( %trace )
 		
 		local Ok, Exit = pcall( Statments )
 		
 		if Ok then
-			Step( )
+			value %3
 		elseif ExitDeph > 0 then
 			ExitDeph = ExitDeph - 1
 			error( Exit, 0 )
 		elseif Exit == "Continue" then
-			Step( )
+			value %3
 		elseif Exit == "Break" then
 			break
 		else
@@ -257,18 +249,14 @@ Core:SetPerf( LEMON_PERF_EXPENSIVE )
 Core:AddOperator( "while", "", "", [[
 do -- While Loop
 	
-	local Cnd = function( )
-		prepare %1
-		return value %1
-	end
-	
-	local Statments = function( )
+	local Statments	= function( )
 		prepare %2
+		return value %2
 	end
 	
 	ExitDeph = ExitDeph or 0
 	
-	while ( Cnd( ) ) do
+	while ( value %1 ) do
 		%perf
 		%context:TestLoop( %trace )
 		

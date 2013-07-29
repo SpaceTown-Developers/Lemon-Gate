@@ -1096,6 +1096,8 @@ if SERVER then
 		
 		MsgN( Name .. " has reloaded Lemon-Gate." )
 		
+		API:CallHook( "APIReload" )
+		
 		API:Init( )
 		
 	end )

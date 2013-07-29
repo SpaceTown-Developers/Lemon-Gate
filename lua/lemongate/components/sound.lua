@@ -35,6 +35,15 @@ function Component:ShutDown( Gate )
 	self:RemoveSounds( Gate )
 end
 
+function Component:APIReload( )
+	for Gate, Sounds in pairs( Sounds ) do
+		for _, Sound in pairs( Sounds ) do
+			Sound:Stop()
+		end
+	end
+end
+
+
 timer.Create("LemonSounds", 0.1, 0, function( )
 	local Time = CurTime()
 

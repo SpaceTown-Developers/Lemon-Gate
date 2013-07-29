@@ -539,7 +539,7 @@ if $EGP:ValidEGP( value %1 ) then //and %IsOwner( %context.Player, value %1 ) th
 		local %copy = $table.Copy( %B )
 		%copy.index = value %2
 
-		local %Bool2, %Obj = EGP:CreateObject( value %1, %B.ID, %copy, %context )
+		local %Bool2, %Obj = EGP:CreateObject( value %1, %B.ID, %copy, %context.Player )
 		if %Bool2 then
 			API.EGPAction( value %1, %context, "SendObject", %Obj )
 			%data.EGP[value %1] = true

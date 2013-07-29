@@ -23,7 +23,7 @@ end
 
 function HoloLib.Remove( Context, Holo )
     if Holo and Holo:IsValid( ) and Holo.Player == Context.Player then
-        local Gate, Owner = Gate.Entity, Context.Player
+        local Gate, Owner = Context.Entity, Context.Player
         Owners[Owner] = Owners[Owner] - 1
         Holograms[Gate][Holo] = nil
         Holo:Remove( )
@@ -194,7 +194,7 @@ function HoloLib.Model( Trace, Context, Holo, ModelS )
         if ValidModel then
             Holo:SetModel( "models/Holograms/" .. ValidModel .. ".mdl" )
             Holo.ModelAny = false
-        elseif HoloLib._Model:GetInt( ) >= 1 and IsValidModel( ModelS ) then
+        elseif HoloLib._Model:GetInt( ) >= 1 and util.IsValidModel( ModelS ) then
             Holo:SetModel( Model( ModelS ) )
             Holo.ModelAny = true
         else
@@ -288,6 +288,14 @@ end
 
 function Component:ShutDown( Gate )
 	HoloLib.RemoveAll( Gate )
+end
+
+function Component:APIReload( )
+	for Gate, Holos in pairs( Holograms ) do
+		for _, Holo in pairs( Holos ) do
+			if IsValid( Holo ) then Holo:Remove( ) end
+		end
+	end
 end
 
 /*==============================================================================================
@@ -385,18 +393,18 @@ end]], "" )
 Component:AddFunction("scaleUnits", "h:v", "", [[
 if $IsValid( value %1 ) and value %1.Player == %context.Player then
 	local %Scale = value %1:OBBMaxs() - value %1:OBBMins()
-	local %Max = HoloLib._Size:GetInt()
+	local %Max = %HoloLib._Size:GetInt()
 
 	local %X = math.Clamp(value %2.x / %Scale.x, -%Max, %Max)
 	local %Y = math.Clamp(value %2.y / %Scale.y, -%Max, %Max)
 	local %Z = math.Clamp(value %2.z / %Scale.z, -%Max, %Max)
 
 	if value %1.ModelAny then
-		%X, %Y, %Z = HoloLib.RescaleAny(%X, %Y, %Z, %Max, %Scale)
+		%X, %Y, %Z = %HoloLib.RescaleAny(%X, %Y, %Z, %Max, %Scale)
 	end
 
 	if value %1:SetScale(%X, %Y, %Z) then
-		HoloLib.QueueHologram( value %1 )
+		%HoloLib.QueueHologram( value %1 )
 	end
 end]], "" )
 
@@ -408,7 +416,7 @@ Component:AddFunction("getScale", "h:", "v", "local %Holo = value %1", "($IsVali
     Section: Color
 ==============================================================================================*/
 Component:AddFunction("setColor", "h:c", "", [[
-if IsValid( value %1 ) and value %1.Player == %context.Player then
+if $IsValid( value %1 ) and value %1.Player == %context.Player then
 	value %1:SetColor( $Color( value %2[1], value %2[2], value %2[3], value %2[4] ) )
 	value %1:SetRenderMode(value %2[4] == 255 and 0 or 4)
 end]], "" )

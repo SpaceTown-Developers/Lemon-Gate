@@ -274,24 +274,23 @@ function Compiler:FakeInstr( Trace, Return, Inline, A, ... )
 end -- Makes hacky stuff look less hacky!
 
 function Compiler:Evaluate( Trace, Instr )
-	if type( Instr ) != "table" or !Instr.Prepare then
+	if type( Instr ) != "table" or !Instr.Prepare or Instr.Evaluated then
 		return Instr
 	end -- No need to evaluate here!
 	
-	local Inline, Prepare = Instr.Inline, Instr.Prepare
-	local Perf, Return = Instr.Perf, Instr.Return
-	
+	local Perf = Instr.Perf 
 	local ID = self:NextLocal( )
-	
 	local Lua = "local " .. ID .. " = function( )\n"
 	
 	if Perf and Perf > 0 then
 		Lua = Lua .. "Context:PushPerf( " .. self:CompileTrace( Trace ) .. ", " .. Perf .. " )\n"
 	end
 	
-	Lua = Lua ..( Prepare or "" ) .. "\nreturn " .. Inline .. "\nend\n"
+	Lua = Lua ..( Instr.Prepare or "" ) .. "\nreturn " .. Instr.Inline .. "\nend\n"
 	
-	return self:Instruction( Trace, 0, Return or "", ID .. "()", Lua )
+	local Instr = self:Instruction( Trace, 0, Instr.Return or "", ID .. "()", Lua )
+	Instr.Evaluated = true -- Prevents revaluation.
+	return Instr
 end
 
 /*==============================================================================================
@@ -780,6 +779,8 @@ end
 	Section: Loops!
 ==============================================================================================*/
 function Compiler:Compile_FOR( Trace, Class, Assigment, Condition, Step, Statments )
+	local Condition = self:Evaluate( Trace, Condition )
+	local Step = self:Evaluate( Trace, Step )
 	local Op = self:GetOperator( "for", Class )
 	
 	if !Op then
@@ -790,6 +791,7 @@ function Compiler:Compile_FOR( Trace, Class, Assigment, Condition, Step, Statmen
 end
 
 function Compiler:Compile_WHILE( Trace, Condition, Statments )
+	local Condition = self:Evaluate( Trace, Condition )
 	return self:GetOperator( "while" ).Compile( self, Trace, Condition, Statments )
 end
 
