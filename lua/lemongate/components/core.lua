@@ -216,6 +216,8 @@ do -- For Loop
 	%prepare
 	
 	local Statments = function( )
+		%perf
+		
 		prepare %4
 		return value %4
 	end
@@ -223,8 +225,7 @@ do -- For Loop
 	ExitDeph = ExitDeph or 0
 	
 	while ( value %2 ) do
-		%perf
-		%context:TestLoop( %trace )
+		%context:PushPerf( %trace, ]] .. LEMON_PERF_NORMAL .. [[ )
 		
 		local Ok, Exit = pcall( Statments )
 		
@@ -250,6 +251,8 @@ Core:AddOperator( "while", "", "", [[
 do -- While Loop
 	
 	local Statments	= function( )
+		%perf
+		
 		prepare %2
 		return value %2
 	end
@@ -257,8 +260,7 @@ do -- While Loop
 	ExitDeph = ExitDeph or 0
 	
 	while ( value %1 ) do
-		%perf
-		%context:TestLoop( %trace )
+		%context:PushPerf( %trace, ]] .. LEMON_PERF_NORMAL .. [[ )
 		
 		local Ok, Exit = pcall( Statments )
 		

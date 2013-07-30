@@ -24,7 +24,6 @@ local GoodColor = Color( 255, 255, 255, 255 )
 local BadColor = Color( 255, 0, 0, 0 )
 
 local MaxPerf = CreateConVar( "lemongate_perf", "25000" )
-local LoopSafe = CreateConVar( "lemongate_loop_safe", "500" )
 local CaveJohnson = CreateConVar( "combustible_lemon", "0" )
 
 /*==============================================================================================
@@ -55,17 +54,6 @@ function Context:PushPerf( Trace, Ammount )
 	self.Perf = self.Perf + Ammount
 	if self.Perf > self.MaxPerf then
 		self:Error( Trace, "Maximum operations count exceeded." )
-	end
-end
-
-function Context:TestLoop( Trace )
-	self.Loops = self.Loops + 1
-	self.Perf = self.Perf + LEMON_PERF_NORMAL
-	
-	if self.Perf > self.MaxPerf then
-		self:Error( Trace, "Maximum operations count exceeded." )
-	elseif self.Loops > LoopSafe:GetInt( ) then
-		self:Error( Trace, "Maximum looped operations count exceeded." )
 	end
 end
 
@@ -115,7 +103,7 @@ function Lemon:BuildContext( )
 		Perf = 0, MaxPerf = MaxPerf:GetInt( ),
 		Entity = self, Player = self.Player,
 		Memory = { }, Delta = { }, Click = { },
-		Data = { }, WLQueue = { }, Loops = 0
+		Data = { }, WLQueue = { },
 	}, Context )
 	
 	LEMON.API:CallHook( "BuildContext", self )
@@ -217,7 +205,6 @@ function Lemon:Update( )
 	self:GarbageCollect( )
 	self.Context.Click = { }
 	self.Context:FlushWLQue( )
-	self.Context.Loops = 0
 end
 
 /*==============================================================================================

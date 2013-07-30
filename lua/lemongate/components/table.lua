@@ -281,11 +281,14 @@ do
 	local VType, KType = value %2, value %3
 	
 	local Statments = function( )
+		%perf
+		
 		prepare %6
 	end
 	
 	for Key, Type, Value in value %1:Itorate( ) do
-		%context:TestLoop( %trace )
+		%context:PushPerf( %trace, ]] .. LEMON_PERF_NORMAL .. [[ )
+		
 		local KeyType = $type( Key )[1]
 		
 		if VType ~= Type and VType ~= "?" then
@@ -300,8 +303,6 @@ do
 		if VType == "?" then Value = { Value, Type } end
 			
 		prepare %4
-		
-		%perf
 		
 		local Ok, Exit = pcall( Statments )
 		
