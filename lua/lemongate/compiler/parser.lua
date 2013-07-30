@@ -201,8 +201,8 @@ function Compiler:GetTokenOperator( Token, ... )
 	local Expression = self:GetTokenOperator( ... )
 	local Compile = self[ "Compile_" .. string.upper( Operator[1] ) ]
 	
-	if self:AcceptToken( Token ) then
-		local Second = self:GetTokenOperator( Token, ... )
+	while self:AcceptToken( Token ) do
+		local Second = self:GetTokenOperator( ... )
 		
 		if Operator[3] then Second = self:Evaluate( Trace, Second ) end
 		
