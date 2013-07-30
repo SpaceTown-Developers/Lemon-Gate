@@ -93,6 +93,10 @@ Core:AddOperator( "&&", "b,b", "b", "(value %1 and value %2)" )
 
 Core:AddOperator( "||", "b,b", "b", "(value %1 or value %2)" )
 
+Core:AddOperator( "==", "b,b", "b", "(value %1 == value %2)" )
+
+Core:AddOperator( "!=", "b,b", "b", "(value %1 != value %2)" )
+
 -- General:
 
 Core:AddOperator( "is", "b", "b", "value %1" )
