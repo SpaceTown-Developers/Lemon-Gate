@@ -224,6 +224,7 @@ function API:LoadCoreComponents( )
 		include( "lemongate/components/http.lua" )
 		include( "lemongate/components/trace.lua" )
 		include( "lemongate/components/egp.lua" )
+		include( "lemongate/components/quaternion.lua" )
 	end
 end
 
