@@ -258,13 +258,11 @@ function Lemon:Think( )
 			self:UpdateOverLay( "Online\n%d ops (%d%%)", Used, Per )
 		end
 		
-		self:CallEvent( "think" )
-		
 		self:API( ):CallHook("GateThink", self )
 	end
 	
 	self.BaseClass.Think( self )
-	self:NextThink( Time + 0.1 )
+	self:NextThink( Time + 0.01 )
 	
 	return true
 end

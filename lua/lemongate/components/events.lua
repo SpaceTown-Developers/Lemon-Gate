@@ -9,17 +9,21 @@ local Core = API:GetComponent( "core" )
 /*==============================================================================================
 	Section: Entity events.
 ==============================================================================================*/
-Core:SetPerf( LEMON_PERF_ABNORMAL )
-Core:AddEvent( "think", "", "" )
-
 Core:SetPerf( LEMON_PERF_NORMAL )
 Core:AddEvent( "final", "", "" )
 
 Core:AddEvent( "trigger", "s", "" )
 
 /*==============================================================================================
-	Section: Tick Event
+	Section: Tick and Think Event
 ==============================================================================================*/
+Core:SetPerf( LEMON_PERF_ABNORMAL )
+Core:AddEvent( "think", "", "" )
+
+hook.Add( "Think", "LemonGate", function( )
+	API:CallEvent( "think" )
+end )
+
 Core:SetPerf( LEMON_PERF_EXPENSIVE )
 Core:AddEvent( "tick", "", "" )
 

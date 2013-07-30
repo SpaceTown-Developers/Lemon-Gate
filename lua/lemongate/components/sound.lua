@@ -276,7 +276,7 @@ Component:AddFunction( "pitch", "sd:", "n", "local %SD = value %1", "(%SD ~= nul
 Component:AddFunction( "pitch", "sd:n", "", [[
 local %SD = value %1
 if %SD then
-	Sound:ChangePitch( math.Clamp( value %2, 0, 255 ), 0 )
+	%SD:ChangePitch( math.Clamp( value %2, 0, 255 ), 0 )
 end]], "" )
 
 /*==============================================================================================
@@ -287,7 +287,7 @@ Component:AddFunction( "level", "sd:", "n", "local %SD = value %1", "(%SD ~= nul
 Component:AddFunction( "level", "sd:n", "", [[
 local %SD = value %1
 if %SD then
-	Sound:SetSoundLevel( math.Clamp( value %2, 20, 180 ), 0 )
+	%SD:SetSoundLevel( math.Clamp( value %2, 20, 180 ), 0 )
 end]], "" )
 
 /*==============================================================================================
