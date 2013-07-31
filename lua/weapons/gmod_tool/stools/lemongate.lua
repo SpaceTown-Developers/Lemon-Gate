@@ -10,13 +10,13 @@ local LEMON, CITRIS = LEMON, TOOL
 /*==============================================================================================
 	Basic Tool:
 ==============================================================================================*/
-CITRIS.Category				= "Wire - Control"
-CITRIS.Name					= "Chip - Expression Advanced"
-CITRIS.Command 				= nil
-CITRIS.ConfigName 			= nil
-CITRIS.Tab					= "Wire"
-CITRIS.ClientConVar.Model 	= "models/mandrac/wire/e3.mdl"
-
+CITRIS.Category					= "Wire - Control"
+CITRIS.Name						= "Chip - Expression Advanced"
+CITRIS.Command 					= nil
+CITRIS.ConfigName 				= nil
+CITRIS.Tab						= "Wire"
+CITRIS.ClientConVar.Model 		= "models/mandrac/wire/e3.mdl"
+CITRIS.ClientConVar.WeldWorld 	= 0
 cleanup.Register( "lemongates" )
 
 /*==============================================================================================
@@ -177,9 +177,10 @@ if SERVER then
 			Entity:SetPos( Trace.HitPos - Trace.HitNormal * Entity:OBBMins().z )
 			
 			local WeldTo, Constraint = Trace.Entity
+			local AllowWorld = self:GetClientNumber("weldworld") >= 1
 			
-			if WeldTo and !WeldTo:IsWorld() then
-				Constraint = constraint.Weld( Entity, WeldTo, 0, Trace.PhysicsBone, false, false, true ) 
+			if IsValid( WeldTo ) or AllowWorld then
+				Constraint = constraint.Weld( Entity, WeldTo, 0, Trace.PhysicsBone, 0, 0, AllowWorld ) 
 			end
 			
 			undo.Create("lemongate")
@@ -212,6 +213,7 @@ if CLIENT then
 		
 		CPanel:AddControl( "Header", { Text = "#tool.lemongate.name", Description = "#tool.lemongate.help" }  )
 		CPanel:AddControl( "PropSelect", { Label = "Pick your lemon:", ConVar = "lemongate_model", Models = list.Get( "LemonGateModels" ), Height = 1 } )
+		CPanel:AddControl( "Checkbox", { Label = "Weld to world.", Command = "lemongate_weldworld" } )
 		
 		/*******************************************************************/
 		

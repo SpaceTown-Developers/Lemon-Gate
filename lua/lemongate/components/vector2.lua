@@ -131,3 +131,12 @@ Core:AddFunction( "cross", "v2:v", "v2", "value %1:Cross( value %2 )" )
 ==============================================================================================*/
 Core:AddFunction("mix", "v2,v2,n", "v2", "local %Shift = 1 - value %3",
 "Vector2(value %1.x * value %3 + value %2.x * %Shift, value %1.y * value %3 + value %2.y * %Shift)" )
+
+/*==============================================================================================
+	math.Clamping and Inrange
+==============================================================================================*/
+Core:AddFunction("clamp", "v2,v2,v2", "v2",
+"Vector2(math.Clamp(value %1.x, value %2.x, value %3.x), math.Clamp(value %1.y, value %2.y, value %3.y))" )
+
+Core:AddFunction("inrange", "v2,v2,v2", "b",
+"(!(value %1.x < value %2.x or value %1.x > value %3.x or value %1.y < value %2.y or value %1.y > value %3.y))" )

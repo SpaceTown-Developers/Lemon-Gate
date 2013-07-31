@@ -11,49 +11,49 @@ Component:AddException( "buffer" )
 /*==============================================================================================
 	Section: Buffer Class
 ==============================================================================================*/
-local Buffer = Component:NewClass( "p", "buffer", { Cells = { }, Types = { }, R = 0, W = 0 } )
+local Buffer = Component:NewClass( "bf", "buffer", { Cells = { }, Types = { }, R = 0, W = 0 } )
 
 Component:SetPerf( LEMON_PERF_CHEAP )
 
-Component:AddFunction( "buffer", "", "p", "{ Cells = { }, Types = { }, R = 0, W = 0 }" )
+Component:AddFunction( "buffer", "", "bf", "{ Cells = { }, Types = { }, R = 0, W = 0 }" )
 
 -- Operators:
 
-Component:AddOperator( "#", "p", "n", "(#value %1.Cells)" )
+Component:AddOperator( "#", "bf", "n", "(#value %1.Cells)" )
 
 -- Write Functions:
 
 Component:SetPerf( LEMON_PERF_NORMAL )
 
-Component:AddFunction( "writeNumber", "p:n", "", [[
+Component:AddFunction( "writeNumber", "bf:n", "", [[
 local %Buffer = value %1
 %Buffer.W = %Buffer.W + 1
 %Buffer.Types[ %Buffer.W ] = "n"
 %Buffer.Cells[ %Buffer.W ] = value %2
 ]], "" )
 
-Component:AddFunction( "writeString", "p:s", "", [[
+Component:AddFunction( "writeString", "bf:s", "", [[
 local %Buffer = value %1
 %Buffer.W = %Buffer.W + 1
 %Buffer.Types[ %Buffer.W ] = "s"
 %Buffer.Cells[ %Buffer.W ] = value %2
 ]], "" )
 
-Component:AddFunction( "writeEntity", "p:e", "", [[
+Component:AddFunction( "writeEntity", "bf:e", "", [[
 local %Buffer = value %1
 %Buffer.W = %Buffer.W + 1
 %Buffer.Types[ %Buffer.W ] = "e"
 %Buffer.Cells[ %Buffer.W ] = value %2
 ]], "" )
 
-Component:AddFunction( "writeAngle", "p:a", "", [[
+Component:AddFunction( "writeAngle", "bf:a", "", [[
 local %Buffer = value %1
 %Buffer.W = %Buffer.W + 1
 %Buffer.Types[ %Buffer.W ] = "a"
 %Buffer.Cells[ %Buffer.W ] = value %2
 ]], "" )
 
-Component:AddFunction( "writeVector", "p:v", "", [[
+Component:AddFunction( "writeVector", "bf:v", "", [[
 local %Buffer = value %1
 %Buffer.W = %Buffer.W + 1
 %Buffer.Types[ %Buffer.W ] = "v"
@@ -62,13 +62,13 @@ local %Buffer = value %1
 
 Component:SetPerf( LEMON_PERF_CHEAP )
 
-Component:AddFunction( "writePos", "p", "n", "(value %1.W)" )
+Component:AddFunction( "writePos", "bf", "n", "(value %1.W)" )
 
 -- Read Functions:
 
 Component:SetPerf( LEMON_PERF_ABNORMAL )
 
-Component:AddFunction( "readNumber", "p:", "n", [[
+Component:AddFunction( "readNumber", "bf:", "n", [[
 local %Buffer, %Val = value %1
 if !%Buffer.Cells[ %Buffer.R ] then
 	%context:Throw( %trace, "buffer", "Reached end of buffer" )
@@ -79,7 +79,7 @@ else
 	%Buffer.R = %Buffer.R + 1
 end]], "%Val" )
 
-Component:AddFunction( "readString", "p:", "s", [[
+Component:AddFunction( "readString", "bf:", "s", [[
 local %Buffer, %Val = value %1
 if !%Buffer.Cells[ %Buffer.R ] then
 	%context:Throw( %trace, "buffer", "Reached end of buffer" )
@@ -90,7 +90,7 @@ else
 	%Buffer.R = %Buffer.R + 1
 end]], "%Val" )
 
-Component:AddFunction( "readEntity", "p:", "e", [[
+Component:AddFunction( "readEntity", "bf:", "e", [[
 local %Buffer, %Val = value %1
 if !%Buffer.Cells[ %Buffer.R ] then
 	%context:Throw( %trace, "buffer", "Reached end of buffer" )
@@ -101,7 +101,7 @@ else
 	%Buffer.R = %Buffer.R + 1
 end]], "%Val" )
 
-Component:AddFunction( "readAngle", "p:", "a", [[
+Component:AddFunction( "readAngle", "bf:", "a", [[
 local %Buffer, %Val = value %1
 if !%Buffer.Cells[ %Buffer.R ] then
 	%context:Throw( %trace, "buffer", "Reached end of buffer" )
@@ -112,7 +112,7 @@ else
 	%Buffer.R = %Buffer.R + 1
 end]], "%Val" )
 
-Component:AddFunction( "readVector", "p:", "v", [[
+Component:AddFunction( "readVector", "bf:", "v", [[
 local %Buffer, %Val = value %1
 if !%Buffer.Cells[ %Buffer.R ] then
 	%context:Throw( %trace, "buffer", "Reached end of buffer" )
@@ -126,15 +126,15 @@ end]], "%Val" )
 
 Component:SetPerf( LEMON_PERF_CHEAP )
 
-Component:AddFunction( "readPos", "p", "n", "(value %1.R)" )
+Component:AddFunction( "readPos", "bf", "n", "(value %1.R)" )
 
 -- Misc:
 
-Component:AddFunction( "type", "p:", "s", "local %Buffer = value %1", "%LongType( %Buffer.Types[ %Buffer.R ] )" )
+Component:AddFunction( "type", "bf:", "s", "local %Buffer = value %1", "%LongType( %Buffer.Types[ %Buffer.R ] )" )
 
-Component:AddFunction( "type", "p:n", "s", "%LongType( value %1.Types[ value %2 ] )" )
+Component:AddFunction( "type", "bf:n", "s", "%LongType( value %1.Types[ value %2 ] )" )
 
-Component:AddFunction( "skip", "p:", "", [[
+Component:AddFunction( "skip", "bf:", "", [[
 local %Buffer = value %1
 %Buffer.R = %Buffer.R + 1
 ]], "" )
@@ -144,11 +144,11 @@ local %Buffer = value %1
 ==============================================================================================*/
 Component:SetPerf( LEMON_PERF_NORMAL )
 
-Component:AddEvent( "receiveBuffer", "s,e,p", "" )
+Component:AddEvent( "receiveBuffer", "s,e,bf", "" )
 
 Component:SetPerf( LEMON_PERF_EXPENSIVE )
 
-Component:AddFunction( "send", "p:s,e", "", [[
+Component:AddFunction( "send", "bf:s,e", "", [[
 local %Buffer, %Ent = value %1, value %3
 if %Ent and %Ent:IsValid( ) and %Ent.IsLemonGate then
 	table.insert( %data.BufferQue, {%Ent, value %2, { Cells = table.Copy( %Buffer.Cells ), Types = table.Copy( %Buffer.Types ), R = %Buffer.R, W = %Buffer.W} } )
@@ -159,9 +159,9 @@ end]] )
 ==============================================================================================*/
 Component:SetPerf( LEMON_PERF_NORMAL )
 
-Component:AddEvent( "saveToDupe", "", "p" )
+Component:AddEvent( "saveToDupe", "", "bf" )
 
-Component:AddEvent( "loadFromDupe", "p", "" )
+Component:AddEvent( "loadFromDupe", "bf", "" )
 
 /*==============================================================================================
 	Section: API Hooks
@@ -274,7 +274,7 @@ function ExportTable( Table )
 			Table.Data[ Index ] = IsValid( Entity ) and Entity:EntIndex( ) or -1
 		elseif Type == "t" then
 			ExportTable( Table.Data[ Index ] )
-		elseif Type == "p" then
+		elseif Type == "bf" then
 			ExportBuffer( Table.Data[ Index ] )
 		end
 		
@@ -307,7 +307,7 @@ function ImportTable( Table, FromID )
 			Table.Data[ Index ] = IsValid( Entity ) and Entity:EntIndex( ) or -1
 		elseif Type == "t" then
 			ExportTable( Table.Data[ Index ] )
-		elseif Type == "p" then
+		elseif Type == "bf" then
 			ExportBuffer( Table.Data[ Index ] )
 		end
 	end

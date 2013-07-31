@@ -8,7 +8,7 @@ local Component = API:NewComponent( "propcore", false )
 
 local PropCore = { 
 	Prop_Max = CreateConVar( "lemon_prop_max", 10, {FCVAR_ARCHIVE, FCVAR_NOTIFY} ),
-	Prop_Rate = CreateConVar( "lemon_prop_rate", 5, {FCVAR_ARCHIVE, FCVAR_NOTIFY} )
+	Prop_Rate = CreateConVar( "lemon_prop_rate", 50, {FCVAR_ARCHIVE, FCVAR_NOTIFY} )
 }
 
 Component:AddExternal( "PropCore", PropCore )
@@ -89,6 +89,8 @@ function PropCore.AddProp( Prop, G, P )
 	end -- Set Owner in CPPI!
 end
 
+local _DoPropSpawnedEffect = DoPropSpawnedEffect
+
 function PropCore.Spawn( Trace, Context, Model, Freeze )
 	local G, P = Context.Entity, Context.Player
 	local PRate, PCount = PlayerRate[P] or 0, PlayerCount[P] or 0
@@ -99,9 +101,16 @@ function PropCore.Spawn( Trace, Context, Model, Freeze )
 		Context:Throw("propcore", "Max prop spawn rate reached (" ..PropCore.Prop_Rate:GetInt( ) .. ")." )
 	elseif !util.IsValidModel( Model ) or !util.IsValidProp( Model ) then
 		Context:Throw("propcore", "Invalid model for prop spawn." )
+	elseif Context.Data.PC_NoEffect then
+		DoPropSpawnedEffect = function( ) end
 	end
-
+	
 	local Prop = MakeProp( P, G:GetPos(), G:GetAngles(), Model, {}, {} )
+	
+	if Context.Data.PC_NoEffect then
+		DoPropSpawnedEffect = _DoPropSpawnedEffect
+	end
+	
 	if !Prop or !Prop:IsValid( ) then
 		Context:Throw("propcore", "Unable to spawn prop." )
 	end
@@ -123,6 +132,10 @@ function PropCore.Spawn( Trace, Context, Model, Freeze )
 	return Prop
 end
 
+function PropCore.CanSpawn( Context )
+	return (PlayerRate[Context.Player] or 0) >= PropCore.Prop_Rate:GetInt( )
+end
+
 /*==============================================================================================
 	Section: PropCore Info
 ==============================================================================================*/
@@ -139,7 +152,11 @@ local %Props, %Rate = %PropCore.Player( %context.Player )
 
 Component:SetPerf( LEMON_PERF_EXPENSIVE )
 
-Component:AddFunction("spawnedProps", "", "t", [[%Table.Results( %PropCore.Props( %context.Entity ), "e" )]] )
+Component:AddFunction("spawnedProps", "", "t", [[
+local %Results = %Table( )
+for _, Ent in pairs( %PropCore.Props( %context.Entity ) ) do
+	%Results:Insert( nil, "e", Ent )
+end]], "%Results" )
 
 /*==============================================================================================
 	Section: Spawn funcs
@@ -148,6 +165,10 @@ Component:AddFunction("spawnedProps", "", "t", [[%Table.Results( %PropCore.Props
 Component:AddFunction("spawn", "s", "e", "%PropCore.Spawn( %trace, %context, value %1, true)" )
 
 Component:AddFunction("spawn", "s, b", "e", "%PropCore.Spawn( %trace, %context, value %1, value %2)" )
+
+Component:AddFunction("noSpawnEffect", "b", "", "%data.PC_NoEffect = value %1", "" )
+
+Component:AddFunction("canSpawn", "", "b", "(%PropCore.CanSpawn( %context ))" )
 
 /*==============================================================================================
 	Remove

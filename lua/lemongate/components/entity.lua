@@ -1,5 +1,5 @@
 /*==============================================================================================
-	Expression Advanced: Kinect.
+	Expression Advanced: Entity.
 	Creditors: Rusketh, Oskar94
 ==============================================================================================*/
 local LEMON, API = LEMON, LEMON.API
@@ -125,7 +125,6 @@ Core:AddFunction( "driver", "e:", "e", "(($IsValid(value %1) and value %1:IsVehi
 
 Core:AddFunction( "passenger", "e:", "e", "(($IsValid(value %1) and value %1:IsVehicle( )) and (value %1:GetPassenger(0) or %NULL_ENTITY) or NULL_ENTITY)" )
 
-
 /*==============================================================================================
 	Section: Mass
 ==============================================================================================*/
@@ -133,7 +132,7 @@ Core:SetPerf( LEMON_PERF_ABNORMAL )
 
 Core:AddFunction( "setMass", "e:n", "", [[
 local %Ent = value %1
-if %Ent and %Ent:IsValid( ) then
+if %Ent and %Ent:IsValid( ) and %IsOwner( %context.Player, value %1 ) then
 	local %Phys = %Ent:GetPhysicsObject( )
 	if %Phys and %Phys:IsValid( ) then
 		%Phys:SetMass( math.Clamp( value %2, 0.001, 50000 ) )
@@ -352,7 +351,7 @@ end]], "%Val" )
 Core:SetPerf( LEMON_PERF_ABNORMAL )
 
 Core:AddFunction( "heading", "e:v", "a", [[
-local %Ent, %Val, = value %1, {0, 0, 0}
+local %Ent, %Val, = value %1, Angle(0, 0, 0)
 if %Ent and %Ent:IsValid( ) then
 	local %Pos = %Ent:WorldToLocal( value %2:Garry( ) )
 	local %Bearing = %Rad2Deg * -math.atan2(%Pos.y, %Pos.x)
@@ -361,7 +360,7 @@ if %Ent and %Ent:IsValid( ) then
 	if %Len > %Round then
 		%Val = { %Rad2Deg * math.asin(%Pos.z / %Len), %Bearing, 0 }
 	else
-		%Val = { 0, %Bearing, 0 }
+		%Val = Angle( 0, %Bearing, 0 )
 	end			
 end]], "%Val" )
 
