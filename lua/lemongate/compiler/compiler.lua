@@ -523,7 +523,7 @@ function Compiler:Compile_ASSIGN( Trace, Variable, Expression )
 	
 	local Op = self:GetOperator( "=", Type ) or self:GetOperator( "=" )
 	return Op.Compile( self, Trace, Ref, Expression )
-end -- self:TraceError( "Assignment operator (=) does not support %s", Expression.Return )
+end
 
 function Compiler:Compile_DECLAIR( Trace, Type, Variable, Class, Expression )
 	local Ref = self:Assign( Trace, Variable, Class, Type )
@@ -535,9 +535,13 @@ function Compiler:Compile_DECLAIR( Trace, Type, Variable, Class, Expression )
 	self:NotGarbage( Trace, Ref )
 	
 	local Op = self:GetOperator( "=", Class ) or self:GetOperator( "=" )
+	local Default = self:DefaultValue( Trace, Class )
 	
-	local Assign = Op.Compile( self, Trace, Ref, self:DefaultValue( Trace, Class ) )
-	return self:GetOperator( "define" ).Compile( self, Trace, Ref, Assign )
+	if !Default then
+		self:TraceError( Trace, "%s %s must be initialized", NType( Class ), Variable )
+	end
+	
+	return self:GetOperator( "define" ).Compile( self, Trace, Ref, Op.Compile( self, Trace, Ref, Default ) )
 end
 
 function Compiler:DefaultValue( Trace, Type )
@@ -831,6 +835,26 @@ end
 ==============================================================================================*/
 local Functions = LEMON.API.Functions
 
+function Compiler:BeautifulParams( ... )
+	local Params, Beautiful = { ... }, ""
+	
+	if #Params == 0 then
+		return ""
+	end
+	
+	Beautiful = NType( Params[1].Return )
+	
+	for I = 2, #Params do
+		Beautiful = Format( "%s, %s", Beautiful, NType( Params[I].Return ) )
+		if #Beautiful > 15 then 
+			Beautiful = Beautiful .. "..."
+			break
+		end
+	end
+	
+	return Beautiful
+end
+
 function Compiler:Compile_FUNCTION( Trace, Function, ... )
 	if self:GetVariable( Trace, Function ) then
 		return self:Compile_CALL( Trace, self:Compile_VARIABLE( Trace, Function ), ... )
@@ -846,7 +870,7 @@ function Compiler:Compile_FUNCTION( Trace, Function, ... )
 	end
 	
 	local Op = Functions[ Format( "%s(%s)", Function, Signature ) ] or BestMatch
-	if !Op then self:TraceError( Trace, "No such function %s(%s)", Function, Signature ) end
+	if !Op then self:TraceError( Trace, "No such function %s(%s)", Function, self:BeautifulParams( ... ) ) end
 	
 	return Op.Compile( self, Trace, ... )
 end
@@ -884,7 +908,7 @@ function Compiler:Compile_METHOD( Trace, Function, Meta, ... )
 	end
 	
 	if !Op then
-		self:TraceError( Trace, "No such method %s:%s(%s)", Meta.TrueReturn or Meta.Return, Function, Signature )
+		self:TraceError( Trace, "No such method %s:%s(%s)", Meta.TrueReturn or Meta.Return, Function, self:BeautifulParams( ... ) )
 	end
 	
 	return Op

@@ -249,6 +249,32 @@ if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) then
 	end
 end]], "" )
 
+Core:AddFunction( "applyTorque", "e:v", "", [[
+if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) then
+	local %Phys = value %1:GetPhysicsObject( )
+	
+	if %Phys and %Phys:IsValid( ) then
+		local %Offset
+		local %Torque = value %2:Garry( )
+		local %Amount = %Torque:Length()
+
+		%Torque = value %1:LocalToWorld( %Torque ) - value %1:GetPos( )
+		
+		if math.abs( %Torque.x ) > %Amount * 0.1 or math.abs(%Torque.z) > %Amount * 0.1 then
+			%Offset = Vector(-%Torque.z, 0, %Torque.x)
+		else
+			%Offset = Vector(-%Torque.y, %Torque.x, 0)
+		end
+		
+		%Offset = %Offset:GetNormal() * %Amount * 0.5
+
+		local %Dir = ( %Torque:Cross( %Offset ) ):GetNormal()
+
+		%Phys:ApplyForceOffset( %Dir, %Offset )
+		%Phys:ApplyForceOffset( %Dir * -1, %Offset * -1 )
+	end
+end]], "" )
+
 /*==============================================================================================
 	Section: Velocity
 ==============================================================================================*/
@@ -284,6 +310,15 @@ if %Ent and %Ent:IsValid( ) then
 		%Val = Angle(%Vel.y, %Vel.z, %Vel.x)
 	end
 end]], "%Val" )
+
+Core:AddFunction( "angVelVector", "e:", "v", [[
+if $IsValid( value %1 ) then
+	local %Phys = value %1:GetPhysicsObject()
+	
+	if %Phys and %Phys:IsValid( ) then
+		local %util = %Phys:GetAngleVelocity( )
+	end
+end]], "(%util or Vector3.Zero:Clone( )" )
 
 /*==============================================================================================
 	Section: Constraints

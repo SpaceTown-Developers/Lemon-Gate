@@ -209,3 +209,26 @@ if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1:GetEntity( ) ) t
 		value %1:ApplyForceOffset( %Up * -1, %Roll * -1 )
 	end
 end]], "" )
+
+Core:AddFunction( "applyTorque", "p:v", "", [[
+if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1:GetEntity( ) ) then
+	local %Offset
+	local %Torque = value %2:Garry( )
+	local %Amount = %Torque:Length()
+
+	%Torque = value %1:LocalToWorld( %Torque ) - value %1:GetPos( )
+	
+	if math.abs( %Torque.x ) > %Amount * 0.1 or math.abs(%Torque.z) > %Amount * 0.1 then
+		%Offset = Vector(-%Torque.z, 0, %Torque.x)
+	else
+		%Offset = Vector(-%Torque.y, %Torque.x, 0)
+	end
+	
+	%Offset = %Offset:GetNormal() * %Amount * 0.5
+
+	local %Dir = ( %Torque:Cross( %Offset ) ):GetNormal()
+
+	value %1:ApplyForceOffset( %Dir, %Offset )
+	value %1:ApplyForceOffset( %Dir * -1, %Offset * -1 )
+end]], "" )
+

@@ -323,7 +323,9 @@ function Compiler:ConstructOperator( Perf, Types, Second, First, ... )
 			
 			if Usages > 1 and type( Input ) ~= "number" and !string.find( Value, "^_([a-zA-z0-9]+)" ) then
 				local ID = self:NextLocal( )
-				Prep = Format( "\nlocal %s = %s\n%s", ID, string.gsub( Value, "(%%)", "%%%%" ), Prep or "" )
+				--Prep = Format( "\nlocal %s = %s\n%s", ID, string.gsub( Value, "(%%)", "%%%%" ), Prep or "" )
+				Prep = Format( "%s\nlocal %s = %s\n", Prep or "", ID, string.gsub( Value, "(%%)", "%%%%" ) )
+				
 				Value = ID
 			end
 			

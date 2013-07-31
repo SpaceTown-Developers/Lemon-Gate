@@ -810,15 +810,18 @@ function Compiler:Declair_Variables( Trace, Class, Type )
 		self:ExcludeToken( "ass", "Assigment operator (=) can not assign to inputs" )
 	
 	elseif self:AcceptToken( "ass" ) then
-		self:ExcludeWhiteSpace( "Assigment operator (=) must not be succeeded by whitespace" )
-		
 		-- Initalized Assigment
 		
 		for I = 1, Count do 
 			self:ExcludeToken( "com", "Expression seperator (,) must not appear here." )
 			
+			if !self:HasTokens( ) then
+				self:TokenError( "invalid variable assigment" )
+			end
+			
 			local Data = Variables[I]
 			Statments[I] = self:Compile_DECLAIR( Data[1], Type, Data[2], Class, self:GetExpression( Trace ) )
+			
 			
 			Start = I + 1
 			
