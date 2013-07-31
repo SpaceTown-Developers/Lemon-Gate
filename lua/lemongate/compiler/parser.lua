@@ -982,6 +982,8 @@ function Compiler:BuildLambda( Trace, RootTrace )
 	
 	self:RequireToken( "lpa", "Left parenthesis (( ) missing, to open lambda parameters" )
 	
+	self:PushFlag( "NewCells", { } )
+	
 	local Perams, HasVarg, Count = self:BuildPerams( Trace )	
 
 	self:RequireToken( "rpa", "Right parenthesis ( )) missing, to close lambda parameters" )
@@ -993,13 +995,15 @@ function Compiler:BuildLambda( Trace, RootTrace )
 	self:PushFlag( "LoopDepth", 0 )
 	
 	local Block = self:GetBlock( "function", Trace )
+	local Instr = self:Compile_LAMBDA( Trace, Perams, HasVarg, Block )
 	
 	self:PopFlag( "ReturnedType" )
 	self:PopFlag( "CanReturn" )
+	self:PopFlag( "NewCells" )
 	self:PopFlag( "HasVargs" )
 	self:PopFlag( "Lambda" )
 	
-	return self:Compile_LAMBDA( Trace, Perams, HasVarg, Block )
+	return Instr
 end
 
 /*==============================================================================================

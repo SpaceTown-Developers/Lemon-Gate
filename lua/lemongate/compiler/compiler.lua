@@ -124,6 +124,9 @@ function Compiler:Assign( Trace, Variable, Type, Assign )
 			Ref = self:NextRef( )
 			self.Scope[ Variable ] = Ref
 			self.Cells[ Ref ] = { Ref = Ref, Scope = self.ScopeID, Type = Type, Class = Class, Variable = Variable, Assign = Assign }
+		
+			local NewCells = self:GetFlag( "NewCells" ) -- Lambda
+			if NewCells then table.insert( NewCells, Ref ) end
 		end
 		
 		return Ref, self.ScopeID
@@ -722,6 +725,85 @@ end
 ==============================================================================================*/
 
 function Compiler:Compile_LAMBDA( Trace, Params, HasVarArg, Sequence )
+	
+	-- 1) Create the param checks!
+		local CallParams, CallPrepare = { }, { }
+		local ID, ID2 = self:NextLocal( ), self:NextLocal( )
+	
+		for I = 1, #Params do
+			local Param, Var = Params[I], "Peram_" .. I
+			
+			local Op = self:GetOperator( "=", Param[2] ) or self:GetOperator( "=" )
+			
+			local Assign = Op.Compile( self, Trace, Param[3], Var .. "[1]" )
+			
+			CallParams[I] = Var
+			
+			CallPrepare[I] = [[
+				local Trace = ]] .. self:CompileTrace( Trace ) .. [[
+				if ( !]] .. Var .. " or (" .. Var ..[[[1] == nil) ) then
+					Context:Throw( Trace, "invoke", "Paramater ]] .. Param[1] .. [[ is a void value" )
+				elseif ( ]] .. Var .. [[[2] ~= "]] .. Param[2] .. [[" ) then
+					Context:Throw( Trace, "invoke", "Paramater ]] .. Param[1] .. [[ got " .. ]] .. Var .. [[[2] .. " ]] .. Param[2].. [[ expected." )
+				else
+					]] ..  Assign.Prepare .. [[ 
+				end
+			]]
+		end
+		
+		if HasVarArg then
+			CallParams[ #CallParams + 1 ] = "..."
+		end
+	
+	-- 2) Push the momory
+		local PushMem, PopMem = "", ""
+		local NewCells = self:GetFlag( "NewCells" )
+		
+		if NewCells and #NewCells > 0 then
+			local Memory, Delta = { }, { }
+			
+			for I = 1, #NewCells do
+				local Cell = NewCells[I]
+				Memory[I] = Format( "[%s] = Context.Memory[%s]", Cell, Cell )
+				Delta[I] = Format( "[%s] = Context.Delta[%s]", Cell, Cell )
+			end
+			
+			PushMem = [[
+				local OldMemory = { ]] .. string.Implode( ",", Memory ) .. [[ }
+				local OldDelta = { ]] .. string.Implode( ",", Delta ) .. [[ }
+			]]
+			
+			PopMem = [[
+				for Cell, Value in pairs( OldMemory ) do
+					Context.Memory[Cell] = Value
+					Context.Delta[Cell] = OldDelta[Cell]
+				end
+			]]
+		end
+			
+	-- 3) Create the called function
+
+		local Lua = "local " .. ID .. [[ = function()
+			]] .. Sequence.Prepare .. [[
+		end]] .. "\n\n"
+	
+	-- 3) Create calling function
+		local Params = string.Implode( ", ", CallParams )
+		
+		Lua = Lua .. "local " .. ID2 .. " = function( " .. Params .. [[ )
+			]] .. PushMem .. [[
+			]] .. string.Implode( "\n", CallPrepare ) .. [[
+			local Result = ]] .. ID .. "( " .. Params .. [[ )
+			]] .. PopMem .. [[
+			return Result
+		end]] .. "\n\n"
+			
+	-- 4) Function Done
+		return self:Instruction( Trace, 1, "f", ID2, Lua )
+end
+
+/* OLD FUNCTION IN CASE OF BREAKAGES!
+function Compiler:Compile_LAMBDA( Trace, Params, HasVarArg, Sequence )
 	local ID, FuncParams, FuncPrepare = self:NextLocal( ), { }, { }
 	
 	for I = 1, #Params do
@@ -746,16 +828,19 @@ function Compiler:Compile_LAMBDA( Trace, Params, HasVarArg, Sequence )
 	
 	if HasVarArg then
 		FuncParams[ #FuncParams + 1 ] = "..."
-		-- FuncPrepare[ #FuncPrepare + 1 ] = "local VarArg = { ... }"
 	end
 	
+	local MPush, MPop = self:PushMemory( self:GetFlag( "NewCells" ) )
+	
+	
 	local Lua = "local " .. ID .. " = function( " .. string.Implode( ", ", FuncParams ) .. [[ )
+		]] .. MPush .. [[
 		]] .. string.Implode( "\n", FuncPrepare ) .. [[
 		]] .. Sequence.Prepare .. [[
 		]] .. "end\n"
 	
 	return self:Instruction( Trace, 1, "f", ID, Lua )
-end
+end */
 
 function Compiler:Compile_CALL( Trace, Value, ... )
 	local Op = self:GetOperator( "call", Value.Return, "..." )
