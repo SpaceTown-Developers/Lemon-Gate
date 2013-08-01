@@ -74,18 +74,20 @@ Core:AddFunction( "toLocal", "p:v", "v", "($IsValid(value %1) and Vector3(value 
 ==============================================================================================*/
 Core:AddFunction( "vel", "p:", "v", "($IsValid(value %1) and Vector3(value %1:GetVelocity( )) or Vector3.Zero:Clone( ) )" )
 
-Core:AddFunction( "velL", "p:", "v", "($IsValid(value %1) and Vector3(value %1:WorldtoLocal(value %1:GetVelocity( ) + value %1:GetPos( )) ) or Vector3.Zero:Clone( ) )" )
-
-Core:AddFunction( "angVel", "p:", "a", [[
-if $IsValid( value %1 ) then
-	local %Vel = %Phys:GetAngleVelocity( )
-	%util = Angle(%Vel.y, %Vel.z, %Vel.x)
-end]], "(%util or Angle(0,0,0)" )
+-- Core:AddFunction( "velL", "p:", "v", "($IsValid(value %1) and Vector3(value %1:WorldtoLocal(value %1:GetVelocity( ) + value %1:GetPos( )) ) or Vector3.Zero:Clone( ) )" )
 
 Core:AddFunction( "angVelVector", "p:", "v", [[
+local %Ret = Vector3(0, 0, 0)
 if $IsValid( value %1 ) then
-	local %util = Vector3( %Phys:GetAngleVelocity( ) )
-end]], "(%util or Vector3.Zero:Clone( )" )
+	%Ret = Vector3( value %1:GetAngleVelocity() )
+end]], "%Ret" )
+
+Core:AddFunction( "angVel", "p:", "a", [[
+local %Ret = Angle(0, 0, 0)
+if $IsValid( value %1 ) then
+	local %GetVel = value %1:GetAngleVelocity()
+	%Ret = Angle( %GetVel.y, %GetVel.z, %GetVel.x )
+end]], "%Ret" )
 
 Core:AddFunction( "inertia", "p:", "v", "($IsValid(value %1) and Vector3(value %1:GetInertia( )) or Vector3.Zero:Clone( ) )" )
 

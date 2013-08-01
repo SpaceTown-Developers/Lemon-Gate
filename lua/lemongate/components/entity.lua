@@ -281,44 +281,41 @@ end]], "" )
 Core:SetPerf( LEMON_PERF_NORMAL )
 
 Core:AddFunction( "vel", "e:", "v", [[
-local %Ent, %Val = value %1, Vector3(0, 0, 0)
-if %Ent and %Ent:IsValid( ) then
-	local %Phys = %Ent:GetPhysicsObject()
-	
-	if %Phys and %Phys:IsValid( ) then
-		%Val = Vector3( %Phys:GetVelocity( ) )
-	end
-end]], "%Val" )
-
-Core:AddFunction( "velL", "e:", "v", [[
-local %Ent, %Val = value %1, Vector3(0, 0, 0)
-if %Ent and %Ent:IsValid( ) then
-	local %Phys = %Ent:GetPhysicsObject()
-	
-	if %Phys and %Phys:IsValid( ) then
-		%Val = Vector3( %Ent:WorldToLocal(%Phys:GetVelocity() + %Ent:GetPos()) )
-	end
-end]], "%Val" )
-
-Core:AddFunction( "angVel", "e:", "a", [[
-local %Ent, %Val = value %1, Angle(0, 0, 0)
-if %Ent and %Ent:IsValid( ) then
-	local %Phys = %Ent:GetPhysicsObject()
-	
-	if %Phys and %Phys:IsValid( ) then
-		local %Vel = %Phys:GetAngleVelocity( )
-		%Val = Angle(%Vel.y, %Vel.z, %Vel.x)
-	end
-end]], "%Val" )
-
-Core:AddFunction( "angVelVector", "e:", "v", [[
+local %Ret = Vector3(0, 0, 0)
 if $IsValid( value %1 ) then
 	local %Phys = value %1:GetPhysicsObject()
-	
-	if %Phys and %Phys:IsValid( ) then
-		local %util = %Phys:GetAngleVelocity( )
+	if %Phys and %Phys:IsValid() then
+		%Ret = Vector3( %Phys:GetVelocity() )
 	end
-end]], "(%util or Vector3.Zero:Clone( )" )
+end]], "%Ret" )
+
+Core:AddFunction( "velL", "e:", "v", [[
+local %Ret = Vector3(0, 0, 0)
+if $IsValid( value %1 ) then
+	local %Phys = value %1:GetPhysicsObject()
+	if %Phys and %Phys:IsValid() then
+		%Ret = Vector3( value %1:WorldToLocal( %Phys:GetVelocity() + value %1:GetPos() ) )
+	end
+end]], "%Ret" )
+
+Core:AddFunction( "angVelVector", "e:", "v", [[
+local %Ret = Vector3(0, 0, 0)
+if $IsValid( value %1 ) then
+	local %Phys = value %1:GetPhysicsObject()
+	if %Phys and %Phys:IsValid() then
+		%Ret = Vector3( %Phys:GetAngleVelocity() )
+	end
+end]], "%Ret" )
+
+Core:AddFunction( "angVel", "e:", "a", [[
+local %Ret = Angle(0, 0, 0)
+if $IsValid( value %1 ) then
+	local %Phys = value %1:GetPhysicsObject()
+	if %Phys and %Phys:IsValid() then
+		local %GetVel = %Phys:GetAngleVelocity()
+		%Ret = Angle( %GetVel.y, %GetVel.z, %GetVel.x )
+	end
+end]], "%Ret" )
 
 /*==============================================================================================
 	Section: Constraints
