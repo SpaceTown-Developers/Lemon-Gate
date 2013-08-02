@@ -184,7 +184,7 @@ function Component:UpdateExecution( Gate )
 	Gate.Context.Data.BufferQue = { }
 end
 
-function Component:BuildDupeInfo( Gate, Context, DupeTable )
+function Component:BuildDupeInfo( Gate, DupeTable )
 	if Gate:IsRunning( ) then
 		local Buffer = Gate:CallEvent( "saveToDupe" )
 		
@@ -206,7 +206,7 @@ function Component:BuildDupeInfo( Gate, Context, DupeTable )
 	end
 end
 
-function Component:ApplyDupeInfo( Player, Entity, DupeTable, FromID )
+function Component:ApplyDupeInfo( Gate, DupeTable, FromID )
 	local Buffer = DupeTable.Buffer
 	
 	if Buffer and Gate:IsRunning( ) then

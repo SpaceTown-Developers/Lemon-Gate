@@ -34,7 +34,7 @@ function Component:UpdateExecution( Gate )
 	for k,v in pairs( Context.Data.EGP ) do 
 		if IsValid( k ) and v == true then 
 			EGP:SendQueueItem( Context.Player )
-			EGP:StartQueueTimer( Context.Player )
+			-- EGP:StartQueueTimer( Context.Player )
 			Context.Data.EGP[k] = nil 
 		end 
 		Context.Data.EGP[k] = nil

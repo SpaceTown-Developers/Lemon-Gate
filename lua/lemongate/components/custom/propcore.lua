@@ -7,8 +7,8 @@ local LEMON, API = LEMON, LEMON.API
 local Component = API:NewComponent( "propcore", false )
 
 local PropCore = { 
-	Prop_Max = CreateConVar( "lemon_prop_max", 10, {FCVAR_ARCHIVE, FCVAR_NOTIFY} ),
-	Prop_Rate = CreateConVar( "lemon_prop_rate", 50, {FCVAR_ARCHIVE, FCVAR_NOTIFY} )
+	Prop_Max = CreateConVar( "lemon_prop_max", 50, {FCVAR_ARCHIVE, FCVAR_NOTIFY} ),
+	Prop_Rate = CreateConVar( "lemon_prop_rate", 10, {FCVAR_ARCHIVE, FCVAR_NOTIFY} )
 }
 
 Component:AddExternal( "PropCore", PropCore )

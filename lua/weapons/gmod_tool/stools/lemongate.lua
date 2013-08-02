@@ -87,7 +87,7 @@ end
 	Entity Creation Helper
 ==============================================================================================*/
 if SERVER then
-	function LEMON.MakeLemonGate(Player, Pos, Ang, Model, Script)
+	function LEMON.MakeLemonGate(Player, Pos, Ang, Model)
 		if Player:CheckLimit("lemongates") then
 			local Entity = ents.Create("lemongate")
             
@@ -99,15 +99,10 @@ if SERVER then
 				
 				
 				Entity:SetNWEntity( "player", Player )
-				Entity:SetPlayer(Player)
+				Entity:SetPlayer( Player )
 				Entity.Player = Player
 				
-				if Script and Script != "" then
-					Entity:LoadScript( Script )
-					Entity:Execute()
-				end
-				
-				Player:AddCount("lemongates", Entity)
+				Player:AddCount( "lemongates", Entity )
 				
 				return Entity
 			end
@@ -116,7 +111,7 @@ if SERVER then
 	
 	local MakeLemonGate = LEMON.MakeLemonGate
 
-	duplicator.RegisterEntityClass("lemongate", MakeLemonGate, "Pos", "Ang", "Model", "Script")
+	duplicator.RegisterEntityClass( "lemongate", MakeLemonGate, "Pos", "Ang", "Model" )
 
 /*==============================================================================================
 	Tool Clicks
@@ -138,7 +133,12 @@ if SERVER then
 		
 		if self:IsLemonGate( Entity ) then
 			if self:CanInteract( Entity ) then
-				LEMON.Downloader.Send_Script( Player, Entity:GetScript( ), Entity )
+				if Entity.Script and Entity.Script ~= "" then
+					LEMON.Downloader.Send_Script( Player, Entity:GetScript( ), Entity )
+				else
+					Player:PrintMessage( HUD_PRINTTALK, "Oh no, its sour best not eat that one." )
+				end
+				
 				return true -- Send the player the Script!
 			end
 			
@@ -171,7 +171,7 @@ if SERVER then
 		local Ang = Trace.HitNormal:Angle()
 		Ang.pitch = Ang.pitch + 90
 		
-		Entity = MakeLemonGate(Player, Pos, Ang, Model, nil)
+		Entity = MakeLemonGate( Player, Pos, Ang, Model )
 		
 		if Entity and Entity:IsValid() then
 			Entity:SetPos( Trace.HitPos - Trace.HitNormal * Entity:OBBMins().z )

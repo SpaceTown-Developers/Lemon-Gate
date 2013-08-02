@@ -129,11 +129,9 @@ local function CompileSoftly( Entity, Script, Files )
 end
 
 function Lemon:LoadScript( Script, Files )
-	local Context = self:BuildContext( )
+	if self:IsRunning( ) then self:ShutDown( ) end
 	
-	if self:IsRunning( ) then
-		self:ShutDown( )
-	end
+	local Context = self:BuildContext( )
 	
 	self.Script = Script
 	self.Files = Files or { }
@@ -423,24 +421,39 @@ end
 /*==============================================================================================
 	Section: Duplication
 ==============================================================================================*/
-function LEMON:BuildDupeInfo( )
+function Lemon:BuildDupeInfo( )
 	local DupeTable = self.BaseClass.BuildDupeInfo( self )
 	
-	DupeTable.Script = self.Script
-	DupeTable.Files = self.Files
+	local Script, Files = self:GetScript( )
 	
-	self:API( ):CallHook( "BuildDupeInfo", self, self.Context, DupeTable )
+	DupeTable.Script = Script
+	DupeTable.Files = Files
+	
+	self:API( ):CallHook( "BuildDupeInfo", self, DupeTable )
 	
 	return DupeTable
 end
 
-function LEMON:ApplyDupeInfo( Player, Entity, DupeTable, FromID )
+function CompileDuped( self, Player, Entity, DupeTable, FromID )
 	self.Player = Player
-	self:LoadScript( DupeTable.Script or "", DupeTable.Files )
+	self.Script = DupeTable.Script
+	self.Files = DupeTable.Files or { }
+	
+	local Context = self:BuildContext( )
+	
+	if self.Script and self.Script != "" then
+		CompileSoftly( self, self.Script, self.Files )
+	end
 	
 	self.BaseClass.ApplyDupeInfo( self, Player, Entity, DupeTable, FromID )
 	
-	self:CallEvent( "dupePasted" )
+	if self:IsRunning( ) then
+		self:CallEvent( "dupePasted" )
+	end
 	
-	self:API( ):CallHook( "ApplyDupeInfo", self, self.Context, DupeTable, FromID )
+	self:API( ):CallHook( "ApplyDupeInfo", self, DupeTable, FromID )
+end
+
+function Lemon:ApplyDupeInfo( Player, Entity, DupeTable, FromID )
+	coroutine.resume( coroutine.create( CompileDuped ), self, Player, Entity, DupeTable, FromID )
 end
