@@ -79,22 +79,22 @@ Core:AddOperator( "$", "v", "v", "((%delta[value %1] or Vector3(0, 0, 0)) - (%me
 
 -- Constructors:
 
-Core:AddFunction("vec", "n,n,n", "v", "Vector3( value %1, value %2, value %3 )", nil )
+Core:AddFunction( "vec", "n,n,n", "v", "Vector3( value %1, value %2, value %3 )", nil )
 
 -- Co-ords:
 
-Core:AddFunction("x", "v:", "n", "value %1.x", nil )
+Core:AddFunction( "x", "v:", "n", "value %1.x", nil )
 
-Core:AddFunction("y", "v:", "n", "value %1.y", nil )
+Core:AddFunction( "y", "v:", "n", "value %1.y", nil )
 
-Core:AddFunction("z", "v:", "n", "value %1.z", nil )
+Core:AddFunction( "z", "v:", "n", "value %1.z", nil )
 
 
-Core:AddFunction("setX", "v:n", "v", "Vector3(value %2, value %1.y, value %1.z)", nil )
+Core:AddFunction( "setX", "v:n", "v", "Vector3(value %2, value %1.y, value %1.z)", nil )
 
-Core:AddFunction("setY", "v:n", "v", "Vector3(value %1.x, value %2, value %1.z)", nil )
+Core:AddFunction( "setY", "v:n", "v", "Vector3(value %1.x, value %2, value %1.z)", nil )
 
-Core:AddFunction("setZ", "v:n", "v", "Vector3(value %1.x, value %1.y, value %2)", nil )
+Core:AddFunction( "setZ", "v:n", "v", "Vector3(value %1.x, value %1.y, value %2)", nil )
 
 Core:SetPerf( LEMON_PERF_ABNORMAL )
 
@@ -118,13 +118,13 @@ Core:AddExternal( "Rad2Deg", 180 / math.pi )
 Core:AddExternal( "Deg2Rad", math.pi / 180 )
 
 /*==============================================================================================
-	length and Distance
+	Section: Length and Distance
 ==============================================================================================*/
 Core:SetPerf( LEMON_PERF_NORMAL )
 
 Core:AddOperator( "#", "v", "n", "value %1:Length()" )
 
-Core:AddFunction("length", "v:", "n", "value %1:Length()", nil )
+Core:AddFunction( "length", "v:", "n", "value %1:Length()", nil )
 
 Core:AddFunction( "distance", "v:v", "n", "value %1:Distance( value %2 )", nil )
 
@@ -141,89 +141,83 @@ Core:AddFunction( "dot", "v:v", "n", "value %1:Dot( value %2 )" )
 Core:AddFunction( "cross", "v:v", "v", "value %1:Cross( value %2 )" )
 
 /*==============================================================================================
-	World and Local
+	Section: World and Local
 ==============================================================================================*/
 Core:SetPerf( LEMON_PERF_ABNORMAL )
---TODO: Convert Angle lib =D
 
-Core:AddFunction( "toWorld", "v,a,v,a", "v", "Vector3( $LocalToWorld(value %1:Garry( ), value %2, value %3:Garry( ), value %4) )" )
+Core:AddFunction( "toWorldPos", "v,a,v,a", "v", "Vector3( $LocalToWorld(value %1:Garry(), value %2, value %3:Garry(), value %4) )" )
 
-Core:AddFunction("toWorldAngle", "v,a,v,a", "v", "local _, %Value = $LocalToWorld(value %1:Garry( ), value %2, value %3:Garry( ), value %4) )", "%Value" )
-
-/**********************************************************************************************/
-
-Core:AddFunction( "toLocal", "v,a,v,a", "v", "Vector3( $WorldToLocal(value %1:Garry( ), value %2, value %3:Garry( ), value %4) )" )
-
-Core:AddFunction("toLocalAngle", "v,a,v,a", "v", "local _, %Value = $WorldToLocal(value %1:Garry( ), value %2, value %3:Garry( ), value %4) )", "%Value" )
+Core:AddFunction( "toLocalPos", "v,a,v,a", "v", "Vector3( $WorldToLocal(value %1:Garry(), value %2, value %3:Garry(), value %4) )" )
 
 /******************************************************************************/
 
-Core:AddFunction("bearing", "v,a,v", "n", "(value %1:Bearing(value %2, value %3))" )
+Core:AddFunction( "bearing", "v,a,v", "n", "(value %1:Bearing(value %2, value %3))" )
 
-Core:AddFunction("elevation", "v,a,v", "n", "(value %1:Elevation(value %2, value %3))" )
+Core:AddFunction( "elevation", "v,a,v", "n", "(value %1:Elevation(value %2, value %3))" )
 
-Core:AddFunction("heading", "v,a,v", "a", "(value %1:Heading(value %2, value %3))" )
-
-/*==============================================================================================
-	Entity Helpers
-==============================================================================================*/
-
-Core:AddFunction("toWorld", "e:v", "v", "Vector3( $IsValid( value %1 ) and value %1:LocalToWorld( value %2:Garry( ) ) or Vector(0, 0, 0) )" )
-
--- Core:AddFunction("toWorld", "e:v", "v", "($IsValid( value %1 ) and value %1:LocalToWorld( value %2:Garry( ) ) or Vector3.Zero)" )
-
-Core:AddFunction("toLocal", "e:v", "v", "($IsValid( value %1 ) and value %1:WorldToLocal( value %2:Garry( ) ) or Vector3.Zero)" )
+Core:AddFunction( "heading", "v,a,v", "a", "(value %1:Heading(value %2, value %3))" )
 
 /*==============================================================================================
-	To Angle
+	Section: Entity Helpers
 ==============================================================================================*/
-Core:AddOperator("angle", "v", "a", "value %1:Angle( )" )
+Core:AddFunction( "toWorld", "e:v", "v", "$IsValid( value %1 ) and Vector3( value %1:LocalToWorld(value %2:Garry()) ) or Vector3.Zero" )
 
-Core:AddFunction("toAngle", "v:", "a", "value %1:Garry( ):Angle( )" )
+Core:AddFunction( "toWorldAxis", "e:v", "v", "$IsValid( value %1 ) and Vector3( value %1:LocalToWorld(value %2:Garry() ) - value %1:GetPos()) or Vector3.Zero" )
 
-Core:AddFunction("toAngle", "v:v", "a", "(value %1:Garry( ):AngleEx( value %2:Garry( ) ))" )
+Core:AddFunction( "toLocal", "e:v", "v", "$IsValid( value %1 ) and Vector3( value %1:WorldToLocal(value %2:Garry()) ) or Vector3.Zero" )
+
+Core:AddFunction( "toLocalAxis", "e:v", "v", "$IsValid( value %1 ) and Vector3( value %1:WorldToLocal(value %2:Garry() + value %1:GetPos()) ) or Vector3.Zero" )
 
 /*==============================================================================================
-	Rotation
+	Section: To Angle
 ==============================================================================================*/
-Core:AddFunction("rotate", "v:a", "v", [[
+Core:AddOperator( "angle", "v", "a", "value %1:Angle( )" )
+
+Core:AddFunction( "toAngle", "v:", "a", "value %1:Garry( ):Angle( )" )
+
+Core:AddFunction( "toAngle", "v:v", "a", "(value %1:Garry( ):AngleEx( value %2:Garry( ) ))" )
+
+/*==============================================================================================
+	Section: Rotation
+==============================================================================================*/
+Core:AddFunction( "rotate", "v:a", "v", [[
 local %Garry = value %1:Garry( )
-Garry:Rotate( value %2 )
-]], "Vector3(%Garry)" )
+%Garry:Rotate( value %2 )
+]], "Vector3( %Garry )" )
 
-Core:AddFunction("shiftL", "v", "v", "Vector3(value %1.y, value %1.z, value %1.x)" )
+Core:AddFunction( "shiftL", "v", "v", "Vector3(value %1.y, value %1.z, value %1.x)" )
 
-Core:AddFunction("shiftR", "v", "v", "Vector3(value %1.z, value %1.x, value %1.y)" )
+Core:AddFunction( "shiftR", "v", "v", "Vector3(value %1.z, value %1.x, value %1.y)" )
 
 /*==============================================================================================
-	Ceil / Floor / Round
+	Section: Ceil / Floor / Round
 ==============================================================================================*/
-Core:AddFunction("ceil", "v", "v", "Vector3(value %1.x - value %1.x % -1, value %1.y - value %1.y % -1, value %1.z - value %1.z % -1)" )
+Core:AddFunction( "ceil", "v", "v", "Vector3(value %1.x - value %1.x % -1, value %1.y - value %1.y % -1, value %1.z - value %1.z % -1)" )
 
-Core:AddFunction("floor", "v", "v", "Vector3(math.floor(value %1.x), math.floor(value %1.y), math.floor(value %1.z))" )
+Core:AddFunction( "floor", "v", "v", "Vector3(math.floor(value %1.x), math.floor(value %1.y), math.floor(value %1.z))" )
 
-Core:AddFunction("ceil", "v,n", "v", [[
+Core:AddFunction( "ceil", "v,n", "v", [[
 local %Shift = 10 ^ math.floor(value %2 + 0.5)
 ]], "Vector3(value %1.x - ((value %1.x * %Shift) % -1) / %Shift, value %1.y - ((value %1.y * %Shift) % -1) / %Shift, value %1.z - ((value %1.z * %Shift) % -1) / %Shift)" )
 
-Core:AddFunction("round", "v", "v",
+Core:AddFunction( "round", "v", "v",
 "Vector3(V.x - (V.x + 0.5) % 1 + 0.5, value %1.y - (value %1.y + 0.5) % 1 + 0.5, value %1.z - (value %1.z + 0.5) % 1 + 0.5)" )
 
-Core:AddFunction("round", "v,n", "v", [[
+Core:AddFunction( "round", "v,n", "v", [[
 local %Shift = 10 ^ math.floor(value %2 + 0.5)
 ]], "Vector3(math.floor(value %1.x * %Shift+0.5) / %Shift, math.floor(value %1.y * %Shift+0.5) / %Shift, math.floor(value %1.z * %Shift+0.5) / %Shift)" )
 
 /*==============================================================================================
-	math.Clamping and Inrange
+	Section: Clamping and Inrange
 ==============================================================================================*/
-Core:AddFunction("clamp", "v,v,v", "v",
+Core:AddFunction( "clamp", "v,v,v", "v",
 "Vector3(math.Clamp(value %1.x, value %2.x, value %3.x), math.Clamp(value %1.y, value %2.y, value %3.y), math.Clamp(value %1.z, value %2.z, value %3.z))" )
 
-Core:AddFunction("inrange", "v,v,v", "b",
+Core:AddFunction( "inrange", "v,v,v", "b",
 "(!(value %1.x < value %2.x or value %1.x > value %3.x or value %1.y < value %2.y or value %1.y > value %3.y or value %1.z < value %2.z or value %1.z > value %3.z))" )
 
 /*==============================================================================================
-	Interpolation
+	Section: Interpolation
 ==============================================================================================*/
-Core:AddFunction("mix", "v,v,n", "v", "local %Shift = 1 - value %3",
+Core:AddFunction( "mix", "v,v,n", "v", "local %Shift = 1 - value %3",
 "Vector3(value %1.x * value %3 + value %2.x * %Shift, value %1.y * value %3 + value %2.y * %Shift, value %1.z * value %3 + value %2.z * %Shift)")
