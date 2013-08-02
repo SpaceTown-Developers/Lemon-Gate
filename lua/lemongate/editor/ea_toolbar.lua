@@ -111,20 +111,83 @@ function PANEL:Init( )
 		self:GetParent( ):OpenHelper( ) 
 	end 
 	
-	function self.btnOptions:DoClick( ) end 
-	function self.btnWiki:DoClick( ) end
+	function self.btnOptions:DoClick( ) 
+		self:GetParent( ):OpenOptions( ) 
+	end 
 	
 	function self.repoLink:DoClick( )
 		LEMON.Repo.OpenMenu( )
 	end
+end
+
+local function CreateOptions( )
+	local Panel = vgui.Create( "EA_Frame" ) 
+	Panel:SetCanMaximize( false ) 
+	Panel:SetSizable( false ) 
+	Panel:SetText( "Options" ) 
+	Panel:SetIcon( "fugue/gear.png" )
 	
-end 
+	local Mixer = Panel:Add( "DColorMixer" ) 
+	Mixer:SetTall( 150 )
+	Mixer:Dock( TOP ) 
+	Mixer:DockMargin( 10, 10, 10, 0 )
+	
+	Mixer:SetPalette( false )
+	Mixer:SetAlphaBar( false )
+	
+	local syntaxColor = Panel:Add( "DComboBox" ) 
+		syntaxColor:SetTall( 20 )
+		syntaxColor:Dock( TOP ) 
+		syntaxColor:DockMargin( 10, 10, 10, 0 )
+		syntaxColor:MoveToBack( ) 
+	
+	local currentIndex
+	function syntaxColor:OnSelect( index, value, data )
+		local r, g, b = string.match( data:GetString( ), "(%d+)_(%d+)_(%d+)" ) 
+		currentIndex = index
+		Mixer:SetColor( Color( r, g, b ) ) 
+	end
+	
+	local first = true 
+	for k, v in pairs( Syntax.ColorConvars ) do
+		syntaxColor:AddChoice( k, v, first )
+		first = false 
+	end 
+	
+	function Mixer:ValueChanged( color )
+		RunConsoleCommand( "lemon_editor_color_" .. syntaxColor.Choices[currentIndex], color.r .. "_" .. color.g .. "_" .. color.b ) 
+		Syntax.UpdateSyntaxColors( ) 
+	end
+	
+	function Panel:Close( )
+		self:SetVisible( false ) 
+		cookie.Set( "eaoptions_x", self.x )
+		cookie.Set( "eaoptions_y", self.y )
+	end
+	
+	local kinect = Panel:Add( "DCheckBoxLabel" ) 
+	kinect:Dock( TOP ) 
+	kinect:DockMargin( 10, 10, 10, 10 ) 
+	kinect:SetText( "Allow kinect?" ) 
+	kinect:SetConVar( "lemon_kinect_allow" ) 
+	
+	Panel:SetSize( 300, 250 ) 
+	Panel:SetPos( cookie.GetNumber( "eaoptions_x", ScrW( ) / 2 - Panel:GetWide( ) / 2 ), cookie.GetNumber( "eaoptions_y", ScrH( ) / 2 - Panel:GetTall( ) / 2 ) ) 
+	
+	return Panel 
+end
 
 function PANEL:OpenHelper( ) 
 	if !ValidPanel( LEMON.Helper ) then LEMON.Helper = vgui.Create( "EA_Helper" ) end 
 	LEMON.Helper:SetVisible( true )
 	LEMON.Helper:MakePopup( ) 
 end 
+
+function PANEL:OpenOptions( )
+	if !ValidPanel( self.Options ) then self.Options = CreateOptions( ) end 
+	self.Options:SetVisible( true ) 
+	self.Options:MakePopup( ) 
+end
 
 function PANEL:Paint( w, h ) 
 	surface.SetDrawColor( self.btnSave:GetColor( ) )

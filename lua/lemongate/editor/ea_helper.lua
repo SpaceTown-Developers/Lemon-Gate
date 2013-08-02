@@ -28,7 +28,7 @@ function PANEL:Init( )
 	self:SetIcon( "fugue/magnifier.png" )
 	self:SetText( "Expression Advanced Helper" ) 
 	self:SetSize( cookie.GetNumber( "eahelper_w", 400 ), cookie.GetNumber( "eahelper_h", 600 ) ) 
-	self:SetPos( cookie.GetNumber( "eahelper_x", ScrW( ) / 2 - self.x / 2 ), cookie.GetNumber( "eahelper_y", ScrH( ) / 2 - self.y / 2 ) ) 
+	self:SetPos( cookie.GetNumber( "eahelper_x", ScrW( ) / 2 - self:GetWide( ) / 2 ), cookie.GetNumber( "eahelper_y", ScrH( ) / 2 - self:GetTall( ) / 2 ) ) 
 	
 	self.Description = self:Add( "DTextEntry" ) 
 	self.Description:Dock( BOTTOM ) 

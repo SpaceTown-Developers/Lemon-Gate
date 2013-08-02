@@ -58,8 +58,8 @@ function PANEL:Init( )
 	self:SetMinWidth( 600 )
 	self:SetMinHeight( 400 )
 	self:SetText( "Expression Advanced Editor" )
-	self:SetSize( cookie.GetNumber( "eaeditor_w", math.min( 1000, ScrW() * 0.8 ) ), cookie.GetNumber( "eaeditor_h", math.min( 800, ScrH() * 0.8 ) ) )
-	self:SetPos( cookie.GetNumber( "eaeditor_x", ScrW( ) / 2 - self.x / 2 ), cookie.GetNumber( "eaeditor_y", ScrH( ) / 2 - self.y / 2 ) )
+	self:SetSize( cookie.GetNumber( "eaeditor_w", math.min( 1000, ScrW( ) * 0.8 ) ), cookie.GetNumber( "eaeditor_h", math.min( 800, ScrH( ) * 0.8 ) ) )
+	self:SetPos( cookie.GetNumber( "eaeditor_x", ScrW( ) / 2 - self:GetWide( ) / 2 ), cookie.GetNumber( "eaeditor_y", ScrH( ) / 2 - self:GetTall( ) / 2 ) )
 	
 	
 	self.TabHolder = self:Add( "DPropertySheet" )
@@ -635,7 +635,11 @@ function PANEL:Close( )
 	if ValidPanel( LEMON.Helper ) and LEMON.Helper:IsVisible( ) then
 		self.OpenHelper = true
 		LEMON.Helper:Close( )
-	end
+	end 
+	
+	if ValidPanel( self.ToolBar.Options ) and self.ToolBar.Options:IsVisible( ) then 
+		self.ToolBar.Options:Close( ) 
+	end 
 end
 
 function PANEL:PerformLayout( )

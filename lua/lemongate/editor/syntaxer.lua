@@ -216,7 +216,7 @@ setmetatable( colors, { __index = function( tbl, index ) return Color( 255, 255,
 
 local colors_defaults = { }
 local colors_convars = { }
-local function UpdateSyntaxColors( bNoUpdate, ... )
+local function UpdateSyntaxColors( bNoUpdate )
 	for k,v in pairs( colors_convars ) do
 		local r, g, b = string_match( v:GetString( ), "(%d+)_(%d+)_(%d+)" )
 		local def = colors_defaults[k]
@@ -245,6 +245,8 @@ for k,v in pairs( colors ) do
 	cvars.AddChangeCallback( "lemon_editor_color_" .. k, UpdateSyntaxColor )
 end
 UpdateSyntaxColors( true )
+_G.Syntax.ColorConvars = colors_convars 
+_G.Syntax.UpdateSyntaxColors = UpdateSyntaxColors 
 
 do 
 	local reset = CreateClientConVar( "lemon_editor_resetcolors", "0", true, false ) 
