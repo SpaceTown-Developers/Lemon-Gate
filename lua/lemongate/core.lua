@@ -54,7 +54,7 @@ function Util.ValueToLua( Value, NoTables )
 	elseif Type == "function" and !NoTables then
 		local Index = #Util.Cache + 1
 		Util.Cache[Index] = Value
-		return "LEMON.API.Util.Cache[" .. Index .. "]"
+		return "API.Util.Cache[" .. Index .. "]"
 	end
 end
 

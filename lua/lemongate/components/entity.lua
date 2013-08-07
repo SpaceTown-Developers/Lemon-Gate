@@ -515,6 +515,8 @@ Core:AddFunction( "isPlayer", "e:", "b", "($IsValid(value %1) and value %1:IsPla
 
 Core:AddFunction( "inNoclip", "e:", "b", "($IsValid(value %1) and value %1:IsPlayer( ) and (value %1:GetMoveType() ~= $MOVETYPE_NOCLIP) )" )
 
+Core:AddFunction( "flashLight", "e:", "b", "($IsValid(value %1) and value %1:IsPlayer( ) and value %1:FlashlightIsOn( ))" )
+
 /*==============================================================================================
 	Section: Mouse Stuff
 ==============================================================================================*/
@@ -522,6 +524,11 @@ Core:AddFunction( "inNoclip", "e:", "b", "($IsValid(value %1) and value %1:IsPla
 Core:AddFunction( "leftClick", "e:", "b", "($IsValid(value %1) and value %1:IsPlayer( ) and value %1:KeyDown( $IN_ATTACK ) )" )
 
 Core:AddFunction( "rightClick", "e:", "b", "($IsValid(value %1) and value %1:IsPlayer( ) and value %1:KeyDown( $IN_ATTACK2 ) )" )
+
+/*==============================================================================================
+	Section: Weapons
+==============================================================================================*/
+Core:AddFunction( "getEquiped", "e:", "e", "(($IsValid(value %1) and value %1:IsPlayer( )) and (value %1:GetActiveWeapon() or %NULL_ENTITY) or %NULL_ENTITY )" )
 
 /*==============================================================================================
 	Section: Finding

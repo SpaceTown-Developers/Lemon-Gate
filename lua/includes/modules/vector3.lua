@@ -3,10 +3,19 @@ Vector3 class
 Author: Oskar
 ---------------------------------------------------------------------------*/
 do  
+	
+	/*
+		if type( self ) == "number" then
+			self = {x = other, y = other, z = other}
+		elseif type( other ) == "number" then
+			other = {x = other, y = other, z = other}
+		end
+	*/
+	
 	local meta = {} 
 	meta.__index = meta 
- 
-	function meta:__add( other ) 
+	
+	function meta:__add( other )
 		return Vector3( self.x + other.x, self.y + other.y, self.z + other.z ) 
 	end 
  
@@ -30,8 +39,8 @@ do
 		return Vector3( self.x ^ other.x, self.y ^ other.y, self.z ^ other.z ) 
 	end
  
-	function meta:__unm( ) 
-		return self * -1  
+	function meta:__unm( )
+		return Vector3( self.x * -1, self.y * -1, self.z * -1 )  
 	end 
  
 	function meta:__len( ) -- Garry has broken this =(

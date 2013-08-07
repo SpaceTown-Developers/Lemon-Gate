@@ -62,6 +62,18 @@ hook.Add("PlayerSay", "LemonGate", function( Player, Text )
 	end
 end)
 
+Core:AddEvent( "playerSpeak", "e", "b" )
+
+hook.Add("PlayerCanHearPlayersVoice", "LemonGate", function( Player, Speaker )
+	for _, Gate in pairs( API:GetEntitys( ) ) do
+		if Gate.Player == Player then
+			local Result, Gate = API:CallEvent( "playerSpeak", Speaker )
+			if Result then return Result end
+		end
+	end
+end)
+
+
 
 /*==============================================================================================
 	Section: Player Input event.

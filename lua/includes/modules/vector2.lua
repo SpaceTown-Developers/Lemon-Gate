@@ -31,7 +31,7 @@ do
 	end
  
 	function meta:__unm( ) 
-		return self * -1  
+		return Vector2( self.x * -1, self.y * -1 ) 
 	end 
  
 	function meta:__len( ) -- Garry has broken this =(
