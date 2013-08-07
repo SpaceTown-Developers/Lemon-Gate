@@ -344,7 +344,7 @@ end
 ==========================================================================*/
 if SERVER then
 	function API:BuildDataPack( )
-		MsgN( "Building LemonGate Datatpack..." )
+		MsgN( "Building LemonGate Datapack..." )
 		
 		local Cls, Ops, Funcs, Exts = { }, { }, { }, { }
 		
@@ -385,7 +385,7 @@ if SERVER then
 		-- JSON corupts easily!
 		self.DataPack = util.Compress( von.serialize( DataPack ) )
 		
-		MsgN( Format( "Datatpack compressed %d bytes.", #self.DataPack  ) )
+		MsgN( Format( "Datapack compressed %d bytes.", #self.DataPack  ) )
 		
 		hook.Add( "PlayerInitialSpawn", "Lemon_DataPack", function( Player )
 			self:SendDataPack( Player )
