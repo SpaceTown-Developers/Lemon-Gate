@@ -97,7 +97,7 @@ function PropCore.Spawn( Trace, Context, Model, Freeze )
 	
 	local Max = PropCore.Prop_Max:GetInt( )
 	
-	elseif Max ~= -1 and PCount >= Max then
+	if Max ~= -1 and PCount >= Max then
 		Context:Throw("propcore", "Max total props reached (" .. Max .. ")." )
 	elseif PRate >= PropCore.Prop_Rate:GetInt( ) then
 		Context:Throw("propcore", "Max prop spawn rate reached (" ..PropCore.Prop_Rate:GetInt( ) .. ")." )
