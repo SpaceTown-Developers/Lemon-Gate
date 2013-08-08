@@ -7,6 +7,54 @@ local LEMON, API = LEMON, LEMON.API
 local Core = API:GetComponent( "core" )
 
 /*==============================================================================================
+	Section: Context
+==============================================================================================*/
+function Core:GenerateContext( Context )
+	function Context:FromWL( Entity, Type, Name, Default )
+		if IsValid( Entity ) and Entity.Outputs then
+			local Output = Entity.Outputs[Name]
+			if Output and Output.Type == Type then
+				return Output.Value or Default
+			end
+		end
+		
+		return Default
+	end
+
+	function Context:ToWL( Entity, Type, Name, Value)
+		if IsValid( Entity ) and Entity.Inputs then
+			local Input = Entity.Inputs[ Name ]
+			if Input and Input.Type == Type then
+				local Que = self.Data.WLQueue[ Entity ]
+				
+				if !Que then
+					Que = { }
+					self.Data.WLQueue[ Entity ] = Que
+				end
+				
+				Que[Name] = Value
+			end
+		end
+	end
+end
+
+function Core:UpdateContext( Context )
+	for Entity, Que in pairs( Context.Data.WLQueue ) do
+		if IsValid( Entity ) then
+			for Key, Value in pairs( Que ) do
+				WireLib.TriggerInput( Entity, Key, Value )
+			end 
+		end
+	end
+	
+	Context.Data.WLQueue = { }
+end
+
+function Core:CreateContext( Context )
+	Context.Data.WLQueue = { }
+end
+
+/*==============================================================================================
 	Section: Class and Operators
 ==============================================================================================*/
 local WireLink = Core:NewClass( "wl", "wirelink" )

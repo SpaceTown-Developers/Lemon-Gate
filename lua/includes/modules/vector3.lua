@@ -125,6 +125,10 @@ do
 		return ( self - other ):RawLength()
 	end -- RevouluPowered
 	
+	function meta:Angle( )
+		return Vector( self.x, self.y, self.z ):Angle( )
+	end
+	
 	function meta:Garry( )
 		return Vector( self.x, self.y, self.z )
 	end

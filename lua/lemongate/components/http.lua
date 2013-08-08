@@ -66,38 +66,28 @@ end )
 /*==============================================================================================
 	Section: API Hooks
 ==============================================================================================*/
-function Component:BuildContext( Gate )
-	Gate.Context.Data.HTTP = { }
+function Component:CreateContext( Context )
+	Context.Data.HTTP = { }
 end
 
 function Component:GateThink( Gate )
-	local Context = Gate.Context
+	local Context, status = Gate.Context, true
+	
 	if Gate:IsRunning( ) then
-		for Key, Request in pairs( Gate.Context.Data.HTTP ) do
-			if ( Request.Done ) then
-				
-				local Ok, Status
+		for Key, Request in pairs( Context.Data.HTTP ) do
+			
+			if ( Request.Done and Status ) then
 				
 				if( Request.Success )then
-					Ok, Status = pcall( Request.Func, { Request.Body, "s" } )
+					Status = Gate:Pcall( "http sucess callback", Request.Func, { Request.Body, "s" } )
 					Request.Done = false
 				else
-					Ok, Status = pcall( Request.FailFunc )
+					Status = Gate:Pcall( "http fail callback", Request.FailFunc )
 					Request.Done = false
 				end
 				
-				if Ok or Status == "Exit" then
-					Gate:Update( )
-				elseif Status == "Script" then
-					local Cont = Gate.Context
-					return Gate:ScriptError( Cont.ScriptTrace, Cont.ScriptError )
-				elseif Status == "Exception" then
-					local Excpt = Gate.Context.Exception
-					return Gate:ScriptError( Excpt.Trace, "uncatched exception '" .. Excpt.Type .. "' in http " .. (Request.Success and "success" or "fail") .. " callback." )
-				elseif Status == "Break" or Status == "Continue" then
-					return Gate:ScriptError( nil, "unexpected use of " .. Status .. " in http " .. (Request.Success and "success" or "fail") .. " callback." )
-				else
-					return Gate:LuaError( Status )
+				if !Status then
+					break
 				end
 			end
 		end

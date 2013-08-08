@@ -1246,6 +1246,8 @@ function Compiler:Statment_EVT( RootTrace )
 	
 	self:RequireToken( "lpa", "Left parenthesis ( () missing, after catch" )
 	
+	self:PushFlag( "NewCells", { } )
+	
 	local Perams, HasVarg, Count = self:BuildPerams( Trace )	
 
 	self:RequireToken( "rpa", "Right parenthesis ( )) missing, to close event parameters" )
@@ -1263,6 +1265,7 @@ function Compiler:Statment_EVT( RootTrace )
 	self:PopFlag( "CanReturn" )
 	self:PopFlag( "HasVargs" )
 	self:PopFlag( "Event" )
+	self:PopFlag( "NewCells" )
 	
 	return Inst
 end

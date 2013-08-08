@@ -45,16 +45,16 @@ end
 	Section: API Hooks
 ==============================================================================================*/
 
-function Component:BuildContext( Gate )
-	Props[ Gate ] = { }
+function Component:CreateContext( Context )
+	Props[ Context.Entity ] = { }
 end
 
 function Component:Remove( Gate )
-	PropCore.RemoveAll( Entity )
+	PropCore.RemoveAll( Gate )
 end
 
 function Component:ShutDown( Gate )
-	PropCore.RemoveAll( Entity )
+	PropCore.RemoveAll( Gate )
 end
 
 /*==============================================================================================
@@ -94,9 +94,11 @@ local _DoPropSpawnedEffect = DoPropSpawnedEffect
 function PropCore.Spawn( Trace, Context, Model, Freeze )
 	local G, P = Context.Entity, Context.Player
 	local PRate, PCount = PlayerRate[P] or 0, PlayerCount[P] or 0
-
-	if PCount >= PropCore.Prop_Max:GetInt( ) then
-		Context:Throw("propcore", "Max total props reached (" .. PropCore.Prop_Max:GetInt( ) .. ")." )
+	
+	local Max = PropCore.Prop_Max:GetInt( )
+	
+	elseif Max ~= -1 and PCount >= Max then
+		Context:Throw("propcore", "Max total props reached (" .. Max .. ")." )
 	elseif PRate >= PropCore.Prop_Rate:GetInt( ) then
 		Context:Throw("propcore", "Max prop spawn rate reached (" ..PropCore.Prop_Rate:GetInt( ) .. ")." )
 	elseif !util.IsValidModel( Model ) or !util.IsValidProp( Model ) then
@@ -177,7 +179,7 @@ Component:SetPerf( LEMON_PERF_CHEAP )
 
 Component:AddFunction("remove", "e:", "", [[
 if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) then
-	%PropCore.Remove(value %1 )
+	%PropCore.RemoveProp(value %1 )
 end]], "" )
 
 /*==============================================================================================

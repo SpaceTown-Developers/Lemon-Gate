@@ -166,22 +166,22 @@ Component:AddEvent( "loadFromDupe", "bf", "" )
 /*==============================================================================================
 	Section: API Hooks
 ==============================================================================================*/
-function Component:BuildContext( Gate )
-	Gate.Context.Data.BufferQue = { }
+function Component:CreateContext( Context )
+	Context.Data.BufferQue = { }
 end
 
-function Component:UpdateExecution( Gate )
-	local Que = Gate.Context.Data.BufferQue
+function Component:UpdateContext( Context )
+	local Que = Context.Data.BufferQue
 	for I = 1, #Que do
 		local Data = Que[I]
 		local SendTo = Data[1]
 		
 		if IsValid( SendTo ) and SendTo.IsLemonGate and SendTo:IsRunning( ) then
-			SendTo:CallEvent( "receiveBuffer", Data[2], Gate, Data[3] )
+			SendTo:CallEvent( "receiveBuffer", Data[2], Context.Entity, Data[3] )
 		end
 	end
 	
-	Gate.Context.Data.BufferQue = { }
+	Context.Data.BufferQue = { }
 end
 
 function Component:BuildDupeInfo( Gate, DupeTable )

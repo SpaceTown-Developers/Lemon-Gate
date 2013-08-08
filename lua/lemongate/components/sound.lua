@@ -23,8 +23,8 @@ function Component:Create( Gate )
 	Sounds[ Gate ] = { }
 end
 
-function Component:BuildContext( Gate )
-	self:RemoveSounds( Gate )
+function Component:CreateContext( Context )
+	self:RemoveSounds( Context.Entity )
 end
 
 function Component:Remove( Gate )
@@ -42,7 +42,6 @@ function Component:APIReload( )
 		end
 	end
 end
-
 
 timer.Create("LemonSounds", 0.1, 0, function( )
 	local Time = CurTime()

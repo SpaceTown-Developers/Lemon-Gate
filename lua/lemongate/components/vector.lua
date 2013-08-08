@@ -160,13 +160,13 @@ Core:AddFunction( "heading", "v,a,v", "a", "(value %1:Heading(value %2, value %3
 /*==============================================================================================
 	Section: Entity Helpers
 ==============================================================================================*/
-Core:AddFunction( "toWorld", "e:v", "v", "$IsValid( value %1 ) and Vector3( value %1:LocalToWorld(value %2:Garry()) ) or Vector3.Zero" )
+Core:AddFunction( "toWorld", "e:v", "v", "($IsValid( value %1 ) and Vector3( value %1:LocalToWorld(value %2:Garry()) ) or Vector3.Zero:Clone())" )
 
-Core:AddFunction( "toWorldAxis", "e:v", "v", "$IsValid( value %1 ) and Vector3( value %1:LocalToWorld(value %2:Garry() ) - value %1:GetPos()) or Vector3.Zero" )
+Core:AddFunction( "toWorldAxis", "e:v", "v", "($IsValid( value %1 ) and Vector3( value %1:LocalToWorld(value %2:Garry() ) - value %1:GetPos()) or Vector3.Zero:Clone())" )
 
-Core:AddFunction( "toLocal", "e:v", "v", "$IsValid( value %1 ) and Vector3( value %1:WorldToLocal(value %2:Garry()) ) or Vector3.Zero" )
+Core:AddFunction( "toLocal", "e:v", "v", "($IsValid( value %1 ) and Vector3( value %1:WorldToLocal(value %2:Garry()) ) or Vector3.Zero:Clone())" )
 
-Core:AddFunction( "toLocalAxis", "e:v", "v", "$IsValid( value %1 ) and Vector3( value %1:WorldToLocal(value %2:Garry() + value %1:GetPos()) ) or Vector3.Zero" )
+Core:AddFunction( "toLocalAxis", "e:v", "v", "($IsValid( value %1 ) and Vector3( value %1:WorldToLocal(value %2:Garry() + value %1:GetPos()) ) or Vector3.Zero:Clone())" )
 
 /*==============================================================================================
 	Section: To Angle

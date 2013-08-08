@@ -126,7 +126,7 @@ function Compiler:Assign( Trace, Variable, Type, Assign )
 			self.Cells[ Ref ] = { Ref = Ref, Scope = self.ScopeID, Type = Type, Class = Class, Variable = Variable, Assign = Assign }
 		
 			local NewCells = self:GetFlag( "NewCells" ) -- Lambda
-			if NewCells then table.insert( NewCells, Ref ) end
+			if NewCells then NewCells[Ref] = true end
 		end
 		
 		return Ref, self.ScopeID
@@ -244,7 +244,11 @@ function Compiler:CompileCode( Code, Files, NoCompile )
 				
 		return function( Context )
 			
-			-- Prep Code	
+			-- Prep Code
+				local Memory = Context.Memory
+				local Delta = Context.Delta
+				local Click = Context.Click
+				
 				]] .. string.Implode( "\n", self.PrepCode ) .. [[
 		
 			-- Main Body:
@@ -723,7 +727,55 @@ end
 /*==============================================================================================
 	Section: Lambda
 ==============================================================================================*/
+function Compiler:Compile_LAMBDA( Trace, Params, HasVarArg, Sequence )
+	
+	-- 1) Create the param checks!
+		local CallParams, CallPrepare = { }, { }
+		local ID = self:NextLocal( )
+	
+		for I = 1, #Params do
+			local Param, Var = Params[I], "Peram_" .. I
+			
+			local Op = self:GetOperator( "=", Param[2] ) or self:GetOperator( "=" )
+			
+			local Assign = Op.Compile( self, Trace, Param[3], Var .. "[1]" )
+			
+			CallParams[I] = Var
+			
+			CallPrepare[I] = [[
+				local Trace = ]] .. self:CompileTrace( Trace ) .. [[
+				if ( !]] .. Var .. " or (" .. Var ..[[[1] == nil) ) then
+					Context:Throw( Trace, "invoke", "Paramater ]] .. Param[1] .. [[ is a void value" )
+				elseif ( ]] .. Var .. [[[2] ~= "]] .. Param[2] .. [[" ) then
+					Context:Throw( Trace, "invoke", "Paramater ]] .. Param[1] .. [[ got " .. ]] .. Var .. [[[2] .. " ]] .. Param[2].. [[ expected." )
+				else
+					]] ..  Assign.Prepare .. [[ 
+				end
+			]]
+		end
+		
+		if HasVarArg then
+			CallParams[ #CallParams + 1 ] = "..."
+		end
+	
+	
+	-- 2) Create calling function
+		local Params = string.Implode( ", ", CallParams )
+		
+		local Lua = "local " .. ID .. " = function( " .. Params .. [[ )
+			local Cells = ]] .. Util.ValueToLua( self:GetFlag( "NewCells", { } ) ) .. [[
+			local Memory, Delta, Click = Context:Enviroment( Memory, Delta, Click, Cells )
+			
+			]] .. string.Implode( "\n", CallPrepare ) .. [[
+			
+			]] .. Sequence.Prepare .. [[
+		end]] .. "\n\n"
+			
+	-- 3) Function Done
+		return self:Instruction( Trace, 1, "f", ID, Lua )
+end
 
+/* DEPRICATED
 function Compiler:Compile_LAMBDA( Trace, Params, HasVarArg, Sequence )
 	
 	-- 1) Create the param checks!
@@ -791,10 +843,8 @@ function Compiler:Compile_LAMBDA( Trace, Params, HasVarArg, Sequence )
 		local Params = string.Implode( ", ", CallParams )
 		
 		Lua = Lua .. "local " .. ID2 .. " = function( " .. Params .. [[ )
-			]] .. PushMem .. [[
 			]] .. string.Implode( "\n", CallPrepare ) .. [[
 			local Result = ]] .. ID .. "( " .. Params .. [[ )
-			]] .. PopMem .. [[
 			return Result
 		end]] .. "\n\n"
 			
@@ -802,7 +852,7 @@ function Compiler:Compile_LAMBDA( Trace, Params, HasVarArg, Sequence )
 		return self:Instruction( Trace, 1, "f", ID2, Lua )
 end
 
-/* OLD FUNCTION IN CASE OF BREAKAGES!
+/* OLDER FUNCTION IN CASE OF BREAKAGES!
 function Compiler:Compile_LAMBDA( Trace, Params, HasVarArg, Sequence )
 	local ID, FuncParams, FuncPrepare = self:NextLocal( ), { }, { }
 	
@@ -1155,6 +1205,7 @@ function Compiler:Compile_EVENT( Trace, EventName, Perams, HasVarg, Block, Exit 
 		end
 		
 		Lua = [[local EventCall = function( ... )
+			
 				]] .. Lua .. [[
 			end
 			
@@ -1174,7 +1225,9 @@ function Compiler:Compile_EVENT( Trace, EventName, Perams, HasVarg, Block, Exit 
 	end
 	
 	Lua = "Context.Event_" .. EventName .. " = function( " .. string.Implode( ",", EventParams ) .. [[ )
-		
+		local Cells = ]] .. Util.ValueToLua( self:GetFlag( "NewCells", { } ) ) .. [[
+		local Memory, Delta, Click = Context:Enviroment( Memory, Delta, Click, Cells )
+				
 		Context:PushPerf( ]] .. self:CompileTrace( Trace ) .. "," .. Event.Perf .. [[ )
 		
 		]] .. string.Implode( "\n", EventPrepare ) .. [[

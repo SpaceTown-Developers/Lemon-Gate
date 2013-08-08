@@ -278,8 +278,8 @@ function Component:Create( Gate )
 	Holograms[ Gate ] = { }
 end
 
-function Component:BuildContext( Gate )
-	HoloLib.RemoveAll( Gate )
+function Component:CreateContext( Context )
+	HoloLib.RemoveAll( Context.Entity )
 end
 
 function Component:Remove( Gate )

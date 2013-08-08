@@ -23,7 +23,6 @@ local pcall = pcall -- Speed
 local GoodColor = Color( 255, 255, 255, 255 )
 local BadColor = Color( 255, 0, 0, 0 )
 
-local MaxPerf = CreateConVar( "lemongate_perf", "25000" )
 local CaveJohnson = CreateConVar( "combustible_lemon", "0" )
 
 /*==============================================================================================
@@ -34,82 +33,8 @@ AddCSLuaFile( "shared.lua" )
 AddCSLuaFile( "cl_init.lua" )
 
 /*==============================================================================================
-	Context
-==============================================================================================*/
-local Context = { }
-Context.__index = Context
-
-function Context:Throw( Trace, Type, Message, Table )
-	self.Exception = { Type = Type, Trace = Trace, Message = Message, Table = Table }
-	error( "Exception", 0 )
-end
-
-function Context:Error( Trace, Message )
-	self.ScriptError = Message
-	self.ScriptTrace = Trace
-	error( "Script", 0 )
-end
-
-function Context:PushPerf( Trace, Ammount )
-	self.Perf = self.Perf + Ammount
-	if self.Perf > self.MaxPerf then
-		self:Error( Trace, "Maximum operations count exceeded." )
-	end
-end
-
-/*==============================================================================================
-	WireLinks
-==============================================================================================*/
-function Context:FromWL( Entity, Type, Name, Default )
-	if IsValid( Entity ) and Entity.Outputs then
-		local Output = Entity.Outputs[Name]
-		if Output and Output.Type == Type then
-			return Output.Value or Default
-		end
-	end; return Default
-end
-
-function Context:ToWL( Entity, Type, Name, Value)
-	if IsValid( Entity ) and Entity.Inputs then
-		local Input = Entity.Inputs[ Name ]
-		if Input and Input.Type == Type then
-			local Que = self.WLQueue[ Entity ]
-			
-			if !Que then
-				Que = { }
-				self.WLQueue[ Entity ] = Que
-			end
-			
-			Que[Name] = Value
-		end
-	end
-end
-
-function Context:FlushWLQue( )
-	for Entity, Que in pairs( self.WLQueue ) do
-		if IsValid( Entity ) then
-			for Key, Value in pairs( Que ) do
-				WireLib.TriggerInput( Entity, Key, Value )
-			end 
-		end
-	end; self.WLQueue = { }
-end
-
-/*==============================================================================================
 	Script Handeling
 ==============================================================================================*/
-function Lemon:BuildContext( )
-	self.Context = setmetatable( { 
-		Perf = 0, MaxPerf = MaxPerf:GetInt( ),
-		Entity = self, Player = self.Player,
-		Memory = { }, Delta = { }, Click = { },
-		Data = { }, WLQueue = { },
-	}, Context )
-	
-	LEMON.API:CallHook( "BuildContext", self )
-	
-	return self.Context
-end
 
 local function CompileSoftly( Entity, Script, Files )
 	local Ok, Instance = LEMON.Compiler.Execute( Script, Files )
@@ -125,13 +50,13 @@ local function CompileSoftly( Entity, Script, Files )
 		Entity:LoadInstance( Instance )
 	end
 	
-	Entity:Pcall( Instance.Execute, Entity.Context )
+	Entity:Pcall( "main thread", Instance.Execute, Entity.Context )
 end
 
 function Lemon:LoadScript( Script, Files )
 	if self:IsRunning( ) then self:ShutDown( ) end
 	
-	local Context = self:BuildContext( )
+	local Context = LEMON:BuildContext( self )
 	
 	self.Script = Script
 	self.Files = Files or { }
@@ -198,11 +123,10 @@ function Lemon:GarbageCollect( )
 end -- Woot custom garbage collection =D
 
 function Lemon:Update( )
-	self:API( ):CallHook( "UpdateExecution", self )
 	self:TriggerOutputs( )
 	self:GarbageCollect( )
-	self.Context.Click = { }
-	self.Context:FlushWLQue( )
+	self.Context:Update( )
+	self:API( ):CallHook( "UpdateEntity", self )
 end
 
 /*==============================================================================================
@@ -235,7 +159,6 @@ function Lemon:Think( )
 			local Used = Context.Perf
 			
 			Context.LastPerf = Used
-			Context.MaxPerf = MaxPerf:GetInt( )
 			Context.Perf = 0
 			
 			local Per = math.ceil( ( Used / Context.MaxPerf ) * 100 )
@@ -268,6 +191,8 @@ end
 /*==============================================================================================
 	Section: Stuff.
 ==============================================================================================*/
+local pcall = pcall
+
 function Lemon:API( )
 	return LEMON.API
 end
@@ -294,23 +219,27 @@ function Lemon:Reset( )
 	end
 end
 
-function Lemon:Pcall( Func, ... )
-	local Ok, Status, Value = pcall( Func, ... )
-		
+function Lemon:Pcall( Location, Func, ... )
+	local Context = self.Context
+	local Ok, Status = pcall( Func, ... )
+	
 	if Ok or Status == "Exit" then
 		self:Update( )
-		return Ok, Status, Value
-	elseif Status == "Script" then
-		local Cont = self.Context
-		return self:ScriptError( Cont.ScriptTrace, Cont.ScriptError )
-	elseif Status == "Exception" then
-		local Excpt = self.Context.Exception
-		return self:ScriptError( Excpt.Trace, "uncatched exception '" .. Excpt.Type .. "' in main thread" )
-	elseif Status == "Break" or Status == "Continue" then
-		return self:ScriptError( nil, "unexpected use of " .. Status .. " in main thread." )
-	else
-		return self:LuaError( Status )
+		return Ok, Status
 	end
+	
+	if Status == "Script" then
+		self:ScriptError( Context.ScriptTrace, Context.ScriptError )
+	elseif Status == "Exception" then
+		local Excption = Context.Exception
+		self:ScriptError( Excption.Trace, "uncatched exception '" .. Excption.Type .. "' in " .. Location .. "." )
+	elseif Status == "Break" or Status == "Continue" then
+		self:ScriptError( nil, "unexpected use of " .. Status .. " in " .. Location .. "." )
+	else
+		self:LuaError( Status )
+	end
+	
+	return false, nil, nil
 end
 
 function Lemon:IsRunning( )
@@ -330,24 +259,8 @@ function Lemon:CallEvent( Name, ... )
 		local Event = self.Context["Event_" .. Name]
 		
 		if Event then
-			local Ok, Status = pcall( Event, ... )
-			
-			if Ok and Status then
-				self:Update( )
-				return Status[1], self
-			elseif Ok or Status == "Exit" then
-				self:Update( )
-			elseif Status == "Script" then
-				local Cont = self.Context
-				return self:ScriptError( Cont.ScriptTrace, Cont.ScriptError )
-			elseif Status == "Exception" then
-				local Excpt = self.Context.Exception
-				return self:ScriptError( Excpt.Trace, "uncatched exception '" .. Excpt.Type .. "' in event " .. Name )
-			elseif Status == "Break" or Status == "Continue" then
-				return self:ScriptError( nil, "unexpected use of " .. Status .. " in event " .. Name )
-			else
-				return self:LuaError( Status )
-			end
+			local Ok, Status, Value = self:Pcall( "event " .. Name, Event, ... )
+			if Ok and Status then return Status[1], self end
 		end
 	end
 end
@@ -439,7 +352,7 @@ function CompileDuped( self, Player, Entity, DupeTable, FromID )
 	self.Script = DupeTable.Script
 	self.Files = DupeTable.Files or { }
 	
-	local Context = self:BuildContext( )
+	local Context = LEMON:BuildContext( self, Player )
 	
 	if self.Script and self.Script != "" then
 		CompileSoftly( self, self.Script, self.Files )

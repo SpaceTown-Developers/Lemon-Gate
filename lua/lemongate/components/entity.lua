@@ -528,7 +528,7 @@ Core:AddFunction( "rightClick", "e:", "b", "($IsValid(value %1) and value %1:IsP
 /*==============================================================================================
 	Section: Weapons
 ==============================================================================================*/
-Core:AddFunction( "getEquiped", "e:", "e", "(($IsValid(value %1) and value %1:IsPlayer( )) and (value %1:GetActiveWeapon() or %NULL_ENTITY) or %NULL_ENTITY )" )
+Core:AddFunction( "getEquipped", "e:", "e", "(($IsValid(value %1) and value %1:IsPlayer( )) and (value %1:GetActiveWeapon() or %NULL_ENTITY) or %NULL_ENTITY )" )
 
 /*==============================================================================================
 	Section: Finding

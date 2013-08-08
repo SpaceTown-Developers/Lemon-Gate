@@ -13,8 +13,8 @@ local RUNNING = 1
 /*==============================================================================================
 	Section: API Hooks
 ==============================================================================================*/
-function Component:BuildContext( Gate )
-	Gate.Context.Data.Timers = { }
+function Component:CreateContext( Context )
+	Context.Data.Timers = { }
 end
 
 function Component:GateThink( Gate )
@@ -33,21 +33,9 @@ function Component:GateThink( Gate )
 			if Timer.N >= Timer.Repetitions and Timer.Repetitions != 0 then
 				Timer.Status = 0
 			end
-
-			local Ok, Status = pcall( Timer.Lambda )
 			
-			if Ok or Status == "Exit" then
-				Gate:Update( )
-			elseif Status == "Script" then
-				local Cont = Gate.Context
-				return Gate:ScriptError( Cont.ScriptTrace, Cont.ScriptError )
-			elseif Status == "Exception" then
-				local Excpt = Gate.Context.Exception
-				return Gate:ScriptError( Excpt.Trace, "uncatched exception '" .. Excpt.Type .. "' in timer '" .. Key .. "'." )
-			elseif Status == "Break" or Status == "Continue" then
-				return Gate:ScriptError( nil, "unexpected use of " .. Status .. " in timer '" .. Key .. "'." )
-			else
-				return Gate:LuaError( Status )
+			if !Gate:Pcall( "timer " .. Key, Timer.Lambda ) then
+				break
 			end
 		end
 	end

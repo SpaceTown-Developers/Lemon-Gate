@@ -6,7 +6,7 @@
 ==========================================================================*/
 require( "von" )
 
-LEMON = LEMON or { Ver = "2.0.0", API = { Util = { Cache = { } } } }
+LEMON = LEMON or { Ver = "2.1.0", API = { Util = { Cache = { } } } }
 
 /*==========================================================================
 	API - Definitions
@@ -181,6 +181,9 @@ function API:Init( )
 	hook.Call( "POST_LEMONGATE", GAMEMODE or GM )
 	
 	if SERVER then
+		MsgN( "Loading context." )
+		include( "lemongate/context.lua" )
+	
 		self:SaveConfig( )
 		self:BuildDataPack( )
 		
@@ -311,7 +314,8 @@ if SERVER then
 	end
 
 	local Gate_Entitys = { }
-
+	local Player_Gates = { }
+	
 	function API:ReloadEntitys( )
 		Gate_Entitys = { }
 		local Entitys = ents.FindByClass( "lemongate" )
@@ -992,9 +996,9 @@ LEMON_NO_INLINE = ""
 ==========================================================================*/
 local function Replace_Context( Line )
 	 Line = string.gsub( Line, "%%context", "Context" )
-	 Line = string.gsub( Line, "%%memory", "Context.Memory" )
-	 Line = string.gsub( Line, "%%delta", "Context.Delta" )
-	 Line = string.gsub( Line, "%%click", "Context.Click" )
+	 Line = string.gsub( Line, "%%memory", "Memory" )
+	 Line = string.gsub( Line, "%%delta", "Delta" )
+	 Line = string.gsub( Line, "%%click", "Click" )
 	return  string.gsub( Line, "%%data", "Context.Data" )
 end
 
