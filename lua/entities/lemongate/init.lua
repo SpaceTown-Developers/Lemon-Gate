@@ -313,7 +313,7 @@ function Lemon:ScriptError( Trace, Message )
 	self:SetNWBool( "Crashed", true )
 	
 	if Trace then
-		Message = string.format( "%s at Line %d Char %d", Message or "Uknown Error", Trace[1], Trace[2] )
+		Message = string.format( "%s at Line %s Char %s", Message or "Uknown Error", Trace[1], Trace[2] )
 	else
 		Message = Message or "Untrackable Error"
 	end

@@ -17,15 +17,17 @@ function Component:CreateContext( Context )
 	Context.Data.Timers = { }
 end
 
-local CurTime = CurTime
+local CurTime, pcall = CurTime, pcall
 
-timer.Create( "LemonGate.Timers", 0.01, 0, function( )
+local function Timer( )
 	local Time, Sucess = CurTime( )
 	
 	for _, Gate in pairs( API:GetRunning( ) ) do
 		if Gate:IsRunning( ) then
-			for Key, Timer in pairs( Gate.Context.Data.Timers ) do
+			local Context = Gate.Context
 			
+			for Key, Timer in pairs( Context.Data.Timers ) do
+				
 				if Timer.Status == -1 then
 					Timer.Last = Time - Timer.Diff
 				
@@ -42,11 +44,17 @@ timer.Create( "LemonGate.Timers", 0.01, 0, function( )
 						break
 					end
 				end
+				
+				
+				Context.Perf = Context.Perf + LEMON_PERF_CHEAP
+				
 			end; Gate:Update( )
+			
 		end
 	end
-end )
+end
 
+timer.Create( "LemonGate.Timers", 0.01, 0, function( ) pcall( Timer ) end )
 
 /*==============================================================================================
     General Time

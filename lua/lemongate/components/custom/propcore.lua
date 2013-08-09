@@ -207,6 +207,11 @@ if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) and $IsValid( 
 	value %1:SetParent(value %2)
 end]], "" )
 
+Component:AddFunction("parent", "e:p", "", [[
+if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) and $IsValid( value %2 ) then
+	value %1:SetParent(value %2)
+end]], "" )
+
 /*==============================================================================================
 	Section: Freeze
 ==============================================================================================*/

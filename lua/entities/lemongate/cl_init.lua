@@ -10,11 +10,14 @@ ENT.RenderGroup = RENDERGROUP_OPAQUE
 function ENT:GetOverlayText( )
 	local Status = "Offline: 0 ops, 0%"
 	local Perf = self:GetNWFloat( "GatePerf", 0 )
+	local Max = GetConVarNumber( "lemongate_perf" )
 	
 	if self:GetNWBool( "Crashed", false ) then
 		Status = "Script Error"
+	elseif Perf >= Max then
+		Status = "Warning: " .. Perf .." ops, 100%"
 	elseif Perf > 0 then
-		Status = "Online: " .. string.format( "%s ops, %s%%", Perf, math.ceil(Perf / GetConVarNumber( "lemongate_perf" )) ) 
+		Status = "Online: " .. string.format( "%s ops, %s%%", Perf, math.ceil(Perf / Max) ) 
 	end
 	
 	return string.format( "-Expression Advanced-\n(%s)\n\n%s\n%s\nBenchmark: %s's", self:GetPlayerName( ), self:GetNWString( "GateName", "LemonGate" ), Status, math.Round( self:GetNWFloat( "GateTime", 0 ), 4 ) )

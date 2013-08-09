@@ -329,7 +329,7 @@ Core:AddFunction( "maxPerf", "", "n", "%context.MaxPerf" )
 
 Core:AddFunction( "hardPerf", "", "n", "(%context.MaxPerf - %context.Perf)" )
 
-Core:AddFunction( "softPerf", "", "n", "((%context.MaxPerf * 0.95) - %context.Perf)" )
+Core:AddFunction( "softPerf", "", "n", "((%context.MaxPerf * 0.90) - %context.Perf)" )
 
 /*==============================================================================================
 	Section: Things that have no place to go!
