@@ -314,13 +314,9 @@ if SERVER then
 	end
 
 	local Gate_Entitys = { }
-	local Player_Gates = { }
-	local Gates_Running = { }
 	
 	function API:ReloadEntitys( )
 		Gate_Entitys = { }
-		Player_Gates = { }
-		Gates_Running = { }
 		
 		local Entitys = ents.FindByClass( "lemongate" )
 		
@@ -343,34 +339,8 @@ if SERVER then
 		Gate_Entitys[ Entity ] = nil
 	end
 	
-	function API:CreateContext( Context )
-		local Entity = Context.Entity
-		Gates_Running[ Entity ] = Entity
-		local Gates = Player_Gates[ Entity.Player ]
-		
-		if !Gates then
-			Gates = { }
-			Player_Gates[ Entity.Player ] = Gates
-		end; Gates[Entity] = nil
-	end
-	
-	function API:ShutDown( Entity )
-		Gates_Running[ Entity ] = nil
-		if Player_Gates[ Entity.Player ] then
-			Player_Gates[ Entity.Player ][Entity] = nil
-		end
-	end
-	
 	function API:GetEntitys( )
 		return Gate_Entitys
-	end
-	
-	function API:GetPlayerGates( Player )
-		return Player_Gates[ Player ] or { }
-	end
-	
-	function API:GetRunning( )
-		return Gates_Running
 	end
 	
 end
@@ -945,7 +915,7 @@ if SERVER then
 	
 	function API:CallEvent( Name, ... )
 		if self.Events[ Name ] then
-			for _, Gate in pairs( self:GetRunning( ) ) do
+			for _, Gate in pairs( self:GetEntitys( ) ) do
 				local Result = Gate:CallEvent( Name, ... )
 				if Result then return Result end
 			end

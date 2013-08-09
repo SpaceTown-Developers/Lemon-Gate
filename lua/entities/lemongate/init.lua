@@ -170,7 +170,7 @@ function Lemon:Think( )
 	end
 	
 	self.BaseClass.Think( self )
-	self:NextThink( Time + 1 )
+	self:NextThink( Time )
 	
 	return true
 end

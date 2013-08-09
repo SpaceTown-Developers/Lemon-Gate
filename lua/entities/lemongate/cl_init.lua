@@ -17,6 +17,8 @@ function ENT:GetOverlayText( )
 		Status = "Script Error"
 	elseif Perf >= Max then
 		Status = "Warning: " .. Perf .." ops, 100%"
+	elseif Perf >= (Max * 0.9 ) then
+		Status = "Warning: " .. string.format( "%s ops, %s%%", Perf, math.ceil(Perf / Max) )
 	elseif Perf > 0 then
 		Status = "Online: " .. string.format( "%s ops, %s%%", Perf, math.ceil(Perf / Max) ) 
 	end
