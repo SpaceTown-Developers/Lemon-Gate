@@ -254,7 +254,7 @@ function Compiler:CompileCode( Code, Files, NoCompile )
 			-- Main Body:
 				]] .. Lua .. [[
 		end]], "%%%%", "%%" ) )
-	
+		
 	if !NoCompile then
 		local Compiled = CompileString( self.Native, "LemonCompiler", false )
 		

@@ -1097,10 +1097,12 @@ function Compiler:Statment_FOR( RootTrace )
 	
 	local Block = self:GetBlock( "for loop", Trace )
 	
+	local Inst = self:Compile_FOR( Trace, Class, Assignment, Condition, Step, Block )
+	
 	self:PopFlag( "NewCells" )
 	self:PopFlag( "LoopDepth" )
 	
-	return self:Compile_FOR( Trace, Class, Assignment, Condition, Step, Block )
+	return Inst
 end
 
 /*==============================================================================================
@@ -1116,10 +1118,12 @@ function Compiler:Statment_WHL( RootTrace )
 	
 	local Block = self:GetBlock( "while loop", Trace )
 	
+	local Inst = self:Compile_WHILE( Trace, Condition, Block )
+	
 	self:PopFlag( "NewCells" )
 	self:PopFlag( "LoopDepth" )
 	
-	return self:Compile_WHILE( Trace, Condition, Block )
+	return Inst
 end
 
 /*==============================================================================================
@@ -1162,16 +1166,18 @@ function Compiler:Statment_EACH( RootTrace )
 	self:PushFlag( "NewCells", { } )
 	self:PushFlag( "LoopDepth", self:GetFlag( "LoopDepth", 0 ) + 1 )
 	
-	local Block = self:GetBlock( "foreach", Trace )
+	local Block, Inst = self:GetBlock( "foreach", Trace )
+	
+	if !TypeB then
+		Inst = self:Compile_FOREACH( Trace, Value, TypeA, RefA, nil, nil, Block )
+	else
+		Inst = self:Compile_FOREACH( Trace, Value, TypeB, RefB, TypeA, RefA, Block )
+	end
 	
 	self:PopFlag( "NewCells" )
 	self:PopFlag( "LoopDepth" )
 	
-	if !TypeB then
-		return self:Compile_FOREACH( Trace, Value, TypeA, RefA, nil, nil, Block )
-	else
-		return self:Compile_FOREACH( Trace, Value, TypeB, RefB, TypeA, RefA, Block )
-	end
+	return Inst
 end
 
 -- [[ Table 1, KeyType 2, KeyAss 3, ValType 4, ValAss 5, Statments 6
