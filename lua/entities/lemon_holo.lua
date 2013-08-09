@@ -181,7 +181,7 @@ if SERVER then
 	end 
 	
 else
-	local SyncBuffer = {}
+	local SyncBuffer = { }
 	
 	Orange.RenderGroup = RENDERGROUP_BOTH
 	
@@ -190,57 +190,70 @@ else
 	local PopCustomClipPlane = render.PopCustomClipPlane
 	local SuppressEngineLighting = render.SuppressEngineLighting
 	
-	function Orange:Draw( )
-		local Index = self:EntIndex()
-		local Buffer = SyncBuffer[ Index ] 
-		if Buffer and Buffer.IsVisible then
-		-- SCALE.
-			
-			local Scale = Buffer.Scale
-			local Neo = Matrix( ) -- He He :D
-			Neo:Scale( Scale )
-			self:EnableMatrix( "RenderMultiply", Neo )
-			
-			local Bound = Vector(9999, 9999, 9999)
-			self:SetRenderBounds( -Bound, Bound )
-			
-		-- CLIPPING.
+	function Orange:Initialize( )
+		self:Rescale( )
+	end
+	
+	function Orange:Rescale( )
+		local Buffer = SyncBuffer[ self:EntIndex( ) ] 
 		
-			local Clips = Buffer.Clips
-			local Total, Clipped = 0, false
+		if Buffer then
+			local Scale = Buffer.Scale
+			local Bones = self:GetBoneCount( ) or -1
 			
-			for _, Clip in pairs( Clips ) do
-				if Clip and Clip.Enabled then
+			if Bones > 1 then
+				for I = 0, Bones do self:ManipulateBoneScale( I, Scale) end
+			
+			elseif self.EnableMatrix then
+				local Neo = Matrix( )
+				Neo:Scale( Scale )
+				self:EnableMatrix("RenderMultiply", Neo )
+			else
+				self:SetModelScale( (Scale.x + Scale.y + Scale.z) / 3, 0)
+			end
+
+			local Min, Max = self:OBBMins( ), self:OBBMaxs( )
+			self:SetRenderBounds( Scale * Max, Scale * Min )
+		end
+	end
+	
+	function Orange:Draw( )
+		local Buffer = SyncBuffer[ self:EntIndex( ) ] 
+		
+		if Buffer and Buffer.IsVisible then
+		
+			if self:GetColor( ).a ~= 255 then
+				self.RenderGroup = RENDERGROUP_BOTH
+			else
+				self.RenderGroup = RENDERGROUP_OPAQUE
+			end
+			
+			local ClipsPushed = 0
+			local ClipState = EnableClipping( true )
+		
+			for _, Clip in pairs( Buffer.Clips ) do
+				if Clip.Enabled then
+					local Normal = self:LocalToWorld( Clip.Normal ) - self:GetPos( ) 
 					
-					if !Clipped then
-						EnableClipping( true )
-						Clipped = true
-					end
-					
-					local Normal = self:LocalToWorld( Clip.Normal ) - self:GetPos() 
 					local Origin = self:LocalToWorld( Clip.Origin )
+					
 					PushCustomClipPlane( Normal, Normal:Dot( Origin ) )
 					
-					Total = Total + 1
+					ClipsPushed = ClipsPushed + 1
 				end
 			end
 			
-		-- RENDER.
-		
-			if !self.Shading then
-				SuppressEngineLighting( true )
-			end
+			SuppressEngineLighting( !Buffer.Shading )
 			
-			self:DrawModel()
-		
-		-- RESET.
+			self:DrawModel( )
 		
 			SuppressEngineLighting( false )
 
-			if Clipped then
-				for I = 1, Total do PopCustomClipPlane() end
-				EnableClipping( false )
+			for I = 1, ClipsPushed do
+				PopCustomClipPlane( )
 			end
+			
+			EnableClipping( ClipState )
 			
 		end
 	end
@@ -273,8 +286,16 @@ else
 		local Index = net.ReadUInt( 16 )
 		
 		while Index ~= 0 do
+			local Ent = Entity( Index )
+			
 			SyncBuffer[Index] = SyncBuffer[Index] or { }
-			Sync( SyncBuffer[Index] ) 
+			
+			Sync( SyncBuffer[Index] )
+			
+			if Ent and Ent.Rescale then
+				Ent:Rescale( )
+			end
+			
 			Index = net.ReadUInt( 16 )
 		end
 	end )

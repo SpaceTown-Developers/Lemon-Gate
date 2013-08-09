@@ -126,7 +126,7 @@ function Compiler:Assign( Trace, Variable, Type, Assign )
 			self.Cells[ Ref ] = { Ref = Ref, Scope = self.ScopeID, Type = Type, Class = Class, Variable = Variable, Assign = Assign }
 		
 			local NewCells = self:GetFlag( "NewCells" ) -- Lambda
-			if NewCells then NewCells[Ref] = true end
+			if NewCells then NewCells[Ref] = true; NewCells.Push = true end
 		end
 		
 		return Ref, self.ScopeID
@@ -298,6 +298,18 @@ function Compiler:Evaluate( Trace, Instr )
 	local Instr = self:Instruction( Trace, 0, Instr.Return or "", ID .. "()", Lua )
 	Instr.Evaluated = true -- Prevents revaluation.
 	return Instr
+end
+
+function Compiler:PushEnviroment( )
+	local Cells = self:GetFlag( "NewCells" )
+	
+	if !Cells or !Cells.Push then
+		return ""
+	end
+	
+	Cells.Push = nil
+	
+	return "local Cells = " .. Util.ValueToLua( Cells ) .. "\nlocal Memory, Delta, Click = Context:Enviroment( Memory, Delta, Click, Cells )"
 end
 
 /*==============================================================================================
@@ -763,134 +775,14 @@ function Compiler:Compile_LAMBDA( Trace, Params, HasVarArg, Sequence )
 		local Params = string.Implode( ", ", CallParams )
 		
 		local Lua = "local " .. ID .. " = function( " .. Params .. [[ )
-			local Cells = ]] .. Util.ValueToLua( self:GetFlag( "NewCells", { } ) ) .. [[
-			local Memory, Delta, Click = Context:Enviroment( Memory, Delta, Click, Cells )
-			
+			]] .. self:PushEnviroment( ) .. [[
 			]] .. string.Implode( "\n", CallPrepare ) .. [[
-			
 			]] .. Sequence.Prepare .. [[
 		end]] .. "\n\n"
 			
 	-- 3) Function Done
 		return self:Instruction( Trace, 1, "f", ID, Lua )
 end
-
-/* DEPRICATED
-function Compiler:Compile_LAMBDA( Trace, Params, HasVarArg, Sequence )
-	
-	-- 1) Create the param checks!
-		local CallParams, CallPrepare = { }, { }
-		local ID, ID2 = self:NextLocal( ), self:NextLocal( )
-	
-		for I = 1, #Params do
-			local Param, Var = Params[I], "Peram_" .. I
-			
-			local Op = self:GetOperator( "=", Param[2] ) or self:GetOperator( "=" )
-			
-			local Assign = Op.Compile( self, Trace, Param[3], Var .. "[1]" )
-			
-			CallParams[I] = Var
-			
-			CallPrepare[I] = [[
-				local Trace = ]] .. self:CompileTrace( Trace ) .. [[
-				if ( !]] .. Var .. " or (" .. Var ..[[[1] == nil) ) then
-					Context:Throw( Trace, "invoke", "Paramater ]] .. Param[1] .. [[ is a void value" )
-				elseif ( ]] .. Var .. [[[2] ~= "]] .. Param[2] .. [[" ) then
-					Context:Throw( Trace, "invoke", "Paramater ]] .. Param[1] .. [[ got " .. ]] .. Var .. [[[2] .. " ]] .. Param[2].. [[ expected." )
-				else
-					]] ..  Assign.Prepare .. [[ 
-				end
-			]]
-		end
-		
-		if HasVarArg then
-			CallParams[ #CallParams + 1 ] = "..."
-		end
-	
-	-- 2) Push the momory
-		local PushMem, PopMem = "", ""
-		local NewCells = self:GetFlag( "NewCells" )
-		
-		if NewCells and #NewCells > 0 then
-			local Memory, Delta = { }, { }
-			
-			for I = 1, #NewCells do
-				local Cell = NewCells[I]
-				Memory[I] = Format( "[%s] = Context.Memory[%s]", Cell, Cell )
-				Delta[I] = Format( "[%s] = Context.Delta[%s]", Cell, Cell )
-			end
-			
-			PushMem = [[
-				local OldMemory = { ]] .. string.Implode( ",", Memory ) .. [[ }
-				local OldDelta = { ]] .. string.Implode( ",", Delta ) .. [[ }
-			]]
-			
-			PopMem = [[
-				for Cell, Value in pairs( OldMemory ) do
-					Context.Memory[Cell] = Value
-					Context.Delta[Cell] = OldDelta[Cell]
-				end
-			]]
-		end
-			
-	-- 3) Create the called function
-
-		local Lua = "local " .. ID .. [[ = function()
-			]] .. Sequence.Prepare .. [[
-		end]] .. "\n\n"
-	
-	-- 3) Create calling function
-		local Params = string.Implode( ", ", CallParams )
-		
-		Lua = Lua .. "local " .. ID2 .. " = function( " .. Params .. [[ )
-			]] .. string.Implode( "\n", CallPrepare ) .. [[
-			local Result = ]] .. ID .. "( " .. Params .. [[ )
-			return Result
-		end]] .. "\n\n"
-			
-	-- 4) Function Done
-		return self:Instruction( Trace, 1, "f", ID2, Lua )
-end
-
-/* OLDER FUNCTION IN CASE OF BREAKAGES!
-function Compiler:Compile_LAMBDA( Trace, Params, HasVarArg, Sequence )
-	local ID, FuncParams, FuncPrepare = self:NextLocal( ), { }, { }
-	
-	for I = 1, #Params do
-		local Param = Params[I]
-		local Var = "Peram_" .. I
-		
-		local Op = self:GetOperator( "=", Param[2] ) or self:GetOperator( "=" )
-		local Assign = Op.Compile( self, Trace, Param[3], Var .. "[1]" )
-		
-		FuncParams[I] = Var
-		FuncPrepare[I] = [[
-			local Trace = ]] .. self:CompileTrace( Trace ) .. [[
-			if ( !]] .. Var .. " or (" .. Var ..[[[1] == nil) ) then
-				Context:Throw( Trace, "invoke", "Paramater ]] .. Param[1] .. [[ is a void value" )
-			elseif ( ]] .. Var .. [[[2] ~= "]] .. Param[2] .. [[" ) then
-				Context:Throw( Trace, "invoke", "Paramater ]] .. Param[1] .. [[ got " .. ]] .. Var .. [[[2] .. " ]] .. Param[2].. [[ expected." )
-			else
-				]] ..  Assign.Prepare .. [[ 
-			end
-		]]
-	end
-	
-	if HasVarArg then
-		FuncParams[ #FuncParams + 1 ] = "..."
-	end
-	
-	local MPush, MPop = self:PushMemory( self:GetFlag( "NewCells" ) )
-	
-	
-	local Lua = "local " .. ID .. " = function( " .. string.Implode( ", ", FuncParams ) .. [[ )
-		]] .. MPush .. [[
-		]] .. string.Implode( "\n", FuncPrepare ) .. [[
-		]] .. Sequence.Prepare .. [[
-		]] .. "end\n"
-	
-	return self:Instruction( Trace, 1, "f", ID, Lua )
-end */
 
 function Compiler:Compile_CALL( Trace, Value, ... )
 	local Op = self:GetOperator( "call", Value.Return, "..." )
@@ -926,11 +818,16 @@ function Compiler:Compile_FOR( Trace, Class, Assigment, Condition, Step, Statmen
 		self:TraceError( Trace, "%s not compatable with for loops", NType( Class ) )
 	end
 	
+	Statments.Prepare = self:PushEnviroment( ) .. "\n" .. Statments.Prepare
+	
 	return Op.Compile( self, Trace, Assigment, Condition, Step, Statments )
 end
 
 function Compiler:Compile_WHILE( Trace, Condition, Statments )
 	local Condition = self:Evaluate( Trace, Condition )
+	
+	Statments.Prepare = self:PushEnviroment( ) .. "\n" .. Statments.Prepare
+	
 	return self:GetOperator( "while" ).Compile( self, Trace, Condition, Statments )
 end
 
@@ -950,6 +847,8 @@ function Compiler:Compile_FOREACH( Trace, Value, TypeV, RefV, TypeK, RefK, Statm
 		AssKey = Op2.Compile( self, Trace, RefK, "Key" )
 		TypeK = '"' .. TypeK .. '"'
 	end
+	
+	Statments.Prepare = self:PushEnviroment( ) .. "\n" .. Statments.Prepare
 	
 	return Op.Compile( self, Trace, Value, TypeV, TypeK, AssVal, AssKey, Statments )
 end

@@ -51,6 +51,8 @@ Core:AddOperator( "string", "e", "s", "tostring(value %1)" )
 ==============================================================================================*/
 Core:AddFunction( "entity", "n", "e", "($Entity(value %1) or %NULL_ENTITY)" )
 
+Core:AddFunction( "world", "", "e", "game.GetWorld()" )
+
 Core:AddFunction( "voidEntity", "", "e", "%NULL_ENTITY" )
 
 /*==============================================================================================

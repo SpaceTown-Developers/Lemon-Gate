@@ -1096,10 +1096,12 @@ function Compiler:Statment_FOR( RootTrace )
 	
 	self:RequireToken( "rpa", "Right parenthesis ( )) missing, to close for loop" )
 	
+	self:PushFlag( "NewCells", { } )
 	self:PushFlag( "LoopDepth", self:GetFlag( "LoopDepth", 0 ) + 1 )
 	
 	local Block = self:GetBlock( "for loop", Trace )
 	
+	self:PopFlag( "NewCells" )
 	self:PopFlag( "LoopDepth" )
 	
 	return self:Compile_FOR( Trace, Class, Assignment, Condition, Step, Block )
@@ -1113,10 +1115,12 @@ function Compiler:Statment_WHL( RootTrace )
 	
 	local Condition = self:GetCondition( RootTrace )
 	
+	self:PushFlag( "NewCells", { } )
 	self:PushFlag( "LoopDepth", self:GetFlag( "LoopDepth", 0 ) + 1 )
 	
 	local Block = self:GetBlock( "while loop", Trace )
 	
+	self:PopFlag( "NewCells" )
 	self:PopFlag( "LoopDepth" )
 	
 	return self:Compile_WHILE( Trace, Condition, Block )
@@ -1159,10 +1163,12 @@ function Compiler:Statment_EACH( RootTrace )
 	
 	self:RequireToken( "rpa", "Left parenthesis ( )) missing, after for" )
 	
+	self:PushFlag( "NewCells", { } )
 	self:PushFlag( "LoopDepth", self:GetFlag( "LoopDepth", 0 ) + 1 )
 	
 	local Block = self:GetBlock( "foreach", Trace )
 	
+	self:PopFlag( "NewCells" )
 	self:PopFlag( "LoopDepth" )
 	
 	if !TypeB then

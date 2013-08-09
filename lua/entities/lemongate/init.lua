@@ -122,11 +122,20 @@ function Lemon:GarbageCollect( )
 	end
 end -- Woot custom garbage collection =D
 
+local Updates = { }
+
+hook.Add( "Tick", "LemonGate.Update", function( )
+	Updates = { } -- Only allow gates to update once per Tick!
+end )
+
 function Lemon:Update( )
-	self:TriggerOutputs( )
-	self:GarbageCollect( )
-	self.Context:Update( )
-	self:API( ):CallHook( "UpdateEntity", self )
+	if !Updates[ self ] then
+		Updates[ self ] = true
+		self:TriggerOutputs( )
+		self:GarbageCollect( )
+		self.Context:Update( )
+		self:API( ):CallHook( "UpdateEntity", self )
+	end
 end
 
 /*==============================================================================================
@@ -142,7 +151,6 @@ function Lemon:Initialize( )
 	
 	self.Overlay = "Offline"
 	self.GateName = "LemonGate"
-	self:UpdateOverLay( "Offline" )
 	
 	self:API( ):CallHook("Create", self )
 end
@@ -153,24 +161,16 @@ function Lemon:Think( )
 	if self:IsRunning( ) then
 		local Context = self.Context
 		
-		if !Context.PerfTime or Context.PerfTime > Time then
-			Context.PerfTime = Time + 1
-			
-			local Used = Context.Perf
-			
-			Context.LastPerf = Used
-			Context.Perf = 0
-			
-			local Per = math.ceil( ( Used / Context.MaxPerf ) * 100 )
-			
-			self:UpdateOverLay( "Online\n%d ops (%d%%)", Used, Per )
-		end
+		self:SetNWInt( "GatePerf", Context.Perf )
+		self:SetNWString( "GateName", self.GateName )
+		self:SetNWFloat( "GateTime", Context.Time )
 		
-		self:API( ):CallHook("GateThink", self )
+		Context.Time = 0
+		Context.Perf = 0
 	end
 	
 	self.BaseClass.Think( self )
-	self:NextThink( Time + 0.01 )
+	self:NextThink( Time + 1 )
 	
 	return true
 end
@@ -191,7 +191,7 @@ end
 /*==============================================================================================
 	Section: Stuff.
 ==============================================================================================*/
-local pcall = pcall
+local pcall, SysTime = pcall, SysTime
 
 function Lemon:API( )
 	return LEMON.API
@@ -199,14 +199,6 @@ end
 
 function Lemon:SetGateName( Name )
 	self.GateName = Name or "LemonGate"
-	self:UpdateOverLay( self.Overlay )
-end
-
-function Lemon:UpdateOverLay( Status, A, ... )
-	if A then Status = string.format( Status, A, ... ) end
-	
-	self.Overlay = Status
-	self:SetOverlayText( Format( "%s\n%s", self.GateName, Status ) )
 end
 
 function Lemon:GetScript( )
@@ -220,11 +212,13 @@ function Lemon:Reset( )
 end
 
 function Lemon:Pcall( Location, Func, ... )
+	local Bench = SysTime( )
 	local Context = self.Context
 	local Ok, Status = pcall( Func, ... )
 	
+	Context.Time = Context.Time + (SysTime( ) - Bench)
+	
 	if Ok or Status == "Exit" then
-		self:Update( )
 		return Ok, Status
 	end
 	
@@ -260,7 +254,14 @@ function Lemon:CallEvent( Name, ... )
 		
 		if Event then
 			local Ok, Status, Value = self:Pcall( "event " .. Name, Event, ... )
-			if Ok and Status then return Status[1], self end
+			
+			if Ok then
+				self:Update( )
+				
+				if Status then 
+					return Status[1], self
+				end
+			end
 		end
 	end
 end
@@ -301,7 +302,6 @@ function Lemon:LuaError( Message )
 	self.Context = nil -- Shut Down!
 	self:SetColor( BadColor )
 	self:SetNWBool( "Crashed", true )
-	self:UpdateOverLay( "Lua Error" )
 	
 	WireLib.ClientError( "LemonGate: Suffered a LUA error" , self.Player )
 	WireLib.ClientError( "LUA: " .. Message , self.Player )
@@ -311,7 +311,6 @@ function Lemon:ScriptError( Trace, Message )
 	self.Context = nil -- Shut Down!
 	self:SetColor( BadColor )
 	self:SetNWBool( "Crashed", true )
-	self:UpdateOverLay( "Script Error" )
 	
 	if Trace then
 		Message = string.format( "%s at Line %d Char %d", Message or "Uknown Error", Trace[1], Trace[2] )
@@ -326,7 +325,6 @@ function Lemon:Error( Message )
 	self.Context = nil -- Shut Down!
 	self:SetColor( BadColor )
 	self:SetNWBool( "Crashed", true )
-	self:UpdateOverLay( Message )
 	
 	WireLib.ClientError( Message, self.Player )
 end

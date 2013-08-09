@@ -70,26 +70,26 @@ function Component:CreateContext( Context )
 	Context.Data.HTTP = { }
 end
 
-function Component:GateThink( Gate )
-	local Context, status = Gate.Context, true
-	
-	if Gate:IsRunning( ) then
-		for Key, Request in pairs( Context.Data.HTTP ) do
-			
-			if ( Request.Done and Status ) then
+timer.Create( "LemonGate.Http", 0.1, 0, function( )
+	for _, Gate in pairs( API:GetRunning( ) ) do
+		if Gate:IsRunning( ) then
+			for Key, Request in pairs( Gate.Context.Data.HTTP ) do
 				
-				if( Request.Success )then
-					Status = Gate:Pcall( "http sucess callback", Request.Func, { Request.Body, "s" } )
-					Request.Done = false
-				else
-					Status = Gate:Pcall( "http fail callback", Request.FailFunc )
-					Request.Done = false
+				if ( Request.Done and Status ) then
+					
+					if( Request.Success )then
+						Status = Gate:Pcall( "http sucess callback", Request.Func, { Request.Body, "s" } )
+						Request.Done = false
+					else
+						Status = Gate:Pcall( "http fail callback", Request.FailFunc )
+						Request.Done = false
+					end
+					
+					if !Status then
+						break
+					end
 				end
-				
-				if !Status then
-					break
-				end
-			end
+			end; Gate:Update( )
 		end
 	end
-end
+end )

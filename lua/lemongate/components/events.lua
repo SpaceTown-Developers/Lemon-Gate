@@ -65,11 +65,9 @@ end)
 Core:AddEvent( "playerSpeak", "e", "b" )
 
 hook.Add("PlayerCanHearPlayersVoice", "LemonGate", function( Player, Speaker )
-	for _, Gate in pairs( API:GetEntitys( ) ) do
-		if Gate.Player == Player then
-			local Result, Gate = API:CallEvent( "playerSpeak", Speaker )
-			if Result then return Result end
-		end
+	for _, Gate in pairs( API:GetPlayerGates( Player ) ) do
+		local Result, Gate = API:CallEvent( "playerSpeak", Speaker )
+		if Result then return Result end
 	end
 end)
 
@@ -125,10 +123,8 @@ if Wire_Keyboard_Remap then
 		local Key = GetKey( Ply, Num, true )
 		
 		if Key then 
-			for _, Gate in pairs( API:GetEntitys( ) ) do
-				if Gate.Player == Ply then
-					API:CallEvent( "keypress", Key )
-				end
+			for _, Gate in pairs( API:GetPlayerGates( Ply ) ) do
+				API:CallEvent( "keypress", Key )
 			end
 		end
 	end )
@@ -137,10 +133,8 @@ if Wire_Keyboard_Remap then
 		local Key = GetKey( Ply, Num, nil )
 		
 		if Key then 
-			for _, Gate in pairs( API:GetEntitys( ) ) do
-				if Gate.Player == Ply then
-					API:CallEvent( "keyrelease", Key )
-				end
+			for _, Gate in pairs( API:GetPlayerGates( Ply ) ) do
+				API:CallEvent( "keyrelease", Key )
 			end
 		end
 	end )

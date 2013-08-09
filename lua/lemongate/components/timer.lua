@@ -17,29 +17,36 @@ function Component:CreateContext( Context )
 	Context.Data.Timers = { }
 end
 
-function Component:GateThink( Gate )
-	local Time = CurTime( )
-	
-	for Key, Timer in pairs( Gate.Context.Data.Timers ) do
-		
-		if Timer.Status == -1 then
-			Timer.Last = Time - Timer.Diff
-		
-		elseif Timer.Status == 1 and ( Timer.Last + Timer.Delay ) <= Time then
-			
-			Timer.Last = Time
-			Timer.N = Timer.N + 1 
+local CurTime = CurTime
 
-			if Timer.N >= Timer.Repetitions and Timer.Repetitions != 0 then
-				Timer.Status = 0
-			end
+timer.Create( "LemonGate.Timers", 0.01, 0, function( )
+	local Time, Sucess = CurTime( )
+	
+	for _, Gate in pairs( API:GetRunning( ) ) do
+		if Gate:IsRunning( ) then
+			for Key, Timer in pairs( Gate.Context.Data.Timers ) do
 			
-			if !Gate:Pcall( "timer " .. Key, Timer.Lambda ) then
-				break
-			end
+				if Timer.Status == -1 then
+					Timer.Last = Time - Timer.Diff
+				
+				elseif Timer.Status == 1 and ( Timer.Last + Timer.Delay ) <= Time then
+					
+					Timer.Last = Time
+					Timer.N = Timer.N + 1 
+
+					if Timer.N >= Timer.Repetitions and Timer.Repetitions != 0 then
+						Timer.Status = 0
+					end
+					
+					if !Gate:Pcall( "timer " .. Key, Timer.Lambda ) then
+						break
+					end
+				end
+			end; Gate:Update( )
 		end
 	end
-end
+end )
+
 
 /*==============================================================================================
     General Time
@@ -64,7 +71,7 @@ Component:AddFunction("timerCreate", "s,n,n,f", "", [[
 	Last = $CurTime( ),
 	Delay = value %2,
 	Repetitions = value %3,
-	Lambda = value %4
+	Lambda = value %4,
 }]], "" )
 
 Component:SetPerf( LEMON_PERF_NORMAL )

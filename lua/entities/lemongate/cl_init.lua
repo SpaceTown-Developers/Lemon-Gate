@@ -5,6 +5,23 @@ include('shared.lua')
 ENT.RenderGroup = RENDERGROUP_OPAQUE
 
 /*==========================================================================
+	Section: OverLay
+==========================================================================*/
+function ENT:GetOverlayText( )
+	local Status = "Offline: 0 ops, 0%"
+	local Perf = self:GetNWInt( "GatePerf", 0 )
+	
+	if self:GetNWBool( "Crashed", false ) then
+		Status = "Script Error"
+	elseif Perf > 0 then
+		Status = "Online: " .. string.format( "%s ops, %s%%", Perf, math.ceil(Perf / GetConVarNumber( "lemongate_perf" )) ) 
+	end
+	
+	return string.format( "-Expression Advanced-\n(%s)\n\n%s\n%s\nBenchmark: %s's", self:GetPlayerName( ), self:GetNWString( "GateName", "LemonGate" ), Status, math.Round( self:GetNWFloat( "GateTime", 0 ), 4 ) )
+	
+end
+
+/*==========================================================================
 	Section: Editor Animation
 ==========================================================================*/
 -- Jacked from E2

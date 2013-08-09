@@ -6,7 +6,7 @@ local LEMON, API = LEMON, LEMON.API
 
 /**********************************************************************************************/
 
-local PerfMax = CreateConVar( "lemongate_perf", "25000" )
+local PerfMax = CreateConVar( "lemongate_perf", "25000", {FCVAR_REPLICATED} )
 LEMON.PerfMax = PerfMax
 
 /**********************************************************************************************/
@@ -21,6 +21,7 @@ Context.__index = Context
 
 function LEMON:BuildContext( Entity, Player )
 	local New = {
+		Time = 0,
 		Perf = 0,
 		MaxPerf = PerfMax:GetInt( ),
 		Entity = Entity,
@@ -61,7 +62,7 @@ function Context:PushPerf( Trace, Ammount )
 end
 
 function Context:Update( )
-	table.Empty( self.Click )
+	self.Click = { }
 	API:CallHook( "UpdateContext", self )
 end
 
@@ -107,25 +108,25 @@ function Context:Enviroment( _Memory, _Delta, _Click, Cells )
 		end
 	}
 	
-	local Click = {
-		__index = function( tbl, key )
-			if Cells[key] then
-				return rawget( tbl, key)
-			else
-				return _Click[key]
-			end
-		end,
+	-- local Click = {
+		-- __index = function( tbl, key )
+			-- if Cells[key] then
+				-- return rawget( tbl, key)
+			-- else
+				-- return _Click[key]
+			-- end
+		-- end,
 		
-		__newindex = function( tbl, key, value )
-			if Cells[key] then
-				rawset( tbl, key, value)
-			else
-				_Click[key] = value
-			end
-		end
-	}
+		-- __newindex = function( tbl, key, value )
+			-- if Cells[key] then
+				-- rawset( tbl, key, value)
+			-- else
+				-- _Click[key] = value
+			-- end
+		-- end
+	-- }
 	
-	return setmetatable(Memory, Memory), setmetatable(Delta, Delta), setmetatable(Click, Click)
+	return setmetatable(Memory, Memory), setmetatable(Delta, Delta), _Click // setmetatable(Click, Click)
 end
 
 
