@@ -98,11 +98,11 @@ function PropCore.Spawn( Trace, Context, Model, Freeze )
 	local Max = PropCore.Prop_Max:GetInt( )
 	
 	if Max ~= -1 and PCount >= Max then
-		Context:Throw("propcore", "Max total props reached (" .. Max .. ")." )
+		Context:Throw(Trace, "propcore", "Max total props reached (" .. Max .. ")." )
 	elseif PRate >= PropCore.Prop_Rate:GetInt( ) then
-		Context:Throw("propcore", "Max prop spawn rate reached (" ..PropCore.Prop_Rate:GetInt( ) .. ")." )
+		Context:Throw(Trace, "propcore", "Max prop spawn rate reached (" ..PropCore.Prop_Rate:GetInt( ) .. ")." )
 	elseif !util.IsValidModel( Model ) or !util.IsValidProp( Model ) then
-		Context:Throw("propcore", "Invalid model for prop spawn." )
+		Context:Throw(Trace, "propcore", "Invalid model for prop spawn." )
 	elseif Context.Data.PC_NoEffect then
 		DoPropSpawnedEffect = function( ) end
 	end
