@@ -165,6 +165,15 @@ local function CreateOptions( )
 		cookie.Set( "eaoptions_y", self.y )
 	end
 	
+	local reset = Mixer.WangsPanel:Add( "DButton" ) 
+		reset:SetText( "Reset" ) 
+		reset:Dock( TOP )
+		reset:DockMargin( 0, 4, 0, 0 )
+	
+	function reset:DoClick( )
+		RunConsoleCommand( "lemon_editor_resetcolors", syntaxColor.Choices[currentIndex] )
+	end
+	
 	local kinect = Panel:Add( "DCheckBoxLabel" ) 
 	kinect:Dock( TOP ) 
 	kinect:DockMargin( 10, 10, 10, 10 ) 
