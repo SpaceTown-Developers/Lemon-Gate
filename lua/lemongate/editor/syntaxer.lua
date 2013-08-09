@@ -250,18 +250,27 @@ _G.Syntax.UpdateSyntaxColors = UpdateSyntaxColors
 
 do 
 	local reset = CreateClientConVar( "lemon_editor_resetcolors", "0", true, false ) 
+	local norun = false 
 	
-	cvars.AddChangeCallback( "lemon_editor_resetcolors", function( sCVar, sOld, sNew )
+	local callbacks = cvars.GetConVarCallbacks( "lemon_editor_resetcolors", true )
+	callbacks[1] = function( sCVar, sOld, sNew )
+		if norun then return end 
 		if sNew ~= "0" then 
+			norun = true
 			RunConsoleCommand( "lemon_editor_resetcolors", "0" ) 
+			norun = false
 			
-			for k, v in pairs( colors_defaults ) do
-				RunConsoleCommand( "lemon_editor_color_" .. k, v.r .. "_" .. v.g .. "_" .. v.b )
+			if colors_defaults[sNew] then 
+				RunConsoleCommand( "lemon_editor_color_" .. sNew, colors_defaults[sNew].r .. "_" .. colors_defaults[sNew].g .. "_" .. colors_defaults[sNew].b )
+			else 
+				for k, v in pairs( colors_defaults ) do
+					RunConsoleCommand( "lemon_editor_color_" .. k, v.r .. "_" .. v.g .. "_" .. v.b )
+				end 
 			end 
 			
 			UpdateSyntaxColors( ) 
 		end 
-	end )
+	end 
 end 
 
 local cols = { } 

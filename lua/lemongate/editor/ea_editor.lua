@@ -700,13 +700,17 @@ function PANEL:_OnKeyCodeTyped( code )
 		elseif code == KEY_UP then
 			if self.Caret.x > 1 then
 				self.Caret.x = self.Caret.x - 1
-
+				
+				while self.FoldedRows[self.Caret.x] do 
+					self.Caret.x = self.Caret.x - 1
+				end 
+				
 				local length = #( self.Rows[self.Caret.x] )
 				if self.Caret.y > length + 1 then
 					self.Caret.y = length + 1
 				end
 			end
-
+			
 			self:ScrollCaret( )
 			if !shift then
 				self.Start = self:CopyPosition( self.Caret )
@@ -714,13 +718,17 @@ function PANEL:_OnKeyCodeTyped( code )
 		elseif code == KEY_DOWN then
 			if self.Caret.x < #self.Rows then
 				self.Caret.x = self.Caret.x + 1
-
+				
+				while self.FoldedRows[self.Caret.x] do 
+					self.Caret.x = self.Caret.x + 1
+				end 
+				
 				local length = #( self.Rows[self.Caret.x] )
 				if self.Caret.y > length + 1 then
 					self.Caret.y = length + 1
 				end
 			end
-
+			
 			self:ScrollCaret( )
 			if !shift then
 				self.Start = self:CopyPosition( self.Caret )
@@ -1011,20 +1019,6 @@ end
 Paint stuff
 ---------------------------------------------------------------------------*/
 
-local function ParseIndents( Rows, exit ) 
-	local foldData = { }
-	local level = 0
-	for line = 1, #Rows do
-		if line == exit then break end 
-		local text = Rows[line] 
-		foldData[line] = 0 //level 
-		for nStart, sType, nEnd in string.gmatch( text, "()([{}])()") do 
-			level = level + ( sType == "{" and 1 or -1 ) 
-		end 
-	end
-	return foldData 
-end 
-
 local function FindValidLines( Rows ) 
 	local Out = { } 
 	local MultilineComment = false 
@@ -1140,6 +1134,29 @@ local function FindMatchingParam( Rows, Row, Char )
 	end 
 	
 	return false 
+end 
+
+// TODO: Make the codefolding work! 
+local function ParseIndents( Rows, exit ) 
+	local ValidLines = FindValidLines( Rows ) 
+	local foldData = { }
+	local level = 0
+	
+	for line = 1, #Rows do
+		if line == exit then break end 
+		local text = Rows[line] 
+		foldData[line] = 0 
+		-- foldData[line] = level 
+		
+		if not ValidLines[line] then continue end 
+		
+		for nStart, sType, nEnd in string.gmatch( text, "()([{}])()") do 
+			if type( ValidLines[line] ) == "table" and ValidLines[line][1] <= nStart and ValidLines[line][2] >= nEnd then continue end 
+			level = level + ( sType == "{" and 1 or -1 ) 
+		end 
+	end
+	
+	return foldData 
 end 
 
 function PANEL:Paint( w, h )
