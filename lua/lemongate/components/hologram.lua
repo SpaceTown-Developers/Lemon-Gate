@@ -324,7 +324,7 @@ Component:AddFunction( "hologram", "", "h", "%HoloLib.Create( %trace, %context )
 Component:AddFunction( "hologram", "s", "h", "%HoloLib.Create2( %trace, %context, value %1 )")
 
 Component:AddFunction( "hologram", "s,v", "h", [[
-local %Holo = %HoloLib.Create( %trace, %context, value %1 )
+local %Holo = %HoloLib.Create2( %trace, %context, value %1 )
 %Holo:SetPos( value %2:Garry( ) )
 ]], "%Holo" )
 
@@ -523,10 +523,15 @@ if $IsValid( value %1 ) and value %1.Player == %context.Player and $IsValid( val
 	value %1:SetParent(value %2)
 end]], "" )
 
+Component:AddFunction("parent", "h:h", "", [[
+if $IsValid( value %1 ) and value %1.Player == %context.Player and $IsValid( value %2 )then
+	value %1:SetParent(value %2)
+end]], "" )
+
 Component:AddFunction("getParentHolo", "h:", "h", [[
 local %Val = %NULL_ENTITY
 
-if %IsValid( value %1 ) then
+if $IsValid( value %1 ) then
 	local %Parent = value %1:GetParent( )
 	
 	if %Parent and %Parent:IsValid( ) and %Parent.IsHologram then

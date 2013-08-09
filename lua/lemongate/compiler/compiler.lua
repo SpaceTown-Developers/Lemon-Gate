@@ -426,7 +426,7 @@ function Compiler:Compile_CAST( Trace, CastType, Value )
 	local CastFrom, CastTo = Value.Return, self:GetClass( Trace, CastType )
 	
 	if CastTo.Short == CastFrom then
-		self:TraceError( "%s can not be cast to itself", CastType.Name )
+		self:TraceError( Trace, "%s can not be cast to itself", CastTo.Name )
 	elseif !CastFrom or CastFrom == "" then
 		self:TraceError( Trace, "Casting operator recives void" )
 	elseif CastFrom == "..." then
@@ -755,7 +755,6 @@ function Compiler:Compile_LAMBDA( Trace, Params, HasVarArg, Sequence )
 			CallParams[I] = Var
 			
 			CallPrepare[I] = [[
-				local Trace = ]] .. self:CompileTrace( Trace ) .. [[
 				if ( !]] .. Var .. " or (" .. Var ..[[[1] == nil) ) then
 					Context:Throw( Trace, "invoke", "Paramater ]] .. Param[1] .. [[ is a void value" )
 				elseif ( ]] .. Var .. [[[2] ~= "]] .. Param[2] .. [[" ) then
@@ -775,6 +774,9 @@ function Compiler:Compile_LAMBDA( Trace, Params, HasVarArg, Sequence )
 		local Params = string.Implode( ", ", CallParams )
 		
 		local Lua = "local " .. ID .. " = function( " .. Params .. [[ )
+			local Trace = ]] .. self:CompileTrace( Trace ) .. [[
+			Context:PushPerf( Trace, ]] .. (( Sequence.Perf or 0) + LEMON_PERF_CHEAP ) .. [[ )
+			
 			]] .. self:PushEnviroment( ) .. [[
 			]] .. string.Implode( "\n", CallPrepare ) .. [[
 			]] .. Sequence.Prepare .. [[

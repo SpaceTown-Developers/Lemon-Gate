@@ -161,7 +161,7 @@ function Lemon:Think( )
 	if self:IsRunning( ) then
 		local Context = self.Context
 		
-		self:SetNWInt( "GatePerf", Context.Perf )
+		self:SetNWFloat( "GatePerf", Context.Perf )
 		self:SetNWString( "GateName", self.GateName )
 		self:SetNWFloat( "GateTime", Context.Time )
 		

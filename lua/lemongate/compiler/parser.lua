@@ -258,11 +258,7 @@ function Compiler:GetValue( RootTrace )
 		end
 	end
 	
-	if CastType then -- Returning is better here!
-		return self:Compile_CAST( Trace, CastType, self:GetExpression( Trace ) )
-	
-	-- Group Equation
-	elseif self:AcceptToken( "lpa" ) then
+	if self:AcceptToken( "lpa" ) then
 		Value = self:GetExpression( RootTrace )
 		
 		self:RequireToken( "rpa", "Right parenthesis ( )) missing, to close grouped equation" )
@@ -362,9 +358,9 @@ function Compiler:GetValue( RootTrace )
 	
 	Value = self:NextValueOperator( Value, self:GetFlag( "ExprTrace" ) )
 			
-	-- if CastType then
-		-- Value = self:Compile_CAST( Trace, CastType, Value )
-	-- end
+	if CastType then
+		Value = self:Compile_CAST( Trace, CastType, Value )
+	end
 
 	if PreInstr then
 		Value = self["Compile_" .. PreInstr]( self, Trace, Value )

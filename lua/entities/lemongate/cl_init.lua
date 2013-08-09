@@ -9,7 +9,7 @@ ENT.RenderGroup = RENDERGROUP_OPAQUE
 ==========================================================================*/
 function ENT:GetOverlayText( )
 	local Status = "Offline: 0 ops, 0%"
-	local Perf = self:GetNWInt( "GatePerf", 0 )
+	local Perf = self:GetNWFloat( "GatePerf", 0 )
 	
 	if self:GetNWBool( "Crashed", false ) then
 		Status = "Script Error"
