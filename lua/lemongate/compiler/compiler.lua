@@ -247,7 +247,6 @@ function Compiler:CompileCode( Code, Files, NoCompile )
 			-- Prep Code
 				local Memory = Context.Memory
 				local Delta = Context.Delta
-				local Click = Context.Click
 				
 				]] .. string.Implode( "\n", self.PrepCode ) .. [[
 		
@@ -309,7 +308,7 @@ function Compiler:PushEnviroment( )
 	
 	Cells.Push = nil
 	
-	return "local Cells = " .. Util.ValueToLua( Cells ) .. "\nlocal Memory, Delta, Click = Context:Enviroment( Memory, Delta, Click, Cells )"
+	return "local Cells = " .. Util.ValueToLua( Cells ) .. "\nlocal Memory, Delta = Context:Enviroment( Memory, Delta, Cells )"
 end
 
 /*==============================================================================================
@@ -1126,8 +1125,7 @@ function Compiler:Compile_EVENT( Trace, EventName, Perams, HasVarg, Block, Exit 
 	end
 	
 	Lua = "Context.Event_" .. EventName .. " = function( " .. string.Implode( ",", EventParams ) .. [[ )
-		local Cells = ]] .. Util.ValueToLua( self:GetFlag( "NewCells", { } ) ) .. [[
-		local Memory, Delta, Click = Context:Enviroment( Memory, Delta, Click, Cells )
+		]] .. self:PushEnviroment( ) .. [[
 				
 		Context:PushPerf( ]] .. self:CompileTrace( Trace ) .. "," .. Event.Perf .. [[ )
 		

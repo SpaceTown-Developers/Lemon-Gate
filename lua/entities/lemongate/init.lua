@@ -50,7 +50,9 @@ local function CompileSoftly( Entity, Script, Files )
 		Entity:LoadInstance( Instance )
 	end
 	
-	Entity:Pcall( "main thread", Instance.Execute, Entity.Context )
+	if Entity:Pcall( "main thread", Instance.Execute, Entity.Context ) then
+		Entity:Update( )
+	end
 end
 
 function Lemon:LoadScript( Script, Files )
@@ -129,13 +131,12 @@ hook.Add( "Tick", "LemonGate.Update", function( )
 end )
 
 function Lemon:Update( )
-	self:TriggerOutputs( )
-	self.Context:Update( )
-	self:API( ):CallHook( "UpdateEntity", self )
-		
 	if !Updates[ self ] then
 		Updates[ self ] = true
+		self:TriggerOutputs( )
+		self.Context:Update( )
 		self:GarbageCollect( )
+		self:API( ):CallHook( "UpdateEntity", self )
 	end
 end
 

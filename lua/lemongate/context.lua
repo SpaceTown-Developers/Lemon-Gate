@@ -71,7 +71,7 @@ end
 ==============================================================================================*/
 local setmetatable, rawset, rawget = setmetatable, rawset, rawget
 
-function Context:Enviroment( _Memory, _Delta, _Click, Cells )
+function Context:Enviroment( _Memory, _Delta, Cells )
 	local Memory = {
 		__index = function( tbl, key )
 			if Cells[key] then
@@ -108,25 +108,7 @@ function Context:Enviroment( _Memory, _Delta, _Click, Cells )
 		end
 	}
 	
-	-- local Click = {
-		-- __index = function( tbl, key )
-			-- if Cells[key] then
-				-- return rawget( tbl, key)
-			-- else
-				-- return _Click[key]
-			-- end
-		-- end,
-		
-		-- __newindex = function( tbl, key, value )
-			-- if Cells[key] then
-				-- rawset( tbl, key, value)
-			-- else
-				-- _Click[key] = value
-			-- end
-		-- end
-	-- }
-	
-	return setmetatable(Memory, Memory), setmetatable(Delta, Delta), _Click // setmetatable(Click, Click)
+	return setmetatable(Memory, Memory), setmetatable(Delta, Delta)
 end
 
 
