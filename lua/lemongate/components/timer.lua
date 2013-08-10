@@ -22,7 +22,7 @@ local CurTime, pcall = CurTime, pcall
 local function Timer( )
 	local Time, Sucess = CurTime( )
 	
-	for _, Gate in pairs( API:GetRunning( ) ) do
+	for _, Gate in pairs( API:GetEntitys( ) ) do
 		if Gate:IsRunning( ) then
 			local Context = Gate.Context
 			
@@ -54,7 +54,10 @@ local function Timer( )
 	end
 end
 
-timer.Create( "LemonGate.Timers", 0.01, 0, function( ) pcall( Timer ) end )
+timer.Create( "LemonGate.Timers", 0.01, 0, function( )
+	local Ok, Msg = pcall( Timer )
+	if !Ok then print( "[LemonGate] timer error: " .. Msg ) end
+end )
 
 /*==============================================================================================
     General Time

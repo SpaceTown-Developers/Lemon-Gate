@@ -71,7 +71,7 @@ function Component:CreateContext( Context )
 end
 
 timer.Create( "LemonGate.Http", 0.1, 0, function( )
-	for _, Gate in pairs( API:GetRunning( ) ) do
+	for _, Gate in pairs( API:GetEntitys( ) ) do
 		if Gate:IsRunning( ) then
 			for Key, Request in pairs( Gate.Context.Data.HTTP ) do
 				

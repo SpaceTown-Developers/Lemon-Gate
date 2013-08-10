@@ -228,6 +228,7 @@ do -- For Loop
 	ExitDeph = ExitDeph or 0
 	
 	while ( value %2 ) do
+	
 		local Ok, Exit = pcall( Statments )
 		
 		if Ok then
