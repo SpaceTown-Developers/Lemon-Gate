@@ -1,7 +1,7 @@
 if !WireLib or !LEMON then return end
 
 include('shared.lua')
-CreateConVar( "lemongate_perf", "25000", {FCVAR_REPLICATED} )
+CreateConVar( "lemongate_perf", "10000", {FCVAR_REPLICATED} )
 
 ENT.RenderGroup = RENDERGROUP_OPAQUE
 
@@ -18,12 +18,12 @@ function ENT:GetOverlayText( )
 	elseif Perf >= Max then
 		Status = "Warning: " .. Perf .." ops, 100%"
 	elseif Perf >= (Max * 0.9 ) then
-		Status = "Warning: " .. string.format( "%s ops, %s%%", Perf, math.ceil(Perf / Max) )
+		Status = "Warning: " .. string.format( "%s ops, %s%%", Perf, math.ceil((Perf / Max) * 100) )
 	elseif Perf > 0 then
-		Status = "Online: " .. string.format( "%s ops, %s%%", Perf, math.ceil(Perf / Max) ) 
+		Status = "Online: " .. string.format( "%s ops, %s%%", Perf, math.ceil((Perf / Max) * 100) ) 
 	end
 	
-	return string.format( "-Expression Advanced-\n(%s)\n\n%s\n%s\nBenchmark: %s's", self:GetPlayerName( ), self:GetNWString( "GateName", "LemonGate" ), Status, math.Round( self:GetNWFloat( "GateTime", 0 ), 4 ) )
+	return string.format( "-Expression Advanced-\n%s\n%s\nCpu Time: %s's\n(%s)", self:GetNWString( "GateName", "LemonGate" ), Status, math.Round( self:GetNWFloat( "GateTime", 0 ), 4 ), self:GetPlayerName( ) )
 	
 end
 

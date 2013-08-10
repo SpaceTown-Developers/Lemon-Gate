@@ -211,7 +211,7 @@ Core:AddOperator( "return", "", "", "return value %1" )
 	Section: Loops
 ==============================================================================================*/
 
-Core:SetPerf( LEMON_PERF_EXPENSIVE )
+Core:SetPerf( LEMON_PERF_NORMAL )
 
 -- 1:Ass, 2:Cnd, 3:Step, 4:Statment
 Core:AddOperator( "for", "n", "", [[
@@ -221,7 +221,6 @@ do -- For Loop
 	
 	local Statments = function( )
 		%perf
-		
 		prepare %4
 		return value %4
 	end
@@ -229,8 +228,6 @@ do -- For Loop
 	ExitDeph = ExitDeph or 0
 	
 	while ( value %2 ) do
-		%context:PushPerf( %trace, ]] .. LEMON_PERF_NORMAL .. [[ )
-		
 		local Ok, Exit = pcall( Statments )
 		
 		if Ok then
@@ -249,14 +246,13 @@ do -- For Loop
 end
 ]], "" )
 
-Core:SetPerf( LEMON_PERF_EXPENSIVE )
+Core:SetPerf( LEMON_PERF_NORMAL )
 
 Core:AddOperator( "while", "", "", [[
 do -- While Loop
 	
 	local Statments	= function( )
 		%perf
-		
 		prepare %2
 		return value %2
 	end
@@ -264,8 +260,6 @@ do -- While Loop
 	ExitDeph = ExitDeph or 0
 	
 	while ( value %1 ) do
-		%context:PushPerf( %trace, ]] .. LEMON_PERF_NORMAL .. [[ )
-		
 		local Ok, Exit = pcall( Statments )
 		
 		if !Ok then

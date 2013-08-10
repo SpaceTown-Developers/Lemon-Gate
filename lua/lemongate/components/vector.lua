@@ -221,3 +221,11 @@ Core:AddFunction( "inrange", "v,v,v", "b",
 ==============================================================================================*/
 Core:AddFunction( "mix", "v,v,n", "v", "local %Shift = 1 - value %3",
 "Vector3(value %1.x * value %3 + value %2.x * %Shift, value %1.y * value %3 + value %2.y * %Shift, value %1.z * value %3 + value %2.z * %Shift)")
+
+/*==============================================================================================
+	Section: Very useful
+==============================================================================================*/
+Core:AddFunction( "intersectRayWithOBB", "v,v,v,a,v,v", "v", "Vector3( $util.IntersectRayWithOBB( value %1:Garry( ), value %2:Garry( ), value %3:Garry( ), value %4, value %5:Garry( ), value %6:Garry( ) ) )")
+
+Core:AddFunction( "intersectRayWithPlane", "v,v,v,v", "v", "Vector3( $util.IntersectRayWithPlane( value %1:Garry( ), value %2:Garry( ), value %3:Garry( ), value %4:Garry( ) ) )")
+

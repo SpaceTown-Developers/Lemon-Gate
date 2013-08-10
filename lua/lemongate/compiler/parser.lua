@@ -734,7 +734,7 @@ end
 		
 /****************************************************************************************************/
 
-function Compiler:Statment_GLOBAL( RootTrace )
+function Compiler:Statment_GLO( RootTrace )
 	local Trace = self:TokenTrace( RootTrace )
 	
 	if self:AcceptToken( "func" ) then -- This is a Global function!
