@@ -3,10 +3,10 @@
 	Purpose: Make the fancy EA editor.
 	Author: Oskar 
 ---------------------------------------------------------------------------*/
-local EA = LEMON
+local LEMON = LEMON
 
-EA.Editor = {}
-local Editor = EA.Editor
+LEMON.Editor = { }
+local Editor = LEMON.Editor
 
 require( "vector2" )
 /*---------------------------------------------------------------------------
@@ -72,6 +72,7 @@ end )
 local HomeScreen = [[/*===================================================
 	Expression Advanced:
 		* Check out our new repo browser!
+		* The editor has a settings nenu now.
 		
 	Docs: https://github.com/SpaceTown-Developers/Lemon-Gate/wiki
 	Bug Reports: https://github.com/SpaceTown-Developers/Lemon-Gate/issues
@@ -86,7 +87,7 @@ local HomeScreen = [[/*===================================================
 local function SyntaxColorLine( self, Row ) 
 	local Tokens, Ok 
 	
-	Ok, Tokens = pcall( Syntax.Parse, self, Row )
+	Ok, Tokens = pcall( LEMON.Highlight, self, Row )
 	
 	if !Ok then 
 		ErrorNoHalt( Tokens .. "\n" )

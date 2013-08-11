@@ -213,6 +213,9 @@ Component:AddOperator( "[]+", "t,?", "", "value %1:Set( nil, value %2[2],value %
 	Index Operators
 ==============================================================================================*/
 function Component:BuildOperators( )
+	
+	self:SetPerf( LEMON_PERF_CHEAP )
+	
 	for Name, Class in pairs( API.Classes ) do
 		if !Class.NoTableUse then
 			
@@ -272,7 +275,8 @@ end
 /*==============================================================================================
 	ForEach Loop
 ==============================================================================================*/
--- 1 Table, 2 KType
+Component:SetPerf( LEMON_PERF_CHEAP )
+
 Component:AddOperator( "foreach", "t", "", [[
 do
 	%prepare
@@ -282,12 +286,11 @@ do
 	
 	local Statments = function( )
 		%perf
-		
 		prepare %6
 	end
 	
 	for Key, Type, Value in value %1:Itorate( ) do
-		%context:PushPerf( %trace, ]] .. LEMON_PERF_NORMAL .. [[ )
+		%context:PushPerf( %trace, ]] .. LEMON_PERF_CHEAP .. [[ )
 		
 		local KeyType = $type( Key )[1]
 		

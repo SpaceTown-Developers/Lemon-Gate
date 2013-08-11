@@ -162,6 +162,8 @@ function API:Init( )
 		self.Config = self.DataPack.Config
 	end
 	
+	hook.Call( "LemonGate_PreInit", GAMEMODE or GM, self )
+	
 	MsgN( "[LemonGate] Loading components." )
 	self:LoadCoreComponents( ) 
 	
@@ -170,15 +172,13 @@ function API:Init( )
 	self:LoadCustomComponents( "lemongate/components/custom/" ) 
 	self:LoadCustomComponents( GAMEMODE.FolderName .. "/gamemode/EAComponents/" )
 	
+	hook.Call( "LemonGate_AddComponents", GAMEMODE or GM, self )
+	
 	MsgN( "[LemonGate] Loading awesome editor." ) 
 	
 	self:LoadEditor( )
 	
-	hook.Call( "PRE_LEMONGATE", GAMEMODE or GM )
-	
 	self:InstallComponents( )
-	
-	hook.Call( "POST_LEMONGATE", GAMEMODE or GM )
 	
 	if SERVER then
 		MsgN( "Loading context." )
@@ -195,6 +195,8 @@ function API:Init( )
 	end
 	
 	self.Initialized = true
+	
+	hook.Call( "LemonGate_PostInit", GAMEMODE or GM, self )
 end
 
 if SERVER then
@@ -664,19 +666,6 @@ if SERVER then
 			Second = Second,
 		}
 	end
-
-	--[[ Need to actualy fix this!
-	function Component:AddReversableOperator( Name, Params, Return, First, Second, Flag )
-		Util.CheckParams( 1, Name, "string", false, Params, "string", false, Return, "string", false, First, "string", false, Second, "string", true )
-		
-		local S = Find( Params, ",", 0, true )
-		self:AddOperator( Name, Params, Return, First, Second, Flag )
-		
-		if S then -- Now S+N will become N+S
-			local Params = string.sub( Params, 1, S - 1 ) .. string.sub( Params, S + 1 )
-			self:AddOperator( Name, Params, Return, First, Second, Flag )
-		end
-	end ]]
 	
 	function Component:LoadOperators( )
 		if self.Enabled then

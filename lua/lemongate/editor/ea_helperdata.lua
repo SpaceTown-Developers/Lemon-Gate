@@ -16,6 +16,8 @@ local Data = LEMON.API.HelperData
 /*---------------------------------------------------------------------------
 	Events
 ---------------------------------------------------------------------------*/
+// D
+Data["dupeFinished<>"] = "Called once the advanced duplicator has finished pasting the chip and all constrained entitys."
 
 // F
 Data["final<>"] = "Called just before the chip is removed."
@@ -328,6 +330,8 @@ Data["httpPostRequest(stff)"] = "Makes a HTTP POST request to S with POST parame
 Data["httpRequest(sff)"] = "Makes a HTTP GET request to S and calls F1 with Body[String] on success and F2 with no parameters on failure."
 
 // I
+Data["include(s)"] = "includes a file with in scope."
+Data["include(sb)"] = "includes a file with new scope if boolean is true."
 Data["i(q: n)"] = ""
 Data["ignoreNoDraw(xtr:b)"] = "Trace Mask: No-Draw textures"
 Data["inNoclip(e: b)"] = "Returns true if the entity is no-clipped."

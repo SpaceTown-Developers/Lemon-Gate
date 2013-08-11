@@ -67,6 +67,8 @@ end )
 /*==============================================================================================
 	Section: Base Operators
 ==============================================================================================*/
+Core:SetPerf( LEMON_PERF_CHEAP )
+
 Core:AddOperator( "=", "", "", [[
 %memory[value %1] = value %2
 %click[value %1] = true
@@ -180,6 +182,8 @@ Core:AddFunction( "tostring", "?", "s", "( tostring(value %1[1]) .. \" -> \" .. 
 ==============================================================================================*/
 
 function Core:BuildOperators( )
+	self:SetPerf( LEMON_PERF_CHEAP )
+	
 	for Name, Class in pairs( API.Classes ) do
 		
 		-- Variants:
@@ -195,7 +199,7 @@ end
 /*==============================================================================================
 	Section: Statments
 ==============================================================================================*/
-Core:SetPerf( LEMON_PERF_NORMAL )
+Core:SetPerf( LEMON_PERF_CHEAP )
 
 Core:AddOperator( "define", "", "", [[
 if %memory[value %1] == nil then
@@ -203,14 +207,11 @@ if %memory[value %1] == nil then
 end
 ]], "" )
 
-Core:SetPerf( LEMON_PERF_CHEAP )
-
 Core:AddOperator( "return", "", "", "return value %1" )
 
 /*==============================================================================================
 	Section: Loops
 ==============================================================================================*/
-
 Core:SetPerf( LEMON_PERF_NORMAL )
 
 -- 1:Ass, 2:Cnd, 3:Step, 4:Statment
@@ -246,8 +247,6 @@ do -- For Loop
 	end
 end
 ]], "" )
-
-Core:SetPerf( LEMON_PERF_NORMAL )
 
 Core:AddOperator( "while", "", "", [[
 do -- While Loop
@@ -330,3 +329,10 @@ Core:AddFunction( "softPerf", "", "n", "((%context.MaxPerf * 0.90) - %context.Pe
 	Section: Things that have no place to go!
 ==============================================================================================*/
 Core:AddFunction( "map", "", "s", "($game.GetMap( ) or \"\")" )
+
+/*==============================================================================================
+	Section: Do not exist functions (Compiler operators)
+==============================================================================================*/
+Core:AddFunction( "print", "...", "", "" )
+Core:AddFunction( "include", "s", "", "" )
+Core:AddFunction( "include", "s,b", "", "" )

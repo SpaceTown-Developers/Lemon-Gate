@@ -86,7 +86,8 @@ function PANEL:SetupHelperFunctions( filter )
 	
 	self.Browser:Clear( ) 
 	
-	// TODO: Do in timer to prevent lag? 
+	// TODO: Do in timer to prevent lag?
+	// Or use a coroutine =D
 	filter = filter or ".+" 
 	
 	self.Classes = { } 
@@ -148,7 +149,7 @@ function PANEL:SetupHelperFunctions( filter )
 				), 
 				data 
 			}
-		end 
+		end
 	end
 	
 	for Class, List in pairs( self.cFunctions ) do

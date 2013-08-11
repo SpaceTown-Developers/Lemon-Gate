@@ -222,11 +222,12 @@ if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) then
 	local %Phys = value %1:GetPhysicsObject()
 	%Phys:EnableMotion( value %2 )
 	%Phys:Wake( )
+end]], "" )
 
-	if !Phys:IsMoveable( ) then
-		Phys:EnableMotion( true )
-		Phys:EnableMotion( false)
-	end
+Component:AddFunction("freeze", "p:b", "", [[
+if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1:GetEntity( ) ) then
+	value %1:EnableMotion( value %2 )
+	value %1:Wake( )
 end]], "" )
 
 /*==============================================================================================
@@ -242,13 +243,24 @@ end]], "" )
 ==============================================================================================*/
 Component:AddFunction("enableGravity", "e:b", "", [[
 if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) then
-	local Phys = value %1:GetPhysicsObject()
-	Phys:EnableGravity( value %2 )
-	Phys:Wake( )
+	local %Phys = value %1:GetPhysicsObject()
+	%Phys:EnableGravity( value %2 )
+	%Phys:Wake( )
 
-	if !Phys:IsMoveable() then
-		Phys:EnableMotion( true  )
-		Phys:EnableMotion( false)
+	if !%Phys:IsMoveable() then
+		%Phys:EnableMotion( true )
+		%Phys:EnableMotion( false )
+	end
+end]], "" )
+
+Component:AddFunction("enableGravity", "p:b", "", [[
+if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1:GetEntity( ) ) then
+	value %1:EnableGravity( value %2 )
+	value %1:Wake( )
+
+	if !value %1:IsMoveable( ) then
+		value %1:EnableMotion( true )
+		value %1:EnableMotion( false )
 	end
 end]], "" )
 

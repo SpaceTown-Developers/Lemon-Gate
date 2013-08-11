@@ -3,64 +3,67 @@
 	Autor: Oskar
 	Credits: The authors of the E2 syntax highlighter 
 ============================================================================================================================================*/
+local LEMON, API = LEMON, LEMON.API
+
+/********************************************************************************************************************************************/
+
+local Syntaxer = { }
+LEMON.Syntaxer = Syntaxer
+
+/********************************************************************************************************************************************/
+
+local tonumber, pairs, Color = tonumber, pairs, Color 
 
 local table_concat = table.concat 
-
 local string_find = string.find 
 local string_gmatch = string.gmatch 
 local string_gsub = string.gsub 
 local string_match = string.match 
 local string_sub = string.sub 
 
-local tonumber = tonumber 
-local pairs = pairs 
-local Color = Color 
-
-Syntax = { } 
-local Syntax = { } 
-local EA = LEMON 
-local API = EA.API 
-
-local function SetupFunctionTable( )
-	if not API.Initialized or not API.Functions then 
-		timer.Simple( 1, SetupFunctionTable )
-		return 
+/*============================================================================================================================================
+	Build Syntaxer Tables
+============================================================================================================================================*/
+function Syntaxer:BuildFunctionTable( )
+	local Functions = { }
+	
+	for Name, Data in pairs( API.Functions ) do 
+		local Func = string_match( Name, "^[^%(]+" ) 
+		Functions[Func] = true 
 	end 
 	
-	// TODO: Do in timer to prevent lagg?
-	local Functions = { } 
-	for name, data in pairs( API.Functions ) do 
-		local funcName = string_match( name, "^[^%(]+" ) 
-		Functions[funcName] = true 
-	end 
-	
-	// Hardcoded functions: 
 	Functions["include"] = true 
 	Functions["print"] = true 
 	
-	Syntax.Functions = Functions 
+	self.Functions = Functions
 end
 
-local function SetupEventsTable( )
-	if not API.Initialized or not API.Events then 
-		timer.Simple( 1, SetupEventsTable )
-		return 
+function Syntaxer:BuildEventsTable( )
+	local Events = { }
+	
+	for Name, Data in pairs( API.Events ) do 
+		local Func = string_match( Name, "^[^%(]+" ) 
+		Events[Func] = true 
 	end 
 	
-	// TODO: Do in timer to prevent lagg?
-	local Events = { } 
-	for name, data in pairs( API.Events ) do 
-		local funcName = string_match( name, "^[^%(]+" ) 
-		Events[funcName] = true 
-	end 
-	Syntax.Events = Events
+	self.Events = Events
 end
 
-SetupFunctionTable( )
-SetupEventsTable( )
-Syntax.UserFunctions = { } 
+function Syntaxer.Rebuild( )
+	if API.Initialized then
+		Syntaxer:BuildFunctionTable( )
+		Syntaxer:BuildEventsTable( )
+		Syntaxer.UserFunctions = { } 
+	end
+end
 
-function Syntax:ResetTokenizer( Row )
+Syntaxer.Rebuild( ) -- For the editor reload command
+hook.Add( "LemonGate_PostInit", "LemonGate.Syntaxer", Syntaxer.Rebuild )
+
+/*============================================================================================================================================
+	Syntaxer Functions
+============================================================================================================================================*/
+function Syntaxer:ResetTokenizer( Row )
 	self.line = self.Editor.Rows[Row]
 	self.position = 0
 	self.char = ""
@@ -104,7 +107,7 @@ function Syntax:ResetTokenizer( Row )
 	end
 end
 
-function Syntax:NextCharacter( )
+function Syntaxer:NextCharacter( )
 	if not self.char then return end
 
 	self.tokendata = self.tokendata .. self.char
@@ -117,7 +120,7 @@ function Syntax:NextCharacter( )
 	end
 end
 
-function Syntax:NextPattern( pattern, skip )
+function Syntaxer:NextPattern( pattern, skip )
 	if !self.char then return false end
 	local startpos, endpos, text = string_find( self.line, pattern, self.position )
 	
@@ -139,6 +142,10 @@ function Syntax:NextPattern( pattern, skip )
 	return skip and text or true 
 end
 
+/*============================================================================================================================================
+	Syntaxer Keywords
+============================================================================================================================================*/
+
 local keywords = {
 	-- keywords that can be followed by a "(":
 	["if"]       = { true, true }, 
@@ -158,7 +165,6 @@ local keywords = {
 	["break"]    = { true, false },
 	["continue"] = { true, false },
 	["return"]   = { true, false },
-	-- ["local"]    = { true, false },
 	["global"]   = { true, false },
 	["input"]    = { true, false },
 	["output"]   = { true, false },
@@ -170,8 +176,10 @@ local keywords = {
 -- fallback for nonexistant entries:
 setmetatable( keywords, { __index = function( tbl, index ) return { } end } )
 
+/*============================================================================================================================================
+	Default Color Configeration
+============================================================================================================================================*/
 /*
-	
 	"wire_expression2_editor_color_comment"			"128_128_128"
 	"wire_expression2_editor_color_constant"		"140_200_50"
 	"wire_expression2_editor_color_directive"		"100_200_255"
@@ -192,11 +200,15 @@ setmetatable( keywords, { __index = function( tbl, index ) return { } end } )
 	wire_expression2_editor_color_typename 80_160_240;wire_expression2_editor_color_userfunction 102_122_102;wire_expression2_editor_color_variable 0_180_80
 */
 
+/*============================================================================================================================================
+	Syntaxer Colors
+============================================================================================================================================*/
 local colors = { 
 	/* TODO: 
 		Make propper color scheme 
 		Add syntax color options 
 	*/
+	
 	["comment"]      = Color( 128, 128, 128 ), 
 	["event"]        = Color(  80, 160, 240 ), // TODO: Other color? 
 	["exception"]    = Color(  80, 160, 240 ), // TODO: Other color? 
@@ -214,67 +226,77 @@ local colors = {
 -- fallback for nonexistant entries: 
 setmetatable( colors, { __index = function( tbl, index ) return Color( 255, 255, 255 ) end } ) 
 
+/*============================================================================================================================================
+	Syntaxer Colors options.
+============================================================================================================================================*/
 local colors_defaults = { }
 local colors_convars = { }
-local function UpdateSyntaxColors( bNoUpdate )
+
+function Syntaxer:UpdateSyntaxColors( bNoUpdate )
 	for k,v in pairs( colors_convars ) do
 		local r, g, b = string_match( v:GetString( ), "(%d+)_(%d+)_(%d+)" )
 		local def = colors_defaults[k]
 		colors[k] = Color( tonumber( r ) or def.r, tonumber( g ) or def.g, tonumber( b ) or def.b )
 	end 
 	
-	if !bNoUpdate and EA.Editor.Instance then 
-		EA.Editor.Instance:UpdateSyntaxColors( ) 
+	if !bNoUpdate and Editor.Instance then 
+		Editor.Instance:UpdateSyntaxColors( ) 
 	end 
 end 
 
-local function UpdateSyntaxColor( sCVar, sOld, sNew ) 
+function Syntaxer.UpdateSyntaxColor( sCVar, sOld, sNew ) 
 	local cvar = string_match( sCVar, ".+_(.+)$" ) 
 	local r, g, b = string_match( sNew, "(%d+)_(%d+)_(%d+)" )
 	local def = colors_defaults[cvar]
 	colors[cvar] = Color( tonumber( r ) or def.r, tonumber( g ) or def.g, tonumber( b ) or def.b )
 	
-	if EA.Editor.Instance then 
-		EA.Editor.Instance:UpdateSyntaxColors( ) 
+	if Editor.Instance then 
+		Editor.Instance:UpdateSyntaxColors( ) 
 	end 
 end 
 
 for k,v in pairs( colors ) do
 	colors_defaults[k] = Color( v.r, v.g, v.b ) -- Copy to save defaults
 	colors_convars[k] = CreateClientConVar( "lemon_editor_color_" .. k, v.r .. "_" .. v.g .. "_" .. v.b, true, false )
-	cvars.AddChangeCallback( "lemon_editor_color_" .. k, UpdateSyntaxColor )
+	cvars.AddChangeCallback( "lemon_editor_color_" .. k, Syntaxer.UpdateSyntaxColor )
 end
-UpdateSyntaxColors( true )
-_G.Syntax.ColorConvars = colors_convars 
-_G.Syntax.UpdateSyntaxColors = UpdateSyntaxColors 
 
-do 
-	local reset = CreateClientConVar( "lemon_editor_resetcolors", "0", true, false ) 
-	local norun = false 
-	
-	local callbacks = cvars.GetConVarCallbacks( "lemon_editor_resetcolors", true )
-	callbacks[1] = function( sCVar, sOld, sNew )
-		if norun then return end 
-		if sNew ~= "0" then 
-			norun = true
-			RunConsoleCommand( "lemon_editor_resetcolors", "0" ) 
-			norun = false
-			
-			if colors_defaults[sNew] then 
-				RunConsoleCommand( "lemon_editor_color_" .. sNew, colors_defaults[sNew].r .. "_" .. colors_defaults[sNew].g .. "_" .. colors_defaults[sNew].b )
-			else 
-				for k, v in pairs( colors_defaults ) do
-					RunConsoleCommand( "lemon_editor_color_" .. k, v.r .. "_" .. v.g .. "_" .. v.b )
-				end 
+Syntaxer:UpdateSyntaxColors( true )
+Syntaxer.ColorConvars = colors_convars 
+Syntaxer.UpdateSyntaxColors = UpdateSyntaxColors 
+
+/*============================================================================================================================================
+	Syntaxer Colors reset.
+============================================================================================================================================*/
+local reset = CreateClientConVar( "lemon_editor_resetcolors", "0", true, false ) 
+local norun = false 
+
+local callbacks = cvars.GetConVarCallbacks( "lemon_editor_resetcolors", true )
+
+callbacks[1] = function( sCVar, sOld, sNew )
+	if !norun and sNew ~= "0" then 
+		norun = true
+		RunConsoleCommand( "lemon_editor_resetcolors", "0" ) 
+		norun = false
+		
+		if colors_defaults[sNew] then 
+			RunConsoleCommand( "lemon_editor_color_" .. sNew, colors_defaults[sNew].r .. "_" .. colors_defaults[sNew].g .. "_" .. colors_defaults[sNew].b )
+		else 
+			for k, v in pairs( colors_defaults ) do
+				RunConsoleCommand( "lemon_editor_color_" .. k, v.r .. "_" .. v.g .. "_" .. v.b )
 			end 
-			
-			UpdateSyntaxColors( ) 
 		end 
+		
+		UpdateSyntaxColors( ) 
 	end 
 end 
 
-local cols = { } 
-local lastcol 
+
+/*============================================================================================================================================
+	Syntaxer Hilighting.
+============================================================================================================================================*/
+local cols, lastcol = { } 
+
 local function addToken(tokenname, tokendata)
 	local color = colors[tokenname]
 	if lastcol and color == lastcol[2] then
@@ -285,14 +307,14 @@ local function addToken(tokenname, tokendata)
 	end
 end
 
-function Syntax:InfProtect( )
+function Syntaxer:InfProtect( )
 	self.Loops = self.Loops + 1
 	if SysTime( ) > self.Expire then 
 		error( "Code took to long to parse (" .. self.Loops .. ")" )
 	end
 end
 
-function Syntax:AddUserFunction( Row, Name ) 
+function Syntaxer:AddUserFunction( Row, Name ) 
 	if self.Functions[Name] then return end  
 	self.UserFunctions[Name] = Row
 end 
@@ -301,7 +323,7 @@ local function istype( word )
 	return API.Classes[word] and true or false 
 end
 
-function Syntax:Parse( Row )
+function Syntaxer:Parse( Row )
 	cols, lastcol = {}, nil 
 	
 	self.Loops = 0 
@@ -423,7 +445,6 @@ function Syntax:Parse( Row )
 				continue 
 			end 
 			
-			--[[ TODO: Fix when we have exeptions again 
 			if word == "catch" then 
 				self:NextPattern( " *" ) 
 				addToken( tokenname, self.tokendata )
@@ -439,7 +460,7 @@ function Syntax:Parse( Row )
 						local exception = self.tokendata 
 						self:NextPattern( " *" ) 
 						
-						if LEMON.API.Exceptions[ exception ] then 
+						if API.Exceptions[ exception ] then 
 							addToken( "exception", self.tokendata )
 						else 
 							addToken( "notfound", self.tokendata )
@@ -448,8 +469,8 @@ function Syntax:Parse( Row )
 				end 
 				
 				continue 
-			end 
-			-- ]]
+			end
+			
 		elseif self:NextPattern("^0[xb][0-9A-F]+") then
 			tokenname = "number"
 		elseif self:NextPattern("^[0-9][0-9.e]*") then
@@ -511,8 +532,7 @@ function Syntax:Parse( Row )
 end
 
 
-function _G.Syntax.Parse( Editor, Row )
-	if not API.Initialized then return { { Editor.Rows[Row], C_white } } end 
-	Syntax.Editor = Editor 
-	return Syntax:Parse( Row )
+function LEMON.Highlight( Editor, Row )
+	Syntaxer.Editor = Editor 
+	return Syntaxer:Parse( Row )
 end

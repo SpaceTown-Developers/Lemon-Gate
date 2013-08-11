@@ -50,6 +50,9 @@ local function CompileSoftly( Entity, Script, Files )
 		Entity:LoadInstance( Instance )
 	end
 	
+	Entity.Time = 0
+	Entity.CPUTime = 0
+	
 	if Entity:Pcall( "main thread", Instance.Execute, Entity.Context ) then
 		Entity:Update( )
 	end
@@ -151,7 +154,6 @@ function Lemon:Initialize( )
 	self.Inputs = WireLib.CreateInputs( self, { } )
 	self.Outputs = WireLib.CreateOutputs( self, { } )
 	
-	self.CPUTime = 0
 	self.Overlay = "Offline"
 	self.GateName = "LemonGate"
 	
