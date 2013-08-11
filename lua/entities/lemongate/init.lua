@@ -151,6 +151,7 @@ function Lemon:Initialize( )
 	self.Inputs = WireLib.CreateInputs( self, { } )
 	self.Outputs = WireLib.CreateOutputs( self, { } )
 	
+	self.CPUTime = 0
 	self.Overlay = "Offline"
 	self.GateName = "LemonGate"
 	
@@ -162,10 +163,11 @@ function Lemon:Think( )
 	
 	if self:IsRunning( ) then
 		local Context = self.Context
+		self.CPUTime = self.CPUTime * 0.95 + self.Time * 0.05
 		
 		self:SetNWFloat( "GatePerf", Context.Perf )
+		self:SetNWFloat( "GateTime", Context.CPUTime )
 		self:SetNWString( "GateName", self.GateName )
-		self:SetNWFloat( "GateTime", Context.Time )
 		
 		Context.Time = 0
 		Context.Perf = 0

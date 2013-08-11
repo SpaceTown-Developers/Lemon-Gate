@@ -73,7 +73,20 @@ hook.Add("PlayerCanHearPlayersVoice", "LemonGate", function( Player, Speaker )
 	end
 end)
 
+/*==============================================================================================
+	Section: Dupe Pasted.
+==============================================================================================*/
+Core:SetPerf( LEMON_PERF_CHEAP )
 
+Core:AddEvent( "dupeFinished", "", "" )
+
+hook.Add( "AdvDupe_FinishPasting", "LemonGate", function( Data, Current )
+	for _, Gate in pairs( Data[Current].CreatedEntities ) do
+		if IsValid( Gate ) and Gate.IsLemonGate and Gate:IsRunning( ) then
+			Gate:CallEvent( "dupeFinished" )
+		end
+	end
+end )
 
 /*==============================================================================================
 	Section: Player Input event.

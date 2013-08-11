@@ -56,16 +56,22 @@ Core:AddOperator( "^", "v,v", "v", "(value %1 ^ value %2)" )
 -- Mumberic Arithmatic:
 
 Core:AddOperator( "+", "v,n", "v", "(value %1 + Vector3(value %2, value %2, value %2))" )
+Core:AddOperator( "+", "n,v", "v", "(Vector3(value %1, value %1, value %1) + value %2)" )
 
 Core:AddOperator( "-", "v,n", "v", "(value %1 - Vector3(value %2, value %2, value %2))" )
+Core:AddOperator( "-", "n,v", "v", "(Vector3(value %1, value %1, value %1) - value %2)" )
 
 Core:AddOperator( "*", "v,n", "v", "(value %1 * Vector3(value %2, value %2, value %2))" )
+Core:AddOperator( "*", "n,v", "v", "(Vector3(value %1, value %1, value %1) * value %2)" )
 
 Core:AddOperator( "/", "v,n", "v", "(value %1 / Vector3(value %2, value %2, value %2))" )
+Core:AddOperator( "/", "n,v", "v", "(Vector3(value %1, value %1, value %1) / value %2)" )
 
 Core:AddOperator( "%", "v,n", "v", "(value %1 % Vector3(value %2, value %2, value %2))" )
+Core:AddOperator( "%", "n,v", "v", "(Vector3(value %1, value %1, value %1) % value %2)" )
 
 Core:AddOperator( "^", "v,n", "v", "(value %1 ^ Vector3(value %2, value %2, value %2))" )
+Core:AddOperator( "^", "n,v", "v", "(Vector3(value %1, value %1, value %1) ^ value %2)" )
 
 -- General:
 
@@ -201,7 +207,7 @@ local %Shift = 10 ^ math.floor(value %2 + 0.5)
 ]], "Vector3(value %1.x - ((value %1.x * %Shift) % -1) / %Shift, value %1.y - ((value %1.y * %Shift) % -1) / %Shift, value %1.z - ((value %1.z * %Shift) % -1) / %Shift)" )
 
 Core:AddFunction( "round", "v", "v",
-"Vector3(V.x - (V.x + 0.5) % 1 + 0.5, value %1.y - (value %1.y + 0.5) % 1 + 0.5, value %1.z - (value %1.z + 0.5) % 1 + 0.5)" )
+"Vector3(value %1.x - (value %1.x + 0.5) % 1 + 0.5, value %1.y - (value %1.y + 0.5) % 1 + 0.5, value %1.z - (value %1.z + 0.5) % 1 + 0.5)" )
 
 Core:AddFunction( "round", "v,n", "v", [[
 local %Shift = 10 ^ math.floor(value %2 + 0.5)

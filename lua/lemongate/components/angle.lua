@@ -115,6 +115,11 @@ Core:AddFunction( "shiftL", "a", "a", "Angle(value %1.y, value %1.r, value %1.p)
 
 Core:AddFunction( "shiftR", "a", "a", "Angle(value %1.r, value %1.p, value %1.y)", LEMON_INLINE_ONLY )
 
+Core:AddFunction( "rotateAroundAxis", "a:v,n", "a", [[
+local %Ang = Angle( value %1.p, value %1.y, value %1.r)
+%Ang:RotateAroundAxis( value %2:Garry(), n )
+]], "%Ang" )
+
 /*==============================================================================================
 	Section: Directional
 ==============================================================================================*/
