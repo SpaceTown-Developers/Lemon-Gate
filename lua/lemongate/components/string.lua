@@ -123,7 +123,7 @@ Core:AddFunction( "find", "s:s", "n", "(string.find(value %1, value %2, 1, true)
 
 Core:AddFunction( "find", "s:s,n", "n", "(string.find(value %1, value %2, value %3, true) or 0)" )
 
-Core:AddFunction( "replace", "s:s,s", "n", "(string.Replace(value %1, value %2, value %3) or \"\")" )
+Core:AddFunction( "replace", "s:s,s", "s", "(string.Replace(value %1, value %2, value %3) or \"\")" )
 
 /*==============================================================================================
 	Section: Finding and Replacing with REGEX
