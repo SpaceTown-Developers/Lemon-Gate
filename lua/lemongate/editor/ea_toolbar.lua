@@ -149,14 +149,14 @@ local function CreateOptions( )
 	end
 	
 	local first = true 
-	for k, v in pairs( Syntax.ColorConvars ) do
+	for k, v in pairs( LEMON.Syntaxer.ColorConvars ) do
 		syntaxColor:AddChoice( k, v, first )
 		first = false 
 	end 
 	
 	function Mixer:ValueChanged( color )
 		RunConsoleCommand( "lemon_editor_color_" .. syntaxColor.Choices[currentIndex], color.r .. "_" .. color.g .. "_" .. color.b ) 
-		Syntax.UpdateSyntaxColors( ) 
+		LEMON.Syntaxer:UpdateSyntaxColors( ) 
 	end
 	
 	function Panel:Close( )
