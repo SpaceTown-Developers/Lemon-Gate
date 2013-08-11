@@ -262,8 +262,7 @@ for k,v in pairs( colors ) do
 end
 
 Syntaxer:UpdateSyntaxColors( true )
-Syntaxer.ColorConvars = colors_convars 
-Syntaxer.UpdateSyntaxColors = UpdateSyntaxColors 
+Syntaxer.ColorConvars = colors_convars
 
 /*============================================================================================================================================
 	Syntaxer Colors reset.
