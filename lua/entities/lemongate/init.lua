@@ -50,9 +50,6 @@ local function CompileSoftly( Entity, Script, Files )
 		Entity:LoadInstance( Instance )
 	end
 	
-	Entity.Time = 0
-	Entity.CPUTime = 0
-	
 	if Entity:Pcall( "main thread", Instance.Execute, Entity.Context ) then
 		Entity:Update( )
 	end
@@ -165,7 +162,7 @@ function Lemon:Think( )
 	
 	if self:IsRunning( ) then
 		local Context = self.Context
-		self.CPUTime = self.CPUTime * 0.95 + self.Time * 0.05
+		self.CPUTime = (self.CPUTime or 0) * 0.95 + (self.Time or 0) * 0.05
 		
 		self:SetNWFloat( "GatePerf", Context.Perf )
 		self:SetNWFloat( "GateTime", Context.CPUTime )
