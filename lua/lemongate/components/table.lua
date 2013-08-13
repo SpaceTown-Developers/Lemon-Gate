@@ -220,7 +220,7 @@ function Component:BuildOperators( )
 		if !Class.NoTableUse then
 			
 			-- Get Operators:
-				if Class.Default then -- Default returnable get
+				if Class.Default and Class.Default ~= "nil" then -- Default returnable get
 					Component:AddOperator( "[]", Format( "t,n,%s", Class.Short ), Class.Short,
 						Format( "(value %%1:Get(value %%2, %q) or %s)", Class.Short, Class.Default ) )
 					
@@ -285,12 +285,11 @@ do
 	local VType, KType = value %2, value %3
 	
 	local Statments = function( )
-		%perf
 		prepare %6
 	end
 	
 	for Key, Type, Value in value %1:Itorate( ) do
-		%context:PushPerf( %trace, ]] .. LEMON_PERF_CHEAP .. [[ )
+		%context:PushPerf( %trace, ]] .. LEMON_PERF_LOOPED .. [[ )
 		
 		local KeyType = $type( Key )[1]
 		
@@ -305,6 +304,8 @@ do
 		
 		if VType == "?" then Value = { Value, Type } end
 			
+		%perf
+		
 		prepare %4
 		
 		local Ok, Exit = pcall( Statments )

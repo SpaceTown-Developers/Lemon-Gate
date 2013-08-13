@@ -10,20 +10,20 @@ require( "vector2" )
 /*==============================================================================================
 	Section: Vector 3
 ==============================================================================================*/
-local Vector2 = Core:NewClass( "v2", "vector2" )
+local Class = Core:NewClass( "v2", "vector2", "Vector2.Zero:Clone()", true )
 
-Vector2:UsesMetaTable( FindMetaTable( "Vector2" ) )
+Class:UsesMetaTable( FindMetaTable( "Vector2" ) )
 
 -- WireMod
 
-Vector2:Wire_Name( "VECTOR2" )
+Class:Wire_Name( "VECTOR2" )
 
-function Vector3.Wire_Out( Context, Cell )
+function Class.Wire_Out( Context, Cell )
 	local Val = Context.Memory[ Cell ] or Vector2( 0, 0 )
 	return { Val.x, Val.y }
 end
 
-function Vector3.Wire_In( Context, Cell, Value )
+function Class.Wire_In( Context, Cell, Value )
 	Context.Memory[ Cell ] = Vector2(Value[1], Value[2])
 end
 

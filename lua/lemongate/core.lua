@@ -511,13 +511,22 @@ function API:InstallComponents( )
 				else
 					Class.DownCast = BaseClass.Short
 					BaseClass.UpCast[ Class.Short ] = Class.Short
-					Class._Default = Class._Default or BaseClass._Default
+					
+					if !Class.DefaultRaw then
+						Class.DefaultRaw = BaseClass.DefaultRaw
+						Class.DefaultType = BaseClass.DefaultType
+					end
 				end
 			end
 			
-			Class.Default = Util.ValueToLua( Class._Default, false )
+			if Class.DefaultRaw and Class.DefaultType then
+				Class.Default = Class.DefaultRaw -- Run this as lua!
+			elseif Class.DefaultRaw then -- Convert this to lua!
+				Class.Default = Util.ValueToLua( Class.DefaultRaw )
+			end
 		end
-	
+		
+		
 	-- Sort Components
 		for Name, Comp in pairs ( self.Components ) do
 			Comp:LoadOperators( )
@@ -580,7 +589,7 @@ function API:GetClass( RawName, NoError )
 end
 
 if SERVER then
-	function Component:NewClass( Short, Name, Default )
+	function Component:NewClass( Short, Name, Default, DefIsLua )
 		Util.CheckParams( 1, Name, "string", false, Short, "string", false )
 		
 		if #Short > 1 then Short = "x" .. Short end
@@ -588,7 +597,9 @@ if SERVER then
 		local New = setmetatable( {
 				Name = Name,
 				Short = string.lower( Short ),
-				_Default = Default,
+				DefaultRaw = Default,
+				DefaultType = DefIsLua,
+				Default = nil,
 				UpCast = { }
 			}, Class )
 		
@@ -633,6 +644,7 @@ end
 	Section: Perf Pricing
 ==========================================================================*/
 LEMON_PERF_CHEAP = 1
+LEMON_PERF_LOOPED = 2.5
 LEMON_PERF_NORMAL = 5
 LEMON_PERF_ABNORMAL = 10
 LEMON_PERF_EXPENSIVE = 20

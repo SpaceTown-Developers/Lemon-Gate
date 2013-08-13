@@ -9,7 +9,7 @@ local Core = API:GetComponent( "core" )
 /*==============================================================================================
 	Section: Angle Class
 ==============================================================================================*/
-local Class = Core:NewClass( "a", "angle", { 0, 0, 0 } )
+local Class = Core:NewClass( "a", "angle", "Angle(0, 0, 0)", true )
 
 Class:UsesMetaTable( FindMetaTable( "Angle" ) )
 

@@ -30,15 +30,15 @@ Core:AddOperator( "not", "p", "b", "(!$IsValid(value %1))" )
 
 Core:AddOperator( "string", "p", "s", "tostring(value %1)" )
 
-Core:AddOperator( "entity", "p", "e", "value %1:GetEntity( )" )
+Core:AddOperator( "entity", "p", "e", "( $IsValid( value %1 ) and value %1:GetEntity( ) or %NULL_ENTITY )" )
 
 
 /*==============================================================================================
 	Section: Entity to Physics
 ==============================================================================================*/
-Core:AddOperator( "physics", "e", "p", "value %1:GetPhysicsObject( )" )
+Core:AddOperator( "physics", "e", "p", "( $IsValid( value %1 ) and value %1:GetPhysicsObject( ) or nil )" )
 
-Core:AddFunction( "getPhysics", "e:", "p", "value %1:GetPhysicsObject( )" )
+Core:AddFunction( "getPhysics", "e:", "p", "( $IsValid( value %1 ) and value %1:GetPhysicsObject( ) or nil )" )
 
 Core:AddFunction( "getPhysicsCount", "e:", "n", "($IsValid(value %1) and value %1:GetPhysicsObjectCount( ) or 0)" )
 
