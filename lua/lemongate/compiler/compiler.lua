@@ -479,7 +479,7 @@ function Compiler:Compile_INCREMENT( Trace, Variable, Second )
 	end
 	
 	local Op = Second and self:GetOperator( "i++", Class ) or self:GetOperator( "++i", Class )
-	if !Op then self:TraceError( "Increment operator (++) does not support %s", NType( Class ) ) end
+	if !Op then self:TraceError( Trace, "Increment operator (++) does not support %s", NType( Class ) ) end
 	
 	return self:Evaluate( Trace, Op.Compile( self, Trace, Ref ) )
 end
@@ -495,7 +495,7 @@ function Compiler:Compile_DECREMENT( Trace, Variable, First )
 	end
 	
 	local Op = Second and self:GetOperator( "i--", Class ) or self:GetOperator( "--i", Class )
-	if !Op then self:TraceError( "Decrement operator (--) does not support %s", NType( Class ) ) end
+	if !Op then self:TraceError( Trace, "Decrement operator (--) does not support %s", NType( Class ) ) end
 	
 	return self:Evaluate( Trace, Op.Compile( self, Trace, Ref ) )
 end
@@ -512,7 +512,7 @@ function Compiler:Compile_DELTA( Trace, Variable )
 	self:NotGarbage( Trace, Ref )
 	
 	local Op = self:GetOperator( "$", Class )
-	if !Op then self:TraceError( "Delta operator ($) does not support %s", NType( Class ) ) end
+	if !Op then self:TraceError( Trace, "Delta operator ($) does not support %s", NType( Class ) ) end
 	
 	return Op.Compile( self, Trace, Ref )
 end
