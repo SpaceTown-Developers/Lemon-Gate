@@ -162,10 +162,11 @@ function Lemon:Think( )
 	
 	if self:IsRunning( ) then
 		local Context = self.Context
-		self.CPUTime = (self.CPUTime or 0) * 0.95 + (self.Time or 0) * 0.05
+		
+		Context.CPUTime = Context.CPUTime * 0.95 + Context.Time * 0.05
+		self:SetNWInt( "GateTime", Context.CPUTime * 1000000 )
 		
 		self:SetNWFloat( "GatePerf", Context.Perf )
-		self:SetNWFloat( "GateTime", Context.CPUTime )
 		self:SetNWString( "GateName", self.GateName )
 		
 		Context.Time = 0

@@ -32,17 +32,17 @@ Core:SetPerf( LEMON_PERF_NORMAL )
 
 -- Compare:
 
-Core:AddOperator( "==", "n,n", "b", "local %A = value %1 - value %2", "(%A <= %Round and -%A <= %Round)" )
+Core:AddOperator( "==", "n,n", "b", "(value %1 == value %2)" )
 
-Core:AddOperator( "!=", "n,n", "b", "local %A = value %1 - value %2", "(%A > %Round and -%A > %Round)" )
+Core:AddOperator( "!=", "n,n", "b", "(value %1 != value %2)" )
 
-Core:AddOperator( ">", "n,n", "b", "(value %1 - value %2 > %Round)" )
+Core:AddOperator( ">", "n,n", "b", "(value %1 > value %2)" )
 
-Core:AddOperator( "<", "n,n", "b", "(-(value %1 - value %2) > %Round)" )
+Core:AddOperator( "<", "n,n", "b", "(value %1 < value %2)" )
 
-Core:AddOperator( ">=", "n,n", "b", "(-(value %1 - value %2) <= %Round)" )
+Core:AddOperator( ">=", "n,n", "b", "(value %1 >= value %2)" )
 
-Core:AddOperator( "<=", "n,n", "b", "((value %1 - value %2) <= %Round)" )
+Core:AddOperator( "<=", "n,n", "b", "(value %1 <= value %2)" )
 
 Core:SetPerf( LEMON_PERF_CHEAP )
 

@@ -23,7 +23,7 @@ function ENT:GetOverlayText( )
 		Status = "Online: " .. string.format( "%s ops, %s%%", Perf, math.ceil((Perf / Max) * 100) ) 
 	end
 	
-	return string.format( "-Expression Advanced-\n%s\n%s\nCpu Time: %s's\n(%s)", self:GetNWString( "GateName", "LemonGate" ), Status, math.Round( self:GetNWFloat( "GateTime", 0 ), 4 ), self:GetPlayerName( ) )
+	return string.format( "-Expression Advanced-\n%s\n%s\ncpu time: %ins\n(%s)", self:GetNWString( "GateName", "LemonGate" ), Status, math.Round( self:GetNWInt( "GateTime", 0 ), 4 ), self:GetPlayerName( ) )
 	
 end
 

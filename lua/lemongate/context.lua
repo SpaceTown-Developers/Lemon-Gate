@@ -22,6 +22,7 @@ Context.__index = Context
 function LEMON:BuildContext( Entity, Player )
 	local New = {
 		Time = 0,
+		CPUTime = 0,
 		Perf = 0,
 		MaxPerf = PerfMax:GetInt( ),
 		Entity = Entity,
