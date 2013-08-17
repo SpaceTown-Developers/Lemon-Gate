@@ -37,11 +37,15 @@ local function Timer( )
 					Timer.N = Timer.N + 1 
 
 					if Timer.N >= Timer.Repetitions and Timer.Repetitions != 0 then
-						Timer.Status = 0
+						Timer.Status = STOPPED
 					end
 					
 					if !Gate:Pcall( "timer " .. Key, Timer.Lambda ) then
 						break
+					end
+					
+					if Timer.Status == STOPPED and Timer.AutoRemove then
+						Context.Data.Timers[ Key ] = nil
 					end
 				end
 				
@@ -73,7 +77,7 @@ Component:AddFunction("curTime", "", "n", "$CurTime( )" )
 ==============================================================================================*/
 Component:SetPerf( LEMON_PERF_EXPENSIVE )
 
-Component:AddFunction("timerCreate", "s,n,n,f", "", [[
+Component:AddFunction("timerCreate", "s,n,n,f[,b", "", [[
 %prepare
 
 %data.Timers[ value %1 ] = {
@@ -83,6 +87,7 @@ Component:AddFunction("timerCreate", "s,n,n,f", "", [[
 	Delay = value %2,
 	Repetitions = value %3,
 	Lambda = value %4,
+	AutoRemove = value %5
 }]], "" )
 
 Component:SetPerf( LEMON_PERF_NORMAL )
@@ -96,7 +101,24 @@ if %Timer then
 	%Timer.Repetitions = value %3
 end]], "" )
 
+Component:AddFunction("timerAdjust", "s,f", "", [[
+%prepare
+
+local %Timer = %data.Timers[ value %1 ]
+
+if %Timer then
+	%Timer.Lambda = value %2
+end]], "" )
+
 Component:AddFunction("timerRemove", "s", "", "%data.Timers[ value %1 ] = nil", "" )
+
+Component:AddFunction("timerAutoRemove", "s,b", "", [[
+%prepare
+
+local %Timer = %data.Timers[ value %1 ]
+if %Timer then
+	%Timer.AutoRemove = value %2
+end]], "" )
 
 Component:AddFunction("timerStart", "s", "n", [[
 %prepare
@@ -142,4 +164,10 @@ Component:AddFunction("timerStatus", "s", "n", [[
 local %Timer, %Val = %data.Timers[ value %1 ], 0
 if %Timer then
 	%Val = %Timer.Status or 0
+end]],"%Val" )
+
+Component:AddFunction("timerRepetitions", "s", "n", [[
+local %Timer, %Val = %data.Timers[ value %1 ], 0
+if %Timer then
+	%Val = %Timer.Repetitions or 0
 end]],"%Val" )

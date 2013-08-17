@@ -734,7 +734,20 @@ end
 		
 /****************************************************************************************************/
 
-function Compiler:Statment_GLO( RootTrace )
+function Compiler:Statment_STC( RootTrace )
+	self:ExcludeToken( "in", "Invalid modifier 'static' for import." )
+	self:ExcludeToken( "out", "Invalid modifier 'static' for outport." )
+	
+	if self:AcceptToken( "glo" ) then
+		return self:Statment_GLO( RootTrace, true )
+	elseif self:AcceptToken( "fun" ) then
+		return self:Statment_FUN( RootTrace, true )
+	end
+	
+	self:TraceError( RootTrace, "modifier 'static' must be followed by variable type." )
+end
+
+function Compiler:Statment_GLO( RootTrace, Static )
 	local Trace = self:TokenTrace( RootTrace )
 	
 	if self:AcceptToken( "func" ) then -- This is a Global function!
@@ -747,7 +760,7 @@ function Compiler:Statment_GLO( RootTrace )
 	
 	self:RequireToken( "var", "Variable expected after variable type." )
 	
-	return self:Declair_Variables( Trace, Class.Short, "Global" )
+	return self:Declair_Variables( Trace, Class.Short, "Global", Static )
 end
 
 function Compiler:Statment_OUT( RootTrace )
@@ -776,7 +789,7 @@ function Compiler:Statment_IN( RootTrace )
 	
 end
 
-function Compiler:Statment_FUN( RootTrace )
+function Compiler:Statment_FUN( RootTrace, Static )
 	local Trace = self:TokenTrace( RootTrace )
 	
 	if self:CheckToken( "var" ) then
@@ -784,7 +797,10 @@ function Compiler:Statment_FUN( RootTrace )
 		
 		self:RequireToken( "var", "Variable expected for variable decleration." )
 		
-		return self:Declair_Variables( Trace, Class.Short, "Local" )
+		return self:Declair_Variables( Trace, Class.Short, "Local", Static )
+		
+	elseif Static then
+		self:TraceError( RootTrace, "Modifier 'static' must not appear here." )
 	end
 		
 	self:PrevToken( )
@@ -792,7 +808,7 @@ function Compiler:Statment_FUN( RootTrace )
 	return self:GetExpression( RootTrace )
 end
 
-function Compiler:Declair_Variables( Trace, Class, Type )
+function Compiler:Declair_Variables( Trace, Class, Type, Static )
 	local Trace = Trace or self:TokenTrace( )
 	local Variables, Count = self:GetListedVariables( )
 	local Statments, Start = { }, 1
@@ -816,7 +832,7 @@ function Compiler:Declair_Variables( Trace, Class, Type )
 			end
 			
 			local Data = Variables[I]
-			Statments[I] = self:Compile_DECLAIR( Data[1], Type, Data[2], Class, self:GetExpression( Trace ) )
+			Statments[I] = self:Compile_DECLAIR( Data[1], Type, Data[2], Class, self:GetExpression( Trace ), Static )
 			
 			
 			Start = I + 1
@@ -834,7 +850,7 @@ function Compiler:Declair_Variables( Trace, Class, Type )
 	for I = Start, Count do
 		local Data = Variables[I]
 		
-		Statments[I] = self:Compile_DECLAIR( Data[1], Type, Data[2], Class )
+		Statments[I] = self:Compile_DECLAIR( Data[1], Type, Data[2], Class, nil, Static )
 	end
 	
 	return self:Compile_SEQUENCE( Trace, Statments )
@@ -978,6 +994,8 @@ function Compiler:BuildLambda( Trace, RootTrace )
 	
 	self:RequireToken( "lpa", "Left parenthesis (( ) missing, to open lambda parameters" )
 	
+	self:PushScope( )
+	
 	self:PushFlag( "NewCells", { } )
 	
 	local Perams, HasVarg, Count = self:BuildPerams( Trace )	
@@ -998,6 +1016,8 @@ function Compiler:BuildLambda( Trace, RootTrace )
 	self:PopFlag( "NewCells" )
 	self:PopFlag( "HasVargs" )
 	self:PopFlag( "Lambda" )
+	
+	self:PopScope( )
 	
 	return Instr
 end

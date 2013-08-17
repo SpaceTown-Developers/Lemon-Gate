@@ -325,6 +325,8 @@ function Compiler:WordToken( )
 			return self:NewToken( "in", "input" )
 		elseif RawData == "output" then
 			return self:NewToken( "out", "output" )
+		elseif RawData == "static" then
+			return self:NewToken( "stc", "static" )
 	
 	-- VARIABLE:
 	

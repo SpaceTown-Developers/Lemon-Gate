@@ -201,7 +201,7 @@ end
 ==============================================================================================*/
 Core:SetPerf( LEMON_PERF_CHEAP )
 
-Core:AddOperator( "define", "", "", [[
+Core:AddOperator( "static", "", "", [[
 if %memory[value %1] == nil then
 	prepare %2
 end

@@ -112,7 +112,7 @@ function Compiler:GetVariable( Trace, Variable )
 	if Cell then return Ref, Cell.Type end
 end
 
-function Compiler:Assign( Trace, Variable, Type, Assign )
+function Compiler:Assign( Trace, Variable, Type, Assign, Static )
 	local Class = API:GetClass( Type )
 	
 	if Assign == CELL_LOCAL then
@@ -123,10 +123,14 @@ function Compiler:Assign( Trace, Variable, Type, Assign )
 		else
 			Ref = self:NextRef( )
 			self.Scope[ Variable ] = Ref
-			self.Cells[ Ref ] = { Ref = Ref, Scope = self.ScopeID, Type = Type, Class = Class, Variable = Variable, Assign = Assign }
+			self.Cells[ Ref ] = { Ref = Ref, Scope = self.ScopeID, Type = Type, Class = Class, Variable = Variable, Assign = Assign, Static = Static, NotGarbage = Static }
 		
 			local NewCells = self:GetFlag( "NewCells" ) -- Lambda
-			if NewCells then NewCells[Ref] = true; NewCells.Push = true end
+			
+			if !Static and NewCells then
+				NewCells[Ref] = true
+				NewCells.Push = true
+			end
 		end
 		
 		return Ref, self.ScopeID
@@ -138,7 +142,7 @@ function Compiler:Assign( Trace, Variable, Type, Assign )
 		else
 			Ref = self:NextRef( )
 			self.Global[ Variable ] = Ref
-			self.Cells[ Ref ] = { Ref = Ref, Scope = 0, Type = Type, Class = Class, Variable = Variable, Assign = Assign, NotGarbage = true }
+			self.Cells[ Ref ] = { Ref = Ref, Scope = 0, Type = Type, Class = Class, Variable = Variable, Assign = Assign, NotGarbage = true, Static = Static }
 		end
 		
 		local LRef = self.Scope[ Variable ]
@@ -543,30 +547,30 @@ function Compiler:Compile_ASSIGN( Trace, Variable, Expression )
 	return Op.Compile( self, Trace, Ref, Expression )
 end
 
-function Compiler:Compile_DECLAIR( Trace, Type, Variable, Class, Expression )
-	local Ref = self:Assign( Trace, Variable, Class, Type )
+function Compiler:Compile_DECLAIR( Trace, Type, Variable, Class, Expression, Static )
+	local Ref = self:Assign( Trace, Variable, Class, Type, Static )
 	
-	if Expression then -- Assign a value.
+	if !Expression then
+		Expression = self:DefaultValue( Trace, Class )
+	end
+	
+	if !Expression then
+		self:TraceError( Trace, "%s %s must be assigned", NType( Class ), Variable )
+	end
+	
+	if !Static then
 		return self:Compile_ASSIGN( Trace, Variable, Expression )
 	end
 	
-	self:NotGarbage( Trace, Ref )
-	
 	local Op = self:GetOperator( "=", Class ) or self:GetOperator( "=" )
-	local Default = self:DefaultValue( Trace, Class )
-	
-	if !Default then
-		self:TraceError( Trace, "%s %s must be initialized", NType( Class ), Variable )
-	end
-	
-	return self:GetOperator( "define" ).Compile( self, Trace, Ref, Op.Compile( self, Trace, Ref, Default ) )
+	return self:GetOperator( "static" ).Compile( self, Trace, Ref, Op.Compile( self, Trace, Ref, Expression ) )
 end
 
 function Compiler:DefaultValue( Trace, Type )
 	local Op = self:GetOperator( "default", Type )
 	
 	if Op then
-		return Op.Compile( self, Trace)
+		return Op.Compile( self, Trace )
 	end
 	
 	local Lua = API:GetClass( Type ).Default

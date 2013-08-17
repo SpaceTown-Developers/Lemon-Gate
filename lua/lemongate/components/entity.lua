@@ -581,28 +581,72 @@ for _, Find_Entity in pairs( $ents.FindByModel( value %1 ) ) do
 end]], "%Res" )
 
 Core:AddFunction( "findInSphere", "v,n", "t", [[
-local %Vec, %Res = value %1, %Table( )
-for _, Find_Entity in pairs( $ents.FindInSphere( $Vector( %Vec[1], %Vec[2], %Vec[3] ), value %2 ) ) do
+local %Res = %Table( )
+for _, Find_Entity in pairs( $ents.FindInSphere( value %1:Garry( ), value %2 ) ) do
 	if Find_Entity:IsValid() and !%FindFilter[Find_Entity:GetClass( )] then
 		%Res:Insert(nil, "e", Find_Entity)
 	end
 end]], "%Res" )
 
 Core:AddFunction( "findInBox", "v,v", "t", [[
-local %A, %B, %Res = value %1, value %2, %Table( )
-for _, Find_Entity in pairs( $ents.FindInBox($Vector(%A[1], %A[2], %A[3]), $Vector(%B[1], %B[2], %B[3])) ) do
+local %Res = %Table( )
+for _, Find_Entity in pairs( $ents.FindInBox( value %1:Garry( ), value %2:Garry()) ) do
 	if Find_Entity:IsValid() and !%FindFilter[Find_Entity:GetClass( )] then
 		%Res:Insert(nil, "e", Find_Entity)
 	end
 end]], "%Res" )
 
 Core:AddFunction( "findInCone", "v,v,n,a", "t", [[
-local %A, %B, %D, %Res = value %1, value %2, value %4, %Table( )
-for _, Find_Entity in pairs( $ents.FindInCone($Vector(%A[1], %A[2], %A[3]), $Vector(%B[1], %B[2], %B[3]), value %3, $Angle(%D[1], %D[2], %D[3]))) do
+local %Res = %Table( )
+for _, Find_Entity in pairs( $ents.FindInCone( value %1:Garry( ), value %2:Garry( ), value %3, value %4)) do
 	if Find_Entity:IsValid() and !%FindFilter[Find_Entity:GetClass( )] then
 		%Res:Insert(nil, "e", Find_Entity)
 	end
 end]], "%Res" )
 
+/***********************************************************************************************/
 
+Core:AddFunction( "findByModel", "s,s", "t", [[
+local %Res = %Table( )
+for _, Find_Entity in pairs( $ents.FindByModel( value %1 ) ) do
+	local Class = Find_Entity:GetClass( )
+	if Find_Entity:IsValid() and !%FindFilter[Class] and Class = value %2 then
+		%Res:Insert(nil, "e", Find_Entity)
+	end
+end]], "%Res" )
 
+Core:AddFunction( "findInSphere", "s,v,n", "t", [[
+local %Res = %Table( )
+for _, Find_Entity in pairs( $ents.FindInSphere( value %2:Garry( ), value %3 ) ) do
+	local Class = Find_Entity:GetClass( )
+	if Find_Entity:IsValid() and !%FindFilter[Class] and Class = value %1 then
+		%Res:Insert(nil, "e", Find_Entity)
+	end
+end]], "%Res" )
+
+Core:AddFunction( "findInSphere", "s,v,n", "t", [[
+local %Res = %Table( )
+for _, Find_Entity in pairs( $ents.FindInSphere( value %2:Garry( ), value %3 ) ) do
+	local Class = Find_Entity:GetClass( )
+	if Find_Entity:IsValid() and !%FindFilter[Class] and Class = value %1 then
+		%Res:Insert(nil, "e", Find_Entity)
+	end
+end]], "%Res" )
+
+Core:AddFunction( "findInBox", "v,v", "t", [[
+local %Res = %Table( )
+for _, Find_Entity in pairs( $ents.FindInBox( value %2:Garry( ), value %3:Garry()) ) do
+	local Class = Find_Entity:GetClass( )
+	if Find_Entity:IsValid() and !%FindFilter[Class] and Class = value %1 then
+		%Res:Insert(nil, "e", Find_Entity)
+	end
+end]], "%Res" )
+
+Core:AddFunction( "findInCone", "s,v,v,n,a", "t", [[
+local %Res = %Table( )
+for _, Find_Entity in pairs( $ents.FindInCone( value %2:Garry( ), value %3:Garry( ), value %4, value %5)) do
+	local Class = Find_Entity:GetClass( )
+	if Find_Entity:IsValid() and !%FindFilter[Class] and Class = value %1 then
+		%Res:Insert(nil, "e", Find_Entity)
+	end
+end]], "%Res" )

@@ -166,6 +166,7 @@ local keywords = {
 	["continue"] = { true, false },
 	["return"]   = { true, false },
 	["global"]   = { true, false },
+	["static"]   = { true, false },
 	["input"]    = { true, false },
 	["output"]   = { true, false },
 	["event"]    = { true, false },

@@ -198,7 +198,7 @@ Component:AddFunction( "exists", "t:e", "b", "(value %1.Data[value %2] ~= nil)" 
 /*==============================================================================================
 	Variant Index Operators
 ==============================================================================================*/
-Component:SetPerf( LEMON_PERF_EXPENSIVE )
+Component:SetPerf( LEMON_PERF_NORMAL )
 
 Component:AddOperator( "[]=", "t,n,?", "", "value %1:Set( value %2, value %3[2], value %3[1] )" )
 
@@ -320,3 +320,36 @@ do
 		end
 	end
 end]] , "" )
+
+/*==============================================================================================
+	ForEach Loop
+==============================================================================================*/
+Component:SetPerf( LEMON_PERF_EXPENSIVE )
+
+Component:AddFunction( "sort", "t:f", "t", [[
+local %New, %Count = { }, 0
+
+for Key, Type, Value in value %1:Itorate( ) do
+	%Count = %Count + 1
+	%New[%Count] = { Key, Type, Value }
+end
+
+table.sort( %New, function( A, B )
+	%context:PushPerf( %trace, ]] .. LEMON_PERF_LOOPED .. [[ )
+	
+	local ValA = (A[2] ~= "?" and { A[3], A[2] } or A[3])
+	local ValB = (B[2] ~= "?" and { B[3], B[2] } or B[3])
+	
+	local Ret = value %2( ValA, ValB )
+	
+	if Ret and Ret[2] ~= "b" then
+		%context:Throw( %trace, "table", "sort function returned " .. LongType( Ret[2] ) .. " boolean exspected." )
+	elseif Ret then
+		return Ret[1]
+	end
+end )
+
+local %Sorted = %Table( )
+for Key, Val in pairs( %New ) do
+	%Sorted:Insert( Key, Val[2], Val[3] )
+end]], "%Sorted" )
