@@ -550,14 +550,22 @@ end
 function Compiler:Compile_DECLAIR( Trace, Type, Variable, Class, Expression, Static )
 	local Ref = self:Assign( Trace, Variable, Class, Type, Static )
 	
+	if self:IsInput( Trace, Ref ) then
+		if Expression then
+			self:TraceError( Trace, "Assigment operator (=) can not reach Inport %s", Variable )
+		else
+			return self:FakeInstr( Trace, "", "" )
+		end
+	end
+	
 	if !Expression then
 		Expression = self:DefaultValue( Trace, Class )
 	end
-	
+
 	if !Expression then
 		self:TraceError( Trace, "%s %s must be assigned", NType( Class ), Variable )
 	end
-	
+
 	if !Static then
 		return self:Compile_ASSIGN( Trace, Variable, Expression )
 	end
