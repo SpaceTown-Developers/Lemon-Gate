@@ -130,7 +130,7 @@ local function CreateOptions( )
 	local Mixer = Panel:Add( "DColorMixer" ) 
 	Mixer:SetTall( 150 )
 	Mixer:Dock( TOP ) 
-	Mixer:DockMargin( 10, 10, 10, 0 )
+	Mixer:DockMargin( 10, 5, 10, 0 )
 	
 	Mixer:SetPalette( false )
 	Mixer:SetAlphaBar( false )
@@ -138,7 +138,7 @@ local function CreateOptions( )
 	local syntaxColor = Panel:Add( "DComboBox" ) 
 		syntaxColor:SetTall( 20 )
 		syntaxColor:Dock( TOP ) 
-		syntaxColor:DockMargin( 10, 10, 10, 0 )
+		syntaxColor:DockMargin( 10, 5, 10, 0 )
 		syntaxColor:MoveToBack( ) 
 	
 	local currentIndex
@@ -171,16 +171,35 @@ local function CreateOptions( )
 		reset:DockMargin( 0, 4, 0, 0 )
 	
 	function reset:DoClick( )
-		RunConsoleCommand( "lemon_editor_resetcolors", syntaxColor.Choices[currentIndex] )
+		RunConsoleCommand( "lemon_editor_resetcolors", syntaxColor.Choices[currentIndex] ) 
+		timer.Simple( 0, function() 
+			local r, g, b = string.match( LEMON.Syntaxer.ColorConvars[syntaxColor.Choices[currentIndex]]:GetString( ), "(%d+)_(%d+)_(%d+)" ) 
+			Mixer:SetColor( Color( r, g, b ) ) 
+		end )
 	end
+	
+	local resetall = Panel:Add( "DButton" ) 
+		resetall:SetText( "Reset all colors" ) 
+		resetall:Dock( TOP )
+		resetall:DockMargin( 10, 5, 10, 0 )
+	
+	
+	function resetall:DoClick( )
+		RunConsoleCommand( "lemon_editor_resetcolors", "1" ) 
+		timer.Simple( 0, function() 
+			local r, g, b = string.match( LEMON.Syntaxer.ColorConvars[syntaxColor.Choices[currentIndex]]:GetString( ), "(%d+)_(%d+)_(%d+)" ) 
+			Mixer:SetColor( Color( r, g, b ) ) 
+		end )
+	end
+	
 	
 	local kinect = Panel:Add( "DCheckBoxLabel" ) 
 	kinect:Dock( TOP ) 
-	kinect:DockMargin( 10, 10, 10, 10 ) 
+	kinect:DockMargin( 10, 5, 10, 5 ) 
 	kinect:SetText( "Allow kinect?" ) 
 	kinect:SetConVar( "lemon_kinect_allow" ) 
 	
-	Panel:SetSize( 300, 250 ) 
+	Panel:SetSize( 300, 260 ) 
 	Panel:SetPos( cookie.GetNumber( "eaoptions_x", ScrW( ) / 2 - Panel:GetWide( ) / 2 ), cookie.GetNumber( "eaoptions_y", ScrH( ) / 2 - Panel:GetTall( ) / 2 ) ) 
 	
 	return Panel 

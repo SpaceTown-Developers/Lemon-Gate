@@ -44,6 +44,7 @@ if SERVER then
 	
 	resource.AddFile( "materials/github.png" )
 	
+	resource.AddFile( "resource/fonts/FSEX300.ttf" )
 		
 	AddCSLuaFile( )
 	
