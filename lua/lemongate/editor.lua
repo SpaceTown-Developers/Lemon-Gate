@@ -14,23 +14,23 @@ require( "vector2" )
 ---------------------------------------------------------------------------*/
 
 timer.Simple( 0.5, function()
-	surface.CreateFont( "EA_Fixedsys", {
-        font 		= "Fixedsys Excelsior 3.01",
-        size 		= 17,
-        weight 		= 400,
-        blursize 	= 0,
-        scanlines 	= 0,
-        antialias 	= false,
-        underline 	= false,
-        italic 		= false,
-        strikeout 	= false,
-        symbol 		= false,
-        rotary 		= false,
-        shadow 		= false,
-        additive 	= false,
-        outline 	= false, 
-    } )
-    
+	surface.CreateFont( "EA_EditorFont", {
+		font 		= system.IsWindows( ) and "Courier New" or ( system.IsOSX( ) and "Monaco" or "DejaVu Sans Mono" ),
+		size 		= 17,
+		weight 		= 400,
+		blursize 	= 0,
+		scanlines 	= 0,
+		antialias 	= true,
+		underline 	= false,
+		italic 		= false,
+		strikeout 	= false,
+		symbol 		= false,
+		rotary 		= false,
+		shadow 		= false,
+		additive 	= false,
+		outline 	= false, 
+	} )
+	
 	surface.CreateFont( "Trebuchet22", {
 		font 		= "Trebuchet MS",
 		size 		= 22,

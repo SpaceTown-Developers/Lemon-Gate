@@ -74,7 +74,7 @@ function PANEL:Init( )
 	self.CaretRow = 0 
 	self.LongestRow = 0 
 	
-	self.Font = "EA_Fixedsys" 
+	self.Font = "EA_EditorFont" 
 	
 	self.TextEntry = self:Add( "TextEntry" ) 
 	self.TextEntry:SetMultiline( true )
