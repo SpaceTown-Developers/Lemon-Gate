@@ -1419,7 +1419,7 @@ function PANEL:PaintRow( Row, LinePos )
 		self.Bookmarks[Row]:SetPos( 2, ( LinePos ) * self.FontHeight ) 
 	end 
 	
-	draw_SimpleText( tostring( Row ), "Fixedsys", self.BookmarkWidth + self.LineNumberWidth - 3, self.FontHeight * ( LinePos ), C_white, TEXT_ALIGN_RIGHT ) 
+	draw_SimpleText( tostring( Row ), self.Font, self.BookmarkWidth + self.LineNumberWidth - 3, self.FontHeight * ( LinePos ), C_white, TEXT_ALIGN_RIGHT ) 
 	
 	local offset = math_max( self.Scroll.y, 1 )
 	
@@ -1433,12 +1433,12 @@ function PANEL:PaintRow( Row, LinePos )
 			if cell[1]:len( ) > -offset then
 				line = cell[1]:sub( 1 - offset )
 				offset = line:len( )
-				draw_SimpleText( line .. " ", "Fixedsys", self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth, ( LinePos ) * self.FontHeight, cell[2] )
+				draw_SimpleText( line .. " ", self.Font, self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth, ( LinePos ) * self.FontHeight, cell[2] )
 			else
 				offset = offset + cell[1]:len( )
 			end
 		else
-			draw_SimpleText( cell[1] .. " ", "Fixedsys", offset * self.FontWidth + self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth, ( LinePos ) * self.FontHeight, cell[2] )
+			draw_SimpleText( cell[1] .. " ", self.Font, offset * self.FontWidth + self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth, ( LinePos ) * self.FontHeight, cell[2] )
 			offset = offset + cell[1]:len( )
 		end
 	end
