@@ -170,7 +170,7 @@ Component:AddFunction( "send", "bf:s,e", "", [[
 local %Buffer, %Ent = value %1, value %3
 if %Ent and %Ent:IsValid( ) and %Ent.IsLemonGate then
 	table.insert( %data.BufferQue, {%Ent, value %2, { Cells = table.Copy( %Buffer.Cells ), Types = table.Copy( %Buffer.Types ), R = %Buffer.R, W = %Buffer.W} } )
-end]] )
+end]], "" )
 
 /*==============================================================================================
 	Section: Saving and Loading
