@@ -77,68 +77,68 @@ Component:SetPerf( LEMON_PERF_ABNORMAL )
 
 Component:AddFunction( "readBool", "bf:", "b", [[
 local %Buffer, %Val = value %1
+%Buffer.R = %Buffer.R + 1
 if %Buffer.Cells[ %Buffer.R ] == nil then
 	%context:Throw( %trace, "buffer", "Reached end of buffer" )
 elseif %Buffer.Types[ %Buffer.R ] != "b" then
 	%context:Throw( %trace, "buffer", "Attempted to read number from " .. %LongType( %Buffer.Types[ %Buffer.R ] ) )
 else
-	%Val = Buffer.Cells[ %Buffer.R ]
-	%Buffer.R = %Buffer.R + 1
+	%Val = %Buffer.Cells[ %Buffer.R ]
 end]], "%Val" )
 
 Component:AddFunction( "readNumber", "bf:", "n", [[
 local %Buffer, %Val = value %1
+%Buffer.R = %Buffer.R + 1
 if %Buffer.Cells[ %Buffer.R ] == nil then
 	%context:Throw( %trace, "buffer", "Reached end of buffer" )
 elseif %Buffer.Types[ %Buffer.R ] != "n" then
 	%context:Throw( %trace, "buffer", "Attempted to read number from " .. %LongType( %Buffer.Types[ %Buffer.R ] ) )
 else
-	%Val = Buffer.Cells[ %Buffer.R ]
-	%Buffer.R = %Buffer.R + 1
+	%Val = %Buffer.Cells[ %Buffer.R ]
 end]], "%Val" )
 
 Component:AddFunction( "readString", "bf:", "s", [[
 local %Buffer, %Val = value %1
+%Buffer.R = %Buffer.R + 1
 if %Buffer.Cells[ %Buffer.R ] == nil then
 	%context:Throw( %trace, "buffer", "Reached end of buffer" )
 elseif %Buffer.Types[ %Buffer.R ] != "s" then
 	%context:Throw( %trace, "buffer", "Attempted to read string from " .. %LongType( %Buffer.Types[ %Buffer.R ] ) )
 else
-	%Val = Buffer.Cells[ %Buffer.R ]
-	%Buffer.R = %Buffer.R + 1
+	%Val = %Buffer.Cells[ %Buffer.R ]
 end]], "%Val" )
 
 Component:AddFunction( "readEntity", "bf:", "e", [[
 local %Buffer, %Val = value %1
+%Buffer.R = %Buffer.R + 1
 if %Buffer.Cells[ %Buffer.R ] == nil then
 	%context:Throw( %trace, "buffer", "Reached end of buffer" )
 elseif %Buffer.Types[ %Buffer.R ] != "e" then
 	%context:Throw( %trace, "buffer", "Attempted to read entity from " .. %LongType( %Buffer.Types[ %Buffer.R ] ) )
 else
-	%Val = Buffer.Cells[ %Buffer.R ]
-	%Buffer.R = %Buffer.R + 1
+	%Val = %Buffer.Cells[ %Buffer.R ]
 end]], "%Val" )
 
 Component:AddFunction( "readAngle", "bf:", "a", [[
 local %Buffer, %Val = value %1
+%Buffer.R = %Buffer.R + 1
 if %Buffer.Cells[ %Buffer.R ] == nil then
 	%context:Throw( %trace, "buffer", "Reached end of buffer" )
 elseif %Buffer.Types[ %Buffer.R ] != "a" then
 	%context:Throw( %trace, "buffer", "Attempted to read angle from " .. %LongType( %Buffer.Types[ %Buffer.R ] ) )
 else
-	%Val = Buffer.Cells[ %Buffer.R ]
-	%Buffer.R = %Buffer.R + 1
+	%Val = %Buffer.Cells[ %Buffer.R ]
 end]], "%Val" )
 
 Component:AddFunction( "readVector", "bf:", "v", [[
 local %Buffer, %Val = value %1
+%Buffer.R = %Buffer.R + 1
 if %Buffer.Cells[ %Buffer.R ] == nil then
 	%context:Throw( %trace, "buffer", "Reached end of buffer" )
 elseif %Buffer.Types[ %Buffer.R ] != "v" then
 	%context:Throw( %trace, "buffer", "Attempted to read angle from " .. %LongType( %Buffer.Types[ %Buffer.R ] ) )
 else
-	%Val = Buffer.Cells[ %Buffer.R ]
-	%Buffer.R = %Buffer.R + 1
+	%Val = %Buffer.Cells[ %Buffer.R ]
 end]], "%Val" )
 
 
