@@ -311,9 +311,9 @@ local Hologram = Component:NewClass( "h", "hologram" )
 
 Hologram:Extends( "e" )
 
-Core:SetPerf( LEMON_PERF_CHEAP )
+Component:SetPerf( LEMON_PERF_CHEAP )
 
-Core:AddOperator( "default", "h", "h", "%NULL_ENTITY" )
+Component:AddOperator( "default", "h", "h", "%NULL_ENTITY" )
 
 -- Casting:
 
