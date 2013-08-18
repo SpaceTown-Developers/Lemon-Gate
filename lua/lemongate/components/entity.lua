@@ -22,7 +22,7 @@ local Class = Core:NewClass( "e", "entity", Entity( -1 ) )
 
 Class:Wire_Name( "ENTITY" )
 
-function Class.Wire_Out( Contex, Cell ) return Context.Memory[ Cell ] or Entity( -1 ) end
+function Class.Wire_Out( Context, Cell ) return Context.Memory[ Cell ] or Entity( -1 ) end
 
 function Class.Wire_In( Context, Cell, Value ) Context.Memory[ Cell ] = Value end
 
