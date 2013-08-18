@@ -230,13 +230,19 @@ function Compiler:DataToken( )
 end
 
 function Compiler:StringToken( StrChar )
-	local PrevChar = self:SkipChar()
+	local Escape = false
+	self:SkipChar( )
 
 	while self.Char do
-		if self.Char == StrChar then -- and ( !PrevChar or PrevChar == "\\" ) then
+		if Escape and self.Char == "\\" then
+			Escape = false
+			self:NextChar( )
+			-- self:SkipChar( ) Next char is only for LUA convershion!
+		elseif self.Char == StrChar and !Escape then
 			break
 		else
-			self:NextChar()
+			Escape = self.Char == "\\"
+			self:NextChar( )
 		end
 
 		self:TimeCheck(  )

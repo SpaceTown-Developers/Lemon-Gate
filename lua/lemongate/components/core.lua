@@ -195,7 +195,9 @@ function Core:BuildOperators( )
 			end]], Class.Short, Name ), "value %1[1]" )
 			
 		-- Functions:
-			Core:AddFunction( "type", Class.Short, "s", "\"" .. Name .. "\"", nil)
+			if !Name == "variant" then
+				Core:AddFunction( "type", Class.Short, "s", "\"" .. Name .. "\"", nil)
+			end
 	end
 end
 

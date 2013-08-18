@@ -918,7 +918,7 @@ if SERVER then
 		if self.Events[ Name ] then
 			for _, Gate in pairs( self:GetEntitys( ) ) do
 				local Result = Gate:CallEvent( Name, ... )
-				if Result then return Result end
+				if Result then return Result, Gate end
 			end
 		end
 	end
