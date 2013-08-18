@@ -189,8 +189,11 @@ function Core:BuildOperators( )
 		-- Variants:
 			Core:AddOperator( "variant", Class.Short, "?", "{value %1, type %1}" )
 		
-			Core:AddOperator( Name, "?", Class.Short, "(value %1[2] == \"" .. Class.Short .. "\" and value %1[1] or Context:Throw( %trace, \"cast\", \"Attempt to cast value \" .. LongType(value %1[2]) .. \" to " .. Name .. "\"))")
-		
+			Core:AddOperator( Name, "?", Class.Short, Format( [[
+			if value %%1[2] ~= %q then
+				%%context:Throw( %%trace, "cast", "Attempt to cast value " .. LongType(value %%1[2]) .. " to %s ")
+			end]], Class.Short, Name ), "value %1[1]" )
+			
 		-- Functions:
 			Core:AddFunction( "type", Class.Short, "s", "\"" .. Name .. "\"", nil)
 	end

@@ -75,7 +75,7 @@ Core:AddOperator( "not", "v2", "b", "(value %1 >= Vector2.Zero)" )
 
 Core:AddOperator( "-", "v2", "v2", "(-value %1)" )
 
-Core:AddOperator( "$", "v2", "v2", "((%delta[value %1] or Vector2(0, 0)) - (%memory[value %1] or Vector2.Zero))" )
+Core:AddOperator( "$", "v2", "v2", "((%memory[value %1] or Vector2.Zero) - (%delta[value %1] or Vector2(0, 0)))" )
 
 -- Constructors:
 

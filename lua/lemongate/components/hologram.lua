@@ -208,6 +208,12 @@ end
 ==============================================================================================*/
 local IsValidModel = util.IsValidModel
 
+function HoloLib.Query( Context )
+	local Burst = Recent[ Context.Entity ] or 0
+	local Count = Owners[ Context.Player ] or 0
+	return ( Burst <= HoloLib._Rate:GetInt( ) ) and ( Count < HoloLib._Max:GetInt( ) )
+end
+
 function HoloLib.Create( Trace, Context )
     local Ent, Owner = Context.Entity, Context.Player
 
@@ -313,6 +319,10 @@ Component:AddOperator( "hologram", "e", "h", [[
 if !$IsValid( value %1 ) or !value %1.IsHologram then
 	%context:Throw( %trace, "hologram", "casted none hologram from entity")
 end ]], "value %1" )
+
+-- Util:
+
+Component:AddFunction( "holoCanCreate", "", "b", "%HoloLib.Query( %context )")
 
 /*==============================================================================================
     Section: Creator Functions

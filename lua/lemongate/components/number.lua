@@ -68,7 +68,7 @@ Core:AddOperator( "not", "n", "b", "(value %1 < 1)" )
 
 Core:AddOperator( "-", "n", "n", "(-value %1)" )
 
-Core:AddOperator( "$", "n", "n", "((%delta[value %1] or 0) - %memory[value %1])" )
+Core:AddOperator( "$", "n", "n", "((%memory[value %1] or 0) - (%delta[value %1] or 0))" )
 
 Core:SetPerf( LEMON_PERF_NORMAL )
 

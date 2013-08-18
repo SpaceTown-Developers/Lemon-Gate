@@ -69,7 +69,7 @@ Core:AddOperator( "not", "a", "b", "(value %1.p < 1 and value %1.y < 1 and value
 
 Core:AddOperator( "-", "a", "a", "(-value %1)" )
 
-Core:AddOperator( "$", "a", "a", "((%delta[value %1] or Angle(0, 0, 0)) - (%memory[value %1]or Angle(0, 0, 0)))" )
+Core:AddOperator( "$", "a", "a", "((%memory[value %1]or Angle(0, 0, 0)) - (%delta[value %1] or Angle(0, 0, 0)))" )
 
 -- Constructors:
 
