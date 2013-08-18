@@ -74,6 +74,8 @@ function PANEL:Init( )
 	self.CaretRow = 0 
 	self.LongestRow = 0 
 	
+	self.Font = "EA_Fixedsys" 
+	
 	self.TextEntry = self:Add( "TextEntry" ) 
 	self.TextEntry:SetMultiline( true )
 	self.TextEntry:SetSize( 0, 0 )
@@ -108,9 +110,15 @@ function PANEL:Init( )
 	self.hScrollBar = self:Add( "EA_HScrollBar")
 	self.hScrollBar:SetUp( 1, 1 ) 
 	
-	surface_SetFont( "Fixedsys" )
+	surface_SetFont( self.Font )
 	self.FontWidth, self.FontHeight = surface_GetTextSize( " " )
 end
+
+function PANEL:SetFont( sFont ) 
+	self.Font = sFont 
+	surface_SetFont( sFont )
+	self.FontWidth, self.FontHeight = surface_GetTextSize( " " )
+end 
 
 function PANEL:RequestFocus( )
 	self.TextEntry:RequestFocus( )
@@ -1218,7 +1226,7 @@ local C_white = Color( 255, 255, 255 )
 local C_gray = Color( 160, 160, 160 ) 
 
 function PANEL:DrawText( w, h )
-	surface_SetFont( "Fixedsys" )
+	surface_SetFont( self.Font )
 	
 	surface_SetDrawColor( 32, 32, 32, 255 )
 	surface_DrawRect( 0, 0, self.BookmarkWidth, self:GetTall( ) )
@@ -1438,6 +1446,10 @@ end
 
 function PANEL:SyntaxColorLine( Row ) 
 	return { { self.Rows[Row], C_white } }
+end
+
+function PANEL:UpdateSyntaxColors( )
+	self.PaintRows = { } 
 end
 
 /*---------------------------------------------------------------------------

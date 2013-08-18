@@ -406,12 +406,6 @@ function PANEL:GetSyntaxColorLine( )
 	return self.SyntaxColorLine 
 end
 
-function PANEL:UpdateSyntaxColors( )
-	for i = 1, #self.TabHolder.Items do
-		self.TabHolder.Items[i].Panel.PaintRows = { }
-	end
-end
-
 // Override
 function PANEL:OnTabCreated( Tab, Code, Path )
 	return false

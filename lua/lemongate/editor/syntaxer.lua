@@ -7,8 +7,8 @@ local LEMON, API = LEMON, LEMON.API
 
 /********************************************************************************************************************************************/
 
-local Syntaxer = { }
-LEMON.Syntaxer = Syntaxer
+LEMON.Syntaxer = LEMON.Syntaxer or { First = true } 
+local Syntaxer = LEMON.Syntaxer 
 
 /********************************************************************************************************************************************/
 
@@ -240,8 +240,8 @@ function Syntaxer:UpdateSyntaxColors( bNoUpdate )
 		colors[k] = Color( tonumber( r ) or def.r, tonumber( g ) or def.g, tonumber( b ) or def.b )
 	end 
 	
-	if !bNoUpdate and Editor.Instance then 
-		Editor.Instance:UpdateSyntaxColors( ) 
+	if !bNoUpdate and Syntaxer.Editor then 
+		Syntaxer.Editor:UpdateSyntaxColors( ) 
 	end 
 end 
 
@@ -251,29 +251,13 @@ function Syntaxer.UpdateSyntaxColor( sCVar, sOld, sNew )
 	local def = colors_defaults[cvar]
 	colors[cvar] = Color( tonumber( r ) or def.r, tonumber( g ) or def.g, tonumber( b ) or def.b )
 	
-	if Editor.Instance then 
-		Editor.Instance:UpdateSyntaxColors( ) 
+	if Syntaxer.Editor then 
+		Syntaxer.Editor:UpdateSyntaxColors( ) 
 	end 
 end 
 
-for k,v in pairs( colors ) do
-	colors_defaults[k] = Color( v.r, v.g, v.b ) -- Copy to save defaults
-	colors_convars[k] = CreateClientConVar( "lemon_editor_color_" .. k, v.r .. "_" .. v.g .. "_" .. v.b, true, false )
-	cvars.AddChangeCallback( "lemon_editor_color_" .. k, Syntaxer.UpdateSyntaxColor )
-end
-
-Syntaxer:UpdateSyntaxColors( true )
-Syntaxer.ColorConvars = colors_convars
-
-/*============================================================================================================================================
-	Syntaxer Colors reset.
-============================================================================================================================================*/
-local reset = CreateClientConVar( "lemon_editor_resetcolors", "0", true, false ) 
 local norun = false 
-
-local callbacks = cvars.GetConVarCallbacks( "lemon_editor_resetcolors", true )
-
-callbacks[1] = function( sCVar, sOld, sNew )
+function Syntaxer.ResetSyntaxColor( sCVar, sOld, sNew ) 
 	if !norun and sNew ~= "0" then 
 		norun = true
 		RunConsoleCommand( "lemon_editor_resetcolors", "0" ) 
@@ -287,13 +271,35 @@ callbacks[1] = function( sCVar, sOld, sNew )
 			end 
 		end 
 		
-		UpdateSyntaxColors( ) 
+		Syntaxer.UpdateSyntaxColors( ) 
 	end 
 end 
 
+if Syntaxer.First then 
+	table.Empty( cvars.GetConVarCallbacks( "lemon_editor_resetcolors", true ) ) 
+	
+	CreateClientConVar( "lemon_editor_resetcolors", "0", true, false ) 
+	cvars.AddChangeCallback( "lemon_editor_resetcolors", function(...) Syntaxer.ResetSyntaxColor(...) end ) 
+end 
+
+for k,v in pairs( colors ) do 
+	colors_defaults[k] = Color( v.r, v.g, v.b ) -- Copy to save defaults
+	colors_convars[k] = CreateClientConVar( "lemon_editor_color_" .. k, v.r .. "_" .. v.g .. "_" .. v.b, true, false ) 
+	
+	if Syntaxer.First then 
+		table.Empty( cvars.GetConVarCallbacks( "lemon_editor_color_" .. k, true ) ) 
+		
+		cvars.AddChangeCallback( "lemon_editor_color_" .. k, function(...) Syntaxer.UpdateSyntaxColor(...) end ) 
+	end 
+end 
+
+Syntaxer.First = nil 
+
+Syntaxer:UpdateSyntaxColors( true )
+Syntaxer.ColorConvars = colors_convars
 
 /*============================================================================================================================================
-	Syntaxer Hilighting.
+	Syntaxer Highlighting.
 ============================================================================================================================================*/
 local cols, lastcol = { } 
 
@@ -530,7 +536,6 @@ function Syntaxer:Parse( Row )
 	
 	return cols 
 end
-
 
 function LEMON.Highlight( Editor, Row )
 	Syntaxer.Editor = Editor 

@@ -14,13 +14,13 @@ require( "vector2" )
 ---------------------------------------------------------------------------*/
 
 timer.Simple( 0.5, function()
-	surface.CreateFont( "Fixedsys", {
-        font 		= "Fixedsys",
-        size 		= 13,
+	surface.CreateFont( "EA_Fixedsys", {
+        font 		= "Fixedsys Excelsior 3.01",
+        size 		= 17,
         weight 		= 400,
         blursize 	= 0,
         scanlines 	= 0,
-        antialias 	= true,
+        antialias 	= false,
         underline 	= false,
         italic 		= false,
         strikeout 	= false,
