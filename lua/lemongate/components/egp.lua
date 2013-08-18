@@ -25,12 +25,11 @@ end
 ==============================================================================================*/
 local Component = API:NewComponent( "egp", true )
 
-function Component:BuildContext( Gate )
-	Gate.Context.Data.EGP = { }
+function Component:CreateContext( Context )
+	Context.Data.EGP = { }
 end
 
-function Component:UpdateExecution( Gate )
-	local Context = Gate.Context 
+function Component:UpdateContext( Context )
 	for k,v in pairs( Context.Data.EGP ) do 
 		if IsValid( k ) and v == true then 
 			EGP:SendQueueItem( Context.Player )

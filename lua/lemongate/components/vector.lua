@@ -81,7 +81,7 @@ Core:AddOperator( "not", "v", "b", "(value %1 <= Vector3.Zero)" )
 
 Core:AddOperator( "-", "v", "v", "(-value %1)" )
 
-Core:AddOperator( "$", "v", "v", "((%delta[value %1] or Vector3(0, 0, 0)) - (%memory[value %1] or Vector3.Zero))" )
+Core:AddOperator( "$", "v", "v", "((%memory[value %1] or Vector3.Zero) - (%delta[value %1] or Vector3(0, 0, 0)))" )
 
 -- Constructors:
 
