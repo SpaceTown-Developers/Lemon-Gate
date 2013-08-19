@@ -55,9 +55,9 @@ Core:AddFunction( "world", "", "e", "game.GetWorld()" )
 
 Core:AddFunction( "voidEntity", "", "e", "%NULL_ENTITY" )
 
-core:AddFunction( "id", "e:", "n", "value %1:EntIndex()" ) 
-/*============================================================
-==================================
+Core:AddFunction( "id", "e:", "n", "value %1:EntIndex( )" )
+
+/*==============================================================================================
 	Section: Position and angles
 ==============================================================================================*/
 Core:SetPerf( LEMON_PERF_CHEAP )
