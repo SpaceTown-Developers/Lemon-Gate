@@ -49,7 +49,7 @@ Core:AddOperator( "*", "v,v", "v", "(value %1 * value %2)" )
 
 Core:AddOperator( "/", "v,v", "v", "(value %1 / value %2)" )
 
-Core:AddOperator( "%", "v,v", "v", "(value %1 % value %2)" )
+Core:AddOperator( "%", "v,v", "v", "(value %1 modulus value %2)" )
 
 Core:AddOperator( "^", "v,v", "v", "(value %1 ^ value %2)" )
 
@@ -67,8 +67,8 @@ Core:AddOperator( "*", "n,v", "v", "(Vector3(value %1, value %1, value %1) * val
 Core:AddOperator( "/", "v,n", "v", "(value %1 / Vector3(value %2, value %2, value %2))" )
 Core:AddOperator( "/", "n,v", "v", "(Vector3(value %1, value %1, value %1) / value %2)" )
 
-Core:AddOperator( "%", "v,n", "v", "(value %1 % Vector3(value %2, value %2, value %2))" )
-Core:AddOperator( "%", "n,v", "v", "(Vector3(value %1, value %1, value %1) % value %2)" )
+Core:AddOperator( "%", "v,n", "v", "(value %1 modulus Vector3(value %2, value %2, value %2))" )
+Core:AddOperator( "%", "n,v", "v", "(Vector3(value %1, value %1, value %1) modulus value %2)" )
 
 Core:AddOperator( "^", "v,n", "v", "(value %1 ^ Vector3(value %2, value %2, value %2))" )
 Core:AddOperator( "^", "n,v", "v", "(Vector3(value %1, value %1, value %1) ^ value %2)" )
@@ -198,16 +198,16 @@ Core:AddFunction( "shiftR", "v", "v", "Vector3(value %1.z, value %1.x, value %1.
 /*==============================================================================================
 	Section: Ceil / Floor / Round
 ==============================================================================================*/
-Core:AddFunction( "ceil", "v", "v", "Vector3(value %1.x - value %1.x % -1, value %1.y - value %1.y % -1, value %1.z - value %1.z % -1)" )
+Core:AddFunction( "ceil", "v", "v", "Vector3(value %1.x - value %1.x modulus -1, value %1.y - value %1.y modulus -1, value %1.z - value %1.z modulus -1)" )
 
 Core:AddFunction( "floor", "v", "v", "Vector3(math.floor(value %1.x), math.floor(value %1.y), math.floor(value %1.z))" )
 
 Core:AddFunction( "ceil", "v,n", "v", [[
 local %Shift = 10 ^ math.floor(value %2 + 0.5)
-]], "Vector3(value %1.x - ((value %1.x * %Shift) % -1) / %Shift, value %1.y - ((value %1.y * %Shift) % -1) / %Shift, value %1.z - ((value %1.z * %Shift) % -1) / %Shift)" )
+]], "Vector3(value %1.x - ((value %1.x * %Shift) modulus -1) / %Shift, value %1.y - ((value %1.y * %Shift) modulus -1) / %Shift, value %1.z - ((value %1.z * %Shift) modulus -1) / %Shift)" )
 
 Core:AddFunction( "round", "v", "v",
-"Vector3(value %1.x - (value %1.x + 0.5) % 1 + 0.5, value %1.y - (value %1.y + 0.5) % 1 + 0.5, value %1.z - (value %1.z + 0.5) % 1 + 0.5)" )
+"Vector3(value %1.x - (value %1.x + 0.5) modulus 1 + 0.5, value %1.y - (value %1.y + 0.5) modulus 1 + 0.5, value %1.z - (value %1.z + 0.5) modulus 1 + 0.5)" )
 
 Core:AddFunction( "round", "v,n", "v", [[
 local %Shift = 10 ^ math.floor(value %2 + 0.5)

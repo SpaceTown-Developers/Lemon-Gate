@@ -39,7 +39,7 @@ Core:AddOperator( "*", "c,c", "c", "local %A, %B = value %1, value %2", "{math.C
 
 Core:AddOperator( "/", "c,c", "c", "local %A, %B = value %1, value %2", "{math.Clamp(%A[1] / %B[1], 0, 255), math.Clamp(%A[2] / %B[2], 0, 255), math.Clamp(%A[3] / %B[3], 0, 255)}" )
 
-Core:AddOperator( "%", "c,c", "c", "local %A, %B = value %1, value %2", "{math.Clamp(%A[1] % %B[1], 0, 255), math.Clamp(%A[2] % %B[2], 0, 255), math.Clamp(%A[3] % %B[3], 0, 255)}" )
+Core:AddOperator( "%", "c,c", "c", "local %A, %B = value %1, value %2", "{math.Clamp(%A[1] modulus %B[1], 0, 255), math.Clamp(%A[2] modulus %B[2], 0, 255), math.Clamp(%A[3] modulus %B[3], 0, 255)}" )
 
 Core:AddOperator( "^", "c,c", "c", "local %A, %B = value %1, value %2", "{math.Clamp(%A[1] ^ %B[1], 0, 255), math.Clamp(%A[2] ^ %B[2], 0, 255), math.Clamp(%A[3] ^ %B[3], 0, 255)}" )
 
@@ -53,7 +53,7 @@ Core:AddOperator( "*", "c,n", "c", "local %A, %B = value %1, value %2", "{math.C
 
 Core:AddOperator( "/", "c,n", "c", "local %A, %B = value %1, value %2", "{math.Clamp(%A[1] / %B, 0, 255), math.Clamp(%A[2] / %B, 0, 255), math.Clamp(%A[3] / %B, 0, 255)}" )
 
-Core:AddOperator( "%", "c,n", "c", "local %A, %B = value %1, value %2", "{math.Clamp(%A[1] % %B, 0, 255), math.Clamp(%A[2] % %B, 0, 255), math.Clamp(%A[3] % %B, 0, 255)}" )
+Core:AddOperator( "%", "c,n", "c", "local %A, %B = value %1, value %2", "{math.Clamp(%A[1] modulus %B, 0, 255), math.Clamp(%A[2] modulus %B, 0, 255), math.Clamp(%A[3] modulus %B, 0, 255)}" )
 
 Core:AddOperator( "^", "c,n", "c", "local %A, %B = value %1, value %2", "{math.Clamp(%A[1] ^ %B, 0, 255), math.Clamp(%A[2] ^ %B, 0, 255), math.Clamp(%A[3] ^ %B, 0, 255)}" )
 

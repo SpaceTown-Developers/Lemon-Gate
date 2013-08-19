@@ -43,7 +43,7 @@ Core:AddOperator( "*", "a,a", "a", "Angle(value %1.p * value %2.p, value %1.y * 
 
 Core:AddOperator( "/", "a,a", "a", "Angle(value %1.p / value %2.p, value %1.y / value %2.y, value %1.r / value %2.r)", LEMON_INLINE_ONLY )
 
-Core:AddOperator( "%", "a,a", "a", "Angle(value %1.p % value %2.p, value %1.y % value %2.y, value %1.r % value %2.r)", LEMON_INLINE_ONLY )
+Core:AddOperator( "%", "a,a", "a", "Angle(value %1.p modulus value %2.p, value %1.y modulus value %2.y, value %1.r modulus value %2.r)", LEMON_INLINE_ONLY )
 
 Core:AddOperator( "^", "a,a", "a", "Angle(value %1.p ^ value %2.p, value %1.y ^ value %2.y, value %1.r ^ value %2.r)", LEMON_INLINE_ONLY )
 
@@ -57,7 +57,7 @@ Core:AddOperator( "*", "a,n", "a", "Angle(value %1.p * value %2, value %1.y * va
 
 Core:AddOperator( "/", "a,n", "a", "Angle(value %1.p / value %2, value %1.y / value %2, value %1.r / value %2)", LEMON_INLINE_ONLY )
 
-Core:AddOperator( "%", "a,n", "a", "Angle(value %1.p % value %2, value %1.y % value %2, value %1.r % value %2)", LEMON_INLINE_ONLY )
+Core:AddOperator( "%", "a,n", "a", "Angle(value %1.p modulus value %2, value %1.y modulus value %2, value %1.r modulus value %2)", LEMON_INLINE_ONLY )
 
 Core:AddOperator( "^", "a,n", "a", "Angle(value %1.p ^ value %2, value %1.y ^ value %2, value %1.r ^ value %2)", LEMON_INLINE_ONLY )
 
@@ -109,7 +109,7 @@ local %Value2 = value %2
 /*==============================================================================================
 	Section: General
 ==============================================================================================*/
-Core:AddFunction( "angnorm", "a", "a", "Angle((value %1.p + 180) % 360 - 180,(value %1.y + 180) % 360 - 180,(value %1.r + 180) % 360 - 180)", LEMON_INLINE_ONLY ) 
+Core:AddFunction( "angnorm", "a", "a", "Angle((value %1.p + 180) modulus 360 - 180,(value %1.y + 180) modulus 360 - 180,(value %1.r + 180) modulus 360 - 180)", LEMON_INLINE_ONLY ) 
 
 Core:AddFunction( "shiftL", "a", "a", "Angle(value %1.y, value %1.r, value %1.p)", LEMON_INLINE_ONLY )
 
@@ -132,16 +132,16 @@ Core:AddFunction( "up", "a:", "v", "value %1:Up( )", LEMON_INLINE_ONLY )
 /*==============================================================================================
 	Section: Ceil / Floor / Round
 ==============================================================================================*/
-Core:AddFunction( "ceil", "a", "a", "Angle(value %1.p - value %1.p % -1, value %1.y - value %1.y % -1, value %1.r - value %1.r % -1)", LEMON_INLINE_ONLY )
+Core:AddFunction( "ceil", "a", "a", "Angle(value %1.p - value %1.p modulus -1, value %1.y - value %1.y modulus -1, value %1.r - value %1.r modulus -1)", LEMON_INLINE_ONLY )
 
 Core:AddFunction( "floor", "a", "a", "Angle(math.floor(value %1.p), math.floor(value %1.y), math.floor(value %1.r))", LEMON_INLINE_ONLY )
 
 Core:AddFunction( "ceil", "a,n", "a", [[
 local %A, %B = value %1, value %2
 local %Shift = 10 ^ math.floor(%B + 0.5)
-]], "Angle(%A.p - ((%A.p * %Shift) % -1) / %Shift, %A.y - ((%A.y * %Shift) % -1) / %Shift, %A.r - ((%A.r * %Shift) % -1) / %Shift)" )
+]], "Angle(%A.p - ((%A.p * %Shift) modulus -1) / %Shift, %A.y - ((%A.y * %Shift) modulus -1) / %Shift, %A.r - ((%A.r * %Shift) modulus -1) / %Shift)" )
 
-Core:AddFunction( "round", "a", "a", "Angle(value %1.p - (value %1.p + 0.5) % 1 + 0.5, value %1.y - (value %1.y + 0.5) % 1 + 0.5, value %1.r - (value %1.r + 0.5) % 1 + 0.5)" )
+Core:AddFunction( "round", "a", "a", "Angle(value %1.p - (value %1.p + 0.5) modulus 1 + 0.5, value %1.y - (value %1.y + 0.5) modulus 1 + 0.5, value %1.r - (value %1.r + 0.5) modulus 1 + 0.5)" )
 
 Core:AddFunction( "round", "a,n", "a", [[
 local %Shift = 10 ^ math.floor(value %2 + 0.5)

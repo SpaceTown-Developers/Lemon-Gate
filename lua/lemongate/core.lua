@@ -1022,7 +1022,7 @@ end
 function Replace_Externals( Line, Internals )
 	Line = string.gsub( Line, "(%%[a-zA-Z0-9_]+)", Internals )
 	Line = string.gsub( Line, "(%%[a-zA-Z0-9_]+)", API.Raw_Externals )
-	return string.gsub( Line, "(%%%%%%)", "%%%%" )
+	return Line
 end
 
 /*==========================================================================
@@ -1031,11 +1031,8 @@ end
 function API:BuildFunction( Sig, Perf, Types, Ret, Second, First )
 	
 	if !First then
-		First = string.gsub( Second, " %% ", " %%%% " )
+		First = Second
 		Second = nil
-	else
-		First = string.gsub( First, " %% ", " %%%% " )
-		Second = string.gsub( Second, " %% ", " %%%% " )
 	end
 	
 	
