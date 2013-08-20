@@ -181,8 +181,6 @@ end
 
 function Lemon:OnRemove( ) 
 	self:ShutDown( )
-	
-	self:CallEvent( "shutdown" )
 	self:API( ):CallHook("Remove", self )
 	
 	if CaveJohnson:GetBool( ) then
