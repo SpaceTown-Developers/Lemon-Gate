@@ -234,7 +234,9 @@ function Compiler:StringToken( StrChar )
 	self:SkipChar( )
 
 	while self.Char do
-		if Escape and self.Char == "\\" then
+		if self.Char == "\n" then
+			break
+		elseif Escape and self.Char == "\\" then
 			Escape = false
 			self:NextChar( )
 			-- self:SkipChar( ) Next char is only for LUA convershion!
@@ -261,7 +263,7 @@ function Compiler:StringToken( StrChar )
 		String = string.sub(self.ReadData, 0, 10) .. "..."
 	end
 
-	self:Error( 0, "Unterminated string (\"%s)", 0, String, 10 )
+	self:Error( 0, "Unterminated string (\"%s)", String )
 end
 
 

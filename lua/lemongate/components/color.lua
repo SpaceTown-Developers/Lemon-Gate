@@ -25,7 +25,7 @@ Core:AddOperator( "&&", "c,c", "b", "local %A, %B = value %1, value %2", "local 
 
 Core:AddOperator( "||", "c,c", "c", "local %A = value %1", "((%A[1] >= 1 and %A[2] >= 1 and %A[3] >= 1 and %A[4] >= 1) and %A or value %2)" )
 
-Core:AddOperator( "==", "c,c", "b", "local %A, %B = value %1, value %2", "(%A[1] - %B[1] <= %Round and %B[1] - %A[1] <= %Round and %A[2] - %B[2] <= %Round and %B[2] - %A[2] <= %Round and%A[3] - %B[3] <= %Round and %B[3] - %A[3] <= %Round and %A[4] - %B[4] <= %Round and %B[4] - %A[4] <= %Round) ")
+Core:AddOperator( "==", "c,c", "b", "local %A, %B = value %1, value %2", "(%A[1] == %B[1] and %A[2] == %B[2] and %A[3] == %B[3] and %B[4] == %A[4]) ")
 	   
 Core:AddOperator( "!=", "c,c", "b", "local %A, %B = value %1, value %2", "(%A[1] - %B[1] > %Round or %B[1] - %A[1] > %Round or %A[2] - %B[2] > %Round or %B[2] - %A[2] > %Round or %A[3] - %B[3] > %Round or %B[3] - %A[3] > %Round)" )
 	   
@@ -109,16 +109,10 @@ Core:AddOperator( "=", "c", "", [[
 ==============================================================================================*/
 Core:SetPerf( LEMON_PERF_NORMAL )
 
-Core:AddFunction( "hsv2rgb", "c:", "c", [[
-local %V = value %1
-local %C = %HSVToColor(%V[1], %V[2], %V[3])
-]], "{ %C.r, %C.g, %C.b, 255 }" )
+Core:AddFunction( "hsv2rgb", "c:", "c", "local %C = %HSVToColor(value %1[1], value %1[2], value %1[3])", "{ %C.r, %C.g, %C.b, 255 }" )
 
-Core:AddFunction( "hsv2rgb", "n,n,n", "c", "local %C = %HSVToColor(%value 1, %value 2, %value 3)", "{ %C.r, %C.g, %C.b }" )
+Core:AddFunction( "hsv2rgb", "n,n,n", "c", "local %C = %HSVToColor(value %1, value %2, value %3)", "{ %C.r, %C.g, %C.b }" )
 
-Core:AddFunction( "rgb2hsv", "c:", "c", [[
-local %V = value %1"
-local %R, %G, %B = %ColorToHSV( %Color(%V[1], %V[2], %V[3])
-]], "{%R, %G, %B, 255}" )
+Core:AddFunction( "rgb2hsv", "c:", "c", "local %R, %G, %B = %ColorToHSV( %Color(value %1[1], value %1[2], value %1[3])", "{%R, %G, %B, 255}" )
 
-Core:AddFunction( "rgb2hsv", "n,n,n", "c", "local %C = %ColorToHSV( %Color(%value 1, %value 2, %value 3) )", "{ %C.r, %C.g, %C.b, 255 }" )
+Core:AddFunction( "rgb2hsv", "n,n,n", "c", "local %C = %ColorToHSV( %Color(value %1, value %2, value %3) )", "{ %C.r, %C.g, %C.b, 255 }" )

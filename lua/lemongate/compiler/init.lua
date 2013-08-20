@@ -354,7 +354,7 @@ function Compiler:ConstructOperator( Perf, Types, Second, First, ... )
 		
 		-- 6) Check for any specific prepare
 				if string.find( Second, "prepare %%" .. I ) then
-					Second = string.gsub( Second, "prepare %%" .. I, Prep )
+					Second = string.gsub( Second, "prepare %%" .. I, Prep or "" )
 					Prep = nil
 				end
 			end

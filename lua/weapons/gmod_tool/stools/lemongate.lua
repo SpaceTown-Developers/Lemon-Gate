@@ -20,7 +20,7 @@ CITRIS.ClientConVar.WeldWorld 	= 0
 cleanup.Register( "lemongates" )
 
 /*==============================================================================================
-	LAnguage
+	Language
 ==============================================================================================*/
 if CLIENT then
 	language.Add( "Tool.lemongate.name", "Expression Advanced" )
