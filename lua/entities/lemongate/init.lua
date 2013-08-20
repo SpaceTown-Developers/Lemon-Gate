@@ -182,7 +182,7 @@ end
 function Lemon:OnRemove( ) 
 	self:ShutDown( )
 	
-	self:CallEvent( "final" )
+	self:CallEvent( "shutdown" )
 	self:API( ):CallHook("Remove", self )
 	
 	if CaveJohnson:GetBool( ) then
@@ -245,7 +245,7 @@ function Lemon:IsRunning( )
 end
 
 function Lemon:ShutDown( )
-	self:CallEvent( "final" )
+	self:CallEvent( "shutdown" )
 	self:API( ):CallHook( "ShutDown", self, self.Context )
 end
 
