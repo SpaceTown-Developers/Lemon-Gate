@@ -10,7 +10,7 @@ local Core = API:GetComponent( "core" )
 	Section: Entity events.
 ==============================================================================================*/
 Core:SetPerf( LEMON_PERF_NORMAL )
-Core:AddEvent( "final", "", "" )
+Core:AddEvent( "shutdown", "", "" )
 
 Core:AddEvent( "trigger", "s", "" )
 
