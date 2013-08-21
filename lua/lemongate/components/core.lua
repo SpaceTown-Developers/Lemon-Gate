@@ -89,6 +89,17 @@ Core:NewClass( "b", "boolean", false )
 
 Core:SetPerf( LEMON_PERF_CHEAP )
 
+
+-- Assign:
+
+Core:AddOperator( "=", "b", "", [[
+%delta[value %1] = %memory[value %1]
+%memory[value %1] = value %2
+%click[value %1] = %delta[value %1] ~= %memory[value %1]
+]], "" )
+
+Core:AddOperator( "~", "b", "b", "%click[value %1]" )
+
 -- Compare:
 
 Core:AddOperator( "&&", "b,b", "b", "(value %1 and value %2)" )
