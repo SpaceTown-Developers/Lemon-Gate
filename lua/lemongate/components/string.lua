@@ -24,7 +24,6 @@ function String.Wire_In( Context, Cell, Value ) Context.Memory[ Cell ] = Value e
 ==============================================================================================*/
 Core:SetPerf( LEMON_PERF_CHEAP )
 
-
 -- Assign:
 
 Core:AddOperator( "=", "s", "", [[

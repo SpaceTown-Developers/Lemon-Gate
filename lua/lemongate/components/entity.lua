@@ -105,7 +105,7 @@ Core:AddFunction( "isOnFire", "e:", "b", "($IsValid(value %1) and value %1:IsOnF
 
 Core:AddFunction( "isWeapon", "e:", "b", "($IsValid(value %1) and value %1:IsWeapon( ))" )
 
-Core:AddFunction( "owner", "e:", "b", "($IsValid(value %1) and %GetOwner(value %1) or %NULL_ENTITY)" )
+Core:AddFunction( "owner", "e:", "e", "($IsValid(value %1) and %GetOwner(value %1) or %NULL_ENTITY)" )
 
 Core:SetPerf( LEMON_PERF_NORMAL )
 

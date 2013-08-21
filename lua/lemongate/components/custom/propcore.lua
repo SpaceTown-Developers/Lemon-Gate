@@ -135,7 +135,7 @@ function PropCore.Spawn( Trace, Context, Model, Freeze )
 end
 
 function PropCore.CanSpawn( Context )
-	return (PlayerRate[Context.Player] or 0) >= PropCore.Prop_Rate:GetInt( )
+	return (PlayerRate[Context.Player] or 0) <= PropCore.Prop_Rate:GetInt( )
 end
 
 /*==============================================================================================
