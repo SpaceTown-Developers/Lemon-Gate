@@ -272,8 +272,8 @@ function Compiler:GetValue( RootTrace )
 		Value = self:Compile_DELTA( self:TokenTrace( RootTrace ), self.TokenData )
 
 	elseif self:AcceptToken( "trg" ) then
-		self:ExcludeWhiteSpace( "Trigger operator (~) must not be succeeded by whitespace" )
-		self:RequireToken( "var", "variable expected, after Trigger operator (~)" )
+		self:ExcludeWhiteSpace( "Changed operator (~) must not be succeeded by whitespace" )
+		self:RequireToken( "var", "variable expected, after Changed operator (~)" )
 		
 		Value = self:Compile_TRIGGER( self:TokenTrace( RootTrace ), self.TokenData )
 		

@@ -30,6 +30,16 @@ Core:SetPerf( LEMON_PERF_CHEAP )
 
 Core:AddOperator( "default", "e", "e", "%NULL_ENTITY" )
 
+-- Assign:
+
+Core:AddOperator( "=", "e", "", [[
+%delta[value %1] = %memory[value %1] or %NULL_ENTITY
+%memory[value %1] = value %2
+%click[value %1] = %delta[value %1] ~= %memory[value %1]
+]], "" )
+
+Core:AddOperator( "~", "e", "b", "%click[value %1]" )
+
 -- Compare:
 
 Core:AddOperator( "==", "e,e", "b", "(value %1 == value %2)" )
@@ -612,7 +622,7 @@ Core:AddFunction( "findByModel", "s,s", "t", [[
 local %Res = %Table( )
 for _, Find_Entity in pairs( $ents.FindByModel( value %1 ) ) do
 	local Class = Find_Entity:GetClass( )
-	if Find_Entity:IsValid() and !%FindFilter[Class] and Class = value %2 then
+	if Find_Entity:IsValid() and !%FindFilter[Class] and Class == value %2 then
 		%Res:Insert(nil, "e", Find_Entity)
 	end
 end]], "%Res" )
@@ -621,7 +631,7 @@ Core:AddFunction( "findInSphere", "s,v,n", "t", [[
 local %Res = %Table( )
 for _, Find_Entity in pairs( $ents.FindInSphere( value %2:Garry( ), value %3 ) ) do
 	local Class = Find_Entity:GetClass( )
-	if Find_Entity:IsValid() and !%FindFilter[Class] and Class = value %1 then
+	if Find_Entity:IsValid() and !%FindFilter[Class] and Class == value %1 then
 		%Res:Insert(nil, "e", Find_Entity)
 	end
 end]], "%Res" )
@@ -630,7 +640,7 @@ Core:AddFunction( "findInSphere", "s,v,n", "t", [[
 local %Res = %Table( )
 for _, Find_Entity in pairs( $ents.FindInSphere( value %2:Garry( ), value %3 ) ) do
 	local Class = Find_Entity:GetClass( )
-	if Find_Entity:IsValid() and !%FindFilter[Class] and Class = value %1 then
+	if Find_Entity:IsValid() and !%FindFilter[Class] and Class == value %1 then
 		%Res:Insert(nil, "e", Find_Entity)
 	end
 end]], "%Res" )
@@ -639,7 +649,7 @@ Core:AddFunction( "findInBox", "v,v", "t", [[
 local %Res = %Table( )
 for _, Find_Entity in pairs( $ents.FindInBox( value %2:Garry( ), value %3:Garry()) ) do
 	local Class = Find_Entity:GetClass( )
-	if Find_Entity:IsValid() and !%FindFilter[Class] and Class = value %1 then
+	if Find_Entity:IsValid() and !%FindFilter[Class] and Class == value %1 then
 		%Res:Insert(nil, "e", Find_Entity)
 	end
 end]], "%Res" )
@@ -648,7 +658,7 @@ Core:AddFunction( "findInCone", "s,v,v,n,a", "t", [[
 local %Res = %Table( )
 for _, Find_Entity in pairs( $ents.FindInCone( value %2:Garry( ), value %3:Garry( ), value %4, value %5)) do
 	local Class = Find_Entity:GetClass( )
-	if Find_Entity:IsValid() and !%FindFilter[Class] and Class = value %1 then
+	if Find_Entity:IsValid() and !%FindFilter[Class] and Class == value %1 then
 		%Res:Insert(nil, "e", Find_Entity)
 	end
 end]], "%Res" )

@@ -251,6 +251,7 @@ function Compiler:CompileCode( Code, Files, NoCompile )
 			-- Prep Code
 				local Memory = Context.Memory
 				local Delta = Context.Delta
+				local Click = Context.Click
 				
 				]] .. string.Implode( "\n", self.PrepCode ) .. [[
 		
@@ -312,7 +313,7 @@ function Compiler:PushEnviroment( )
 	
 	Cells.Push = nil
 	
-	return "local Cells = " .. Util.ValueToLua( Cells ) .. "\nlocal Memory, Delta = Context:Enviroment( Memory, Delta, Cells )"
+	return "local Cells = " .. Util.ValueToLua( Cells ) .. "\nlocal Memory, Delta, Click = Context:Enviroment( Memory, Delta, Click, Cells )"
 end
 
 /*==============================================================================================
@@ -517,6 +518,19 @@ function Compiler:Compile_DELTA( Trace, Variable )
 	
 	local Op = self:GetOperator( "$", Class )
 	if !Op then self:TraceError( Trace, "Delta operator ($) does not support %s", NType( Class ) ) end
+	
+	return Op.Compile( self, Trace, Ref )
+end
+
+function Compiler:Compile_TRIGGER( Trace, Variable )
+	local Ref, Class = self:GetVariable( Trace, Variable )
+	
+	if !Ref then
+		self:TraceError( Trace, "Variable %s does not exist", Variable )
+	end
+	
+	local Op = self:GetOperator( "~", Class )
+	if !Op then self:TraceError( Trace, "Changed operator (~) does not support %s", NType( Class ) ) end
 	
 	return Op.Compile( self, Trace, Ref )
 end

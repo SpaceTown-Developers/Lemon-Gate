@@ -28,6 +28,18 @@ end
 /*==============================================================================================
 	Section: Operators
 ==============================================================================================*/
+Core:SetPerf( LEMON_PERF_CHEAP )
+
+-- Assign:
+
+Core:AddOperator( "=", "n", "", [[
+%delta[value %1] = %memory[value %1]
+%memory[value %1] = value %2
+%click[value %1] = %delta[value %1] ~= %memory[value %1]
+]], "" )
+
+Core:AddOperator( "~", "n", "b", "%click[value %1]" )
+
 Core:SetPerf( LEMON_PERF_NORMAL )
 
 -- Compare:

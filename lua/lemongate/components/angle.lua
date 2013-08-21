@@ -25,6 +25,16 @@ function Class.Wire_In( Context, Cell, Value )
 	Context.Memory[ Cell ] = Value
 end
 
+-- Assign:
+
+Core:AddOperator( "=", "a", "", [[
+%delta[value %1] = %memory[value %1] or Angle( 0, 0, 0 )
+%memory[value %1] = value %2
+%click[value %1] = %delta[value %1] ~= %memory[value %1]
+]], "" )
+
+Core:AddOperator( "~", "a", "b", "%click[value %1]" )
+
 -- Compare:
 
 Core:AddOperator( "&&", "a,a", "b", "((value %1.p >= 1 and value %1.y >= 1 and value %1.r >= 1) and (value %2.p >= 1 and value %2.y >= 1 and value %2.r >= 1))" )
@@ -123,11 +133,11 @@ local %Ang = Angle( value %1.p, value %1.y, value %1.r)
 /*==============================================================================================
 	Section: Directional
 ==============================================================================================*/
-Core:AddFunction( "forward", "a:", "v", "value %1:Forward( )", LEMON_INLINE_ONLY )
+Core:AddFunction( "forward", "a:", "v", "Vector3( value %1:Forward( ) )", LEMON_INLINE_ONLY )
 
-Core:AddFunction( "right", "a:", "v", "value %1:Right( )", LEMON_INLINE_ONLY )
+Core:AddFunction( "right", "a:", "v", "Vector3( value %1:Right( ) )", LEMON_INLINE_ONLY )
 
-Core:AddFunction( "up", "a:", "v", "value %1:Up( )", LEMON_INLINE_ONLY )
+Core:AddFunction( "up", "a:", "v", "Vector3( value %1:Up( ) )", LEMON_INLINE_ONLY )
 
 /*==============================================================================================
 	Section: Ceil / Floor / Round

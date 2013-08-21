@@ -29,6 +29,16 @@ end
 
 Core:AddOperator( "default", "v2", "v2", "Vector2.Zero:Clone()" )
 
+-- Assign:
+
+Core:AddOperator( "=", "v2", "", [[
+%delta[value %1] = %memory[value %1] or Vector2( 0, 0, 0 )
+%memory[value %1] = value %2
+%click[value %1] = %delta[value %1] ~= %memory[value %1]
+]], "" )
+
+Core:AddOperator( "~", "v2", "b", "%click[value %1]" )
+
 -- Compare:
 
 Core:AddOperator( "&&", "v2,v2", "b", "((value %1 > Vector2.Zero) and (value %2 > Vector2.Zero)" )

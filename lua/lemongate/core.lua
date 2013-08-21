@@ -1000,7 +1000,7 @@ local function Replace_Context( Line )
 	 Line = string.gsub( Line, "%%context", "Context" )
 	 Line = string.gsub( Line, "%%memory", "Memory" )
 	 Line = string.gsub( Line, "%%delta", "Delta" )
-	 Line = string.gsub( Line, "%%click", "Context.Click" )
+	 Line = string.gsub( Line, "%%click", "Click" )
 	return  string.gsub( Line, "%%data", "Context.Data" )
 end
 

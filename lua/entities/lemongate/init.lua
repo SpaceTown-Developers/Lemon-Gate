@@ -279,7 +279,10 @@ function Lemon:TriggerInput( Key, Value )
 		if Cell then
 			Cell.Class.Wire_In( self.Context, Ref, Value )
 			self.Context.Click[ Ref ] = true
+			
 			self:CallEvent( "trigger", Key )
+			
+			self.Context.Click[ Ref ] = false
 		end
 	end
 end
