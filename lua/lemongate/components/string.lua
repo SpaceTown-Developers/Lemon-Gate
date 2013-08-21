@@ -24,6 +24,18 @@ function String.Wire_In( Context, Cell, Value ) Context.Memory[ Cell ] = Value e
 ==============================================================================================*/
 Core:SetPerf( LEMON_PERF_CHEAP )
 
+
+-- Assign:
+
+Core:AddOperator( "=", "s", "", [[
+%delta[value %1] = %memory[value %1]
+%memory[value %1] = value %2
+%click[value %1] = %delta[value %1] ~= %memory[value %1]
+]], "" )
+
+Core:AddOperator( "~", "s", "b", "%click[value %1]" )
+
+
 -- Compare:
 
 Core:AddOperator( "==", "s,s", "b", "(value %1 == value %2)" )
