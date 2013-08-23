@@ -189,17 +189,21 @@ function Component:CreateContext( Context )
 end
 
 function Component:UpdateContext( Context )
-	local Que = Context.Data.BufferQue
+	local Que, New = Context.Data.BufferQue, { }
 	for I = 1, #Que do
-		local Data = Que[I]
-		local SendTo = Data[1]
-		
-		if IsValid( SendTo ) and SendTo.IsLemonGate and SendTo:IsRunning( ) then
-			SendTo:CallEvent( "receiveBuffer", Data[2], Context.Entity, Data[3] )
-		end
+		if I < 10 then
+			local Data = Que[I]
+			local SendTo = Data[1]
+			
+			if IsValid( SendTo ) and SendTo.IsLemonGate and SendTo:IsRunning( ) then
+				SendTo:CallEvent( "receiveBuffer", Data[2], Context.Entity, Data[3] )
+			end
+		else
+			New[ #New + 1 ] = Que[I]
+		end -- Prvent buffer inf loops!
 	end
 	
-	Context.Data.BufferQue = { }
+	Context.Data.BufferQue = New
 end
 
 function Component:BuildDupeInfo( Gate, DupeTable )

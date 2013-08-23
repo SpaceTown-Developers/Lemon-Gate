@@ -231,6 +231,7 @@ function API:LoadCoreComponents( )
 		include( "lemongate/components/trace.lua" )
 		include( "lemongate/components/egp.lua" )
 		include( "lemongate/components/quaternion.lua" )
+		include( "lemongate/components/file.lua" )
 	end
 end
 
@@ -296,6 +297,7 @@ function API:LoadEditor( )
 		include( "lemongate/editor.lua" )
 		
 		include( "lemongate/components/kinect.lua" )
+		include( "lemongate/components/cl_file.lua" )
 	end
 end
 
