@@ -70,7 +70,11 @@ Component:SetPerf( LEMON_PERF_CHEAP )
 
 Component:AddFunction("curTime", "", "n", "$CurTime( )" )
 
--- TODO: time(s)
+Component:AddFunction("realtime", "", "n", "$RealTime( )" )
+
+Component:AddFunction("sysTime", "", "n", "$SysTime( )" )
+
+Component:AddFunction("time", "s", "n", "tonumber( os.date(\"!*t\")[ value %1 ] or 0 )" )
 
 /*==============================================================================================
 	Section: Timers

@@ -225,6 +225,8 @@ end
 
 Core:AddOperator( "return", "", "", "return value %1" )
 
+Core:AddOperator( "exit", "", "", "error( 'Exit', 0 )" )
+
 /*==============================================================================================
 	Section: Loops
 ==============================================================================================*/
@@ -322,7 +324,7 @@ Core:AddFunction( "self", "", "e", "%context.Entity", nil )
 
 Core:AddFunction( "owner", "", "e", "%context.Player", nil )
 
-Core:AddFunction( "selfDestruct", "", "e", "%context.Entity:Remove( )" )
+Core:AddFunction( "selfDestruct", "", "", "%context.Entity:Remove( ); error( 'Exit, o )" )
 
 /*==============================================================================================
 	Section: Gate Name
@@ -343,9 +345,31 @@ Core:AddFunction( "hardPerf", "", "n", "(%context.MaxPerf - %context.Perf)" )
 Core:AddFunction( "softPerf", "", "n", "((%context.MaxPerf * 0.90) - %context.Perf)" )
 
 /*==============================================================================================
-	Section: Things that have no place to go!
+	Section: Engine
 ==============================================================================================*/
 Core:AddFunction( "map", "", "s", "($game.GetMap( ) or \"\")" )
+
+Core:AddFunction( "isSinglePlayer", "", "b", "game.SinglePlayer()" )
+
+Core:AddFunction( "isDedicated", "", "b", "game.IsDedicated()" )
+
+Core:AddFunction( "numPlayers", "", "n", "(#player.GetAll())" )
+
+Core:AddFunction( "maxPlayers", "", "n", "game.MaxPlayers()" )
+
+Core:AddFunction( "gravity", "", "n", "( $GetConVar(\"sv_gravity\"):GetFloat() )" )
+
+Core:AddFunction( "propGravity", "", "v", "Vector3( physenv.GetGravity() )" )
+
+Core:AddFunction( "airDensity", "", "n", "physenv.GetAirDensity()" )
+
+Core:AddFunction( "maxFrictionMass", "", "n", "(physenv.GetPerformanceSettings()[\"MaxFrictionMass\"])" )
+
+Core:AddFunction( "minFrictionMass", "", "n", "(physenv.GetPerformanceSettings()[\"MinFrictionMass\"])" )
+
+Core:AddFunction( "speedLimit", "", "n", "(physenv.GetPerformanceSettings()[\"MaxVelocity\"])" )
+
+Core:AddFunction( "angSpeedLimit", "", "n", "(physenv.GetPerformanceSettings()[\"MaxAngularVelocity\"])" )
 
 /*==============================================================================================
 	Section: Do not exist functions (Compiler operators)
