@@ -1338,7 +1338,7 @@ function Compiler:FUNC_print( Trace )
 			
 			local Value = self:GetExpression( Trace )
 			
-			if Value.Return ~= "s" then
+			if Value.Return ~= "s" and Value.Return ~= "?" then
 				Value = self:Compile_CAST( Trace, "string", Value )
 			end -- Auto cast to string!
 			

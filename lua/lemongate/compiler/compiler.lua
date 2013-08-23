@@ -236,7 +236,7 @@ function Compiler:CompileCode( Code, Files, NoCompile )
 		-- Required Locals
 			local ExitDeph
 			local UTIL = { }
-			
+			local PrintTable = PrintTable -- Remove ME!
 		-- Imports
 			]] .. string.Implode( "\n", self.Imports ) .. [[
 			
@@ -775,19 +775,32 @@ function Compiler:Compile_LAMBDA( Trace, Params, HasVarArg, Sequence )
 			
 			local Op = self:GetOperator( "=", Param[2] ) or self:GetOperator( "=" )
 			
-			local Assign = Op.Compile( self, Trace, Param[3], Var .. "[1]" )
-			
 			CallParams[I] = Var
 			
-			CallPrepare[I] = [[
-				if ( !]] .. Var .. " or (" .. Var ..[[[1] == nil) ) then
-					Context:Throw( Trace, "invoke", "Paramater ]] .. Param[1] .. [[ is a void value" )
-				elseif ( ]] .. Var .. [[[2] ~= "]] .. Param[2] .. [[" ) then
-					Context:Throw( Trace, "invoke", "Paramater ]] .. Param[1] .. [[ got " .. ]] .. Var .. [[[2] .. " ]] .. Param[2].. [[ expected." )
-				else
-					]] ..  Assign.Prepare .. [[ 
-				end
-			]]
+			if Param[2] ~= "?" then
+				local Assign = Op.Compile( self, Trace, Param[3], Var .. "[1]" )
+				
+				CallPrepare[I] = [[
+					if ( !]] .. Var .. " or (" .. Var ..[[[1] == nil) ) then
+						Context:Throw( Trace, "invoke", "Paramater ]] .. Param[1] .. [[ is a void value" )
+					elseif ( ]] .. Var .. [[[2] ~= "]] .. Param[2] .. [[" ) then
+						Context:Throw( Trace, "invoke", "Paramater ]] .. Param[1] .. [[ got " .. ]] .. Var .. [[[2] .. " ]] .. Param[2].. [[ expected." )
+					else
+						]] ..  Assign.Prepare .. [[ 
+					end
+				]]
+			else
+				local Assign = Op.Compile( self, Trace, Param[3], Var )
+				
+				CallPrepare[I] = [[
+					if ( !]] .. Var .. " or (" .. Var ..[[[1] == nil) ) then
+						Context:Throw( Trace, "invoke", "Paramater ]] .. Param[1] .. [[ is a void value" )
+					else
+						PrintTable( ]] .. Var .. [[ )
+						]] ..  Assign.Prepare .. [[ 
+					end
+				]]
+			end
 		end
 		
 		if HasVarArg then
@@ -1269,20 +1282,26 @@ end
 	Section: Cystom Syntax Functions
 ==============================================================================================*/
 function Compiler:Compile_PRINT( Trace, Values, Count )
-	local Statments, Inline, Perf = { }, { }, LEMON_PERF_NORMAL
+	local Perf = LEMON_PERF_NORMAL
+	local Inline, Lua = { }, { }
 	
 	for I = 1, Count do
-		local Val = Values[ I ]
+		local Instr = Values[ I ]
+		Perf = Perf + ( Instr.Perf or 0 )
 		
-		Perf = Perf + ( Val.Perf or 0 )
-		Statments[ I ] = Val.Prepare or ""
-		Inline[ I ] = Val.Inline
+		Lua[I] = ( Instr.Prepare or "" ) .. "\nlocal __" .. I .. " = " .. Instr.Inline
+		
+		if Instr.Return == "?" then
+			Inline[I] = "tostring(__" .. I .. "[1])"
+		else
+			Inline[I] = "tostring(__" .. I .. ")"
+		end
 	end
 	
 	return self:Instruction( Trace, 0, "", "", [[do
 		Context:PushPerf( ]] .. self:CompileTrace( Trace ) .. ", " .. Perf .. [[ )
 		
-		]] .. string.Implode( "\n", Statments ) .. [[
+		]] .. string.Implode( "\n", Lua ) .. [[
 		
 		Context.Player:PrintMessage( 3, string.Left( ]] .. string.Implode( " .. \" \" .. ", Inline ) .. [[, 249 ) )
 	end]] )

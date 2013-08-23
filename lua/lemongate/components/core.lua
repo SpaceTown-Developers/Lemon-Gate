@@ -184,7 +184,7 @@ Core:AddFunction( "throw", "s,t", "", "%context:Throw( %trace, \"user\", value %
 ==============================================================================================*/
 Core:NewClass( "?", "variant" )
 
-Core:AddFunction( "type", "?", "s", "%LongType(value %1[2])", nil, "Returns the true type of a Variant" )
+Core:AddFunction( "type", "?", "s", "local %Val = value %1", "%LongType(%Val[2])", "Returns the true type of a Variant" )
 
 Core:AddFunction( "tostring", "?", "s", "( tostring(value %1[1]) .. \" -> \" .. %LongType(value %1[2]) )" )
 
