@@ -107,6 +107,7 @@ if Wire_Keyboard_Remap then
 		
 		if !Tbl then Tbl = { }; Keys[ Ply ] = Tbl end
 		
+		local State = Tbl[Num]
 		Tbl[Num] = Pressed
 		
 		local Layout = Wire_Keyboard_Remap[ Ply:GetInfo( "wire_keyboard_layout" ) ]
@@ -130,14 +131,14 @@ if Wire_Keyboard_Remap then
 				if !Key then return end
 			end
 			
-			return Key
+			return Key, State
 		end
 	end
 	
 	hook.Add( "PlayerButtonDown", "LemonGate", function( Ply, Num, Button )
-		local Key = GetKey( Ply, Num, true )
+		local Key, State = GetKey( Ply, Num, true )
 		
-		if Key then 
+		if Key and !State then 
 			for _, Gate in pairs( API:GetEntitys( ) ) do
 				if Ply == Gate.Player then
 					API:CallEvent( "keypress", Key )
@@ -147,9 +148,9 @@ if Wire_Keyboard_Remap then
 	end )
 	
 	hook.Add( "PlayerButtonUp", "LemonGate", function( Ply, Num, Button )
-		local Key = GetKey( Ply, Num, nil )
+		local Key, State = GetKey( Ply, Num, nil )
 		
-		if Key then 
+		if Key and State then 
 			for _, Gate in pairs( API:GetEntitys( ) ) do
 				if Ply == Gate.Player then
 					API:CallEvent( "keyrelease", Key )
