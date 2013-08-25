@@ -433,7 +433,7 @@ if SERVER then
 
 	hook.Add( "PlayerDisconnected", "LemonGate.AutoShutDown", function( Player )
 		if AutoShutDown:GetInt( ) == 1 or ( AutoShutDown:GetInt( ) == 2 and !Player:IsAdmin( ) ) then
-			for _, Entity in pairs( Entitys ) do
+			for _, Entity in pairs( API:GetEntitys( ) ) do
 				Entity:ShutDown( )
 				self:CallHook( "Remove", Entity )
 				Entity.AutoShutDown = true
@@ -443,7 +443,7 @@ if SERVER then
 	
 	hook.Add( "PlayerInitialSpawn", "LemonGate.AutoShutDown", function( Player )
 		timer.Simple( 5, function( )
-			for _, Entity in pairs( Entitys ) do
+			for _, Entity in pairs( API:GetEntitys( ) ) do
 				if Entity.AutoShutDown and Util.IsOwner( Player, Entity ) then
 					Entity.Player = Player
 					Entity:Reset( )
