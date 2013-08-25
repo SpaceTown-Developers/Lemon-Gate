@@ -274,7 +274,7 @@ function Compiler:CompileCode( Code, Files, NoCompile )
 end
 
 function Compiler:Instruction( Trace, Perf, Return, Inline, Prepare )
-	return { Trace = Trace, Return = Return, Return = Return, Inline = Inline, Prepare = Prepare }
+	return { Trace = Trace, Return = Return, Return = Return, Inline = Inline, Prepare = Prepare, Perf = Perf }
 end
 
 local Format = string.format

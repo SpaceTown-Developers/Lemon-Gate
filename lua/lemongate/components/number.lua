@@ -139,10 +139,15 @@ local %Value = %memory[value %1]
 ==============================================================================================*/
 Core:SetPerf( LEMON_PERF_NORMAL )
 
-Core:AddFunction( "min", "n,n[,n,n,n]", "n", "math.min(value %1,value %2,value %3,value %4,value %5)" )
+Core:AddFunction( "min", "n,n", "n", "math.min(value %1,value %2)" )
+Core:AddFunction( "min", "n,n,n,", "n", "math.min(value %1,value %2,value %3)" )
+Core:AddFunction( "min", "n,n,n,n", "n", "math.min(value %1,value %2,value %3,value %4)" )
+Core:AddFunction( "min", "n,n,n,n,n", "n", "math.min(value %1,value %2,value %3,value %4,value %5)" )
 
-Core:AddFunction( "max", "n,n[,n,n,n]", "n", "math.max(value %1,value %2,value %3,value %4,value %5)" )
-
+Core:AddFunction( "max", "n,n", "n", "math.max(value %1,value %2)" )
+Core:AddFunction( "max", "n,n,n,", "n", "math.max(value %1,value %2,value %3)" )
+Core:AddFunction( "max", "n,n,n,n", "n", "math.max(value %1,value %2,value %3,value %4)" )
+Core:AddFunction( "max", "n,n,n,n,n", "n", "math.max(value %1,value %2,value %3,value %4,value %5)" )
 
 /*==============================================================================================
 	Section: General Math

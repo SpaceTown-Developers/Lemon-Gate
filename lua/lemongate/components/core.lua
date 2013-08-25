@@ -230,7 +230,7 @@ Core:AddOperator( "exit", "", "", "error( 'Exit', 0 )" )
 /*==============================================================================================
 	Section: Loops
 ==============================================================================================*/
-Core:SetPerf( LEMON_PERF_NORMAL )
+Core:SetPerf( LEMON_PERF_EXPENSIVE )
 
 -- 1:Ass, 2:Cnd, 3:Step, 4:Statment
 Core:AddOperator( "for", "n", "", [[

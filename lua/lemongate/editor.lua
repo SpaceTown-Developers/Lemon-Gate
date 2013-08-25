@@ -71,16 +71,17 @@ end )
 ---------------------------------------------------------------------------*/
 local HomeScreen = [[/*===================================================
 	Expression Advanced:
+		* Con-commands added!
 		* File functions are back!
+		* Ops rebalance in progress.
 		* Check out our new repo browser!
-		* The editor has a settings nenu now.
-	
+		
 	Check Out Video Tutorials:
 		* https://www.youtube.com/watch?v=GzNsCWORiRw
+		* http://www.youtube.com/watch?v=1fPyhSEa2EI
 		
 	Wiki: https://github.com/SpaceTown-Developers/Lemon-Gate/wiki
 	Bug Reports: https://github.com/SpaceTown-Developers/Lemon-Gate/issues
-	
 	
 	Credits: Rusketh, Oskar94, Divran, Syranide.
 ===================================================*/

@@ -55,6 +55,8 @@ Component:AddFunction( "filter", "tr:e", "", "table.insert(value %1.filter, valu
 	Section: Usage
 ==============================================================================================*/
 
+Component:SetPerf( LEMON_PERF_NORMAL )
+
 Component:AddFunction( "update", "tr:", "", "value %1.result = $util.TraceLine(value %1)", LEMON_PREPARE_ONLY )
 Component:AddFunction( "entity", "tr:", "e", "value %1.result = value %1.result or $util.TraceLine(value %1)", "value %1.result.Entity or %NULL_ENTITY" )
 Component:AddFunction( "fraction", "tr:", "n", "value %1.result = value %1.result or $util.TraceLine(value %1)", "value %1.result.Fraction or 0" )

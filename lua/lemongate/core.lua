@@ -232,6 +232,7 @@ function API:LoadCoreComponents( )
 		include( "lemongate/components/egp.lua" )
 		include( "lemongate/components/quaternion.lua" )
 		include( "lemongate/components/file.lua" )
+		include( "lemongate/components/console.lua" )
 	end
 end
 
@@ -298,6 +299,7 @@ function API:LoadEditor( )
 		
 		include( "lemongate/components/kinect.lua" )
 		include( "lemongate/components/cl_file.lua" )
+		include( "lemongate/components/console.lua" )
 	end
 end
 
@@ -422,6 +424,36 @@ else
 		API:Init( ) -- Load on client!
 	end )
 end
+
+/*==========================================================================
+	Section: Player DC auto shutdown
+==========================================================================*/
+if SERVER then
+	local AutoShutDown = CreateConVar( "lemon_auto_shutdown", "1" )
+
+	hook.Add( "PlayerDisconnected", "LemonGate.AutoShutDown", function( Player )
+		if AutoShutDown:GetInt( ) == 1 or ( AutoShutDown:GetInt( ) == 2 and !Player:IsAdmin( ) ) then
+			for _, Entity in pairs( Entitys ) do
+				Entity:ShutDown( )
+				self:CallHook( "Remove", Entity )
+				Entity.AutoShutDown = true
+			end
+		end
+	end )
+	
+	hook.Add( "PlayerInitialSpawn", "LemonGate.AutoShutDown", function( Player )
+		timer.Simple( 5, function( )
+			for _, Entity in pairs( Entitys ) do
+				if Entity.AutoShutDown and Util.IsOwner( Player, Entity ) then
+					Entity.Player = Player
+					Entity:Reset( )
+					Entity.AutoShutDown = false
+				end
+			end
+		end )
+	end )
+end
+
 /*==========================================================================
 	Section: Components
 ==========================================================================*/

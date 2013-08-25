@@ -11,7 +11,7 @@ LEMON.Repo = { }
 local Repo = LEMON.Repo
 
 Repo.NewestVerison = 0
-Repo.CurrentVerison = tonumber( file.Read( "ea_version.lua", "LUA" ) )
+Repo.CurrentVerison = tonumber( file.Read( "ea_version.lua", "LUA" ) or 0 )
 
 function Repo.CheckVer( )
 	http.Fetch( GitVer, GitVer_Receive, GitVer_Fail )

@@ -192,13 +192,20 @@ local function CreateOptions( )
 		end )
 	end
 	
-	
-	local kinect = Panel:Add( "DCheckBoxLabel" ) 
-	kinect:Dock( TOP ) 
-	kinect:DockMargin( 10, 5, 10, 5 ) 
-	kinect:SetText( "Allow kinect?" ) 
+	local kinect = vgui.Create( "DCheckBoxLabel" ) 
+	kinect:SetText( "Use kinect?" ) 
 	kinect:SetConVar( "lemon_kinect_allow" ) 
 	
+	local Console = vgui.Create( "DCheckBoxLabel" ) 
+	Console:SetText( "Allow Console?" ) 
+	Console:SetConVar( "lemon_console_allow" ) 
+	
+	local Divider = Panel:Add( "DHorizontalDivider" ) 
+	Divider:Dock( TOP ) 
+	Divider:DockMargin( 10, 5, 10, 5 ) 
+	Divider:SetLeft( Console )
+	Divider:SetRight( kinect )
+
 	Panel:SetSize( 300, 260 ) 
 	Panel:SetPos( cookie.GetNumber( "eaoptions_x", ScrW( ) / 2 - Panel:GetWide( ) / 2 ), cookie.GetNumber( "eaoptions_y", ScrH( ) / 2 - Panel:GetTall( ) / 2 ) ) 
 	

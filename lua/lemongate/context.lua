@@ -6,7 +6,7 @@ local LEMON, API = LEMON, LEMON.API
 
 /**********************************************************************************************/
 
-local PerfMax = CreateConVar( "lemongate_perf", "10000", {FCVAR_REPLICATED} )
+local PerfMax = CreateConVar( "lemongate_perf", "25000", {FCVAR_REPLICATED} )
 LEMON.PerfMax = PerfMax
 
 /**********************************************************************************************/

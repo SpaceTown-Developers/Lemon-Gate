@@ -38,7 +38,7 @@ function Table:Set( Index, Type, Value )
 	
 	Data[Index] = Value
 	self.Types[Index] = Type
-	print( "SET:", Index, #Data )
+	
 	self.Count = #Data
 end
 
@@ -65,6 +65,20 @@ function Table:Remove( Index )
 	
 	self.Count = #Data
 end
+
+function Table:Pop( Index )
+	local Data = self.Data
+
+	if Data[Index] ~= nil then
+		self.Size = self.Size - 1
+	end
+	
+	TableRemove( Data, Index )
+	TableRemove( self.Types,Index )
+	
+	self.Count = #Data
+end
+
 
 function Table:Get( Index, Type )
 	local Object = self.Data[Index]
@@ -195,6 +209,69 @@ Component:AddFunction( "exists", "t:s", "b", "(value %1.Data[value %2] ~= nil)" 
 
 Component:AddFunction( "exists", "t:e", "b", "(value %1.Data[value %2] ~= nil)" )
 
+-- Array:
+Component:SetPerf( LEMON_PERF_EXPENSIVE )
+
+Component:AddFunction( "pop", "t:", "", "value %1:Remove(value %1.Count)" )
+
+-- Table:
+
+Component:SetPerf( LEMON_PERF_EXPENSIVE )
+
+Component:AddFunction( "invert", "t", "t", [[
+local %Result = %Table( )
+
+for Key, Value in pairs( value %1.Types ) do
+	if Value == "n" or Value == "s" or Value == "s" then
+		local %IType = $type( Key )
+		
+		if %IType == "number" then
+			%Result:Set( value %1.Data[ Key ], "n", Key )
+		elseif %IType == "string" then
+			%Result:Set( value %1.Data[ Key ], "s", Key )
+		elseif %IType == "entity" then
+			%Result:Set( value %1.Data[ Key ], "e", Key )
+		end
+	end
+end
+]], "%Result" )
+
+Component:AddFunction( "keys", "t:", "t", [[
+local %Result = %Table( )
+
+for Key, Value in pairs( value %1.Types ) do
+	local %IType = $type( Key )
+		
+	if %IType == "number" then
+		%Result:Insert( nil, "n", Key )
+	elseif %IType == "string" then
+		%Result:Insert( nil, "s", Key )
+	elseif %IType == "entity" then
+		%Result:Insert( nil, "e", Key )
+	end
+end
+]], "%Result" )
+
+Component:AddFunction( "merge", "t:,t", "", [[
+local %Tbl = value %1
+
+for Key, Type, Value in value %2:Itorate( ) do
+	%Tbl:Set( Key, Type, Value )
+end
+]], "" )
+
+Component:AddFunction( "add", "t:,t", "", [[
+local %Tbl = value %1
+
+for Key, Type, Value in value %2:Itorate( ) do
+	if type( Key ) == "number" then
+		%Tbl:Insert( nil, Type, Value )
+	elseif !Tbl.Types[ Key ] then
+		%Tbl:Set( Key, Type, Value )
+	end
+end
+]], "" )
+
 /*==============================================================================================
 	Variant Index Operators
 ==============================================================================================*/
@@ -268,6 +345,13 @@ function Component:BuildOperators( )
 				
 				Component:AddFunction( "insert", Format( "t:%s", Class.Short ), "",
 					"value %1:Insert( nil, type %2, value %2 )" )
+			
+			-- Array:
+				Component:AddFunction( "push", Format( "t:%s", Class.Short ), "",
+					"value %1:Insert( nil, type %2, value %2 )" )
+					
+				Component:AddFunction( "unshift", Format( "t:%s", Class.Short ), "",
+					"value %1:Insert( 1, type %2, value %2 )" )
 		end
 	end
 end
@@ -275,7 +359,7 @@ end
 /*==============================================================================================
 	ForEach Loop
 ==============================================================================================*/
-Component:SetPerf( LEMON_PERF_CHEAP )
+Component:SetPerf( LEMON_PERF_EXPENSIVE )
 
 Component:AddOperator( "foreach", "t", "", [[
 do
@@ -289,7 +373,7 @@ do
 	end
 	
 	for Key, Type, Value in value %1:Itorate( ) do
-		%context:PushPerf( %trace, ]] .. LEMON_PERF_LOOPED .. [[ )
+		%context:PushPerf( %trace, ]] .. LEMON_PERF_ABNORMAL .. [[ )
 		
 		local KeyType = $type( Key )[1]
 		
