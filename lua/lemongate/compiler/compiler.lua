@@ -81,6 +81,11 @@ function Compiler:IsInput( Trace, Ref )
 	return Cell and Cell.Assign == "Inport"
 end
 
+function Compiler:IsOutput( Trace, Ref )
+	local Cell = self.Cells[ Ref]
+	return Cell and Cell.Assign == "Outport"
+end
+
 /*==============================================================================================
 	Section: Cell Assigment
 ==============================================================================================*/
@@ -684,6 +689,24 @@ function Compiler:Compile_NEGATIVE( Trace, Expression )
 	if Op then return Op.Compile( self, Trace, Expression ) end
 	
 	self:TraceError( Trace, "No such operator (-%s)", NType( Expression.Return ) )
+end
+
+function Compiler:Compile_CONNECT( Trace, Variable )
+	local Ref, Class = self:GetVariable( Trace, Variable )
+	
+	if !Ref then
+		self:TraceError( Trace, "Variable %s does not exist", Variable )
+	end
+	
+	if self:IsInput( Trace, Ref ) then
+		local Op = self:GetOperator( "->i" )
+		return Op.Compile( self, Trace, Variable )
+	elseif self:IsOutput( Trace, Ref ) then
+		local Op = self:GetOperator( "->o" )
+		return Op.Compile( self, Trace, Variable )
+	else
+		self:TraceError( Trace, "Connect operator (->) can only reach inport or outport" )
+	end
 end
 
 /*==============================================================================================

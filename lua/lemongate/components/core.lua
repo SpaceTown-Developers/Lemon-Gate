@@ -71,7 +71,7 @@ Core:SetPerf( LEMON_PERF_CHEAP )
 
 Core:AddOperator( "=", "", "", [[
 %memory[value %1] = value %2
-%click[value %1] = true
+%click[value %1] = true -- Defaq
 ]], "" )
 
 Core:AddOperator( "variable", "", "", "%memory[value %1]" )
@@ -226,6 +226,13 @@ end
 Core:AddOperator( "return", "", "", "return value %1" )
 
 Core:AddOperator( "exit", "", "", "error( 'Exit', 0 )" )
+
+/*==============================================================================================
+	Section: Connect Operators
+==============================================================================================*/
+Core:AddOperator( "->i", "", "b", [[(%context.Entity.Inputs["value %1"].Src ~= nil)]] )
+
+Core:AddOperator( "->o", "", "b", [[(#%context.Entity.Outputs["value %1"].Connected > 0)]] )
 
 /*==============================================================================================
 	Section: Loops

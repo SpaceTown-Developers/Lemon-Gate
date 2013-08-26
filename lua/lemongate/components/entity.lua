@@ -545,6 +545,47 @@ Core:AddFunction( "rightClick", "e:", "b", "($IsValid(value %1) and value %1:IsP
 Core:AddFunction( "getEquipped", "e:", "e", "(($IsValid(value %1) and value %1:IsPlayer( )) and (value %1:GetActiveWeapon() or %NULL_ENTITY) or %NULL_ENTITY )" )
 
 /*==============================================================================================
+	Section: Attachment Points
+==============================================================================================*/
+Core:AddFunction( "lookupAttachment", "e:s", "n", "($IsValid(value %1) and value %1:LookupAttachment(value %2) or 0)" )
+
+Core:AddFunction( "attachmentPos", "e:n", "v", [[
+if $IsValid( value %1 ) then
+	local %At = value %1:GetAttachment(value %2)
+	if %At then
+		%util = Vector3(%At.Pos)
+	end
+end
+]], "(%util or Vector3(0, 0, 0))")
+
+Core:AddFunction( "attachmentAng", "e:n", "a", [[
+if $IsValid( value %1 ) then
+	local %At = value %1:GetAttachment(value %2)
+	if %At then
+		%util = %At.Ang
+	end
+end
+]], "(%util or Angle(0, 0, 0))")
+
+Core:AddFunction( "attachmentPos", "e:s", "v", [[
+if $IsValid( value %1 ) then
+	local %At = value %1:GetAttachment(value %1:LookupAttachment(value %2) or 0)
+	if %At then
+		%util = Vector3(%At.Pos)
+	end
+end
+]], "(%util or Vector3(0, 0, 0))")
+
+Core:AddFunction( "attachmentAng", "e:s", "v", [[
+if $IsValid( value %1 ) then
+	local %At = value %1:GetAttachment(value %1:LookupAttachment(value %2) or 0)
+	if %At then
+		%util = %At.Ang
+	end
+end
+]], "(%util or Angle(0, 0, 0))")
+
+/*==============================================================================================
 	Section: Finding
 ==============================================================================================*/
 local FindFilter = { -- E2 filters these.
