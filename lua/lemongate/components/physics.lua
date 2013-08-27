@@ -155,7 +155,7 @@ Core:AddFunction( "massCenter", "p:", "v", "(IsValid(value %1) and Vector3( valu
 
 Core:AddFunction( "massCenterL", "p:", "v", "(IsValid(value %1) and Vector3( value %1:GetMassCenter( ) ) or Vector3.Zero:Clone( ) )")
 
-Core:AddFunction( "mass", "p:", "n", "(IsValid(value %1) andvalue %1:GetMass( ) or 0)" )
+Core:AddFunction( "mass", "p:", "n", "(IsValid(value %1) and value %1:GetMass( ) or 0)" )
 
 Core:AddFunction( "massCenterWorld", "p:", "v", "(IsValid(value %1) and Vector3( value %1:LocalToWorld( value %1:GetMassCenter( ) ) ) or Vector3.Zero:Clone( ) )")
 
