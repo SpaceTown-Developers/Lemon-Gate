@@ -155,6 +155,12 @@ Core:AddFunction( "massCenter", "p:", "v", "(IsValid(value %1) and Vector3( valu
 
 Core:AddFunction( "massCenterL", "p:", "v", "(IsValid(value %1) and Vector3( value %1:GetMassCenter( ) ) or Vector3.Zero:Clone( ) )")
 
+Core:AddFunction( "mass", "p:", "n", "(IsValid(value %1) andvalue %1:GetMass( ) or 0)" )
+
+Core:AddFunction( "massCenterWorld", "p:", "v", "(IsValid(value %1) and Vector3( value %1:LocalToWorld( value %1:GetMassCenter( ) ) ) or Vector3.Zero:Clone( ) )")
+
+Core:AddFunction( "massCenter", "p:", "v", "(IsValid(value %1) and Vector3( value %1:GetMassCenter( ) ) or Vector3.Zero:Clone( ) )")
+
 /*==============================================================================================
 	Section: AABB
 ==============================================================================================*/
@@ -182,17 +188,17 @@ Core:AddFunction( "isFrozen", "p:", "b", "($IsValid(value %1) and value %1:IsMov
 Core:SetPerf( LEMON_PERF_EXPENSIVE )
 
 Core:AddFunction( "applyForce", "p:v", "", [[
-if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1:GetEntity( ) ) then
+if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1:GetEntity( ) ) and value %2:IsNotHuge( ) then
 	value %1:ApplyForceCenter( value %2:Garry( ) )
 end]], "" )
 
 Core:AddFunction( "applyOffsetForce", "p:v,v", "", [[
-if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1:GetEntity( ) ) then
+if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1:GetEntity( ) ) and value %2:IsNotHuge( ) then
 	value %1:ApplyForceOffset(value %2:Garry( ), value %3:Garry( ))
 end]], "" )
 
 Core:AddFunction( "applyAngForce", "p:a", "", [[
-if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1:GetEntity( ) ) then
+if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1:GetEntity( ) ) and %AngleNotHuge( value %2 ) then
 	-- assign vectors
 	local %Pos     = value %1:GetPos()
 	local %Forward = value %1:LocalToWorld(Vector(1,0,0)) - %Pos
@@ -223,7 +229,7 @@ if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1:GetEntity( ) ) t
 end]], "" )
 
 Core:AddFunction( "applyTorque", "p:v", "", [[
-if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1:GetEntity( ) ) then
+if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1:GetEntity( ) ) and value %2:IsNotHuge( ) then
 	local %Offset
 	local %Torque = value %2:Garry( )
 	local %Amount = %Torque:Length()

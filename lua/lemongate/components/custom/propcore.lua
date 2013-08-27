@@ -19,7 +19,11 @@ Component:AddExternal( "PropCore", PropCore )
 local Props, PlayerCount, PlayerRate = { }, { }, { }
 
 timer.Create("lemon_propcore", 1, 0, function( )
-	for K, V in pairs( PlayerRate ) do PlayerRate[K] = 0 end
+	for K, V in pairs( PlayerRate ) do
+		MsgN( "Reset Player Rate for", K, V )
+		PlayerRate[K] = 0
+		
+	end
 end)
 
 function PropCore.RemoveProp( Entity )
@@ -135,7 +139,15 @@ function PropCore.Spawn( Trace, Context, Model, Freeze )
 end
 
 function PropCore.CanSpawn( Context )
-	return (PlayerRate[Context.Player] or 0) <= PropCore.Prop_Rate:GetInt( )
+	local Max = PropCore.Prop_Max:GetInt( )
+	
+	if Max ~= -1 and (PlayerCount[Context.Player] or 0) >= Max then
+		return false;
+	elseif (PlayerRate[Context.Player] or 0) >= PropCore.Prop_Rate:GetInt( ) then
+		return false;
+	end
+	
+	return true
 end
 
 /*==============================================================================================
@@ -164,9 +176,13 @@ end]], "%Results" )
 	Section: Spawn funcs
 ==============================================================================================*/
 
+Component:SetPerf( LEMON_PERF_EXPENSIVE * 2 )
+
 Component:AddFunction("spawn", "s", "e", "%PropCore.Spawn( %trace, %context, value %1, true)" )
 
 Component:AddFunction("spawn", "s, b", "e", "%PropCore.Spawn( %trace, %context, value %1, value %2)" )
+
+Component:SetPerf( LEMON_PERF_CHEAP )
 
 Component:AddFunction("noSpawnEffect", "b", "", "%data.PC_NoEffect = value %1", "" )
 

@@ -219,6 +219,7 @@ function API:LoadCoreComponents( )
 		include( "lemongate/components/color.lua" )
 		include( "lemongate/components/events.lua" )
 		include( "lemongate/components/wirelink.lua" )
+		include( "lemongate/components/units.lua" )
 		
 		include( "lemongate/components/lambda.lua" )
 		include( "lemongate/components/table.lua" )
@@ -1125,8 +1126,8 @@ if SERVER then
 	concommand.Add( "lemon_reload", function ( Ply, Cmd, Args, Line )
 		local Name = "Console"
 		
-		if IsValid( Ply ) then
-			if !Ply:IsAdmin( ) then return "" end
+		if IsValid( Ply ) and !game.SinglePlayer( ) then
+			if !Ply:IsAdmin( ) and !Ply:IsListenServerHost( ) then return end
 			Name = Ply:Name( )
 		end
 		
@@ -1146,8 +1147,8 @@ if SERVER then
 	concommand.Add( "lemon_component", function ( Ply, Cmd, Args, Line )
 		local Name = "Console"
 		
-		if IsValid( Ply ) then
-			if !Ply:IsAdmin( ) then return "" end
+		if IsValid( Ply ) and !game.SinglePlayer( ) then
+			if !Ply:IsAdmin( ) and !Ply:IsListenServerHost( ) then return end
 			Name = Ply:Name( )
 		end
 		
