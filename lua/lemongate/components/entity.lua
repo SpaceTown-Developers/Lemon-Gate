@@ -15,6 +15,8 @@ Core:AddExternal( "IsFriend", API.Util.IsFriend )
 
 Core:AddExternal( "NULL_ENTITY", Entity( -1 ) )
 
+local Huge = math.huge
+
 Core:AddExternal( "AngleNotHuge", function( self )
 	return ( -Huge < self.p and self.p < Huge and -Huge < self.y and self.y < Huge and -Huge < self.r and self.r < Huge )
 end ) 
