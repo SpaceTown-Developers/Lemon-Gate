@@ -14,23 +14,6 @@ require( "vector2" )
 ---------------------------------------------------------------------------*/
 
 timer.Simple( 0.5, function()
-	surface.CreateFont( "EA_EditorFont", {
-		font 		= system.IsWindows( ) and "Courier New" or ( system.IsOSX( ) and "Monaco" or "DejaVu Sans Mono" ),
-		size 		= 17,
-		weight 		= 400,
-		blursize 	= 0,
-		scanlines 	= 0,
-		antialias 	= true,
-		underline 	= false,
-		italic 		= false,
-		strikeout 	= false,
-		symbol 		= false,
-		rotary 		= false,
-		shadow 		= false,
-		additive 	= false,
-		outline 	= false, 
-	} )
-	
 	surface.CreateFont( "Trebuchet22", {
 		font 		= "Trebuchet MS",
 		size 		= 22,
@@ -75,6 +58,7 @@ local HomeScreen = [[/*===================================================
 		* File functions are back!
 		* Ops rebalance in progress.
 		* Check out our new repo browser!
+		* You can now change editor font in the options menu.
 		
 	Check Out Video Tutorials:
 		* https://www.youtube.com/watch?v=GzNsCWORiRw

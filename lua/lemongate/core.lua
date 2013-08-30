@@ -295,6 +295,7 @@ function API:LoadEditor( )
 		include( "lemongate/editor/ea_imagebutton.lua" )
 		include( "lemongate/editor/ea_toolbar.lua" )
 		include( "lemongate/editor/syntaxer.lua" )
+		include( "lemongate/editor/pastebin.lua" )
 		include( "lemongate/editor/repo.lua" )
 		include( "lemongate/editor.lua" )
 		
