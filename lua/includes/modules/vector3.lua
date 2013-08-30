@@ -133,6 +133,12 @@ do
 		return Vector( self.x, self.y, self.z )
 	end
 	
+	local Huge = math.huge
+	
+	function meta:IsNotHuge( )
+		return ( -Huge < self.x and self.x < Huge and -Huge < self.y and self.y < Huge and -Huge < self.z and self.z < Huge )
+	end
+	
 	local Rad2Deg = 180 / math.pi
 	
 	function meta:Bearing( angle, vector )

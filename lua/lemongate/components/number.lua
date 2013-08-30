@@ -98,12 +98,6 @@ Core:AddOperator( "number", "s", "n", "$tonumber(value %1)" )
 ==============================================================================================*/
 Core:SetPerf( LEMON_PERF_ABNORMAL )
 
-Core:AddOperator( "=", "n", "", [[
-%delta[value %1] = %memory[value %1]
-%memory[value %1] = value %2
-%click[value %1] = true
-]], "" )
-
 -- Assign Before
 Core:AddOperator( "i++", "n", "n", [[
 local %Value = %memory[value %1]

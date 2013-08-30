@@ -20,15 +20,19 @@ end
 local CurTime, pcall = CurTime, pcall
 
 local function Timer( )
-	local Time, Sucess = CurTime( )
+	local Time, Sucess = CurTime( ), nil
 	
 	for _, Gate in pairs( API:GetEntitys( ) ) do
 		if Gate:IsRunning( ) then
-			local Context = Gate.Context
+			local Context, FailSafe = Gate.Context, 0
 			
 			for Key, Timer in pairs( Context.Data.Timers ) do
+				FailSafe = FailSafe + 1;
 				
-				if Timer.Status == -1 then
+				if FailSafe > 500 then
+					print( "[LemonGate] Too meany timers!" )
+					break
+				elseif Timer.Status == -1 then
 					Timer.Last = Time - Timer.Diff
 				
 				elseif Timer.Status == 1 and ( Timer.Last + Timer.Delay ) <= Time then
@@ -51,9 +55,11 @@ local function Timer( )
 				
 				
 				Context.Perf = Context.Perf + LEMON_PERF_CHEAP
-				
-			end; Gate:Update( )
+			end
 			
+			if Gate:IsRunning( ) then
+				Gate:Update( )
+			end
 		end
 	end
 end

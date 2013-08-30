@@ -62,8 +62,9 @@ function Context:PushPerf( Trace, Ammount )
 	end
 end
 
+local Empty = table.Empty
 function Context:Update( )
-	self.Click = { }
+	Empty( self.Click )
 	API:CallHook( "UpdateContext", self )
 end
 

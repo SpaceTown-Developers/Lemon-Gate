@@ -15,6 +15,12 @@ Core:AddExternal( "IsFriend", API.Util.IsFriend )
 
 Core:AddExternal( "NULL_ENTITY", Entity( -1 ) )
 
+local Huge = math.huge
+
+Core:AddExternal( "AngleNotHuge", function( self )
+	return ( -Huge < self.p and self.p < Huge and -Huge < self.y and self.y < Huge and -Huge < self.r and self.r < Huge )
+end ) 
+
 /*==============================================================================================
 	Section: Class
 ==============================================================================================*/
@@ -215,7 +221,7 @@ end]], "%Val" )
 Core:SetPerf( LEMON_PERF_EXPENSIVE )
 
 Core:AddFunction( "applyForce", "e:v", "", [[
-if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) then
+if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) and value %2:IsNotHuge( ) then
 	local %Phys = value %1:GetPhysicsObject( )
 	if %Phys and %Phys:IsValid( ) then
 		%Phys:ApplyForceCenter( value %2:Garry( ) )
@@ -223,7 +229,7 @@ if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) then
 end]], "" )
 
 Core:AddFunction( "applyOffsetForce", "e:v,v", "", [[
-if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) then
+if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) and value %2:IsNotHuge( ) then
 	local %Phys = value %1:GetPhysicsObject( )
 	if %Phys and %Phys:IsValid( ) then
 		%Phys:ApplyForceOffset(value %2:Garry( ), value %3:Garry( ))
@@ -231,7 +237,7 @@ if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) then
 end]], "" )
 
 Core:AddFunction( "applyAngForce", "e:a", "", [[
-if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) then
+if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) and %AngleNotHuge( value %2 ) then
 	local %Phys = value %1:GetPhysicsObject( )
 	if %Phys and %Phys:IsValid( ) then
 		-- assign vectors
@@ -264,7 +270,7 @@ if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) then
 end]], "" )
 
 Core:AddFunction( "applyTorque", "e:v", "", [[
-if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) then
+if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 )  and value %2:IsNotHuge( ) then
 	local %Phys = value %1:GetPhysicsObject( )
 	
 	if %Phys and %Phys:IsValid( ) then
@@ -543,6 +549,47 @@ Core:AddFunction( "rightClick", "e:", "b", "($IsValid(value %1) and value %1:IsP
 	Section: Weapons
 ==============================================================================================*/
 Core:AddFunction( "getEquipped", "e:", "e", "(($IsValid(value %1) and value %1:IsPlayer( )) and (value %1:GetActiveWeapon() or %NULL_ENTITY) or %NULL_ENTITY )" )
+
+/*==============================================================================================
+	Section: Attachment Points
+==============================================================================================*/
+Core:AddFunction( "lookupAttachment", "e:s", "n", "($IsValid(value %1) and value %1:LookupAttachment(value %2) or 0)" )
+
+Core:AddFunction( "attachmentPos", "e:n", "v", [[
+if $IsValid( value %1 ) then
+	local %At = value %1:GetAttachment(value %2)
+	if %At then
+		%util = Vector3(%At.Pos)
+	end
+end
+]], "(%util or Vector3(0, 0, 0))")
+
+Core:AddFunction( "attachmentAng", "e:n", "a", [[
+if $IsValid( value %1 ) then
+	local %At = value %1:GetAttachment(value %2)
+	if %At then
+		%util = %At.Ang
+	end
+end
+]], "(%util or Angle(0, 0, 0))")
+
+Core:AddFunction( "attachmentPos", "e:s", "v", [[
+if $IsValid( value %1 ) then
+	local %At = value %1:GetAttachment(value %1:LookupAttachment(value %2) or 0)
+	if %At then
+		%util = Vector3(%At.Pos)
+	end
+end
+]], "(%util or Vector3(0, 0, 0))")
+
+Core:AddFunction( "attachmentAng", "e:s", "v", [[
+if $IsValid( value %1 ) then
+	local %At = value %1:GetAttachment(value %1:LookupAttachment(value %2) or 0)
+	if %At then
+		%util = %At.Ang
+	end
+end
+]], "(%util or Angle(0, 0, 0))")
 
 /*==============================================================================================
 	Section: Finding
