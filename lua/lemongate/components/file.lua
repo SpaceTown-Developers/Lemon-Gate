@@ -3,26 +3,24 @@
 	Creditors: JerwuQu
 ==============================================================================================*/
 local LEMON, API = LEMON, LEMON.API
-
 local Component = API:NewComponent( "files", true )
-
-util.AddNetworkString("Lemon.File")
-
 local string = string
+
+AddCSLuaFile( "cl_file.lua" )
 
 /*==============================================================================================
 	Section: Network Strings
 ==============================================================================================*/
-util.AddNetworkString("Lemon_File.Open")
-util.AddNetworkString("Lemon_File.Close")
-util.AddNetworkString("Lemon_File.Write")
-util.AddNetworkString("Lemon_File.Read")
-util.AddNetworkString("Lemon_File.Delete")
-util.AddNetworkString("Lemon_File.CreateDir")
-util.AddNetworkString("Lemon_File.Find")
-util.AddNetworkString("Lemon_File.NopeDone")
-util.AddNetworkString("Lemon_File.OnsDone")
-util.AddNetworkString("Lemon_File.TwtDone")
+util.AddNetworkString( "Lemon_File.Open" )
+util.AddNetworkString( "Lemon_File.Close" )
+util.AddNetworkString( "Lemon_File.Write" )
+util.AddNetworkString( "Lemon_File.Read" )
+util.AddNetworkString( "Lemon_File.Delete" )
+util.AddNetworkString( "Lemon_File.CreateDir" )
+util.AddNetworkString( "Lemon_File.Find" )
+util.AddNetworkString( "Lemon_File.NopeDone" )
+util.AddNetworkString( "Lemon_File.OnsDone" )
+util.AddNetworkString( "Lemon_File.TwtDone" )
 
 /*==============================================================================================
 	Section: API Hooks

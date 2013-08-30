@@ -3,10 +3,6 @@ Expression Advanced: Client-side file Functions
 Purpose: Edit files.
 Creditors: JerwuQu
 ==============================================================================================*/
-if SERVER then
-	return
-end
-
 local Files = {}
 
 file.CreateDir( "lemon_files" )

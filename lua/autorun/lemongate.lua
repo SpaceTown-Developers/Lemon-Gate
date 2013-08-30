@@ -77,7 +77,6 @@ if SERVER then
 	AddCSLuaFile( "ea_version.lua" )
 	
 	AddCSLuaFile( "lemongate/editor.lua" )
-	AddCSLuaFile( "lemongate/components/cl_file.lua" )
 end
 
 include( "lemongate/core.lua" )
