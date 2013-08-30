@@ -73,8 +73,8 @@ function PANEL:Init( )
 	self.FoldingWidth = 16 
 	self.CaretRow = 0 
 	self.LongestRow = 0 
-	
-	self.Font = "EA_EditorFont" 
+	self.FontHeight = 0 
+	self.FontWidth = 0
 	
 	self.TextEntry = self:Add( "TextEntry" ) 
 	self.TextEntry:SetMultiline( true )
@@ -109,15 +109,13 @@ function PANEL:Init( )
 	
 	self.hScrollBar = self:Add( "EA_HScrollBar")
 	self.hScrollBar:SetUp( 1, 1 ) 
-	
-	surface_SetFont( self.Font )
-	self.FontWidth, self.FontHeight = surface_GetTextSize( " " )
 end
 
 function PANEL:SetFont( sFont ) 
 	self.Font = sFont 
 	surface_SetFont( sFont )
 	self.FontWidth, self.FontHeight = surface_GetTextSize( " " )
+	self:InvalidateLayout( true ) 
 end 
 
 function PANEL:RequestFocus( )
@@ -1168,6 +1166,8 @@ local function ParseIndents( Rows, exit )
 end 
 
 function PANEL:Paint( w, h )
+	if not self.Font then return end 
+	
 	self.LineNumberWidth = 6 + self.FontWidth * string_len( tostring( math_min( self.Scroll.x, #self.Rows - self.Size.x + 1 ) + self.Size.x - 1 ) )
 	
 	if !input_IsMouseDown( MOUSE_LEFT ) and self.MouseDown == MOUSE_LEFT then

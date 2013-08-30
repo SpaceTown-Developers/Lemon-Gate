@@ -455,6 +455,7 @@ function PANEL:NewTab( Code, Path, Name )
 	Sheet.Tab.DoRightClick = DoRightClick
 	Sheet.Tab.Editor = self
 	Sheet.Tab.Panel.OnTextChanged = OnTextChanged
+	self:SetEditorFont( Sheet.Tab:GetPanel( ) )
 	
 	if Path then
 		Sheet.Tab.FilePath = Path
@@ -638,6 +639,60 @@ end
 
 function PANEL:PerformLayout( )
 	self.BrowserRefresh:SetPos( 5, 30 )
+end
+
+/*============================================================================================================================================
+	Fonts
+============================================================================================================================================*/
+
+CreateClientConVar( "lemon_editor_font", "Courier New", true, false ) 
+
+PANEL.Fonts = { } 
+PANEL.CreatedFonts = { } 
+
+-- Windows
+PANEL.Fonts["Courier New"] = true 
+PANEL.Fonts["DejaVu Sans Mono"] = true 
+PANEL.Fonts["Consolas"] = true 
+PANEL.Fonts["Fixedsys"] = true 
+PANEL.Fonts["Lucida Console"] = true 
+
+-- Mac
+PANEL.Fonts["Monaco"] = true 
+
+function PANEL:SetEditorFont( Editor )
+	if not self.CurrentFont then 
+		local cvar = GetConVar( "lemon_editor_font" ) 
+		if cvar and PANEL.Fonts[cvar:GetString( )] then 
+			self:ChangeFont( cvar:GetString( ) )
+		else 
+			self:ChangeFont( system.IsWindows( ) and "Courier New" or ( system.IsOSX( ) and "Monaco" or "DejaVu Sans Mono" ) ) 
+		end 
+		return 
+	end 
+	
+	Editor:SetFont( self.CurrentFont )
+end
+
+function PANEL:ChangeFont( Font )
+	if not Font or Font == "" then return end 
+	
+	if not self.CreatedFonts[Font] then 
+		surface.CreateFont( "EA_" .. Font, {
+			font = Font,
+			size = 17,
+			weight = 400,
+			antialias = false
+		} )
+		self.CreatedFonts[Font] = true 
+	end 
+	
+	self.CurrentFont = "EA_" .. Font
+	RunConsoleCommand( "lemon_editor_font", Font ) 
+	
+	for I = #self.TabHolder.Items, 1, -1 do
+		self:SetEditorFont( self.TabHolder.Items[I].Tab:GetPanel( ) )
+	end 
 end
 
 vgui.Register( "EA_EditorPanel", PANEL, "EA_Frame" )

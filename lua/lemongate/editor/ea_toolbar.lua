@@ -42,31 +42,14 @@ function PANEL:Init( )
 	self.btnSave = self:SetupButton( "Save", Material( "fugue/disk.png" ), LEFT )
 	self.btnSaveAs = self:SetupButton( "Save As", Material( "fugue/disks.png" ), LEFT )
 	self.btnNewTab = self:SetupButton( "New tab", Material( "fugue/script--plus.png" ), LEFT )
-	self.btnCloseTab = self:SetupButton( "Close tab", Material( "fugue/script--minus.png" ), LEFT )
+	self.btnCloseTab = self:SetupButton( "Close tab", Material( "fugue/script--minus.png" ), LEFT ) 
+	self.btnUploadPaste = self:SetupButton( "Upload code to pastebin", Material( "fugue/drive-upload.png" ), LEFT )
 	
 	self.btnOptions = self:SetupButton( "Options", Material( "fugue/gear.png" ), RIGHT )
 	self.btnHelp = self:SetupButton( "Open helper", Material( "fugue/question.png" ), RIGHT )
 	self.btnWiki = self:SetupButton( "Open wiki", Material( "fugue/home.png" ), RIGHT )
 	
-	self.lblLink = self.btnWiki:Add( "DLabelURL" ) 
-	self.lblLink:Dock( FILL ) 
-	self.lblLink:SetText( "" ) 
-	self.lblLink:SetURL( "http://github.com/SpaceTown-Developers/Lemon-Gate/wiki" )
-	
-	self.repoLink = self:SetupButton( "Open repository", Material( "github.png" ), RIGHT )
-	
-	local OnCursorEntered = self.lblLink.OnCursorEntered 
-	local OnCursorExited = self.lblLink.OnCursorExited 
-	
-	self.lblLink.OnCursorEntered = function( lbl, ... ) 
-		OnCursorEntered( lbl, ... ) 
-		self.btnWiki.Hovered = true 
-	end 
-	
-	self.lblLink.OnCursorExited = function( lbl, ... ) 
-		OnCursorExited( lbl, ... ) 
-		self.btnWiki.Hovered = false 
-	end 
+	self.btnRepoLink = self:SetupButton( "Open repository", Material( "github.png" ), RIGHT )
 	
 	local function AddDebugIcon( )
 		if GCompute and !self.btnOpenGCompute then 
@@ -106,16 +89,32 @@ function PANEL:Init( )
 	function self.btnCloseTab:DoClick( )
 		self:GetParent( ):GetParent( ):CloseTab( nil, true ) 
 	end 
+	
+	local function CreatePasteSuccess( sUrl, nLength, tHeaders, nCode ) 
+		SetClipboardText( sUrl ) 
+		self:GetParent( ).ValidateButton:SetColor( Color( 0, 0, 255 ) )
+		self:GetParent( ).ValidateButton:SetText( "Uploaded to pastebin - Link has been copied to clipboard" )
+		surface.PlaySound( "buttons/button15.wav" ) 
+	end 
+	
+	function self.btnUploadPaste:DoClick( ) 
+		local Code, Path = self:GetParent( ):GetParent( ):GetCode( )
+		Pastebin.CreatePaste( Code, "Lemongate script", nil, CreatePasteSuccess ) 
+	end
+	
+	function self.btnOptions:DoClick( ) 
+		self:GetParent( ):OpenOptions( ) 
+	end 
 		
 	function self.btnHelp:DoClick( )
 		self:GetParent( ):OpenHelper( ) 
 	end 
 	
-	function self.btnOptions:DoClick( ) 
-		self:GetParent( ):OpenOptions( ) 
-	end 
+	function self.btnWiki:DoClick( )
+		gui.OpenURL( "http://github.com/SpaceTown-Developers/Lemon-Gate/wiki" )
+	end
 	
-	function self.repoLink:DoClick( )
+	function self.btnRepoLink:DoClick( )
 		LEMON.Repo.OpenMenu( )
 	end
 end
@@ -165,10 +164,10 @@ local function CreateOptions( )
 		cookie.Set( "eaoptions_y", self.y )
 	end
 	
-	local reset = Mixer.WangsPanel:Add( "DButton" ) 
-		reset:SetText( "Reset" ) 
-		reset:Dock( TOP )
-		reset:DockMargin( 0, 4, 0, 0 )
+	local reset = vgui.Create( "DButton" ) 
+		reset:SetText( "Reset color" ) 
+		-- reset:Dock( LEFT )
+		-- reset:DockMargin( 0, 4, 0, 0 )
 	
 	function reset:DoClick( )
 		RunConsoleCommand( "lemon_editor_resetcolors", syntaxColor.Choices[currentIndex] ) 
@@ -178,11 +177,10 @@ local function CreateOptions( )
 		end )
 	end
 	
-	local resetall = Panel:Add( "DButton" ) 
+	local resetall = vgui.Create( "DButton" ) 
 		resetall:SetText( "Reset all colors" ) 
-		resetall:Dock( TOP )
-		resetall:DockMargin( 10, 5, 10, 0 )
-	
+		-- resetall:Dock( RIGHT )
+		-- resetall:DockMargin( 10, 5, 10, 0 )
 	
 	function resetall:DoClick( )
 		RunConsoleCommand( "lemon_editor_resetcolors", "1" ) 
@@ -190,6 +188,33 @@ local function CreateOptions( )
 			local r, g, b = string.match( LEMON.Syntaxer.ColorConvars[syntaxColor.Choices[currentIndex]]:GetString( ), "(%d+)_(%d+)_(%d+)" ) 
 			Mixer:SetColor( Color( r, g, b ) ) 
 		end )
+	end
+	
+	
+	local ResetDivider = Panel:Add( "DHorizontalDivider" ) 
+	ResetDivider:Dock( TOP ) 
+	ResetDivider:DockMargin( 10, 5, 10, 0 ) 
+	ResetDivider:SetLeft( reset )
+	ResetDivider:SetRight( resetall )
+	ResetDivider:SetLeftWidth( 120 )
+	ResetDivider.StartGrab = function( ) end 
+	ResetDivider.m_DragBar:SetCursor( "" )
+	
+	
+	local editorFont = Panel:Add( "DComboBox" ) 
+		editorFont:SetTall( 20 )
+		editorFont:Dock( TOP ) 
+		editorFont:DockMargin( 10, 5, 10, 0 )
+	
+	local first = true 
+	local n = 1
+	for k, v in pairs( LEMON.Editor.GetInstance( ).Fonts ) do
+		editorFont:AddChoice( k, "", first )
+		first = false 
+	end 
+	
+	function editorFont:OnSelect( index, value, data )
+		LEMON.Editor.GetInstance( ):ChangeFont( value ) 
 	end
 	
 	local kinect = vgui.Create( "DCheckBoxLabel" ) 
@@ -205,8 +230,10 @@ local function CreateOptions( )
 	Divider:DockMargin( 10, 5, 10, 5 ) 
 	Divider:SetLeft( Console )
 	Divider:SetRight( kinect )
-
-	Panel:SetSize( 300, 260 ) 
+	Divider.StartGrab = function( ) end 
+	Divider.m_DragBar:SetCursor( "" )
+	
+	Panel:SetSize( 300, 285 ) 
 	Panel:SetPos( cookie.GetNumber( "eaoptions_x", ScrW( ) / 2 - Panel:GetWide( ) / 2 ), cookie.GetNumber( "eaoptions_y", ScrH( ) / 2 - Panel:GetTall( ) / 2 ) ) 
 	
 	return Panel 
