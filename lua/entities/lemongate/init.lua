@@ -148,6 +148,8 @@ function Lemon:Initialize( )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
 	
+	self:SetUseType( USE_TOGGLE  ) 
+	
 	self.Inputs = WireLib.CreateInputs( self, { } )
 	self.Outputs = WireLib.CreateOutputs( self, { } )
 	
@@ -188,6 +190,10 @@ function Lemon:OnRemove( )
 		ED:SetOrigin( self:GetPos( ) )
 		util.Effect( "Explosion", ED )
 	end
+end
+
+function Lemon:Use( Activator, Caller )
+	self:CallEvent( "use", Activator or Caller )
 end
 
 /*==============================================================================================

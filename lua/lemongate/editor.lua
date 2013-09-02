@@ -52,7 +52,7 @@ end )
 /*---------------------------------------------------------------------------
 	Home Screen
 ---------------------------------------------------------------------------*/
-local HomeScreen = [[/*===================================================
+local HomeScreen = [[/*====================================================================
 	Expression Advanced:
 		* Con-commands added!
 		* File functions are back!
@@ -63,12 +63,18 @@ local HomeScreen = [[/*===================================================
 	Check Out Video Tutorials:
 		* https://www.youtube.com/watch?v=GzNsCWORiRw
 		* http://www.youtube.com/watch?v=1fPyhSEa2EI
+	
+	Please Share Your Gates:
+	 - http://www.wiremod.com/forum/wiremod-addons-coding/32173-lemon-gate-thread.html
+	
+	Check Our Wiki For Help:
+	 - https://github.com/SpaceTown-Developers/Lemon-Gate/wiki
 		
-	Wiki: https://github.com/SpaceTown-Developers/Lemon-Gate/wiki
-	Bug Reports: https://github.com/SpaceTown-Developers/Lemon-Gate/issues
+	Also Report Bugs:
+	 - https://github.com/SpaceTown-Developers/Lemon-Gate/issues
 	
 	Credits: Rusketh, Oskar94, Divran, Syranide.
-===================================================*/
+====================================================================*/
 ]]
 
 /*---------------------------------------------------------------------------

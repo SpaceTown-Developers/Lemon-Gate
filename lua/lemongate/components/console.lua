@@ -79,6 +79,6 @@ end
 ==============================================================================================*/
 Component:SetPerf( LEMON_PERF_EXPENSIVE )
 
-Component:AddFunction( "concmd", "s", "", [[table.insert( %data.Console, value %1 ]], LEMON_PREPARE_ONLY )
+Component:AddFunction( "concmd", "s", "", [[table.insert( %data.Console, value %1 )]], LEMON_PREPARE_ONLY )
 
 Component:AddFunction( "concmd", "s,s", "", [[table.insert( %data.Console, (value %1 .. " " .. value %2) )]], LEMON_PREPARE_ONLY )

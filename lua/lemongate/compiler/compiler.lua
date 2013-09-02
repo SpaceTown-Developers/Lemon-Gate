@@ -431,7 +431,7 @@ end
 /*==============================================================================================
 	Section: Casting
 ==============================================================================================*/
-function Compiler:Compile_CAST( Trace, CastType, Value )
+function Compiler:Compile_CAST( Trace, CastType, Value, NoError )
 	local CastFrom, CastTo = Value.Return, self:GetClass( Trace, CastType )
 	
 	if CastTo.Short == CastFrom then
@@ -446,15 +446,13 @@ function Compiler:Compile_CAST( Trace, CastType, Value )
 	
 	if Op then
 		return Op.Compile( self, Trace, Value )
-	
 	elseif CastTo.DownCast and CastTo.DownCast == CastFrom then
 		return self:Instruction( Trace, LEMON_PERF_CHEAP, CastTo.Short, Value.Inline, Value.Prepare )
-	
 	elseif CastTo.UpCast[ Value.Return ] then
 		return self:Instruction( Trace, LEMON_PERF_CHEAP, CastTo.Short, Value.Inline, Value.Prepare )
+	elseif !NoError then
+		self:TraceError( Trace, "%s can not be cast to %s",  NType( CastFrom ), CastTo.Name )
 	end
-	
-	self:TraceError( Trace, "%s can not be cast to %s",  NType( CastFrom ), CastTo.Name )
 end
 	
 	-- Apple -> DownCast -> Fruit
@@ -547,22 +545,35 @@ function Compiler:Compile_ASSIGN( Trace, Variable, Expression )
 	local Type = Expression.Return
 	
 	if !Type or Type == "" then
-		self:TraceError( Trace, "Assigment operator recives void" )
+		self:TraceError( Trace, "Assignment operator receives void" )
 	elseif Type == "..." then
 		self:TraceError( Trace, "Invalid use of varargs (...)." )
 	end
 	
-	local Ref, Scope = self:SetVariable( Trace, Variable, Type )
+	local Ref, Scope = self:FindCell( Trace, Variable )
 	
 	if !Ref then
 		self:TraceError( Trace, "Variable %s does not exist", Variable )
 	elseif self:IsInput( Trace, Ref ) then
-		self:TraceError( Trace, "Assigment operator (=) can not reach Inport %s", Variable )
+		self:TraceError( Trace, "Assignment operator (=) can not reach Inport %s", Variable )
 	elseif Scope ~= self.ScopeID and self:GetFlag( "Lambda", self:GetFlag( "Event" ) ) then
 		self:NotGarbage( Trace, Ref )
 	end
 	
+	local Type = self.Cells[ Ref ].Type
+	
+	if Type ~= Expression.Return then
+		local Casted = self:Compile_CAST( Trace, NType( Type ), Expression, true )
+		
+		if !Casted then
+			self:TraceError( Trace, "%s of type %s can not be assigned as %s", Variable, NType( Type ), NType( Expression.Return ) )
+		end
+		
+		Expression = Casted -- Auto-cast!
+	end
+	
 	local Op = self:GetOperator( "=", Type ) or self:GetOperator( "=" )
+	
 	return Op.Compile( self, Trace, Ref, Expression )
 end
 
@@ -571,7 +582,7 @@ function Compiler:Compile_DECLAIR( Trace, Type, Variable, Class, Expression, Sta
 	
 	if self:IsInput( Trace, Ref ) then
 		if Expression then
-			self:TraceError( Trace, "Assigment operator (=) can not reach Inport %s", Variable )
+			self:TraceError( Trace, "Assignment operator (=) can not reach Inport %s", Variable )
 		else
 			return self:FakeInstr( Trace, "", "" )
 		end
@@ -861,7 +872,7 @@ function Compiler:Compile_RETURN( Trace, Expression )
 	local Op = self:GetOperator( "return" )
 	
 	if !Expression then
-		Expression = self:FakeInstr( Trace, "?", "{0, \"n\"" )
+		Expression = self:FakeInstr( Trace, "?", "{0, \"n\"}" )
 	elseif Expression.Return ~= "?" then
 		Expression = self:Compile_CAST( Trace, "variant", Expression )
 	end

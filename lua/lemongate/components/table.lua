@@ -284,8 +284,17 @@ Component:AddOperator( "[]=", "t,s,?", "", "value %1:Set( value %2, value %3[2],
 Component:AddOperator( "[]=", "t,e,?", "", "value %1:Set( value %2, value %3[2], value %3[1] )" ) 
 
 -- Insert
-Component:AddOperator( "[]+", "t,?", "", "value %1:Set( nil, value %2[2],value %2[1] )" )
-	
+Component:AddOperator( "[]+", "t,?", "", "value %1:Set( nil, value %2[2], value %2[1] )" )
+
+/*==============================================================================================
+	Misc
+==============================================================================================*/
+Component:AddOperator( "[]", "t,n", "?", [[( value %1:Get( value %2, "?") or %context:Throw(%trace, "table", "Attempt to reach a void value") )]] )
+
+Component:AddOperator( "[]", "t,s", "?", [[( value %1:Get( value %2, "?") or %context:Throw(%trace, "table", "Attempt to reach a void value") )]] )
+
+Component:AddOperator( "[]", "t,e", "?", [[( value %1:Get( value %2, "?") or %context:Throw(%trace, "table", "Attempt to reach a void value") )]] )
+
 /*==============================================================================================
 	Index Operators
 ==============================================================================================*/
