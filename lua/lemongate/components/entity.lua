@@ -165,6 +165,12 @@ Core:AddFunction( "mass", "e:", "n", [[
 	end
 ]], "(IsValid(%util) and %util:GetMass( ) or 0)" )
 
+Core:AddFunction( "volume", "e:", "n", [[
+	if $IsValid(value %1) then
+		%util = value %1:GetPhysicsObject( )
+	end
+]], "(IsValid(%util) and %util:GetVolume( ) or 0)" )
+
 Core:AddFunction( "massCenterWorld", "e:", "v", [[
 	if $IsValid(value %1) then
 		%util = value %1:GetPhysicsObject( )
