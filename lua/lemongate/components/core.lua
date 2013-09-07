@@ -331,7 +331,9 @@ Core:AddFunction( "self", "", "e", "%context.Entity", nil )
 
 Core:AddFunction( "owner", "", "e", "%context.Player", nil )
 
-Core:AddFunction( "selfDestruct", "", "", "%context.Entity:Remove( ); error( 'Exit, o )" )
+Core:AddFunction( "selfDestruct", "", "", "%context.Entity:Remove( ); error( 'Exit', 0 )" )
+
+Core:AddFunction( "exit", "", "", "error( 'Exit', 0 )" )
 
 /*==============================================================================================
 	Section: Gate Name
