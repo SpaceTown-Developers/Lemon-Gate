@@ -143,12 +143,12 @@ do
 	
 	function meta:Bearing( angle, vector )
 		local v, a = WorldToLocal(vector:Garry( ), Angle(0,0,0), self:Garry( ), angle)
-		return Rad2Deg * math.asin(v.z / v:Length( )) 
+		return Rad2Deg * -math.atan2( v.y, v.x )
 	end
 	
 	function meta:Elevation( angle, vector )
 		local v, a = WorldToLocal(vector:Garry( ), Angle(0,0,0), self:Garry( ), angle)
-		return Rad2Deg * -math.atan2( v.y, v.x )
+		return Rad2Deg * math.asin(v.z / v:Length( )) 
 	end
 	
 	function meta:Heading( angle, vector )
