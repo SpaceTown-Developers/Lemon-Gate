@@ -410,6 +410,8 @@ do
 			elseif Exit ~= "Continue" then
 				error( Exit, 0 )
 			end
+		elseif Exit ~= nil then
+			return Exit
 		end
 	end
 end]] , "" )

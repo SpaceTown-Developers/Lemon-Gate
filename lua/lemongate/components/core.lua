@@ -257,8 +257,10 @@ do -- For Loop
 	
 		local Ok, Exit = pcall( Statments )
 		
-		if Ok then
+		if Ok and !Exit then
 			value %3
+		elseif Ok then
+			return Exit
 		elseif ExitDeph > 0 then
 			ExitDeph = ExitDeph - 1
 			error( Exit, 0 )
@@ -288,7 +290,7 @@ do -- While Loop
 		
 		local Ok, Exit = pcall( Statments )
 		
-		if !Ok then
+		if !Ok the
 			if ExitDeph > 0 then 
 				ExitDeph = ExitDeph - 1
 				error( Exit, 0 )
@@ -299,6 +301,8 @@ do -- While Loop
 			else
 				error( Exit, 0 )
 			end
+		elseif Exit ~= nil then
+			return Exit
 		end
 	end
 end
