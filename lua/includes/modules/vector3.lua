@@ -27,8 +27,12 @@ do
 		return Vector3( self.x * other.x, self.y * other.y, self.z * other.z ) 
 	end 
 
-	function meta:__div( other ) 
-		return Vector3( self.x / other.x, self.y / other.y, self.z / other.z ) 
+	function meta:__div( other )
+		if self.x == 0 or other.x == 0 or self.y == 0 or other.y == 0 or self.z == 0 or other.z == 0 then 
+			return Vector3( 0, 0, 0 )
+		else
+			return Vector3( self.x / other.x, self.y / other.y, self.z / other.z )
+		end
 	end 
 	
 	function meta:__mod( other ) 

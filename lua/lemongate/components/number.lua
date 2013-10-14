@@ -66,7 +66,7 @@ Core:AddOperator( "-", "n,n", "n", "(value %1 - value %2)" )
 
 Core:AddOperator( "*", "n,n", "n", "(value %1 * value %2)" )
 
-Core:AddOperator( "/", "n,n", "n", "(value %1 / value %2)" )
+Core:AddOperator( "/", "n,n", "n", "((value %1 ~= 0 and value %2 ~= 0) and (value %1 / value %2) or 0)" )
 
 Core:AddOperator( "%", "n,n", "n", "(value %1 modulus value %2)" )
 
