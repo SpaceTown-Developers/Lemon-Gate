@@ -847,11 +847,13 @@ function Compiler:Compile_LAMBDA( Trace, Params, HasVarArg, Sequence )
 		
 		local Lua = "local " .. ID .. " = function( " .. Params .. [[ )
 			local Trace = ]] .. self:CompileTrace( Trace ) .. [[
-			Context:PushPerf( Trace, ]] .. (( Sequence.Perf or 0) + LEMON_PERF_CHEAP ) .. [[ )
-			
-			]] .. self:PushEnviroment( ) .. [[
-			]] .. string.Implode( "\n", CallPrepare ) .. [[
-			]] .. Sequence.Prepare .. [[
+			if ( Context.Entity and Context.Entity:IsRunning( ) ) then
+				Context:PushPerf( Trace, ]] .. (( Sequence.Perf or 0) + LEMON_PERF_CHEAP ) .. [[ )
+				
+				]] .. self:PushEnviroment( ) .. [[
+				]] .. string.Implode( "\n", CallPrepare ) .. [[
+				]] .. Sequence.Prepare .. [[
+			end
 		end]] .. "\n\n"
 			
 	-- 3) Function Done

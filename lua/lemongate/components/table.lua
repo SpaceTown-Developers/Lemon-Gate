@@ -448,3 +448,24 @@ local %Sorted = %Table( )
 for Key, Val in pairs( %New ) do
 	%Sorted:Insert( Key, Val[2], Val[3] )
 end]], "%Sorted" )
+
+/*==============================================================================================
+	Shared Tables
+==============================================================================================*/
+local Component = API:NewComponent( "stable", true )
+
+Component:AddExternal( "STable", { } )
+
+Component:SetPerf( LEMON_PERF_ABNORMAL )
+
+Component:AddFunction( "getSTable", "s", "t", [[
+local %Shared = %STable[ value %1 ]
+if ( !%Shared ) then
+	%Shared = %Table( )
+	%STable[ value %1 ] = %Shared
+end
+]], "%Shared" )
+
+Component:AddFunction( "setSTable", "s,t", "", "%STable[ value %1 ] = value %2" )
+
+Component:AddFunction( "removeSTable", "s,t", "", "%STable[ value %1 ] = nil" )

@@ -4,18 +4,7 @@
 ==============================================================================================*/
 local LEMON, API = LEMON, LEMON.API
 
-local Core = API:GetComponent( "core" )
-
-/*==============================================================================================
-	Section: safety
-==============================================================================================*/
-Core:AddExternal( "AngleDived", function( P1, P2, Y1, Y2, R1, R2 )
-	if P1 == 0 or P2 == 0 or Y1 == 0 or Y2 == 0 or R1 == 0 or R2 == 0 then
-		return Angle( 0, 0, 0 )
-	else
-		return Angle( P1 / P2, Y1 / Y2, R1 / R2 )
-	end
-end ) 
+local Core = API:GetComponent( "core" ) 
 
 /*==============================================================================================
 	Section: Angle Class
@@ -62,7 +51,7 @@ Core:AddOperator( "-", "a,a", "a", "(value %1 - value %2)", LEMON_INLINE_ONLY )
 
 Core:AddOperator( "*", "a,a", "a", "Angle(value %1.p * value %2.p, value %1.y * value %2.y, value %1.r * value %2.r)", LEMON_INLINE_ONLY )
 
-Core:AddOperator( "/", "a,a", "a", "%AngleDived(value %1.p, value %2.p, value %1.y, value %2.y, value %1.r, value %2.r)", LEMON_INLINE_ONLY )
+Core:AddOperator( "/", "a,a", "a", "Angle(value %1.p / value %2.p, value %1.y / value %2.y, value %1.r / value %2.r)", LEMON_INLINE_ONLY )
 
 Core:AddOperator( "%", "a,a", "a", "Angle(value %1.p modulus value %2.p, value %1.y modulus value %2.y, value %1.r modulus value %2.r)", LEMON_INLINE_ONLY )
 
@@ -76,7 +65,7 @@ Core:AddOperator( "-", "a,n", "a", "(value %1 - Angle(value %2, value %2, value 
 
 Core:AddOperator( "*", "a,n", "a", "Angle(value %1.p * value %2, value %1.y * value %2, value %1.r * value %2)", LEMON_INLINE_ONLY )
 
-Core:AddOperator( "/", "a,n", "a", "%AngleDived(value %1.p, value %2, value %1.y, value %2, value %1.r, value %2)", LEMON_INLINE_ONLY )
+Core:AddOperator( "/", "a,n", "a", "Angle(value %1.p / value %2, value %1.y / value %2, value %1.r / value %2)", LEMON_INLINE_ONLY )
 
 Core:AddOperator( "%", "a,n", "a", "Angle(value %1.p modulus value %2, value %1.y modulus value %2, value %1.r modulus value %2)", LEMON_INLINE_ONLY )
 

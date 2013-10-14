@@ -62,16 +62,12 @@ function Meta:__mul( Other )
 end 
 
 function Meta:__div( Other )
-	if self[1] == 0 or self[2] == 0 or self[3] == 0 or self[4] == 0 or Other[1] == 0 or Other[2] == 0 or Other[3] == 0 or Other[4] == 0 then
-		return setmetatable( { 0, 0, 0, 0 }, Meta )
-	else
-		return setmetatable( { 
-			self[1] / Other[1],
-			self[2] / Other[2],
-			self[3] / Other[3],
-			self[4] / Other[4]
-		 }, Meta )
-	end
+	return setmetatable( { 
+		self[1] / Other[1],
+		self[2] / Other[2],
+		self[3] / Other[3],
+		self[4] / Other[4]
+	 }, Meta )
 end 
 
 function Meta:__unm( ) 

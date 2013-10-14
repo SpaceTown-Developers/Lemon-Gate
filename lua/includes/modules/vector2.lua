@@ -19,11 +19,7 @@ do
 	end 
 
 	function meta:__div( other )
-		if self.x == 0 or other.x == 0 or self.y == 0 or other.y == 0 then 
-			return Vector2( 0, 0, 0 )
-		else	
-			return Vector2( self.x / other.x, self.y / other.y )
-		end
+		return Vector2( self.x / other.x, self.y / other.y )
 	end 
 	
 	function meta:__mod( other ) 

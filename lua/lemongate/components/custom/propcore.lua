@@ -205,12 +205,16 @@ Component:SetPerf( LEMON_PERF_NORMAL )
 
 Component:AddFunction("setPos", "e:v", "",[[
 if $IsValid( value %1 ) and value %2:IsNotHuge( ) and %IsOwner( %context.Player, value %1 ) then
-	value %1:SetPos( value %2:Garry( ) )
+	if !( value %2.x ~= value %2.x and value %2.y ~= value %2.y and value %2.z ~= value %2.z ) then
+		value %1:SetPos( value %2:Garry( ) )
+	end
 end]], "" )
 
 Component:AddFunction("setAng", "e:a", "",[[
 if $IsValid( value %1 ) and %AngleNotHuge( value %2 ) and %IsOwner( %context.Player, value %1 ) then
-	value %1:SetAngles( value %2 )
+	if !( value %2.p ~= value %2.p and value %2.y ~= value %2.y and value %2.r ~= value %2.r ) then
+		value %1:SetAngles( value %2 )
+	end
 end]], "" )
 
 /*==============================================================================================
