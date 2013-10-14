@@ -204,12 +204,12 @@ end]], "" )
 Component:SetPerf( LEMON_PERF_NORMAL )
 
 Component:AddFunction("setPos", "e:v", "",[[
-if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) then
+if $IsValid( value %1 ) and value %2:IsNotHuge( ) and %IsOwner( %context.Player, value %1 ) then
 	value %1:SetPos( value %2:Garry( ) )
 end]], "" )
 
 Component:AddFunction("setAng", "e:a", "",[[
-if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) then
+if $IsValid( value %1 ) and %AngleNotHuge( value %2 ) and %IsOwner( %context.Player, value %1 ) then
 	value %1:SetAngles( value %2 )
 end]], "" )
 

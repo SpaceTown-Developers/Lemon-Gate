@@ -290,7 +290,7 @@ do -- While Loop
 		
 		local Ok, Exit = pcall( Statments )
 		
-		if !Ok the
+		if !Ok then
 			if ExitDeph > 0 then 
 				ExitDeph = ExitDeph - 1
 				error( Exit, 0 )
