@@ -158,9 +158,29 @@ function Component:GetMetaTable( )
 end
 
 /*==============================================================================================
+	Register WireType
+==============================================================================================*/
+WireLib.DT.LTABLE = {
+	Zero = setmetatable( { 
+		Data = {},
+		Types = {},
+		Size = 0,
+		Count = 0,
+		Set = function( ) end,
+		Insert = function( ) end
+	}, Table )
+} -- Table must not be writable.
+
+/*==============================================================================================
 	Table Class
 ==============================================================================================*/
 local Class = Component:NewClass( "t", "table" )
+
+Class:Wire_Name( "LTABLE" )
+
+function Class.Wire_Out( Context, Cell ) return Context.Memory[ Cell ] or 0 end
+
+function Class.Wire_In( Context, Cell, Value ) Context.Memory[ Cell ] = Value end
 
 Class:UsesMetaTable( Table )
 
@@ -468,4 +488,4 @@ end
 
 Component:AddFunction( "setSTable", "s,t", "", "%STable[ value %1 ] = value %2" )
 
-Component:AddFunction( "removeSTable", "s,t", "", "%STable[ value %1 ] = nil" )
+Component:AddFunction( "removeSTable", "s", "", "%STable[ value %1 ] = nil" )

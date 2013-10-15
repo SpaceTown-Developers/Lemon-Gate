@@ -198,6 +198,25 @@ else
 end
 ]], "%SD" )
 
+Component:AddFunction( "sound", "h,s", "sd", [[
+local %Entity, %SD = value %1
+if $IsValid( %Entity ) then
+	%SD = %Sound( value %2, %Entity, %context.Entity )
+else
+	%context:Throw( %trace, "sound", "Invalid attachment entity" )
+end
+]], "%SD" )
+
+Component:AddFunction( "sound", "h,s,n", "sd", [[
+local %Entity, %SD = value %1
+if $IsValid( %Entity ) then
+	%SD = %Sound( value %2, %Entity, %context.Entity )
+	%SD.Duration = value %3
+else
+	%context:Throw( %trace, "sound", "Invalid attachment entity" )
+end
+]], "%SD" )
+
 /*==============================================================================================
 	Play Function
 ==============================================================================================*/
@@ -294,6 +313,6 @@ end]], "" )
 ==============================================================================================*/
 Component:AddFunction( "path", "sd:", "s", "local %SD = value %1", "(%SD ~= null and %SD.Path or \"\")" )
 
-Component:AddFunction( "entity", "sd:", "s", "local %SD = value %1", "(%SD ~= null and %SD.Entity or %NULL_ENTITY)" )
+Component:AddFunction( "entity", "sd:", "e", "local %SD = value %1", "(%SD ~= null and %SD.Entity or %NULL_ENTITY)" )
 
 Component:AddFunction( "sounds", "", "t", "%Table.Results( %Sound.GetAll( %context.Entity ), \"s\" )" )
