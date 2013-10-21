@@ -5,7 +5,6 @@
 local LEMON, API = LEMON, LEMON.API
 
 local Component = API:NewComponent( "timers", true )
-
 local PAUSED = -1
 local STOPPED = 0
 local RUNNING = 1

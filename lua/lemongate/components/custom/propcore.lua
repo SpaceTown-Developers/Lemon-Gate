@@ -97,6 +97,7 @@ local _DoPropSpawnedEffect = DoPropSpawnedEffect
 
 function PropCore.Spawn( Trace, Context, Model, Freeze )
 	local G, P = Context.Entity, Context.Player
+	print( "Spawned with:", G, P )
 	local PRate, PCount = PlayerRate[P] or 0, PlayerCount[P] or 0
 	
 	local Max = PropCore.Prop_Max:GetInt( )
@@ -240,13 +241,13 @@ Component:SetPerf( LEMON_PERF_NORMAL )
 Component:AddFunction("freeze", "e:b", "", [[
 if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) then
 	local %Phys = value %1:GetPhysicsObject()
-	%Phys:EnableMotion( value %2 )
+	%Phys:EnableMotion( !value %2 )
 	%Phys:Wake( )
 end]], "" )
 
 Component:AddFunction("freeze", "p:b", "", [[
 if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1:GetEntity( ) ) then
-	value %1:EnableMotion( value %2 )
+	value %1:EnableMotion( !value %2 )
 	value %1:Wake( )
 end]], "" )
 
