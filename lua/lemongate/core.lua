@@ -436,9 +436,11 @@ if SERVER then
 	hook.Add( "PlayerDisconnected", "LemonGate.AutoShutDown", function( Player )
 		if AutoShutDown:GetInt( ) == 1 or ( AutoShutDown:GetInt( ) == 2 and !Player:IsAdmin( ) ) then
 			for _, Entity in pairs( API:GetEntitys( ) ) do
-				Entity:ShutDown( )
-				self:CallHook( "Remove", Entity )
-				Entity.AutoShutDown = true
+				if Util.IsOwner( Player, Entity ) then
+					Entity:ShutDown( )
+					self:CallHook( "Remove", Entity )
+					Entity.AutoShutDown = true
+				end
 			end
 		end
 	end )
