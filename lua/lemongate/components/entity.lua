@@ -390,14 +390,14 @@ end]], "%Ret" )
 Core:SetPerf( LEMON_PERF_NORMAL )
 
 Core:AddFunction( "bearing", "e:v", "n", [[
-local %Ent, %Val, = value %1, 0
+local %Ent, %Val = value %1, 0
 if %Ent and %Ent:IsValid( ) then
 	local %Pos = %Ent:WorldToLocal( value %2:Garry( ) )
 	%Val = %Rad2Deg * -math.atan2(%Pos.y, %Pos.x)
 end]], "%Val" )
 
 Core:AddFunction( "elevation", "e:v", "n", [[
-local %Ent, %Val, = value %1, 0
+local %Ent, %Val = value %1, 0
 if %Ent and %Ent:IsValid( ) then
 	local %Pos = %Ent:WorldToLocal( value %2:Garry( ) )
 	local %Len = %Pos:Length()
@@ -409,7 +409,7 @@ end]], "%Val" )
 Core:SetPerf( LEMON_PERF_ABNORMAL )
 
 Core:AddFunction( "heading", "e:v", "a", [[
-local %Ent, %Val, = value %1, Angle(0, 0, 0)
+local %Ent, %Val = value %1, Angle(0, 0, 0)
 if %Ent and %Ent:IsValid( ) then
 	local %Pos = %Ent:WorldToLocal( value %2:Garry( ) )
 	local %Bearing = %Rad2Deg * -math.atan2(%Pos.y, %Pos.x)

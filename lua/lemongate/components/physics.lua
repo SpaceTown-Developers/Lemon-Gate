@@ -107,14 +107,14 @@ Core:AddFunction( "inertia", "p:", "v", "($IsValid(value %1) and Vector3(value %
 Core:SetPerf( LEMON_PERF_NORMAL )
 
 Core:AddFunction( "bearing", "p:v", "n", [[
-local %Ent, %Val, = value %1, 0
+local %Ent, %Val = value %1, 0
 if %Ent and %Ent:IsValid( ) then
 	local %Pos = %Ent:WorldToLocal( value %2:Garry( ) )
 	%Val = %Rad2Deg * -math.atan2(%Pos.y, %Pos.x)
 end]], "%Val" )
 
 Core:AddFunction( "elevation", "p:v", "n", [[
-local %Ent, %Val, = value %1, 0
+local %Ent, %Val = value %1, 0
 if %Ent and %Ent:IsValid( ) then
 	local %Pos = %Ent:WorldToLocal( value %2:Garry( ) )
 	local %Len = %Pos:Length()
@@ -126,7 +126,7 @@ end]], "%Val" )
 Core:SetPerf( LEMON_PERF_ABNORMAL )
 
 Core:AddFunction( "heading", "p:v", "a", [[
-local %Ent, %Val, = value %1, Angle(0, 0, 0)
+local %Ent, %Val = value %1, Angle(0, 0, 0)
 if %Ent and %Ent:IsValid( ) then
 	local %Pos = %Ent:WorldToLocal( value %2:Garry( ) )
 	local %Bearing = %Rad2Deg * -math.atan2(%Pos.y, %Pos.x)
