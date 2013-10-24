@@ -187,6 +187,8 @@ for _, Model in pairs( HoloLib.ModelList ) do
     util.PrecacheModel( "models/Holograms/" .. Model .. ".mdl" )
 end
 
+local IsValidModel = util.IsValidModel
+
 function HoloLib.Model( Trace, Context, Holo, ModelS )
 	if IsValid( Holo ) and Holo.Player == Context.Player then
         local ValidModel = HoloLib.ModelList[ ModelS ]
@@ -206,7 +208,6 @@ end
 /*==============================================================================================
 	Section: Creators
 ==============================================================================================*/
-local IsValidModel = util.IsValidModel
 
 function HoloLib.Query( Context )
 	local Burst = Recent[ Context.Entity ] or 0
@@ -428,7 +429,7 @@ end]], "" )
 
 Component:SetPerf( LEMON_PERF_CHEAP )
 
-Component:AddFunction("getScale", "h:", "v", "local %Holo = value %1", "($IsValid(%Holo) and Vector3(%Holo.Scale or Vector(0, 0, 0)) or Vector3.Zero:Clone())" )
+Component:AddFunction("getScale", "h:", "v", "local %Holo = value %1", "($IsValid(%Holo) and %Holo.Scale or Vector(0, 0, 0)) or Vector3.Zero:Clone())" )
 
 /*==============================================================================================
     Section: Color
@@ -526,6 +527,48 @@ Component:AddFunction("enableClip", "h:n,b", "", [[
 if $IsValid( value %1 ) and value %1.Player == %context.Player and value %1:EnableClip( value %2, value %3 ) then
 	%HoloLib.QueueHologram( value %1 )
 end]], "" )
+
+/*==============================================================================================
+    Section: Bones
+==============================================================================================*/
+Component:AddFunction("setBonePos", "h:n,v", "", [[
+if $IsValid( value %1 ) and value %1.Player == %context.Player then
+	if value %1:SetUpBonePos( value %2, value %3:Garry( ) ) then
+		%HoloLib.QueueHologram( value %1 )
+	end
+end]], "" )
+
+Component:AddFunction("setBoneAng", "h:n,a", "", [[
+if $IsValid( value %1 ) and value %1.Player == %context.Player then
+	if value %1:SetUpBoneAng( value %2, value %3 ) then
+		%HoloLib.QueueHologram( value %1 )
+	end
+end]], "" )
+
+Component:AddFunction("setBoneScale", "h:n,v", "", [[
+if $IsValid( value %1 ) and value %1.Player == %context.Player then
+	if value %1:SetUpBoneScale( value %2, value %3:Garry( ) ) then
+		%HoloLib.QueueHologram( value %1 )
+	end
+end]], "" )
+
+Component:AddFunction("getBonePos", "h:n", "v", [[
+if $IsValid( value %1 ) then
+	local Bone = value %1:GetBone( value %2 )
+	%util = Vector3( Bone.Pos or Vector( 0, 0, 0 ) )
+end]], "%util" )
+
+Component:AddFunction("getBoneAng", "h:n", "a", [[
+if $IsValid( value %1 ) then
+	local Bone = value %1:GetBone( value %2 )
+	%util = Bone.Ang or Angle( 0, 0, 0 )
+end]], "%util" )
+
+Component:AddFunction("getBoneScale", "h:n", "v", [[
+if $IsValid( value %1 ) then
+	local Bone = value %1:GetBone( value %2 )
+	%util = Vector3( Bone.Scale or Vector( 0, 0, 0 ) )
+end]], "%util" )
 
 /*==============================================================================================
     Section: Parent

@@ -28,23 +28,27 @@ Orange.AdminSpawnable  = false
 /*********************************************************************************************/
 
 function Orange:Initialize( )
-	if SERVER then
-		self:SetSolid( SOLID_NONE )
-		self:SetMoveType( MOVETYPE_NONE )
-		self:DrawShadow( false )
-		
-		self.Que = {}
-	end
-	
 	self.NeedsUpdate = true
 	self.Scale = Vector(1, 1, 1)
 	
 	self.IsVisible = true
 	self.Shading = true
-	self.Clips = {}
+	self.Bones = { }
+	self.Clips = { }
 	self.Count = 0
+	
+	if SERVER then
+		self:SetSolid( SOLID_NONE )
+		self:SetMoveType( MOVETYPE_NONE )
+		self:DrawShadow( false )
+		
+		self.Que = { }
+		self.Que2 = { }
+	else
+		self:Rescale( )
+	end
 end
-
+	
 /*********************************************************************************************/
 
 if SERVER then
@@ -141,6 +145,56 @@ if SERVER then
 		
 		if Scale.x ~= X or Scale.y ~= Y or Scale.z ~= Z then
 			self.Scale = Vector( X, Y, Z )
+			
+			self.NeedsUpdate = true
+			return true
+		end
+	end
+	
+	-- BONES:
+	function Orange:GetBone( ID )
+		local Count = self:GetBoneCount( )
+		
+		if Count > 1 and ID > 0 and ID < Count -1 then
+			local Bone = self.Bones[ ID ]
+			
+			if !Bone then
+				Bone = {
+					Scale = self:GetManipulateBoneScale( ID ),
+					Pos = self:GetManipulateBonePosition( ID ),
+					Ang = self:GetManipulateBoneAngles( ID )
+				}; self.Bones[ ID ] = Bone
+			end
+			
+			return Bone
+		end		
+	end
+	
+	function Orange:SetUpBonePos( ID, Pos )
+		local Bone = self:GetBone( ID )
+		if Bone and Pos ~= Bone.Pos then
+			Bone.Pos = Pos
+			self.Que2[ ID ] = Bone
+			self.NeedsUpdate = true
+			return true
+		end
+	end
+	
+	function Orange:SetUpBoneAng( ID, Ang )
+		local Bone = self:GetBone( ID )
+		if Bone and Ang ~= Bone.Ang then
+			Bone.Ang = Ang
+			self.Que2[ ID ] = Bone
+			self.NeedsUpdate = true
+			return true
+		end
+	end
+	
+	function Orange:SetUpBoneScale( ID, Scale )
+		local Bone = self:GetBone( ID )
+		if Bone and Scale ~= Bone.Scale then
+			Bone.Scale = Scale
+			self.Que2[ ID ] = Bone
 			self.NeedsUpdate = true
 			return true
 		end
@@ -152,7 +206,8 @@ if SERVER then
 			net.WriteBit( self.IsVisible ) 
 			net.WriteBit( self.Shading ) 
 			net.WriteVector( self.Scale ) 
-			
+		
+		-- SEND CLIPS
 			local Queue = Force and self.Clips or self.Que 
 			
             local cnt = Count( Queue ) 
@@ -174,8 +229,24 @@ if SERVER then
                     end 
                 end
             end 
-            
+        
+		-- SEND BONES
+			local Queue = Force and self.Bones or self.Que2
+			local cnt = Count( Queue ) 
+			net.WriteUInt( cnt, 16 )
+			
+			if cnt > 0 then
+				for Index, Bone in pairs( Queue ) do
+					net.WriteUInt( Index, 16 )
+					net.WriteVector( Bone.Pos )
+					net.WriteAngle( Bone.Ang )
+					net.WriteVector( Bone.Scale )
+				end
+				
+			end
+			
 			self.Que = { }
+			self.Que2 = { }
 			self.NeedsUpdate = false
 		end 
 	end 
@@ -190,20 +261,14 @@ else
 	local PopCustomClipPlane = render.PopCustomClipPlane
 	local SuppressEngineLighting = render.SuppressEngineLighting
 	
-	function Orange:Initialize( )
-		self:Rescale( )
-	end
-	
 	function Orange:Rescale( )
 		local Buffer = SyncBuffer[ self:EntIndex( ) ] 
 		
 		if Buffer then
 			local Scale = Buffer.Scale
-			local Bones = self:GetBoneCount( ) or -1
 			
-			if Bones > 1 then
-				for I = 0, Bones do self:ManipulateBoneScale( I, Scale) end
-			
+			if self:SetBones( Buffer ) then
+				//Do nothing =D
 			elseif self.EnableMatrix then
 				local Neo = Matrix( )
 				Neo:Scale( Scale )
@@ -217,6 +282,32 @@ else
 		end
 	end
 	
+	function Orange:SetBones( Buffer )
+		local Scale = Buffer and Buffer.Scale or self.Scale
+		local Bones = Buffer and Buffer.Bones or self.Bones
+		local Count = self:GetBoneCount( )
+		
+		if Count > 1 then
+			for ID = 0, Count - 1 do
+				local Info = Bones[ ID ]
+				
+				if !Info then
+					Info = {
+						Scale = self:GetManipulateBoneScale( ID ),
+						Pos = self:GetManipulateBonePosition( ID ),
+						Ang = self:GetManipulateBoneAngles( ID ),
+					}; self.Bones[ ID ] = Info
+				end
+				
+				self:ManipulateBonePosition( ID, Info.Pos )
+				self:ManipulateBoneAngles( ID, Info.Ang )
+				self:ManipulateBoneScale( ID, Info.Scale * Scale )
+			end
+			
+			return true
+		end
+	end
+
 	function Orange:Draw( )
 		local Buffer = SyncBuffer[ self:EntIndex( ) ] 
 		
@@ -263,6 +354,7 @@ else
 		self.Shading = net.ReadBit( ) == 1
 		self.Scale = net.ReadVector( )
 		
+	-- GET CLIPS
 		self.Clips = self.Clips or { }
 		
 		local cnt = net.ReadUInt( 16 ) 
@@ -279,7 +371,22 @@ else
 			end 
 			
 			self.Clips[Index] = Clip 
-		end 
+		end
+		
+	-- GET BONES
+		self.Bones = self.Bones or { }
+		
+		local cnt = net.ReadUInt( 16 ) 
+		for I = 1, cnt do 
+			local Index = net.ReadUInt( 16 ) 
+			self.Bones[ Index ] = {
+				Pos = net.ReadVector( ),
+				Ang = net.ReadAngle( ),
+				Scale = net.ReadVector( )
+			}
+			
+			print( "Got Bone: " .. Index )
+		end
 	end
     
 	net.Receive( "lemon_hologram", function( Len )
@@ -292,8 +399,8 @@ else
 			
 			Sync( SyncBuffer[Index] )
 			
-			if Ent and Ent.Rescale then
-				Ent:Rescale( )
+			if IsValid( Ent ) then
+				if Ent.Rescale then Ent:Rescale( ) end
 			end
 			
 			Index = net.ReadUInt( 16 )
