@@ -552,23 +552,35 @@ if $IsValid( value %1 ) and value %1.Player == %context.Player then
 	end
 end]], "" )
 
+Component:AddFunction("jiggleBone", "h:n,n", "", [[
+if $IsValid( value %1 ) and value %1.Player == %context.Player then
+	if value %1:SetUpBoneJiggle( value %2, value %3 ) then
+		%HoloLib.QueueHologram( value %1 )
+	end
+end]], "" )
+
 Component:AddFunction("getBonePos", "h:n", "v", [[
 if $IsValid( value %1 ) then
 	local Bone = value %1:GetBone( value %2 )
 	%util = Vector3( Bone.Pos or Vector( 0, 0, 0 ) )
-end]], "%util" )
+end]], "( %util or Vector3( 0, 0, 0 ) )" )
 
 Component:AddFunction("getBoneAng", "h:n", "a", [[
 if $IsValid( value %1 ) then
 	local Bone = value %1:GetBone( value %2 )
 	%util = Bone.Ang or Angle( 0, 0, 0 )
-end]], "%util" )
+end]], "( %util or Angle( 0, 0, 0 ) )" )
 
 Component:AddFunction("getBoneScale", "h:n", "v", [[
 if $IsValid( value %1 ) then
 	local Bone = value %1:GetBone( value %2 )
 	%util = Vector3( Bone.Scale or Vector( 0, 0, 0 ) )
-end]], "%util" )
+end]], "( %util or Vector3( 0, 0, 0 ) )" )
+
+Component:AddFunction("boneCount", "h:", "n", [[
+if $IsValid( value %1 ) then
+	%util = value %1:GetBoneCount( )
+end]], "( %util or 0 )" )
 
 /*==============================================================================================
     Section: Parent

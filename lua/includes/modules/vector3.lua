@@ -12,7 +12,7 @@ do
 		end
 	*/
 	
-	local meta = {} 
+	local meta = { __Vector3 = true } 
 	meta.__index = meta 
 	
 	function meta:__add( other )

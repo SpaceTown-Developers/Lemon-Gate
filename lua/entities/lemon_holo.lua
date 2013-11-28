@@ -160,12 +160,14 @@ if SERVER then
 			
 			if !Bone then
 				Bone = {
+					Jiggle = 0, //self:GetManipulateBoneJiggle( ID ),
 					Scale = self:GetManipulateBoneScale( ID ),
 					Pos = self:GetManipulateBonePosition( ID ),
 					Ang = self:GetManipulateBoneAngles( ID )
 				}; self.Bones[ ID ] = Bone
 			end
 			
+			//print( "Bone Jiggle: ", ID, Bone.Jiggle, type( Bone.Jiggle ) )
 			return Bone
 		end		
 	end
@@ -194,6 +196,16 @@ if SERVER then
 		local Bone = self:GetBone( ID )
 		if Bone and Scale ~= Bone.Scale then
 			Bone.Scale = Scale
+			self.Que2[ ID ] = Bone
+			self.NeedsUpdate = true
+			return true
+		end
+	end
+	
+	function Orange:SetUpBoneJiggle( ID, Jiggle )
+		local Bone = self:GetBone( ID )
+		if Bone and Jiggle ~= Bone.Jiggle then
+			Bone.Jiggle = Jiggle
 			self.Que2[ ID ] = Bone
 			self.NeedsUpdate = true
 			return true
@@ -241,6 +253,7 @@ if SERVER then
 					net.WriteVector( Bone.Pos )
 					net.WriteAngle( Bone.Ang )
 					net.WriteVector( Bone.Scale )
+					net.WriteInt( Bone.Jiggle, 16 ) 
 				end
 				
 			end
@@ -296,12 +309,14 @@ else
 						Scale = self:GetManipulateBoneScale( ID ),
 						Pos = self:GetManipulateBonePosition( ID ),
 						Ang = self:GetManipulateBoneAngles( ID ),
+						Jiggle = 0
 					}; self.Bones[ ID ] = Info
 				end
 				
 				self:ManipulateBonePosition( ID, Info.Pos )
 				self:ManipulateBoneAngles( ID, Info.Ang )
 				self:ManipulateBoneScale( ID, Info.Scale * Scale )
+				self:ManipulateBoneJiggle( ID, Info.Jiggle )
 			end
 			
 			return true
@@ -382,10 +397,9 @@ else
 			self.Bones[ Index ] = {
 				Pos = net.ReadVector( ),
 				Ang = net.ReadAngle( ),
-				Scale = net.ReadVector( )
+				Scale = net.ReadVector( ),
+				Jiggle = net.ReadInt( 16 )
 			}
-			
-			print( "Got Bone: " .. Index )
 		end
 	end
     

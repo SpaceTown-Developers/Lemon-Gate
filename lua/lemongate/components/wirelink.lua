@@ -230,6 +230,137 @@ if $IsValid(%WL) and %WL.WriteCell then
 end]], "" )
 
 /*==============================================================================================
+	Advanced HighSpeed
+==============================================================================================*/
+local String_Byte = string.byte
+local String_Char = string.char
+local Math_Floor = math.floor
+local Table_Concat = table.concat
+local ipairs, type = ipairs, type
+
+local function WriteStringZero( Entity, Address, String )
+        if ( Entity:WriteCell( Address+ #String, 0 ) ) then
+
+        for I = 1, #String do
+            if !Entity:WriteCell( Address + Index - 1, String_Byte( String, I ) ) then
+				return 0
+			end
+        end
+		
+        return Address + #String + 1
+	end
+	
+	return 0
+end
+
+local function ReadStringZero( Entity, Address )
+        local Table = { }
+        for I = Address, Address + 16384 do
+                local Byte = Entity:ReadCell( I, Byte )
+				
+                if !Byte then
+					return ""
+				elseif Byte < 1 then
+					break
+                elseif Byte >= 256 then
+					Byte = 32
+				end
+				
+				Table[#Table + 1] = String_Char( Math_Floor( Byte ) )
+        end
+		
+        return Table_Concat( Table )
+end
+
+local WA_Seralized = { }
+
+local function WriteArray( Entity, Address, Data, Clear )
+        if ( Entity:WriteCell( Address + #Data - 1, 0 ) ) then 
+
+			Entity:WriteCell( Address + #Data, 0 )
+			local Free_Address = Address + #Data + 1
+
+			for I, Value in ipairs( Data ) do
+					local Type = type( Value )
+					
+					if Type == "number" then
+							if ( !Entity:WriteCell( Address + I - 1, Value ) ) then
+								WA_Seralized = Clear and WA_Seralized or { }
+								return 0
+							end
+							
+					elseif Type == "string" then
+							if ( !Entity:WriteCell( Address + I - 1, Free_Address ) ) then 
+								WA_Seralized = Clear and WA_Seralized or { }
+								return 0
+							else
+								Free_Address = WriteStringZero( Entity, Free_Address, Value )
+								
+								if ( Free_Address == 0 ) then
+									WA_Seralized = Clear and WA_Seralized or { }
+									return 0
+								end
+							end
+					elseif Type == "table" then
+							if ( Value.__Vector3 ) then
+								if ( !Entity:WriteCell( Address + I - 1, Free_Address) then
+									WA_Seralized = Clear and WA_Seralized or { }
+									return 0
+								else
+									Free_Address = WriteArray( Entity, Free_Address, { Value.x, Value.y, Value.z })
+								end
+							elseif WA_Seralized[ Value ] then
+									if ( !Entity:WriteCell( Address + I -1, WA_Seralized[ Value ] ) then
+										WA_Seralized = Clear and WA_Seralized or { }
+										return 0
+									end
+							else
+									WA_Seralized[ Value ] = Free_Address
+									if ( !Entity:WriteCell( Address + I - 1, Free_Address) then
+										WA_Seralized = Clear and WA_Seralized or { }
+										return 0
+									else
+										Free_Address = WriteArray( Entity, Free_Address, Value )
+									end
+							end
+					end
+			end
+			
+			WA_Seralized = Clear and WA_Seralized or { }
+			return Free_Address
+	end
+	
+	WA_Seralized = Clear and WA_Seralized or { }
+	return 0
+end
+
+Core:AddExternal( "WriteStringZero", WriteStringZero )
+Core:AddExternal( "ReadStringZero", ReadStringZero )
+Core:AddExternal( "WriteArray", WriteArray )
+
+/************************************************************************/
+
+Core:SetPerf( LEMON_PERF_EXPENSIVE )
+
+Core:AddFunction("writeString", "wl:n,s", "n", [[
+if $IsValid(value %1) and value %1.WriteCell then
+	%util = %WriteStringZero(value %1, value %2, value %3 )
+end]], "%util" )
+
+Core:AddFunction("readString", "wl:n", "s", [[
+if $IsValid(value %1) and value %1.WriteCell then
+	%util = %ReadStringZero(value %1, value %2 )
+end]], "( %util or \"\" )" )
+
+
+/******************************************************************************/
+
+Core:AddFunction("writeTable", "wl:n,t", "n", [[
+if $IsValid(value %1) and value %1.WriteCell then
+	%util = %WriteArray(value %1, value %2, value %3, true )
+end]], "%util" )
+
+/*==============================================================================================
 	Console Screens: Just gona use an external to save time =D
 ==============================================================================================*/
 local Clamp = math.Clamp
