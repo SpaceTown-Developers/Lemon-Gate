@@ -6,7 +6,8 @@
 ==========================================================================*/
 require( "von" )
 
-LEMON = LEMON or { Ver = "2.1.0", API = { Util = { Cache = { } } } }
+LEMON = LEMON or { API = { Util = { Cache = { } } } }
+LEMON.Ver = "GIT: " .. "2." .. ( file.Read( "ea_version.lua", "LUA" ) or 0 )
 
 /*==========================================================================
 	API - Definitions
@@ -1113,6 +1114,8 @@ end
 	Section: Init hook
 ==========================================================================*/
 if SERVER then
+	
+	CreateConVar( "lemon_version", LEMON.Ver, FCVAR_NOTIFY )
 
 	hook.Add( "Initialize", "LEMON_INIT", function( )
 		MsgN( "Loading LemonGate (Expression Advanced)" )
