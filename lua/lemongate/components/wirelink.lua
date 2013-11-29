@@ -303,20 +303,20 @@ local function WriteArray( Entity, Address, Data, Clear )
 							end
 					elseif Type == "table" then
 							if ( Value.__Vector3 ) then
-								if ( !Entity:WriteCell( Address + I - 1, Free_Address) then
+								if ( !Entity:WriteCell( Address + I - 1, Free_Address ) ) then
 									WA_Seralized = Clear and WA_Seralized or { }
 									return 0
 								else
-									Free_Address = WriteArray( Entity, Free_Address, { Value.x, Value.y, Value.z })
+									Free_Address = WriteArray( Entity, Free_Address, { Value.x, Value.y, Value.z } )
 								end
 							elseif WA_Seralized[ Value ] then
-									if ( !Entity:WriteCell( Address + I -1, WA_Seralized[ Value ] ) then
+									if ( !Entity:WriteCell( Address + I -1, WA_Seralized[ Value ] ) ) then
 										WA_Seralized = Clear and WA_Seralized or { }
 										return 0
 									end
 							else
 									WA_Seralized[ Value ] = Free_Address
-									if ( !Entity:WriteCell( Address + I - 1, Free_Address) then
+									if ( !Entity:WriteCell( Address + I - 1, Free_Address ) ) then
 										WA_Seralized = Clear and WA_Seralized or { }
 										return 0
 									else
@@ -345,7 +345,7 @@ Core:SetPerf( LEMON_PERF_EXPENSIVE )
 Core:AddFunction("writeString", "wl:n,s", "n", [[
 if $IsValid(value %1) and value %1.WriteCell then
 	%util = %WriteStringZero(value %1, value %2, value %3 )
-end]], "%util" )
+end]], "( %util or 0 )" )
 
 Core:AddFunction("readString", "wl:n", "s", [[
 if $IsValid(value %1) and value %1.WriteCell then
@@ -358,7 +358,7 @@ end]], "( %util or \"\" )" )
 Core:AddFunction("writeTable", "wl:n,t", "n", [[
 if $IsValid(value %1) and value %1.WriteCell then
 	%util = %WriteArray(value %1, value %2, value %3, true )
-end]], "%util" )
+end]], "( %util or 0 )" )
 
 /*==============================================================================================
 	Console Screens: Just gona use an external to save time =D
