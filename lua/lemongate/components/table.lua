@@ -272,7 +272,7 @@ for Key, Value in pairs( value %1.Types ) do
 end
 ]], "%Result" )
 
-Component:AddFunction( "merge", "t:,t", "", [[
+Component:AddFunction( "merge", "t:t", "", [[
 local %Tbl = value %1
 
 for Key, Type, Value in value %2:Itorate( ) do
@@ -280,7 +280,7 @@ for Key, Type, Value in value %2:Itorate( ) do
 end
 ]], "" )
 
-Component:AddFunction( "add", "t:,t", "", [[
+Component:AddFunction( "add", "t:t", "", [[
 local %Tbl = value %1
 
 for Key, Type, Value in value %2:Itorate( ) do
