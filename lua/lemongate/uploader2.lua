@@ -127,9 +127,10 @@ if SERVER then
 		
 		if Upload.Chunks == Chunks then -- used to be ChunkID == Chunks
 			local Scripts = UnpackScripts( table_concat( Upload.Data, "" ) )
-			local Script = Scripts["<code>"]; Scripts["<code>"] = nil -- table_remove( Scripts, "<code>" ) -- Requires number
+			local Script = Scripts["<code>"]; Scripts["<code>"] = nil
+			local Name = Scripts["<name>"]; Scripts["<name>"] = nil
 			
-			Entity:LoadScript( Script, Scripts )
+			Entity:LoadScript( Script, Scripts, Name )
 			
 			Uploads[PlyID][EntID] = nil
 			
@@ -159,7 +160,7 @@ end
 ==============================================================================================*/
 if CLIENT then
 	
-	function Uploader.Send_Script( Entity, Script )
+	function Uploader.Send_Script( Entity, Script, Name )
 		
 		local EntID = Entity
 		
@@ -192,6 +193,7 @@ if CLIENT then
 		local Editor = LEMON.Editor.GetInstance( )
 		local Data = table.Copy( Editor.Data.Files )
 		Data["<code>"] = Script 
+		Data["<name>"] = Editor:GetName( ) 
 		
 		local Data = GetChunks( PackScripts( Data ), 65000 )
 		local Chunks = #Data
@@ -207,8 +209,8 @@ if CLIENT then
 		end
 	end
 	
-	function LEMON:Upload( Entity, Script )
-		Uploader.Send_Script( Entity, Script )
+	function LEMON:Upload( Entity, Script, Name )
+		Uploader.Send_Script( Entity, Script, Name )
 	end
 	
 	function Uploader.Rec_Confirm( Length )
@@ -254,7 +256,7 @@ if SERVER then
 			net.Start( "lemon_download_entity" )
 				net.WriteEntity( Entity )
 				net.WriteEntity( Entity.Player )
-				net.WriteString( Entity.GateName )
+				net.WriteString( Entity.ScriptName or Entity.GateName or "generic" )
 			net.Send( Player )
 		end
 		
@@ -305,8 +307,10 @@ if CLIENT then
 		if Download.Chunks == Chunks then -- used to be ChunkID == Chunks
 			local Scripts = UnpackScripts( table_concat( Download.Data, "" ) )
 			local Script = Scripts["<code>"]; Scripts["<code>"] = nil -- table_remove( Scripts, "<code>" ) -- Requires number
+			local Name = Scripts["<name>"]; Scripts["<name>"] = nil
 			
 			Download.Script = Script //table_concat( Download.Data, "" )
+			Download.Name = Name
 			Download.Includes = Scripts
 			-- LEMON.Editor.Open( Download.Script, true )
 			LEMON.Editor.ReciveDownload( Download )

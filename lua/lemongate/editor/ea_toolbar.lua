@@ -39,6 +39,15 @@ function PANEL:SetupButton( sName, mMaterial, nDock, fDoClick )
 end 
 
 function PANEL:Init( ) 
+	self.lblTab = vgui.Create( "DLabel", self )
+	self.lblTab:SetText( "Script:" )
+	self.lblTab:SizeToContents( )
+	self.lblTab:Dock( LEFT )
+	
+	self.btnTabName = vgui.Create( "DTextEntry", self )
+	self.btnTabName:SetSize( 100, 16 )
+	self.btnTabName:Dock( LEFT )
+	
 	self.btnSave = self:SetupButton( "Save", Material( "fugue/disk.png" ), LEFT )
 	self.btnSaveAs = self:SetupButton( "Save As", Material( "fugue/disks.png" ), LEFT )
 	self.btnNewTab = self:SetupButton( "New tab", Material( "fugue/script--plus.png" ), LEFT )
@@ -117,6 +126,33 @@ function PANEL:Init( )
 	function self.btnRepoLink:DoClick( )
 		LEMON.Repo.OpenMenu( )
 	end
+	
+	function self.btnTabName:Paint( )
+		draw.RoundedBox( 6, 0, 4, self:GetWide( ), self:GetTall( ) - 8, Color( 255, 255, 255 ) )
+		self:DrawTextEntryText( Color(0, 0, 0), Color(30, 130, 255), Color(0, 0, 0) )
+	end
+	
+	function self.btnTabName:OnTextChanged( )
+		local Value = self:GetValue( )
+		local Title = string.sub( string.gsub( Value, "[^a-zA-Z0-9_ ]", "" ), 0, 16 )
+		
+		self:GetParent( ):GetParent( ).TabHolder:GetActiveTab( ):SetText( Title )
+		self:GetParent( ):GetParent( ).TabHolder:PerformLayout( )
+		
+		local X, Y = self:GetCaretPos( )
+		if Value != Title then X = X - 1 end
+		
+		self:SetText( Title )
+		self:SetCaretPos( X, Y )
+	end
+	
+	function self.btnTabName:OnLoseFocus( )
+		if self:GetValue( ) == "" then
+			self:SetText( "generic" )
+			self:OnTextChanged( )
+		end
+	end
+	
 end
 
 local function CreateOptions( )

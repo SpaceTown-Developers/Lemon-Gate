@@ -55,13 +55,18 @@ local function CompileSoftly( Entity, Script, Files )
 	end
 end
 
-function Lemon:LoadScript( Script, Files )
+function Lemon:LoadScript( Script, Files, ScriptName )
 	if self:IsRunning( ) then self:ShutDown( ) end
 	
 	local Context = LEMON:BuildContext( self )
 	
 	self.Script = Script
 	self.Files = Files or { }
+	
+	if ScriptName and ScriptName != "" and ScriptName != "generic" then
+		self.ScriptName = ScriptName
+		self.GateName = ScriptName
+	end
 	
 	coroutine.resume( coroutine.create( CompileSoftly ), self, Script, Files )
 end

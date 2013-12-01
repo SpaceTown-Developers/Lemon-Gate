@@ -98,6 +98,24 @@ function PANEL:Init( )
 		return pnl
 	end
 	
+	function self.TabHolder:SetActiveTab( active )
+		if ( self.m_pActiveTab == active ) then return end
+		if ( self.m_pActiveTab) then
+			self:GetParent( ):ChangeTab( self.m_pActiveTab, active )
+			if ( self:GetFadeTime() > 0 ) then
+				self.animFade:Start( self:GetFadeTime( ), { OldTab = self.m_pActiveTab, NewTab = active } )
+			else
+				self.m_pActiveTab:GetPanel( ):SetVisible( false )
+			end
+		end
+		
+		self.m_pActiveTab = active
+		self:InvalidateLayout( )
+	end
+	
+	function self:ChangeTab( Previous, Current )
+		self.ToolBar.btnTabName:SetText( Current:GetText( ) )
+	end
 	
 	self.Browser = self:Add( "DTree" )
 	self.Browser:Dock( LEFT )
@@ -334,6 +352,12 @@ function PANEL:GetCode( Tab )
 	return Tab:GetPanel( ):GetCode( ), Tab.FilePath
 end
 
+function PANEL:GetName( Tab )
+	Tab = Tab or self.TabHolder:GetActiveTab( )
+	if !Tab then return end
+	return Tab:GetText( )
+end
+
 function PANEL:GetFileCode( Path )
 	if not string.EndsWith( Path, ".txt" ) then Path = Path .. ".txt" end 
 	if not string.StartWith( Path, "lemongate/" ) then Path = "lemongate/" .. Path end
@@ -362,7 +386,7 @@ function PANEL:SaveFile( Path, SaveAs, Tab, bNoSound )
 	end
 	
 	if SaveAs or not Path then
-		Derma_StringRequest( "Save to New File", "", "generic",
+		Derma_StringRequest( "Save to New File", "", Tab:GetText( ),
 		function( result )
 			result = string.gsub( result, ".", invalid_filename_chars )
 			self:SaveFile( result .. ".txt", nil, Tab, bNoSound )
@@ -375,7 +399,8 @@ function PANEL:SaveFile( Path, SaveAs, Tab, bNoSound )
 	
 	MakeFolders( Path )
 	
-	file.Write( Path, self:GetCode( Tab ) )
+	file.Write( Path, "" .. Tab:GetText( ) .. "" .. self:GetCode( Tab ) .. "" )
+	
 	if not bNoSound then
 		surface.PlaySound( "ambient/water/drip3.wav" )
 		self.ValidateButton:SetText( "Saved as " .. Path )
@@ -388,11 +413,13 @@ end
 
 function PANEL:LoadFile( Path )
 	if !Path or file.IsDir( Path, "DATA" ) then return end
-	local Code = file.Read( Path )
-	if Code then
-		self:AutoSave( )
-		self:NewTab( Code, Path:sub( 11 ) )
-	end
+	local Data = file.Read( Path )
+	
+	if !Data then return end
+	
+	self:AutoSave( )
+	local Title, Code = string.match( Data, "(.+)(.+)" )
+	self:NewTab( Code or Data, Path:sub( 11 ), Title )
 end
 
 function PANEL:SetSyntaxColorLine( func )
@@ -443,7 +470,12 @@ function PANEL:NewTab( Code, Path, Name )
 		return
 	end
 	
-	local Sheet = self.TabHolder:AddSheet( Name or Path or "generic", vgui.Create( "EA_Editor" ), "fugue/script-text.png" )
+	local TabName = Name
+	if !TabName and Path then
+		TabName = string.sub( Path, 0, #Path - 4 )
+	end
+	
+	local Sheet = self.TabHolder:AddSheet( TabName or "generic", vgui.Create( "EA_Editor" ), "fugue/script-text.png" )
 	self.TabHolder:SetActiveTab( Sheet.Tab )
 	Sheet.Panel:RequestFocus( )
 	
