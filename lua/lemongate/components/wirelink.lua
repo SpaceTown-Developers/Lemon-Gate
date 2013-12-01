@@ -285,39 +285,39 @@ local function WriteArray( Entity, Address, Data, Clear )
 					
 					if Type == "number" then
 							if ( !Entity:WriteCell( Address + I - 1, Value ) ) then
-								WA_Seralized = Clear and WA_Seralized or { }
+								WA_Seralized = !Clear and WA_Seralized or { }
 								return 0
 							end
 							
 					elseif Type == "string" then
 							if ( !Entity:WriteCell( Address + I - 1, Free_Address ) ) then 
-								WA_Seralized = Clear and WA_Seralized or { }
+								WA_Seralized = !Clear and WA_Seralized or { }
 								return 0
 							else
 								Free_Address = WriteStringZero( Entity, Free_Address, Value )
 								
 								if ( Free_Address == 0 ) then
-									WA_Seralized = Clear and WA_Seralized or { }
+									WA_Seralized = !Clear and WA_Seralized or { }
 									return 0
 								end
 							end
 					elseif Type == "table" then
 							if ( Value.__Vector3 ) then
 								if ( !Entity:WriteCell( Address + I - 1, Free_Address ) ) then
-									WA_Seralized = Clear and WA_Seralized or { }
+									WA_Seralized = !Clear and WA_Seralized or { }
 									return 0
 								else
 									Free_Address = WriteArray( Entity, Free_Address, { Value.x, Value.y, Value.z } )
 								end
 							elseif WA_Seralized[ Value ] then
 									if ( !Entity:WriteCell( Address + I -1, WA_Seralized[ Value ] ) ) then
-										WA_Seralized = Clear and WA_Seralized or { }
+										WA_Seralized = !Clear and WA_Seralized or { }
 										return 0
 									end
 							else
 									WA_Seralized[ Value ] = Free_Address
 									if ( !Entity:WriteCell( Address + I - 1, Free_Address ) ) then
-										WA_Seralized = Clear and WA_Seralized or { }
+										WA_Seralized = !Clear and WA_Seralized or { }
 										return 0
 									else
 										Free_Address = WriteArray( Entity, Free_Address, Value )
@@ -326,11 +326,11 @@ local function WriteArray( Entity, Address, Data, Clear )
 					end
 			end
 			
-			WA_Seralized = Clear and WA_Seralized or { }
+			WA_Seralized = !Clear and WA_Seralized or { }
 			return Free_Address
 	end
 	
-	WA_Seralized = Clear and WA_Seralized or { }
+	WA_Seralized = !Clear and WA_Seralized or { }
 	return 0
 end
 
