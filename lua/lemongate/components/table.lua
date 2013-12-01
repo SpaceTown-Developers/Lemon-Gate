@@ -284,7 +284,7 @@ Component:AddFunction( "add", "t:t", "", [[
 local %Tbl = value %1
 
 for Key, Type, Value in value %2:Itorate( ) do
-	if type( Key ) == "number" then
+	if $type( Key ) == "number" then
 		%Tbl:Insert( nil, Type, Value )
 	elseif !Tbl.Types[ Key ] then
 		%Tbl:Set( Key, Type, Value )

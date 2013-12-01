@@ -280,57 +280,58 @@ local function WriteArray( Entity, Address, Data, Clear )
 			Entity:WriteCell( Address + #Data, 0 )
 			local Free_Address = Address + #Data + 1
 
-			for I, Value in ipairs( Data ) do
-					local Type = type( Value )
+			for Key = 1, Data.Count do
+					local Type = Data.Type[ Key ]
+					local Value = Data.Data[ Key ]
 					
-					if Type == "number" then
+					if Type == "n" then
 							if ( !Entity:WriteCell( Address + I - 1, Value ) ) then
-								WA_Seralized = !Clear and WA_Seralized or { }
+								WA_Seralized = Clear and { } or WA_Seralized
 								return 0
 							end
 							
-					elseif Type == "string" then
+					elseif Type == "s" then
 							if ( !Entity:WriteCell( Address + I - 1, Free_Address ) ) then 
-								WA_Seralized = !Clear and WA_Seralized or { }
+								WA_Seralized = Clear and { } or WA_Seralized
 								return 0
 							else
 								Free_Address = WriteStringZero( Entity, Free_Address, Value )
 								
 								if ( Free_Address == 0 ) then
-									WA_Seralized = !Clear and WA_Seralized or { }
+									WA_Seralized = Clear and { } or WA_Seralized
 									return 0
 								end
 							end
-					elseif Type == "table" then
-							if ( Value.__Vector3 ) then
+					elseif Type == "v" then
+							if ( !Entity:WriteCell( Address + I - 1, Free_Address ) ) then
+								WA_Seralized = Clear and { } or WA_Seralized
+								return 0
+							else
+								Free_Address = WriteArray( Entity, Free_Address, { Value.x, Value.y, Value.z } )
+							end
+					elseif Type == "t" then
+							if WA_Seralized[ Value ] then
+								if ( !Entity:WriteCell( Address + I -1, WA_Seralized[ Value ] ) ) then
+									WA_Seralized = Clear and { } or WA_Seralized
+									return 0
+								end
+							else
+								WA_Seralized[ Value ] = Free_Address
 								if ( !Entity:WriteCell( Address + I - 1, Free_Address ) ) then
-									WA_Seralized = !Clear and WA_Seralized or { }
+									WA_Seralized = Clear and { } or WA_Seralized
 									return 0
 								else
-									Free_Address = WriteArray( Entity, Free_Address, { Value.x, Value.y, Value.z } )
+									Free_Address = WriteArray( Entity, Free_Address, Value )
 								end
-							elseif WA_Seralized[ Value ] then
-									if ( !Entity:WriteCell( Address + I -1, WA_Seralized[ Value ] ) ) then
-										WA_Seralized = !Clear and WA_Seralized or { }
-										return 0
-									end
-							else
-									WA_Seralized[ Value ] = Free_Address
-									if ( !Entity:WriteCell( Address + I - 1, Free_Address ) ) then
-										WA_Seralized = !Clear and WA_Seralized or { }
-										return 0
-									else
-										Free_Address = WriteArray( Entity, Free_Address, Value )
-									end
 							end
 					end
 			end
 			
-			WA_Seralized = !Clear and WA_Seralized or { }
+			WA_Seralized = Clear and { } or WA_Seralized
 			return Free_Address
 	end
 	
-	WA_Seralized = !Clear and WA_Seralized or { }
+	WA_Seralized = Clear and { } or WA_Seralized
 	return 0
 end
 
@@ -368,10 +369,15 @@ local ToByte = string.byte
 local Floor = math.floor
 
 local function ToColor( Col )
-	local R = Clamp( Floor(Col[1] / 28), 0, 9 )
-	local G = Clamp( Floor(Col[2] / 28), 0, 9 )
-	local B = Clamp( Floor(Col[3] / 28), 0, 9 )
-	return math.Clamp( Floor(R) * 100 + Floor(G) * 10 + Floor(B), 0, 999 )
+	if type( Col ) == "number" then
+		return Col
+	else
+		local R = Clamp( Floor(Col[1] / 28), 0, 9 )
+		local G = Clamp( Floor(Col[2] / 28), 0, 9 )
+		local B = Clamp( Floor(Col[3] / 28), 0, 9 )
+		
+		return math.Clamp( Floor(R) * 100 + Floor(G) * 10 + Floor(B), 0, 999 )
+	end
 end
 
 Core:AddExternal( "WriteToScreen", function( Entity, String, X, Y, TextColor, BackGround, Flash )
