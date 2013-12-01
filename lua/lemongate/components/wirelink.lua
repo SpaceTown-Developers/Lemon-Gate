@@ -365,6 +365,7 @@ end]], "( %util or 0 )" )
 ==============================================================================================*/
 local Clamp = math.Clamp
 local ToByte = string.byte
+local Floor = math.floor
 
 local function ToColor( Col )
 	local R = Clamp( Floor(Col[1] / 28), 0, 9 )
@@ -375,7 +376,7 @@ end
 
 Core:AddExternal( "WriteToScreen", function( Entity, String, X, Y, TextColor, BackGround, Flash )
 	if IsValid( Entity ) and Entity.WriteCell then
-		TextColor = ( Colour and ToColor( TextColor ) or 999 )
+		TextColor = ( TextColor and ToColor( TextColor ) or 999 )
 		BackGround = ( BackGround and ToColor( BackGround ) or 0 )
 		Flash = Flash and 1 or 0
 		
@@ -422,4 +423,3 @@ Core:AddFunction("writeString", "wl:s,n,n,n,n,b", "", "%WriteToScreen( value %1,
 Core:AddFunction("writeString", "wl:s,n,n,c,c,b", "", "%WriteToScreen( value %1, value %2, value %3, value %4, value %5, value %6 )", "" )
 Core:AddFunction("writeString", "wl:s,n,n,c,n,b", "", "%WriteToScreen( value %1, value %2, value %3, value %4, value %5, value %6 )", "" )
 Core:AddFunction("writeString", "wl:s,n,n,n,c,b", "", "%WriteToScreen( value %1, value %2, value %3, value %4, value %5, value %6 )", "" )
-
