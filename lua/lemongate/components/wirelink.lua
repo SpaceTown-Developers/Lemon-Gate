@@ -242,7 +242,7 @@ local function WriteStringZero( Entity, Address, String )
         if ( Entity:WriteCell( Address+ #String, 0 ) ) then
 
         for I = 1, #String do
-            if !Entity:WriteCell( Address + Index - 1, String_Byte( String, I ) ) then
+            if !Entity:WriteCell( Address + I - 1, String_Byte( String, I ) ) then
 				return 0
 			end
         end
@@ -254,85 +254,76 @@ local function WriteStringZero( Entity, Address, String )
 end
 
 local function ReadStringZero( Entity, Address )
-        local Table = { }
-        for I = Address, Address + 16384 do
-                local Byte = Entity:ReadCell( I, Byte )
-				
-                if !Byte then
-					return ""
-				elseif Byte < 1 then
-					break
-                elseif Byte >= 256 then
-					Byte = 32
-				end
-				
-				Table[#Table + 1] = String_Char( Math_Floor( Byte ) )
-        end
-		
-        return Table_Concat( Table )
-end
-
-local WA_Seralized = { }
-
-local function WriteArray( Entity, Address, Data, Clear )
-        if ( Entity:WriteCell( Address + #Data - 1, 0 ) ) then 
-
-			Entity:WriteCell( Address + #Data, 0 )
-			local Free_Address = Address + #Data + 1
-
-			for Key = 1, Data.Count do
-					local Type = Data.Type[ Key ]
-					local Value = Data.Data[ Key ]
-					
-					if Type == "n" then
-							if ( !Entity:WriteCell( Address + I - 1, Value ) ) then
-								WA_Seralized = Clear and { } or WA_Seralized
-								return 0
-							end
-							
-					elseif Type == "s" then
-							if ( !Entity:WriteCell( Address + I - 1, Free_Address ) ) then 
-								WA_Seralized = Clear and { } or WA_Seralized
-								return 0
-							else
-								Free_Address = WriteStringZero( Entity, Free_Address, Value )
-								
-								if ( Free_Address == 0 ) then
-									WA_Seralized = Clear and { } or WA_Seralized
-									return 0
-								end
-							end
-					elseif Type == "v" then
-							if ( !Entity:WriteCell( Address + I - 1, Free_Address ) ) then
-								WA_Seralized = Clear and { } or WA_Seralized
-								return 0
-							else
-								Free_Address = WriteArray( Entity, Free_Address, { Value.x, Value.y, Value.z } )
-							end
-					elseif Type == "t" then
-							if WA_Seralized[ Value ] then
-								if ( !Entity:WriteCell( Address + I -1, WA_Seralized[ Value ] ) ) then
-									WA_Seralized = Clear and { } or WA_Seralized
-									return 0
-								end
-							else
-								WA_Seralized[ Value ] = Free_Address
-								if ( !Entity:WriteCell( Address + I - 1, Free_Address ) ) then
-									WA_Seralized = Clear and { } or WA_Seralized
-									return 0
-								else
-									Free_Address = WriteArray( Entity, Free_Address, Value )
-								end
-							end
-					end
+	local Table = { }
+	for I = Address, Address + 16384 do
+			local Byte = Entity:ReadCell( I, Byte )
+			
+			if !Byte then
+				return ""
+			elseif Byte < 1 then
+				break
+			elseif Byte >= 256 then
+				Byte = 32
 			end
 			
-			WA_Seralized = Clear and { } or WA_Seralized
-			return Free_Address
+			Table[#Table + 1] = String_Char( Math_Floor( Byte ) )
 	end
 	
-	WA_Seralized = Clear and { } or WA_Seralized
-	return 0
+	return Table_Concat( Table )
+end
+
+local WA_Seralized, WriteArray = { }
+
+WriteArray = function( Entity, Address, Data, Clear )
+	local Count = #Data.Types
+	
+	if ( !Entity:WriteCell( Address + Count - 1, 0 ) ) then 
+		if ( Clear ) then WA_Seralized = { } end
+		return 0
+	end
+	
+	Entity:WriteCell( Address + Count, 0 )
+	local Free_Address = Address + Count + 1
+	local MemoryValid = true
+	
+	for I, Type in ipairs( Data.Types ) do
+			local Value = Data.Data[ I ]
+			
+			print( MemoryValid, I, Type, Value )
+			
+			if ( !MemoryValid ) then
+				if ( Clear ) then WA_Seralized = { } end
+				return 0
+				
+			elseif Type == "n" then
+					MemoryValid = Entity:WriteCell( Address + I - 1, Value )
+					
+			elseif !Entity:WriteCell( Address + I - 1, Free_Address ) then
+					MemoryValid = false
+					
+			elseif Type == "s" then
+					Free_Address = WriteStringZero( Entity, Free_Address, Value )
+					MemoryValid = ( Free_Address ~= 0 )
+					
+			elseif Type == "v" then
+					Entity:WriteCell( Address + I - 1, Value.x )
+					Entity:WriteCell( Address + I, Value.y )
+					
+					MemoryValid = Entity:WriteCell( Address + I + 1, Value.z )
+					Free_Address = Free_Address + 3
+					
+			elseif Type == "t" then
+					if WA_Seralized[ Value ] then
+						MemoryValid = Entity:WriteCell( Address + I -1, WA_Seralized[ Value ] )
+					else
+						WA_Seralized[ Value ] = Free_Address
+						Free_Address = WriteArray( Entity, Free_Address, Value )
+					end
+			end
+	end
+	
+	if ( Clear ) then WA_Seralized = { } end
+	return Free_Address
 end
 
 Core:AddExternal( "WriteStringZero", WriteStringZero )
