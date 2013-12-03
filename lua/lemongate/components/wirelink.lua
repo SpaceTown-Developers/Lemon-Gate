@@ -98,11 +98,29 @@ Core:AddOperator( "[]=", "wl,s,v", "", [[%context:ToWL( value %1, "VECTOR", valu
 Core:AddOperator( "[]=", "wl,s,a", "", [[%context:ToWL( value %1, "ANGLE", value %2, value %3 )]], "" )
 
 /*==============================================================================================
+	Cast Functions
+==============================================================================================*/
+Core:AddException( "wirelink" )
+
+Core:SetPerf( LEMON_PERF_NORMAL )
+
+Core:AddOperator( "entity", "wl", "e", "value %1" )
+
+Core:AddOperator( "wirelink", "e", "wl", [[
+if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) then
+	%util = value %1
+	
+	if !value %1.extended then
+		$WireLib.CreateWirelinkOutput( self.player, this, {true} )
+	end
+else
+	%context:Throw( %trace, "wirelink", "Failed to create wirelink.") 
+end]], "value %1" )
+		
+/*==============================================================================================
 	Port Functions
 ==============================================================================================*/
 Core:SetPerf( LEMON_PERF_NORMAL )
-
-Core:AddFunction("entity", "wl:", "e", "value %1")
 
 Core:AddFunction("hasInput", "wl:s", "b", "local %WL = value %1", "($IsValid( %WL ) and %WL.Inputs and %WL.Inputs[%value2])" )
 

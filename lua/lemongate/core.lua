@@ -551,16 +551,16 @@ function API:InstallComponents( )
 					Class.DownCast = BaseClass.Short
 					BaseClass.UpCast[ Class.Short ] = Class.Short
 					
-					if !Class.DefaultRaw then
+					if Class.DefaultRaw == nil then
 						Class.DefaultRaw = BaseClass.DefaultRaw
 						Class.DefaultType = BaseClass.DefaultType
 					end
 				end
 			end
 			
-			if Class.DefaultRaw and Class.DefaultType then
+			if Class.DefaultRaw ~= nil and Class.DefaultType then
 				Class.Default = Class.DefaultRaw -- Run this as lua!
-			elseif Class.DefaultRaw then -- Convert this to lua!
+			elseif Class.DefaultRaw ~= nil then -- Convert this to lua!
 				Class.Default = Util.ValueToLua( Class.DefaultRaw )
 			end
 		end

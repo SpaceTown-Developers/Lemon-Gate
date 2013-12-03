@@ -234,14 +234,69 @@ Component:SetPerf( LEMON_PERF_EXPENSIVE )
 
 Component:AddFunction( "pop", "t:", "", "value %1:Remove(value %1.Count)" )
 
+
 -- Table:
 
 Component:SetPerf( LEMON_PERF_EXPENSIVE )
 
-Component:AddFunction( "invert", "t", "t", [[
+Component:AddFunction( "minIndex", "t:", "n", [[
+local %Result
+
+for Key, Value in pairs( value %1.Types ) do
+	Context.Perf = Context.Perf + 0.5
+	
+	if $type( Key ) == "number" and ( !Key or Key > %Result ) then
+		%Result = Key
+	end
+end
+]], "( %Result or 0 )" )
+
+Component:AddFunction( "maxIndex", "t:", "n", [[
+local %Result = 0
+
+for Key, Value in pairs( value %1.Types ) do
+	Context.Perf = Context.Perf + 0.5
+	
+	if $type( Key ) == "number" and Key > %Result then
+		%Result = Key
+	end
+end
+]], "%Result" )
+
+Component:AddFunction( "keys", "t:", "t", [[
 local %Result = %Table( )
 
 for Key, Value in pairs( value %1.Types ) do
+	Context.Perf = Context.Perf + 0.5
+	
+	local %IType = $type( Key )
+		
+	if %IType == "number" then
+		%Result:Insert( nil, "n", Key )
+	elseif %IType == "string" then
+		%Result:Insert( nil, "s", Key )
+	elseif %IType == "entity" then
+		%Result:Insert( nil, "e", Key )
+	end
+end
+]], "%Result" )
+
+Component:AddFunction( "values", "t:", "t", [[
+local %Result = %Table( )
+
+for Key, Type, Value in value %2:Itorate( ) do
+	Context.Perf = Context.Perf + 0.5
+	
+	%Result:Insert( nil, Type, Value )
+end
+]], "%Result" )
+
+Component:AddFunction( "invert", "t:", "t", [[
+local %Result = %Table( )
+
+for Key, Value in pairs( value %1.Types ) do
+	Context.Perf = Context.Perf + 0.5
+	
 	if Value == "n" or Value == "s" or Value == "s" then
 		local %IType = $type( Key )
 		
@@ -256,34 +311,22 @@ for Key, Value in pairs( value %1.Types ) do
 end
 ]], "%Result" )
 
-Component:AddFunction( "keys", "t:", "t", [[
-local %Result = %Table( )
-
-for Key, Value in pairs( value %1.Types ) do
-	local %IType = $type( Key )
-		
-	if %IType == "number" then
-		%Result:Insert( nil, "n", Key )
-	elseif %IType == "string" then
-		%Result:Insert( nil, "s", Key )
-	elseif %IType == "entity" then
-		%Result:Insert( nil, "e", Key )
-	end
-end
-]], "%Result" )
-
 Component:AddFunction( "merge", "t:t", "", [[
 local %Tbl = value %1
 
 for Key, Type, Value in value %2:Itorate( ) do
+	Context.Perf = Context.Perf + 0.5
+	
 	%Tbl:Set( Key, Type, Value )
 end
 ]], "" )
 
 Component:AddFunction( "add", "t:t", "", [[
-local %Tbl = value %1
+local %Tbl = value %1 
 
 for Key, Type, Value in value %2:Itorate( ) do
+	Context.Perf = Context.Perf + 0.5
+	
 	if $type( Key ) == "number" then
 		%Tbl:Insert( nil, Type, Value )
 	elseif !Tbl.Types[ Key ] then
@@ -445,6 +488,8 @@ Component:AddFunction( "sort", "t:f", "t", [[
 local %New, %Count = { }, 0
 
 for Key, Type, Value in value %1:Itorate( ) do
+	Context.Perf = Context.Perf + 0.5
+	
 	%Count = %Count + 1
 	%New[%Count] = { Key, Type, Value }
 end
@@ -466,6 +511,8 @@ end )
 
 local %Sorted = %Table( )
 for Key, Val in pairs( %New ) do
+	Context.Perf = Context.Perf + 0.5
+	
 	%Sorted:Insert( Key, Val[2], Val[3] )
 end]], "%Sorted" )
 

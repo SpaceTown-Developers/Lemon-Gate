@@ -120,7 +120,7 @@ end
 	Section: Expression
 ==============================================================================================*/
 
-function Compiler:GetExpression( RootTrace )
+function Compiler:GetExpression( RootTrace, IgnoreAss )
 	
 	if !self:HasTokens( ) then
 		return -- No tokens!
@@ -128,12 +128,15 @@ function Compiler:GetExpression( RootTrace )
 	elseif self:AcceptToken( "var" ) then
 		-- Lets strip out bad operators
 
-		self:ExcludeToken( "ass", "Assignment operator (=), can't be part of Expression" )
 		self:ExcludeToken( "aadd", "Additive assignment operator (+=), can't be part of Expression" )
 		self:ExcludeToken( "asub", "Subtractive assignment operator (-=), can't be part of Expression" )
 		self:ExcludeToken( "amul", "Multiplicative assignment operator (*=), can't be part of Expression" )
 		self:ExcludeToken( "adiv", "Divisive assignment operator (/=), can't be part of Expression" )
-
+		
+		if !IgnoreAss then
+			self:ExcludeToken( "ass", "Assignment operator (=), can't be part of Expression" )
+		end
+		
 		self:PrevToken( )
 	end
 
@@ -386,7 +389,7 @@ function Compiler:BuildTable( RootTrace )
 			
 			Count = Count + 1
 			
-			local Expression, Key = self:GetExpression( Trace )
+			local Expression, Key = self:GetExpression( Trace, true )
 			
 			if self:AcceptToken( "ass" ) then
 				Keys[Count] = Expression
