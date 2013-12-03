@@ -239,29 +239,33 @@ Component:AddFunction( "pop", "t:", "", "value %1:Remove(value %1.Count)" )
 
 Component:SetPerf( LEMON_PERF_EXPENSIVE )
 
-Component:AddFunction( "minIndex", "t:", "n", [[
+Component:AddFunction( "minIndex", "t:", "?", [[
 local %Result
 
-for Key, Value in pairs( value %1.Types ) do
+for Key, Type, Value in value %2:Itorate( ) do
 	Context.Perf = Context.Perf + 0.5
 	
-	if $type( Key ) == "number" and ( !Key or Key > %Result ) then
+	if Type == "n" and ( !%Result or Value < %Result ) then
 		%Result = Key
 	end
 end
-]], "( %Result or 0 )" )
 
-Component:AddFunction( "maxIndex", "t:", "n", [[
-local %Result = 0
+%util = { %Result or 0, $type( %Result or 0 ):sub(1,1):lower( ) }
+]], "%util" )
 
-for Key, Value in pairs( value %1.Types ) do
+Component:AddFunction( "maxIndex", "t:", "?", [[
+local %Result
+
+for Key, Type, Value in value %2:Itorate( ) do
 	Context.Perf = Context.Perf + 0.5
 	
-	if $type( Key ) == "number" and Key > %Result then
+	if Type == "n" and ( !%Result or Value > %Result ) then
 		%Result = Key
 	end
 end
-]], "%Result" )
+
+%util = { %Result or 0, $type( %Result or 0 ):sub(1,1):lower( ) }
+]], "%util" )
 
 Component:AddFunction( "keys", "t:", "t", [[
 local %Result = %Table( )
