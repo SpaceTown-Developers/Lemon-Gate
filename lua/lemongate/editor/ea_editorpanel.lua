@@ -678,6 +678,7 @@ end
 ============================================================================================================================================*/
 
 CreateClientConVar( "lemon_editor_font", "Courier New", true, false ) 
+CreateClientConVar( "lemon_editor_font_size", 17, true, false )
 
 PANEL.Fonts = { } 
 PANEL.CreatedFonts = { } 
@@ -695,7 +696,7 @@ PANEL.Fonts["Monaco"] = true
 function PANEL:SetEditorFont( Editor )
 	if not self.CurrentFont then 
 		local cvar = GetConVar( "lemon_editor_font" ) 
-		if cvar and PANEL.Fonts[cvar:GetString( )] then 
+		if cvar and PANEL.Fonts[ cvar:GetString( ) ] then 
 			self:ChangeFont( cvar:GetString( ) )
 		else 
 			self:ChangeFont( system.IsWindows( ) and "Courier New" or ( system.IsOSX( ) and "Monaco" or "DejaVu Sans Mono" ) ) 
@@ -706,21 +707,23 @@ function PANEL:SetEditorFont( Editor )
 	Editor:SetFont( self.CurrentFont )
 end
 
-function PANEL:ChangeFont( Font )
-	if not Font or Font == "" then return end 
+function PANEL:ChangeFont( sFont, nSize )
+	if not sFont or sFont == "" then return end 
+	nSize = nSize or GetConVarNumber( "lemon_editor_font_size" )
+	self.CurrentFont = "EA_" .. sFont .. "_" .. nSize
 	
-	if not self.CreatedFonts[Font] then 
-		surface.CreateFont( "EA_" .. Font, {
-			font = Font,
-			size = 17,
+	if not self.CreatedFonts[self.CurrentFont] then 
+		surface.CreateFont( self.CurrentFont, {
+			font = sFont,
+			size = nSize,
 			weight = 400,
 			antialias = false
 		} )
-		self.CreatedFonts[Font] = true 
+		self.CreatedFonts[self.CurrentFont] = true 
 	end 
 	
-	self.CurrentFont = "EA_" .. Font
-	RunConsoleCommand( "lemon_editor_font", Font ) 
+	RunConsoleCommand( "lemon_editor_font", sFont ) 
+	RunConsoleCommand( "lemon_editor_font_size", nSize ) 
 	
 	for I = #self.TabHolder.Items, 1, -1 do
 		self:SetEditorFont( self.TabHolder.Items[I].Tab:GetPanel( ) )
