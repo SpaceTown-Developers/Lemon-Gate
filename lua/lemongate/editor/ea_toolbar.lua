@@ -39,14 +39,8 @@ function PANEL:SetupButton( sName, mMaterial, nDock, fDoClick )
 end 
 
 function PANEL:Init( ) 
-	self.lblTab = vgui.Create( "DLabel", self )
-	self.lblTab:SetText( "Script:" )
-	self.lblTab:SizeToContents( )
-	self.lblTab:Dock( LEFT )
-	
-	self.btnTabName = vgui.Create( "DTextEntry", self )
-	self.btnTabName:SetSize( 100, 16 )
-	self.btnTabName:Dock( LEFT )
+	self:AddFileColapse( )
+	self:AddTabNamer( )
 	
 	self.btnSave = self:SetupButton( "Save", Material( "fugue/disk.png" ), LEFT )
 	self.btnSaveAs = self:SetupButton( "Save As", Material( "fugue/disks.png" ), LEFT )
@@ -59,6 +53,9 @@ function PANEL:Init( )
 	self.btnWiki = self:SetupButton( "Open wiki", Material( "fugue/home.png" ), RIGHT )
 	
 	self.btnRepoLink = self:SetupButton( "Open repository", Material( "github.png" ), RIGHT )
+	
+	self.btnFontPlus = self:SetupButton( "Increase font size.", Material( "fugue/edit-size-up.png" ), RIGHT )
+	self.btnFontMinus = self:SetupButton( "Decrease font size.", Material( "fugue/edit-size-down.png" ), RIGHT )
 	
 	local function AddDebugIcon( )
 		if GCompute and !self.btnOpenGCompute then 
@@ -127,17 +124,97 @@ function PANEL:Init( )
 		LEMON.Repo.OpenMenu( )
 	end
 	
-	function self.btnTabName:Paint( )
-		draw.RoundedBox( 6, 0, 4, self:GetWide( ), self:GetTall( ) - 8, Color( 255, 255, 255 ) )
-		self:DrawTextEntryText( Color(0, 0, 0), Color(30, 130, 255), Color(0, 0, 0) )
+	function self.btnFontPlus:DoClick( )
+		self:GetParent( ):GetParent( ):IncreaseFontSize( 1 )
 	end
 	
-	function self.btnTabName:OnTextChanged( )
+	function self.btnFontMinus:DoClick( )
+		self:GetParent( ):GetParent( ):IncreaseFontSize( -1 )
+	end
+	
+end
+
+function PANEL:AddFileColapse( )
+	self.BrowserFolding = self:SetupButton( "Toggle file browser.", Material( "fugue/application-sidebar-collapse.png" ), LEFT )
+	self.BrowserFolding.Expanded = true
+	
+	self.BrowserFolding.DoClick = function( btn )
+		if btn.Expanded then
+			btn.Expanded = false
+			btn:SetMaterial( Material( "fugue/application-sidebar-expand.png" ) )
+			self:GetParent( ).Browser:SizeTo( 0, -1, 1, 0, 1 )
+			self:GetParent( ).BrowserRefresh:SizeTo( 0, -1, 1, 0, 1 )
+			self:GetParent( ).Browser:DockMargin( 0, self:GetParent( ).BrowserRefresh:GetTall( ) + 10, 0, 5 )
+		else
+			btn.Expanded = true
+			btn:SetMaterial( Material( "fugue/application-sidebar-collapse.png" ) )
+			self:GetParent( ).BrowserRefresh:SizeTo( 200, -1, 1, 0, 1 )
+			self:GetParent( ).Browser:SizeTo( 200, -1, 1, 0, 1 )
+			self:GetParent( ).Browser:DockMargin( 5, self:GetParent( ).BrowserRefresh:GetTall( ) + 10, 0, 5 )
+		end
+	end
+end
+
+function PANEL:AddTabNamer( )
+	local Panel = self:Add( "DPanel" )
+	Panel:Dock( LEFT )
+	//Panel:SetPadding( 0 )
+	self.pnlName = Panel
+	
+	Panel.btn = vgui.Create( "EA_ImageButton", Panel ) 
+	Panel.btn:Dock( LEFT )
+	Panel.btn:SetPadding( 5 )
+	Panel.btn:SetIconFading( false )
+	Panel.btn:SetIconCentered( false )
+	Panel.btn:SetTextCentered( false )
+	Panel.btn:DrawButton( true )
+	Panel.btn:SetTooltip( "Set script name:" ) 
+	Panel.btn:SetMaterial( Material( "fugue/script--pencil.png" ) )
+	
+	Panel.txt = vgui.Create( "DTextEntry", Panel )
+	
+	Panel.txt:Dock( LEFT )
+	function Panel.btn:DoClick( )
+		if Panel.IsOpen then
+			Panel.IsOpen = false
+			Panel.txt:KillFocus( )
+			Panel.txt:SetEnabled( false )
+		else
+			Panel.IsOpen = true
+			Panel.txt:RequestFocus( )
+			Panel.txt:SetEnabled( true )
+		end
+	end
+	
+	function Panel:Think( )
+		local FullWide = Panel.IsOpen and 130 or 25
+		
+		local Wide = self:GetWide( )
+		Wide = Wide + math.Clamp( FullWide - Wide, -5, 5 )
+		
+		self:SetWide( Wide )
+		self.txt:SetWide( Wide - 30 )
+		
+		self:GetParent( ):InvalidateLayout( )
+	end
+	
+	function Panel:Paint( )
+	
+	end
+	
+	function Panel.txt:Paint( )
+		self:DrawTextEntryText( Color(0, 0, 0), Color(30, 130, 255), Color(0, 0, 0) )
+		
+		surface.SetDrawColor( 0, 0, 0 )
+		surface.DrawLine( 2, 22, self:GetWide( ) - 2, 22 )
+	end
+	
+	function Panel.txt:OnTextChanged( )
 		local Value = self:GetValue( )
 		local Title = string.sub( string.gsub( Value, "[^a-zA-Z0-9_ ]", "" ), 0, 16 )
 		
-		self:GetParent( ):GetParent( ).TabHolder:GetActiveTab( ):SetText( Title )
-		self:GetParent( ):GetParent( ).TabHolder:PerformLayout( )
+		self:GetParent( ):GetParent( ):GetParent( ).TabHolder:GetActiveTab( ):SetText( Title )
+		self:GetParent( ):GetParent( ):GetParent( ).TabHolder:PerformLayout( )
 		
 		local X, Y = self:GetCaretPos( )
 		if Value != Title then X = X - 1 end
@@ -146,13 +223,18 @@ function PANEL:Init( )
 		self:SetCaretPos( X, Y )
 	end
 	
-	function self.btnTabName:OnLoseFocus( )
+	function Panel.txt:OnLoseFocus( )
 		if self:GetValue( ) == "" then
 			self:SetText( "generic" )
 			self:OnTextChanged( )
 		end
 	end
 	
+	function Panel.txt:OnEnter( )
+		Panel.IsOpen = false
+		Panel.txt:KillFocus( )
+		Panel.txt:SetEnabled( false )
+	end
 end
 
 local function CreateOptions( )

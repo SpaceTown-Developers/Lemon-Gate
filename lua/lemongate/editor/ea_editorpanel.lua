@@ -114,7 +114,7 @@ function PANEL:Init( )
 	end
 	
 	function self:ChangeTab( Previous, Current )
-		self.ToolBar.btnTabName:SetText( Current:GetText( ) )
+		self.ToolBar.pnlName.txt:SetText( Current:GetText( ) )
 	end
 	
 	self.Browser = self:Add( "DTree" )
@@ -234,34 +234,9 @@ function PANEL:Init( )
 	
 	self.Browser:DockMargin( 5, self.BrowserRefresh:GetTall( ) + 10, 0, 5 )
 	
-	
-	self.BrowserFolding = self:Add( "EA_ImageButton" )
-	self.BrowserFolding:SetMaterial( Material( "oskar/arrow-left.png" ) )
-	self.BrowserFolding.Expanded = true
-	
-	self.BrowserFolding.Think = function( btn )
-		btn:SetPos( self.ToolBar.x - 35, 30 )
-	end
-	
-	self.BrowserFolding.DoClick = function( btn )
-		if btn.Expanded then
-			btn.Expanded = false
-			btn:SetMaterial( Material( "oskar/arrow-right.png" ) )
-			self.Browser:SizeTo( 0, -1, 1, 0, 1 )
-			self.BrowserRefresh:SizeTo( 0, -1, 1, 0, 1 )
-			self.Browser:DockMargin( 0, self.BrowserRefresh:GetTall( ) + 10, 0, 5 )
-		else
-			btn.Expanded = true
-			btn:SetMaterial( Material( "oskar/arrow-left.png" ) )
-			self.BrowserRefresh:SizeTo( 200, -1, 1, 0, 1 )
-			self.Browser:SizeTo( 200, -1, 1, 0, 1 )
-			self.Browser:DockMargin( 5, self.BrowserRefresh:GetTall( ) + 10, 0, 5 )
-		end
-	end
-	
 	self.ToolBar = self:Add( "EA_ToolBar" )
 	self.ToolBar:Dock( TOP )
-	self.ToolBar:DockMargin( 5 + 35, 5, 5, 0 )
+	self.ToolBar:DockMargin( 5, 5, 5, 0 )
 	self.ToolBar:SetTall( 30 )
 	
 	
@@ -302,6 +277,7 @@ function PANEL:Init( )
 	
 	file.CreateDir( "Lemongate" )
 end
+
 
 function PANEL:DoValidate( Goto, NoCompile, Code )
 	if not LEMON.API.Initialized then return self.ValidateButton:SetText( "Downloading Validation Files, Please wait..." ) end
@@ -690,8 +666,9 @@ PANEL.Fonts["Consolas"] = true
 PANEL.Fonts["Fixedsys"] = true 
 PANEL.Fonts["Lucida Console"] = true 
 
--- Mac
-PANEL.Fonts["Monaco"] = true 
+if system.IsOSX( ) then -- Mac
+	PANEL.Fonts["Monaco"] = true
+end
 
 function PANEL:SetEditorFont( Editor )
 	if not self.CurrentFont then 
@@ -728,6 +705,15 @@ function PANEL:ChangeFont( sFont, nSize )
 	for I = #self.TabHolder.Items, 1, -1 do
 		self:SetEditorFont( self.TabHolder.Items[I].Tab:GetPanel( ) )
 	end 
+end
+
+function PANEL:IncreaseFontSize( Inc )
+	local Font = GetConVarString( "lemon_editor_font" ) 
+	local Size = GetConVarNumber( "lemon_editor_font_size" ) + Inc
+	
+	if Size < 1 then Size = 1 end
+	
+	self:ChangeFont( Font, Size )
 end
 
 vgui.Register( "EA_EditorPanel", PANEL, "EA_Frame" )

@@ -103,7 +103,10 @@ function PANEL:Init( )
 	end
 	
 	function self.ScrollBar:OnMouseWheeled( dlta )
-		if ( !self:IsVisible() ) then return false end
+		if ( !self:IsVisible() ) then
+			return false
+		end
+		
 		return self:AddScroll( dlta * -4 )
 	end
 	
@@ -1015,10 +1018,21 @@ function PANEL:OnMouseReleased( code )
 end
 
 function PANEL:OnMouseWheeled( delta ) 
-	self.Scroll:Add( - 4 * delta, 0 )
-	if self.Scroll.x < 1 then self.Scroll.x = 1 end
-	if self.Scroll.x > #self.Rows then self.Scroll.x = #self.Rows end
-	self.ScrollBar:SetScroll( self.Scroll.x - 1 )
+	if ( input_IsKeyDown( KEY_RCONTROL ) or input_IsKeyDown( KEY_LCONTROL ) ) then
+		self:GetParent( ):GetParent( ):IncreaseFontSize( delta )
+	else
+		self.Scroll:Add( - 4 * delta, 0 )
+		
+		if self.Scroll.x < 1 then
+			self.Scroll.x = 1
+		end
+		
+		if self.Scroll.x > #self.Rows then
+			self.Scroll.x = #self.Rows
+		end
+		
+		self.ScrollBar:SetScroll( self.Scroll.x - 1 )
+	end
 end
 
 /*---------------------------------------------------------------------------
