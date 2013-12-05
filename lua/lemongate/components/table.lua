@@ -252,7 +252,7 @@ for Key, Type, Value in value %1:Itorate( ) do
 	end
 end
 
-%util = { %Result or 0, $type( %Key or 0 ):sub(1,1):lower( ) }
+%util = { %Key or 0, $type( %Key or 0 ):sub(1,1):lower( ) }
 ]], "%util" )
 
 Component:AddFunction( "maxIndex", "t:", "?", [[
@@ -267,7 +267,7 @@ for Key, Type, Value in value %1:Itorate( ) do
 	end
 end
 
-%util = { %Result or 0, $type( %Key or 0 ):sub(1,1):lower( ) }
+%util = { %Key or 0, $type( %Key or 0 ):sub(1,1):lower( ) }
 ]], "%util" )
 
 Component:AddFunction( "keys", "t:", "t", [[
