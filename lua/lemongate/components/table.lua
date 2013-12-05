@@ -237,16 +237,18 @@ Component:AddFunction( "pop", "t:", "", "value %1:Remove(value %1.Count)" )
 
 -- Table:
 
+
 Component:SetPerf( LEMON_PERF_EXPENSIVE )
 
 Component:AddFunction( "minIndex", "t:", "?", [[
-local %Result
+local %Result, %Key
 
 for Key, Type, Value in value %1:Itorate( ) do
 	Context.Perf = Context.Perf + 0.5
 	
 	if Type == "n" and ( !%Result or Value < %Result ) then
-		%Result = Key
+		%Key = Key
+		%Result = Value
 	end
 end
 
@@ -254,13 +256,14 @@ end
 ]], "%util" )
 
 Component:AddFunction( "maxIndex", "t:", "?", [[
-local %Result
+local %Result, %Key
 
 for Key, Type, Value in value %1:Itorate( ) do
 	Context.Perf = Context.Perf + 0.5
 	
 	if Type == "n" and ( !%Result or Value > %Result ) then
-		%Result = Key
+		%Key = Key
+		%Result = Value
 	end
 end
 
