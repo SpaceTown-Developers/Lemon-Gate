@@ -237,6 +237,7 @@ Component:AddFunction( "pop", "t:", "", "value %1:Remove(value %1.Count)" )
 
 -- Table:
 
+
 Component:SetPerf( LEMON_PERF_EXPENSIVE )
 
 Component:AddFunction( "minIndex", "t:", "?", [[
