@@ -242,7 +242,7 @@ Component:SetPerf( LEMON_PERF_EXPENSIVE )
 Component:AddFunction( "minIndex", "t:", "?", [[
 local %Result
 
-for Key, Type, Value in value %2:Itorate( ) do
+for Key, Type, Value in value %1:Itorate( ) do
 	Context.Perf = Context.Perf + 0.5
 	
 	if Type == "n" and ( !%Result or Value < %Result ) then
@@ -256,7 +256,7 @@ end
 Component:AddFunction( "maxIndex", "t:", "?", [[
 local %Result
 
-for Key, Type, Value in value %2:Itorate( ) do
+for Key, Type, Value in value %1:Itorate( ) do
 	Context.Perf = Context.Perf + 0.5
 	
 	if Type == "n" and ( !%Result or Value > %Result ) then
