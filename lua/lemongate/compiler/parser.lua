@@ -102,16 +102,15 @@ end
 ==============================================================================================*/
 
 function Compiler:TokenTrace( Root )
-	local Trace = { self.TokenLine, self.TokenChar }
+	local Trace = { self.TokenLine, self.TokenChar, Stack = { } }
 	
 	if Root then
-		local Stack1 = { Root[1], Root[2], Location = Root.Location }
-		if Root.Stack then
-			Trace.Stack = { Root, Root.Stack[1], Root.Stack[2], Root.Stack[3], Root.Stack[4] }
-		else
-			Trace.Stack = { Root }
+		Trace.Stack[1] = { Root[1], Root[2], Location = Root.Location }
+		
+		for I = 1, 5 do
+			Trace.Stack[I + 1] = Root.Stack[I]
 		end
-	end -- Build a stack trace.
+	end
 	
 	return Trace
 end
