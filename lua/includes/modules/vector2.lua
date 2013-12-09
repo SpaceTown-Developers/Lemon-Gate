@@ -63,6 +63,7 @@ do
 	end 
 
 	function meta:Normalize( ) 
+		local Len = self:Length( ) 
 		return Vector2( self.x / Len, self.y / Len ) 
 	end 
 

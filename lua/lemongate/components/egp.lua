@@ -274,7 +274,8 @@ end]], LEMON_NO_INLINE )
 ==============================================================================================*/
 Component:AddFunction( "egpTriangle", "wl:n,v2,v2,v2", "", [[
 if $EGP:ValidEGP( value %1 ) then //and %IsOwner( %context.Player, value %1 ) then
-	local %Bool, %Obj = EGP:CreateObject( value %1, EGP.Objects.Names["Triangle"], { index = value %2, x = value %3.x, y = value %3.y, x2 = value %4.x, y2 = value %4.y, x3 = value %4.x, y3 = value %4.y }, %context.Player )
+	local %Bool, %Obj = EGP:CreateObject( value %1, EGP.Objects.Names["Poly"], { index = value %2, vertices = { { x = value %3.x, y = value %3.y }, { x = value %4.x, y = value %4.y }, { x = value %5.x, y = value %5.y } } }, %context.Player )
+	
     if %Bool then
 		API.EGPAction( value %1, %context, "SendObject", %Obj )
 		%data.EGP[value %1] = true
@@ -283,7 +284,7 @@ end]], LEMON_NO_INLINE )
 
 Component:AddFunction( "egpTriangleOutline", "wl:n,v2,v2,v2", "", [[
 if $EGP:ValidEGP( value %1 ) then //and %IsOwner( %context.Player, value %1 ) then
-	local %Bool, %Obj = EGP:CreateObject( value %1, EGP.Objects.Names["TriangleOutline"], { index = value %2, x = value %3.x, y = value %3.y, x2 = value %4.x, y2 = value %4.y, x3 = value %4.x, y3 = value %4.y }, %context.Player )
+	local %Bool, %Obj = EGP:CreateObject( value %1, EGP.Objects.Names["PolyOutline"], { index = value %2, vertices = { { x = value %3.x, y = value %3.y }, { x = value %4.x, y = value %4.y }, { x = value %5.x, y = value %5.y } } }, %context.Player )
     if %Bool then
 		API.EGPAction( value %1, %context, "SendObject", %Obj )
 		%data.EGP[value %1] = true

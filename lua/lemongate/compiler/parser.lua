@@ -690,15 +690,31 @@ function Compiler:Statment_VAR( RootTrace )
 	
 	elseif self:CheckToken( "lsb" ) then
 		local Indexs = { self:NextIndex( Trace ) } -- {{1:Expr 2:Type 3:Trace}, ...}
-		local Get, Count = self:Compile_VARIABLE( Trace, Variable ), #Indexs
+		local Variable = self:Compile_VARIABLE( Trace, Variable )
 		
-		for I = 1, Count - 1 do
-			local Data = Indexs[I]
-			Get = self:Compile_GET( Data[3], Get, Data[1], Data[2] )
+		local Data = Indexs[#Indexs] -- Get is 1 from last table
+		
+		if #Indexs > 1 then
+			local Var = self:NextLocal( )
+			local Statments = { "local " ..  Var .. " = " .. Variable.Inline }
+			local Prepare = { Variable.Prepare }
+			local Perf = Variable.Perf
+			
+			local Fake = self:FakeInstr( Variable.Trace, Variable.Return, Var )
+			for I = 1, #Indexs - 1 do
+				local Data = Indexs[I]
+				local Get = self:Compile_GET( Data[3], Fake, Data[1], Data[2] )
+				
+				Prepare[ #Prepare + 1 ] = Get.Prepare
+				Statments[ #Statments + 1 ] = Var .. " = " .. Get.Inline
+				Perf = Perf + Get.Perf
+			end
+			
+			local Data = Indexs[#Indexs - 1]
+			Variable = self:Instruction( Data[3], Perf, Data[2], Var, string.Implode( "\n", Prepare ) .. string.Implode( "\n", Statments ) )
 		end
 		
-		local Data = Indexs[Count]
-		local Instruction = self:Compile_GET( Data[3], Get, Data[1], Data[2])
+		local Instruction = self:Compile_GET( Data[3], Variable, Data[1], Data[2] )
 		
 		if self:AcceptToken( "ass" ) then
 			Instruction = self:GetExpression( Data[3] )
@@ -713,8 +729,9 @@ function Compiler:Statment_VAR( RootTrace )
 		else
 			return self:NextValueOperator( Instruction, Data[3] )
 		end
-
-		return self:Compile_SET( Data[3], Get, Data[1], Instruction, Data[2])
+		
+		
+		return self:Compile_SET( Data[3], Variable, Data[1], Instruction, Data[2] )
 	
 	else
 		return self:NextValueOperator( self:Compile_VARIABLE( Trace, Variable ), RootTrace )

@@ -1093,7 +1093,9 @@ function Compiler:Compile_SET( Trace, Variable, Index, Value, Type )
 		self:TraceError( Trace, "No such operator (%s[%s] = %s).", NType( Variable.Return ), NType( Index.Return ), NType( Value.Return ) )
 	end
 	
-	return Op.Compile( self, Trace, Variable, Index, Value )
+	local LOL = Op.Compile( self, Trace, Variable, Index, Value )
+	PrintTable( LOL )
+	return LOL
 end
 
 /*==============================================================================================
