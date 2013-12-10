@@ -1131,9 +1131,9 @@ function Compiler:Compile_CATCH( Trace, Ref, Exceptions, Block, Catch )
 			]] .. Op.Compile( self, Trace, Ref, "Context.Exception" ).Prepare .. [[ 
 			
 		-- Block
-			]] .. Block.Prepare .. [[ 
-			
 			Context.Exception = nil
+			
+			]] .. Block.Prepare .. [[ 
 			
 		]] .. ( Catch and ( "else" .. Catch.Prepare ) or "end" )
 	
