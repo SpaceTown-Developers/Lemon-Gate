@@ -1,5 +1,5 @@
 /*==============================================================================================
-	Expression Advanced: Kinect.
+	Expression Advanced: Trace.
 	Creditors: Rusketh, Oskar94
 ==============================================================================================*/
 local LEMON, API = LEMON, LEMON.API
@@ -11,8 +11,6 @@ local Component = API:NewComponent( "trace", true )
 ==============================================================================================*/
 
 local Class = Component:NewClass( "tr", "trace" )
-
-
 
 local DEFAULT_TRACE = "{ start = Vector(0, 0, 0), endpos = Vector(0, 0, 0), filter = { } }"
 

@@ -241,7 +241,6 @@ function Compiler:CompileCode( Code, Files, NoCompile )
 		-- Required Locals
 			local ExitDeph
 			local UTIL = { }
-			local PrintTable = PrintTable -- Remove ME!
 		-- Imports
 			]] .. string.Implode( "\n", self.Imports ) .. [[
 			
@@ -1093,9 +1092,7 @@ function Compiler:Compile_SET( Trace, Variable, Index, Value, Type )
 		self:TraceError( Trace, "No such operator (%s[%s] = %s).", NType( Variable.Return ), NType( Index.Return ), NType( Value.Return ) )
 	end
 	
-	local LOL = Op.Compile( self, Trace, Variable, Index, Value )
-	PrintTable( LOL )
-	return LOL
+	return Op.Compile( self, Trace, Variable, Index, Value )
 end
 
 /*==============================================================================================
