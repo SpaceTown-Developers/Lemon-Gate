@@ -24,8 +24,8 @@ Data["dupeFinished<>"] = "Called once the advanced duplicator has finished pasti
 Data["final<>"] = "Called just before the chip is removed."
 
 // K
-Data["keypress<n>"] = "Called when the owner of the gate presses down a key (key is given as ascii)."
-Data["keyrelease<n>"] = "Called when the owner of the gate releases a key (key is given as ascii)."
+Data["keypress<ne>"] = "Called when the owner of the gate presses down a key (key is given as ascii)."
+Data["keyrelease<ne>"] = "Called when the owner of the gate releases a key (key is given as ascii)."
 
 // L
 Data["loadFromDupe<xbf>"] = ""
@@ -58,6 +58,7 @@ Data["aabbMin(e: v)"] = "Return the axis-aligned minimum bounding box of an enti
 Data["aabbMin(p: v)"] = ""
 Data["abs(n n)"] = "Returns the absolute value of a number."
 Data["abs(q n)"] = "Returns the magnitude (length) of a quaternion."
+Data["abs(v: v)"] = "Returns the absolute value of a vector."
 Data["acos(n n)"] = "Returns the inverse cosine of (number degrees)."
 Data["acosr(n n)"] = "Returns the inverse cosine of (number radians)."
 Data["aimEntity(e: e)"] = "Returns the aim entity of an entity (entity must be a player)."
@@ -97,7 +98,7 @@ Data["boxCenter(e: v)"] = "Returns the center position of an entity's bounding b
 Data["boxMax(e: v)"] = "Returns the highest corner of an entity's bounding box."
 Data["boxMin(e: v)"] = "Returns the lowest corner of an entity's bounding box."
 Data["boxSize(e: v)"] = "Returns the size of an entity's bounding box."
-Data["buffer( xbf)"] = ""
+Data["buffer( xbf)"] = "Creates a new buffer object."
 
 // C
 Data["cbrt(n n)"] = "Returns the cube root of (number)."
@@ -112,7 +113,7 @@ Data["clamp(nnn n)"] = "Clamps (number value) between (number min) and (number m
 Data["clamp(vvv v)"] = "Clamps (vector value) between (vector  min) and (vector  max)."
 Data["clamp(xv2xv2xv2 xv2)"] = "Clamps (vector2 value) between (vector2  min) and (vector2  max)."
 Data["class(e: s)"] = "Returns the class of an entity."
-Data["clearFilter(xtr)"] = ""
+Data["clearFilter(xtr)"] = "Clears the entity filter of a trace."
 Data["color(nnn c)"] = "Creates a color RGB."
 Data["color(nnnn c)"] = "Creates a color RGBA."
 Data["conj(q q)"] = "Returns the conjugate of a quaternion."
@@ -572,6 +573,7 @@ Data["round(n n)"] = "Round a number to the nearest integer."
 Data["round(nn n)"] = "Round a number to (number)'s decimal precision."
 Data["round(v v)"] = "Round vector XYZ components to nearest integer."
 Data["round(vn v)"] = "Round vector XYZ components to (number)'s decimal precision."
+Data["requestKeys(eb b)"] = "Requests / unrequests keypress events from player, returns true is request is accepted."
 
 // S
 Data["scale(h:v)"] = "Scale a hologram by a ratio of 1:12 units."
@@ -649,6 +651,7 @@ Data["throw(st)"] = "Throws a user exception with a message with a table."
 Data["timeConnected(e: n)"] = "Returns the time (in seconds) that has passed since entity connected to the server (entity must be a player)."
 Data["timerAdjust(snn)"] = "Modify an existing timer with (string name), (number time), (number repetitions)."
 Data["timerCreate(snnf)"] = "Create a timer with (string name), (number time), (number repetitions), (function to execute)."
+Data["timerCreate(snnfb)"] = "Create a timer with (string name), (number time), (number repetitions), (function to execute), (boolean remove once exspired)."
 Data["timerPause(s n)"] = "Pause a timer."
 Data["timerRemove(s)"] = "Remove a timer."
 Data["timerStart(s n)"] = "Start a timer."

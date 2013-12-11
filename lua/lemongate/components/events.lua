@@ -97,12 +97,9 @@ end )
 include( "entities/gmod_wire_keyboard/remap.lua" )
 
 if Wire_Keyboard_Remap then
-	Core:SetPerf( LEMON_PERF_NORMAL )
-	
-	Core:AddEvent( "keypress", "n", "" )
-	Core:AddEvent( "keyrelease", "n", "" )
 	
 	local Keys = { }
+	local PlayerKeys = { }
 	
 	local function GetKey( Ply, Num, Pressed )
 		local Tbl = Keys[ Ply ]
@@ -142,8 +139,9 @@ if Wire_Keyboard_Remap then
 		
 		if Key and !State then 
 			for _, Gate in pairs( API:GetEntitys( ) ) do
-				if Ply == Gate.Player then
-					API:CallEvent( "keypress", Key )
+				local Players = PlayerKeys[ Gate ]
+				if (Players and Players[ Ply ]) or Ply == Gate.Player then
+					API:CallEvent( "keypress", Key, Ply )
 				end
 			end
 		end
@@ -154,10 +152,38 @@ if Wire_Keyboard_Remap then
 		
 		if Key and State then 
 			for _, Gate in pairs( API:GetEntitys( ) ) do
-				if Ply == Gate.Player then
-					API:CallEvent( "keyrelease", Key )
+				local Players = PlayerKeys[ Gate ]
+				if (Players and Players[ Ply ]) or Ply == Gate.Player then
+					API:CallEvent( "keyrelease", Key, Ply )
 				end
 			end
 		end
 	end )
+	
+	Core:SetPerf( LEMON_PERF_NORMAL )
+	
+	Core:AddEvent( "keypress", "n,e", "" )
+	Core:AddEvent( "keyrelease", "n,e", "" )
+	
+	Core:AddExternal( "AddToKeys", function( Context, Player, Bool )
+		local Value = false
+		
+		if Player and Player:IsValid( ) and Player:IsPlayer( ) then
+			local Players = PlayerKeys[ Context.Entity ] or { }
+			PlayerKeys[ Context.Entity ] = Players
+			
+			if Bool then
+				Value = ( Player == Context.Player ) or ( Player:GetInfoNum( 'lemon_share_keys', 0 ) >= 1 )
+			end
+			
+			Players[ Player ] = Value
+		end
+		
+		return Value or false
+	end )
+
+	Core:SetPerf( LEMON_PERF_NORMAL )
+
+	Core:AddFunction( "requestKeys", "e:b", "b", "%AddToKeys(%context, value %1, value %2)" )
+	
 end

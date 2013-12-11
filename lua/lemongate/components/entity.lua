@@ -544,12 +544,30 @@ Core:AddFunction( "inNoclip", "e:", "b", "($IsValid(value %1) and value %1:IsPla
 Core:AddFunction( "flashLight", "e:", "b", "($IsValid(value %1) and value %1:IsPlayer( ) and value %1:FlashlightIsOn( ))" )
 
 /*==============================================================================================
-	Section: Mouse Stuff
+	Section: Keys
 ==============================================================================================*/
+local FuncKeys = {
+	["leftClick"] = IN_ATTACK,
+	["rightClick"] = IN_ATTACK2,
+	["keyForward"] = IN_FORWARD,
+	["keyLeft"] = IN_MOVELEFT,
+	["keyBack"] = IN_BACK,
+	["keyRight"] = IN_MOVERIGHT,
+	["keyJump"] = IN_JUMP,
+	["keyUse"] = IN_USE,IN_RELOAD,
+	["keyZoom"] = IN_ZOOM,
+	["keyWalk"] = IN_WALK,
+	["keySprint"] = IN_SPEED,
+	["keyDuck"] = IN_DUCK,
+	["keyLeftTurn"] = IN_LEFT,
+	["keyRightTurn"] = IN_RIGHT,
+}
 
-Core:AddFunction( "leftClick", "e:", "b", "($IsValid(value %1) and value %1:IsPlayer( ) and value %1:KeyDown( $IN_ATTACK ) )" )
-
-Core:AddFunction( "rightClick", "e:", "b", "($IsValid(value %1) and value %1:IsPlayer( ) and value %1:KeyDown( $IN_ATTACK2 ) )" )
+for Name, Enum in pairs( FuncKeys ) do
+	if type( Name ) == "string" then
+		Core:AddFunction( Name, "e:", "b", "($IsValid(value %1) and value %1:IsPlayer( ) and value %1:KeyDown( " .. Enum .. " ) )" )
+	end
+end
 
 /*==============================================================================================
 	Section: Weapons

@@ -223,6 +223,10 @@ Core:AddFunction( "round", "v,n", "v", [[
 local %Shift = 10 ^ math.floor(value %2 + 0.5)
 ]], "Vector3(math.floor(value %1.x * %Shift+0.5) / %Shift, math.floor(value %1.y * %Shift+0.5) / %Shift, math.floor(value %1.z * %Shift+0.5) / %Shift)" )
 
+Core:AddFunction( "abs", "v:", "v", [[
+local %X, %Y, %Z = value %1.x, value %1.y, value %1.z
+]], "Vector3( (%X >= 0) and %X or -%X, (%Y >= 0) and %Y or -%Y, (%Z >= 0) and %Z or -%Z )" )
+
 /*==============================================================================================
 	Section: Clamping and Inrange
 ==============================================================================================*/

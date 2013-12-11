@@ -1,6 +1,7 @@
 if !WireLib or !LEMON then return end
 
 include('shared.lua')
+CreateClientConVar( "lemon_share_keys", 0, true, true )
 CreateConVar( "lemongate_perf", "25000", {FCVAR_REPLICATED} )
 
 ENT.RenderGroup = RENDERGROUP_OPAQUE

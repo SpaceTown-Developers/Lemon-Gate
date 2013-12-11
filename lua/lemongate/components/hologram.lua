@@ -192,8 +192,7 @@ local IsValidModel = util.IsValidModel
 function HoloLib.Model( Trace, Context, Holo, ModelS )
 	if IsValid( Holo ) and Holo.Player == Context.Player then
         local ValidModel = HoloLib.ModelList[ ModelS ]
-		print( "YAY!" )
-        if ValidModel then
+		if ValidModel then
             Holo:SetModel( "models/Holograms/" .. ValidModel .. ".mdl" )
             Holo.ModelAny = false
         elseif HoloLib._Model:GetInt( ) >= 1 and util.IsValidModel( ModelS ) then
@@ -429,7 +428,10 @@ end]], "" )
 
 Component:SetPerf( LEMON_PERF_CHEAP )
 
-Component:AddFunction("getScale", "h:", "v", "local %Holo = value %1", "($IsValid(%Holo) and %Holo.Scale or Vector(0, 0, 0)) or Vector3.Zero:Clone())" )
+Component:AddFunction("getScale", "h:", "v", [[
+if $IsValid( value %1 ) and value %1.Scale then
+	%util = %Holo.Scale
+end]], "Vector3( %util or or Vector(0, 0, 0) )" )
 
 /*==============================================================================================
     Section: Color
@@ -552,9 +554,9 @@ if $IsValid( value %1 ) and value %1.Player == %context.Player then
 	end
 end]], "" )
 
-Component:AddFunction("jiggleBone", "h:n,n", "", [[
+Component:AddFunction("jiggleBone", "h:n,b", "", [[
 if $IsValid( value %1 ) and value %1.Player == %context.Player then
-	if value %1:SetUpBoneJiggle( value %2, value %3 ) then
+	if value %1:SetUpBoneJiggle( value %2, value %3 >= 1 ) then
 		%HoloLib.QueueHologram( value %1 )
 	end
 end]], "" )

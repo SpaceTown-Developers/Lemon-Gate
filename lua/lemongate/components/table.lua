@@ -7,7 +7,7 @@ local LEMON, API = LEMON, LEMON.API
 local TableRemove = table.remove
 local TableInsert = table.insert
 local TableCopy = table.Copy
-
+local Format = string.format
 local setmetatable = setmetatable
 
 /*==============================================================================================
@@ -101,7 +101,7 @@ function Table:Itorate( )
 end
 
 function Table.__tostring( Table )
-	return string.Format( "table[%s/%s]", Table.Count, Table.Size )
+	return Format( "table[%s/%s]", Table.Count, Table.Size )
 end
 
 /*==============================================================================================
@@ -522,6 +522,39 @@ for Key, Val in pairs( %New ) do
 	
 	%Sorted:Insert( Key, Val[2], Val[3] )
 end]], "%Sorted" )
+
+/*==============================================================================================
+	Print Table
+==============================================================================================*/
+function Table:Print( Context, Sep, Prints, Tables )
+	Sep = Sep or ""
+	Prints = Prints or 0
+	Tables = Tables or { }
+	
+	if !Tables[self] then
+		Tables[self] = true
+		
+		for Key, Type, Value in self:Itorate( ) do
+			if Prints == 100 then
+				break
+			elseif Type == "t" then
+				Prints = Value:Print( Context, Sep .. "  " , Prints, Tables )
+			else
+				Prints = Prints + 1
+				Context.Perf = Context.Perf + 1
+				Context.Player:ChatPrint( Format( "(%s)" .. Sep .. " %s = %s", Type, tostring( Key ), tostring( Value ) ) )
+			end
+		end
+		
+	end
+	
+	return Prints
+end
+
+Component:SetPerf( LEMON_PERF_EXPENSIVE )
+
+Component:AddFunction( "printTable", "t", "", "value %1:Print( %context )", "" )
+
 
 /*==============================================================================================
 	Shared Tables

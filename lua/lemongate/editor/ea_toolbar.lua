@@ -336,20 +336,26 @@ local function CreateOptions( )
 	end
 	
 	local kinect = vgui.Create( "DCheckBoxLabel" ) 
-	kinect:SetText( "Use kinect?" ) 
-	kinect:SetConVar( "lemon_kinect_allow" ) 
+	kinect:SetText( "Use kinect? " ) 
+	kinect:SetConVar( "lemon_kinect_allow" )
+	kinect:SizeToContents( )
 	
 	local Console = vgui.Create( "DCheckBoxLabel" ) 
-	Console:SetText( "Allow Console?" ) 
+	Console:SetText( "Allow Console? " ) 
 	Console:SetConVar( "lemon_console_allow" ) 
+	Console:SizeToContents( )
 	
-	local Divider = Panel:Add( "DHorizontalDivider" ) 
-	Divider:Dock( TOP ) 
-	Divider:DockMargin( 10, 5, 10, 5 ) 
-	Divider:SetLeft( Console )
-	Divider:SetRight( kinect )
-	Divider.StartGrab = function( ) end 
-	Divider.m_DragBar:SetCursor( "" )
+	local KeyEvents = vgui.Create( "DCheckBoxLabel" ) 
+	KeyEvents:SetText( "Share Keys? " ) 
+	KeyEvents:SetConVar( "lemon_share_keys" ) 
+	KeyEvents:SizeToContents( )
+	
+	local Cvars = Panel:Add( "DHorizontalScroller" )
+	Cvars:Dock( TOP ) 
+	Cvars:DockMargin( 10, 5, 10, 5 )
+	Cvars:AddPanel( kinect )
+	Cvars:AddPanel( Console )
+	Cvars:AddPanel( KeyEvents )
 	
 	Panel:SetSize( 300, 285 ) 
 	Panel:SetPos( cookie.GetNumber( "eaoptions_x", ScrW( ) / 2 - Panel:GetWide( ) / 2 ), cookie.GetNumber( "eaoptions_y", ScrH( ) / 2 - Panel:GetTall( ) / 2 ) ) 

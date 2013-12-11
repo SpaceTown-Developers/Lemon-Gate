@@ -20,7 +20,6 @@ local Props, PlayerCount, PlayerRate = { }, { }, { }
 
 timer.Create("lemon_propcore", 1, 0, function( )
 	for K, V in pairs( PlayerRate ) do
-		MsgN( "Reset Player Rate for", K, V )
 		PlayerRate[K] = 0
 		
 	end
@@ -97,7 +96,6 @@ local _DoPropSpawnedEffect = DoPropSpawnedEffect
 
 function PropCore.Spawn( Trace, Context, Model, Freeze )
 	local G, P = Context.Entity, Context.Player
-	print( "Spawned with:", G, P )
 	local PRate, PCount = PlayerRate[P] or 0, PlayerCount[P] or 0
 	
 	local Max = PropCore.Prop_Max:GetInt( )

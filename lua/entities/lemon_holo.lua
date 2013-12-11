@@ -253,7 +253,7 @@ if SERVER then
 					net.WriteVector( Bone.Pos )
 					net.WriteAngle( Bone.Ang )
 					net.WriteVector( Bone.Scale )
-					net.WriteInt( Bone.Jiggle, 16 ) 
+					net.WriteBit( Bone.Jiggle ) 
 				end
 				
 			end
@@ -309,14 +309,14 @@ else
 						Scale = self:GetManipulateBoneScale( ID ),
 						Pos = self:GetManipulateBonePosition( ID ),
 						Ang = self:GetManipulateBoneAngles( ID ),
-						Jiggle = 0
+						Jiggle = false
 					}; self.Bones[ ID ] = Info
 				end
 				
 				self:ManipulateBonePosition( ID, Info.Pos )
 				self:ManipulateBoneAngles( ID, Info.Ang )
-				self:ManipulateBoneScale( ID, Info.Scale * Scale )
-				self:ManipulateBoneJiggle( ID, Info.Jiggle )
+				self:ManipulateBoneScale( ID, Info.Scale )
+				self:ManipulateBoneJiggle( ID, Info.Jiggle and 1 or 0 )
 			end
 			
 			return true
@@ -324,7 +324,8 @@ else
 	end
 
 	function Orange:Draw( )
-		local Buffer = SyncBuffer[ self:EntIndex( ) ] 
+		local Buffer = self.Buffer or SyncBuffer[ self:EntIndex( ) ] 
+		self.Buffer = Buffer
 		
 		if Buffer and Buffer.IsVisible then
 		
@@ -398,7 +399,7 @@ else
 				Pos = net.ReadVector( ),
 				Ang = net.ReadAngle( ),
 				Scale = net.ReadVector( ),
-				Jiggle = net.ReadInt( 16 )
+				Jiggle = net.ReadBit( ) == 1
 			}
 		end
 	end
