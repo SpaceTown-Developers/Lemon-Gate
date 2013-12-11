@@ -135,16 +135,16 @@ Core:AddFunction( "health", "e:", "n", "($IsValid(value %1) and (value %1:Health
 
 Core:AddFunction( "radius", "e:", "n", "($IsValid(value %1) and (value %1:BoundingRadius( ) or 0) or 0)" )
 
-Core:AddFunction( "getParent", "e:", "e", "($IsValid(value %1) and (value %1:GetParent( ) or %NULL_ENTITY) or NULL_ENTITY)" )
+Core:AddFunction( "getParent", "e:", "e", "($IsValid(value %1) and (value %1:GetParent( ) or %NULL_ENTITY) or %NULL_ENTITY)" )
 
 /*==============================================================================================
 	Section: Vehicle Stuff
 ==============================================================================================*/
 Core:AddFunction( "isVehicle", "e:", "b", "($IsValid(value %1) and value %1:IsVehicle( ))" )
 
-Core:AddFunction( "driver", "e:", "e", "(($IsValid(value %1) and value %1:IsVehicle( )) and (value %1:GetDriver( ) or %NULL_ENTITY) or NULL_ENTITY)" )
+Core:AddFunction( "driver", "e:", "e", "(($IsValid(value %1) and value %1:IsVehicle( )) and (value %1:GetDriver( ) or %NULL_ENTITY) or %NULL_ENTITY)" )
 
-Core:AddFunction( "passenger", "e:", "e", "(($IsValid(value %1) and value %1:IsVehicle( )) and (value %1:GetPassenger(0) or %NULL_ENTITY) or NULL_ENTITY)" )
+Core:AddFunction( "passenger", "e:", "e", "(($IsValid(value %1) and value %1:IsVehicle( )) and (value %1:GetPassenger(0) or %NULL_ENTITY) or %NULL_ENTITY)" )
 
 /*==============================================================================================
 	Section: Mass

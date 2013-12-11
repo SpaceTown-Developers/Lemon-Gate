@@ -83,8 +83,8 @@ function PANEL:Init( )
 	
 	self.TextEntry.m_bDisableTabbing = true // OH GOD YES!!!!! NO MORE HACKS!!!
 	self.TextEntry.OnTextChanged = function( ) self:_OnTextChanged( ) end
-	self.TextEntry.OnKeyCodeTyped = function( _, code ) self:_OnKeyCodeTyped( code ) end 
-		
+	self.TextEntry.OnKeyCodeTyped = function( _, code ) self:_OnKeyCodeTyped( code ) end
+	
 	self.Caret = Vector2( 1, 1 )
 	self.Start = Vector2( 1, 1 )
 	self.Scroll = Vector2( 1, 1 )
@@ -112,6 +112,8 @@ function PANEL:Init( )
 	
 	self.hScrollBar = self:Add( "EA_HScrollBar")
 	self.hScrollBar:SetUp( 1, 1 ) 
+	
+	self:CreateSearchBox( )
 end
 
 function PANEL:SetFont( sFont ) 
@@ -127,6 +129,163 @@ end
 
 function PANEL:OnGetFocus( )
 	self.TextEntry:RequestFocus( )
+end
+
+/*---------------------------------------------------------------------------
+Find & Replace
+---------------------------------------------------------------------------*/
+function PANEL:CreateSearchBox( )
+	local Pnl = vgui.Create( "DPanel", self )
+	Pnl:SetSize( 280, 50 )
+	Pnl.Extended = false
+	Pnl.Y = -55
+	
+	function Pnl:Toggle( Bool )
+		self.Extended = Bool or !self.Extended
+		
+		if Bool then
+			self.txtFind:RequestFocus( )
+			self.txtFind:SetCaretPos( self.txtFind:GetValue( ):len( ) )
+		else
+			self.txtFind:KillFocus( )
+		end
+	end
+	
+	function Pnl:Think( )
+		local Dest = self.Extended and 5 or -55
+		self.Y = self.Y + math.Clamp( Dest - self.Y, -2, 2 )
+		self:SetPos( self:GetPos( ), self.Y )
+	end
+	
+	Pnl.btnClose = Pnl:Add( "EA_CloseButton" )
+	Pnl.btnClose:SetOffset( -5, 5 )
+	
+	function Pnl.btnClose:DoClick( )
+		self:GetParent( ):Toggle( false )
+	end
+	
+	local label = Pnl:Add( "DLabel" )
+	label:SetPos( 5, 5 )
+	label:SetText( "Find in code:" )
+	label:SetTextColor( Color( 0, 0, 0 ) )
+	label:SizeToContents( )
+	
+	-- FIND
+	local ImgF = Pnl:Add( "DImage" )
+	ImgF:SetPos( 5, 25 )
+	ImgF:SetSize( 20, 20 )
+	ImgF:SetMaterial( Material( "fugue/binocular-small.png" ) )
+	
+	Pnl.txtFind = Pnl:Add( "DTextEntry" )
+	Pnl.txtFind:SetPos( 30, 25 )
+	Pnl.txtFind:SetSize( 200, 20 )
+	Pnl.txtFind:SetMultiline( false )
+	
+	Pnl.btnUp = Pnl:Add( "EA_ImageButton" )
+	Pnl.btnUp:SetPos( 235, 25 )
+	Pnl.btnUp:SetIconCentered( true )
+	Pnl.btnUp:SetIconFading( false ) 
+	Pnl.btnUp.Expanded = true 
+	Pnl.btnUp:SetMaterial( Material( "fugue/arrow-090.png" ) ) 
+			
+	Pnl.btnDown = Pnl:Add( "EA_ImageButton" )
+	Pnl.btnDown:SetPos( 255, 25 )
+	Pnl.btnDown:SetIconCentered( true )
+	Pnl.btnDown:SetIconFading( false ) 
+	Pnl.btnDown.Expanded = true 
+	Pnl.btnDown:SetMaterial( Material( "fugue/arrow-270.png" ) ) 
+	
+	function Pnl.txtFind:Paint( )
+		local W, H = self:GetSize( )
+		derma.SkinHook( "Paint", "TextEntry", self, W, H )
+		
+		if self.bgCol then
+			surface.SetDrawColor( self.bgCol )
+			surface.DrawRect( 2, 2, W - 4, H - 4 )
+		end
+	end
+	
+	local function DoSearch( Up )
+		local Str = Pnl.txtFind:GetValue( )
+		
+		if Str == "" then
+			Pnl.txtFind.bgCol = nil
+		elseif self:Find( Str, Up ) then
+			--self:RequestFocus( ) -- This made things difficult.
+			Pnl.txtFind.bgCol = Color( 0, 255, 0, 100 )
+		else
+			-- Todo: Play sound?
+			Pnl.txtFind.bgCol = Color( 255, 0, 0, 100 )
+		end
+	end
+	
+	function Pnl.txtFind.OnEnter( )
+		DoSearch( Up )
+	end
+	
+	function Pnl.txtFind:OnTextChanged( )
+		self.bgCol = false
+		//DoSearch( Up )
+	end
+	
+	function Pnl.btnDown.DoClick( Btn )
+		DoSearch( Up )
+	end
+	
+	function Pnl.btnUp.DoClick( Btn )
+		DoSearch( Up, true )
+	end
+	
+	-- REPLACE
+	self.SearchBox = Pnl
+end
+
+function PANEL:Find( Str, Up )
+	local Code = self:GetCode( )
+	local Start, Stop, Count = Code:find( Str, 1, true )
+	
+	if !Start or !Stop then
+		return false
+	elseif !Up then
+		local Line = self.Rows[ self.Start.x ]
+		local Text = Line:sub( self.Start.y ) .. "\n"
+		Text = Text .. table_concat( self.Rows, "\n", self.Start.x + 1 )
+		
+		local Start, Stop = Text:find( Str, 2, true )
+		if !Start or !Stop then return false end
+		
+		self:HighlightFoundWord( nil, Start - 1, Stop - 1 )
+	else
+		 local Text = table_concat( self.Rows, "\n", 1, self.Start.x - 1 )
+		 local Line = self.Rows[ self.Start.y ]
+		 Text = Text .. "\n" .. Line:sub( 1, self.Start.x -1 )
+		 
+		 local Start, Stop = Text:find( Str, 2, true )
+		 if !Start or !Stop then return false end
+		 
+		local found = Vector2( Start - 1, Stop - 1 )
+		self:HighlightFoundWord( Vector2( 1,1 ), found.x, found.y )
+	end
+	
+	return true
+end
+
+function PANEL:HighlightFoundWord( caretstart, start, stop )
+	local caretstart = caretstart or self:CopyPosition( self.Start )
+	
+	if istable( start ) then
+		self.Start = self:CopyPosition( start )
+	elseif isnumber( start ) then
+		self.Start = self:MovePosition( caretstart, start )
+	end
+	
+	if istable( stop ) then
+		self.Caret = { stop.y, stop.x + 1 }
+	elseif isnumber( stop ) then
+		self.Caret = self:MovePosition( caretstart, stop + 1 )
+	end
+	
+	self:ScrollCaret( )
 end
 
 /*---------------------------------------------------------------------------
@@ -481,6 +640,12 @@ function PANEL:wordEnd( caret )
 	return Vector2( caret.x, caret.y )
 end
 
+function PANEL:HiglightedWord( )
+	if self.Start == self:wordStart( self.Start ) and self.Caret == self:wordEnd( self.Start ) then
+		return self:GetSelection( )
+	end
+end
+
 /*---------------------------------------------------------------------------
 TextEntry hooks
 ---------------------------------------------------------------------------*/
@@ -659,25 +824,21 @@ function PANEL:_OnKeyCodeTyped( code )
 			self.Scroll = old_scroll
 			self:ScrollCaret( )
 		elseif code == KEY_SPACE then 
-			self:GetParent( ):GetParent( ):DoValidate( true ) 
-		elseif code == KEY_B then // TODO: Fix F-Keys and move bookmarks to F2 
+			self:GetParent( ):GetParent( ):DoValidate( true )
+		
+		elseif code == KEY_F2 then
 			local Start, End = self:MakeSelection( self:Selection( ) ) 
-			if shift then 
-				local pos = Start.x 
-				while pos <= #self.Rows do 
-					if pos >= #self.Rows then pos = 0 end 
-					pos = pos + 1 
-					if pos == Start.x then break end 
-					if self.ActiveBookmarks[pos] then 
-						self.Start = self.ActiveBookmarks[pos][1] 
-						self.Caret = self.ActiveBookmarks[pos][2] 
-						self:ScrollCaret( ) 
-						break 
-					end 
-				end 
-			else 
-				self.Bookmarks[Start.x]:DoClick( ) 
-			end 
+			self.Bookmarks[Start.x]:DoClick( )
+		elseif code == KEY_F then
+			if self.SearchBox.Extended then
+				self.SearchBox.txtFind:RequestFocus( )
+				--self.SearchBox.txtFind:OnEnter( )
+			elseif self:HasSelection( ) then
+				self.SearchBox.txtFind:SetText( self:GetSelection( ) )
+				self.SearchBox:Toggle( true )
+			else
+				self.SearchBox:Toggle( true )
+			end
 		end
 	else
 		if code == KEY_ENTER then
@@ -819,9 +980,21 @@ function PANEL:_OnKeyCodeTyped( code )
 			if !shift then
 				self.Start = self:CopyPosition( self.Caret )
 			end
-		elseif code == KEY_F2 then // F-Keys is broken atm! D: 
-			print( ":D" ) 
-			// TODO: ?
+		elseif code == KEY_F2 then
+			local Start, End = self:MakeSelection( self:Selection( ) ) 
+			local pos = Start.x 
+			
+			while pos <= #self.Rows do 
+				if pos >= #self.Rows then pos = 0 end 
+				pos = pos + 1 
+				if pos == Start.x then break end 
+				if self.ActiveBookmarks[pos] then 
+					self.Start = self.ActiveBookmarks[pos][1] 
+					self.Caret = self.ActiveBookmarks[pos][2] 
+					self:ScrollCaret( ) 
+					break 
+				end 
+			end
 		end 
 	end
 	
@@ -871,6 +1044,20 @@ function PANEL:_OnKeyCodeTyped( code )
 	end
 	
 	if control and self.OnShortcut then self:OnShortcut( code ) end 
+end
+
+local SpecialKeys = { }
+
+function PANEL:Think( )
+	for I = 1, 12 do
+		local Enum = _G[ "KEY_F" .. I ]
+		local State = input_IsKeyDown( Enum )
+		
+		if State ~= SpecialKeys[ Enum ] then
+			SpecialKeys[ Enum ] = State
+			if State then self:_OnKeyCodeTyped( Enum ) end
+		end
+	end
 end
 
 function PANEL:_OnTextChanged( ) 
@@ -1318,6 +1505,21 @@ function PANEL:PaintRowUnderlay( Row, LinePos )
 		char = char - self.Scroll.y
 		endchar = endchar - self.Scroll.y
 		
+		local overHighlight = self:HiglightedWord( )
+		
+		if overHighlight then
+			surface_SetDrawColor( 0, 255, 128, 50 )
+			
+			for overS, overE in string_gmatch( self.Rows[ Row ], "()" .. overHighlight .. "()" ) do
+				surface_DrawRect( 
+					(overS - 1) * self.FontWidth + self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth, 
+					( LinePos ) * self.FontHeight, 
+					self.FontWidth * ( overE - overS ), 
+					self.FontHeight 
+				)
+			end
+		end
+		
 		if char < 0 then char = 0 end
 		if endchar < 0 then endchar = 0 end
 		
@@ -1362,7 +1564,10 @@ function PANEL:PaintRowUnderlay( Row, LinePos )
 			surface_SetDrawColor( 160, 160, 160, 255 )
 			surface_DrawRect( ( self.Params[2].y - self.Scroll.y ) * self.FontWidth + self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth, (LinePos+1) * self.FontHeight, self.FontWidth, 1 ) 
 		end 
-	end 
+	end
+	
+	
+	
 end 
 
 function PANEL:PaintRow( Row, LinePos )
@@ -1522,6 +1727,8 @@ function PANEL:PerformLayout( )
 	
 	self.ScrollBar:SetUp( self.Size.x, #self.Rows + ( math_floor( self:GetTall( ) / self.FontHeight ) - 2 ) ) 
 	self:CalculateHScroll( )
+	
+	self.SearchBox:SetPos( self:GetWide( ) - self.ScrollBar:GetWide( ) - 285, self.SearchBox.Y )
 end
 
 vgui.Register( "EA_Editor", PANEL, "EditablePanel" )
