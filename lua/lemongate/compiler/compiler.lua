@@ -835,7 +835,7 @@ function Compiler:Compile_LAMBDA( Trace, Params, HasVarArg, Sequence )
 					if ( !]] .. Var .. " or (" .. Var ..[[[1] == nil) ) then
 						Context:Throw( Trace, "invoke", "Paramater ]] .. Param[1] .. [[ is a void value" )
 					else
-						PrintTable( ]] .. Var .. [[ )
+						//PrintTable( ]] .. Var .. [[ )
 						]] ..  Assign.Prepare .. [[ 
 					end
 				]]
