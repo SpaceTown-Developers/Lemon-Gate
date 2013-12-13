@@ -399,7 +399,7 @@ function Compiler:Compile_SEQUENCE( Trace, Statements )
 		-- elseif Instr.Inline then
 			-- MsgN( "FAILED TO INLINE:" )
 			-- MsgN( Instr.Inline )
-		-- end
+		end
 	end
 	
 	if Perf > 0 then
