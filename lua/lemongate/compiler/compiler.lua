@@ -389,17 +389,17 @@ function Compiler:Compile_SEQUENCE( Trace, Statements )
 		
 		if Instr.Prepare and self:IsPreparable( Instr.Prepare ) then
 			table.insert( Lines, Instr.Prepare )
-		elseif Instr.Prepare then
-			MsgN( "FAILED TO PREPARE:" )
-			MsgN( Instr.Prepare )
+		-- elseif Instr.Prepare then
+			-- MsgN( "FAILED TO PREPARE:" )
+			-- MsgN( Instr.Prepare )
 		end
 		
 		if Instr.Inline and self:IsPreparable( Instr.Inline ) then
 			table.insert( Lines, Instr.Inline )
-		elseif Instr.Inline then
-			MsgN( "FAILED TO INLINE:" )
-			MsgN( Instr.Inline )
-		end
+		-- elseif Instr.Inline then
+			-- MsgN( "FAILED TO INLINE:" )
+			-- MsgN( Instr.Inline )
+		-- end
 	end
 	
 	if Perf > 0 then
