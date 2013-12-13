@@ -73,6 +73,7 @@ if SERVER then
 	AddCSLuaFile( "lemongate/editor/ea_toolbar.lua" )
 	AddCSLuaFile( "lemongate/editor/syntaxer.lua" )
 	AddCSLuaFile( "lemongate/editor/pastebin.lua" )
+	AddCSLuaFile( "lemongate/editor/ea_search.lua" )
 	AddCSLuaFile( "lemongate/editor/repo.lua" )
 	AddCSLuaFile( "ea_version.lua" )
 	

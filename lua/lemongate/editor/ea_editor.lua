@@ -113,7 +113,7 @@ function PANEL:Init( )
 	self.hScrollBar = self:Add( "EA_HScrollBar")
 	self.hScrollBar:SetUp( 1, 1 ) 
 	
-	self:CreateSearchBox( )
+	self.Search = self:Add( "EA_Search" )
 end
 
 function PANEL:SetFont( sFont ) 
@@ -131,145 +131,6 @@ function PANEL:OnGetFocus( )
 	self.TextEntry:RequestFocus( )
 end
 
-/*---------------------------------------------------------------------------
-Find & Replace
----------------------------------------------------------------------------*/
-function PANEL:CreateSearchBox( )
-	local Pnl = vgui.Create( "DPanel", self )
-	Pnl:SetSize( 280, 50 )
-	Pnl.Extended = false
-	Pnl.Y = -55
-	
-	function Pnl:Toggle( Bool )
-		self.Extended = Bool or !self.Extended
-		
-		if Bool then
-			self.txtFind:RequestFocus( )
-			self.txtFind:SetCaretPos( self.txtFind:GetValue( ):len( ) )
-		else
-			self.txtFind:KillFocus( )
-		end
-	end
-	
-	function Pnl:Think( )
-		local Dest = self.Extended and 5 or -55
-		self.Y = self.Y + math.Clamp( Dest - self.Y, -2, 2 )
-		self:SetPos( self:GetPos( ), self.Y )
-	end
-	
-	Pnl.btnClose = Pnl:Add( "EA_CloseButton" )
-	Pnl.btnClose:SetOffset( -5, 5 )
-	
-	function Pnl.btnClose:DoClick( )
-		self:GetParent( ):Toggle( false )
-	end
-	
-	local label = Pnl:Add( "DLabel" )
-	label:SetPos( 5, 5 )
-	label:SetText( "Find in code:" )
-	label:SetTextColor( Color( 0, 0, 0 ) )
-	label:SizeToContents( )
-	
-	-- FIND
-	local ImgF = Pnl:Add( "DImage" )
-	ImgF:SetPos( 5, 25 )
-	ImgF:SetSize( 20, 20 )
-	ImgF:SetMaterial( Material( "fugue/binocular-small.png" ) )
-	
-	Pnl.txtFind = Pnl:Add( "DTextEntry" )
-	Pnl.txtFind:SetPos( 30, 25 )
-	Pnl.txtFind:SetSize( 200, 20 )
-	Pnl.txtFind:SetMultiline( false )
-	
-	Pnl.btnUp = Pnl:Add( "EA_ImageButton" )
-	Pnl.btnUp:SetPos( 235, 25 )
-	Pnl.btnUp:SetIconCentered( true )
-	Pnl.btnUp:SetIconFading( false ) 
-	Pnl.btnUp.Expanded = true 
-	Pnl.btnUp:SetMaterial( Material( "fugue/arrow-090.png" ) ) 
-			
-	Pnl.btnDown = Pnl:Add( "EA_ImageButton" )
-	Pnl.btnDown:SetPos( 255, 25 )
-	Pnl.btnDown:SetIconCentered( true )
-	Pnl.btnDown:SetIconFading( false ) 
-	Pnl.btnDown.Expanded = true 
-	Pnl.btnDown:SetMaterial( Material( "fugue/arrow-270.png" ) ) 
-	
-	function Pnl.txtFind:Paint( )
-		local W, H = self:GetSize( )
-		derma.SkinHook( "Paint", "TextEntry", self, W, H )
-		
-		if self.bgCol then
-			surface.SetDrawColor( self.bgCol )
-			surface.DrawRect( 2, 2, W - 4, H - 4 )
-		end
-	end
-	
-	local function DoSearch( Up )
-		local Str = Pnl.txtFind:GetValue( )
-		
-		if Str == "" then
-			Pnl.txtFind.bgCol = nil
-		elseif self:Find( Str, Up ) then
-			--self:RequestFocus( ) -- This made things difficult.
-			Pnl.txtFind.bgCol = Color( 0, 255, 0, 100 )
-		else
-			-- Todo: Play sound?
-			Pnl.txtFind.bgCol = Color( 255, 0, 0, 100 )
-		end
-	end
-	
-	function Pnl.txtFind.OnEnter( )
-		DoSearch( Up )
-	end
-	
-	function Pnl.txtFind:OnTextChanged( )
-		self.bgCol = false
-		//DoSearch( Up )
-	end
-	
-	function Pnl.btnDown.DoClick( Btn )
-		DoSearch( Up )
-	end
-	
-	function Pnl.btnUp.DoClick( Btn )
-		DoSearch( Up, true )
-	end
-	
-	-- REPLACE
-	self.SearchBox = Pnl
-end
-
-function PANEL:Find( Str, Up )
-	local Code = self:GetCode( )
-	local Start, Stop, Count = Code:find( Str, 1, true )
-	
-	if !Start or !Stop then
-		return false
-	elseif !Up then
-		local Line = self.Rows[ self.Start.x ]
-		local Text = Line:sub( self.Start.y ) .. "\n"
-		Text = Text .. table_concat( self.Rows, "\n", self.Start.x + 1 )
-		
-		local Start, Stop = Text:find( Str, 2, true )
-		if !Start or !Stop then return false end
-		
-		self:HighlightFoundWord( nil, Start - 1, Stop - 1 )
-	else
-		 local Text = table_concat( self.Rows, "\n", 1, self.Start.x - 1 )
-		 local Line = self.Rows[ self.Start.y ]
-		 Text = Text .. "\n" .. Line:sub( 1, self.Start.x -1 )
-		 
-		 local Start, Stop = Text:find( Str, 2, true )
-		 if !Start or !Stop then return false end
-		 
-		local found = Vector2( Start - 1, Stop - 1 )
-		self:HighlightFoundWord( Vector2( 1,1 ), found.x, found.y )
-	end
-	
-	return true
-end
-
 function PANEL:HighlightFoundWord( caretstart, start, stop )
 	local caretstart = caretstart or self:CopyPosition( self.Start )
 	
@@ -280,7 +141,7 @@ function PANEL:HighlightFoundWord( caretstart, start, stop )
 	end
 	
 	if istable( stop ) then
-		self.Caret = { stop.y, stop.x + 1 }
+		self.Caret = Vector2( stop.y, stop.x + 1 )
 	elseif isnumber( stop ) then
 		self.Caret = self:MovePosition( caretstart, stop + 1 )
 	end
@@ -830,15 +691,7 @@ function PANEL:_OnKeyCodeTyped( code )
 			local Start, End = self:MakeSelection( self:Selection( ) ) 
 			self.Bookmarks[Start.x]:DoClick( )
 		elseif code == KEY_F then
-			if self.SearchBox.Extended then
-				self.SearchBox.txtFind:RequestFocus( )
-				--self.SearchBox.txtFind:OnEnter( )
-			elseif self:HasSelection( ) then
-				self.SearchBox.txtFind:SetText( self:GetSelection( ) )
-				self.SearchBox:Toggle( true )
-			else
-				self.SearchBox:Toggle( true )
-			end
+			self.Search:FunctionKey( )
 		end
 	else
 		if code == KEY_ENTER then
@@ -1497,6 +1350,28 @@ function PANEL:PaintRowUnderlay( Row, LinePos )
 		self.CaretRow = LinePos
 	end
 	
+	-- Search Box, Hilight.
+	local FindQuery = self.Search:ValidQuery( )
+	if FindQuery then
+		local Row = self.Rows[ Row ]
+		
+		if !self.Search.CaseSensative:GetBool( ) then
+			FindQuery = FindQuery:lower( )
+			Row = Row:lower( )
+		end
+		
+		surface_SetDrawColor( 128, 255, 0, 50 )
+		
+		for overS, overE in string_gmatch( Row, "()" .. FindQuery .. "()" ) do
+			surface_DrawRect( 
+				( overS - 1 ) * self.FontWidth + self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth, 
+				( LinePos ) * self.FontHeight, 
+				self.FontWidth * ( overE - overS ), 
+				self.FontHeight 
+			)
+		end
+	end
+		
 	if self:HasSelection( ) then 
 		local start, stop = self:MakeSelection( self:Selection( ) )
 		local line, char = start.x, start.y 
@@ -1505,6 +1380,7 @@ function PANEL:PaintRowUnderlay( Row, LinePos )
 		char = char - self.Scroll.y
 		endchar = endchar - self.Scroll.y
 		
+		-- Section Refresnce Hilgihting
 		local overHighlight = self:HiglightedWord( )
 		
 		if overHighlight then
@@ -1512,7 +1388,7 @@ function PANEL:PaintRowUnderlay( Row, LinePos )
 			
 			for overS, overE in string_gmatch( self.Rows[ Row ], "()" .. overHighlight .. "()" ) do
 				surface_DrawRect( 
-					(overS - 1) * self.FontWidth + self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth, 
+					( overS - 1 ) * self.FontWidth + self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth, 
 					( LinePos ) * self.FontHeight, 
 					self.FontWidth * ( overE - overS ), 
 					self.FontHeight 
@@ -1728,7 +1604,7 @@ function PANEL:PerformLayout( )
 	self.ScrollBar:SetUp( self.Size.x, #self.Rows + ( math_floor( self:GetTall( ) / self.FontHeight ) - 2 ) ) 
 	self:CalculateHScroll( )
 	
-	self.SearchBox:SetPos( self:GetWide( ) - self.ScrollBar:GetWide( ) - 285, self.SearchBox.Y )
+	self.Search:SetPos( self:GetWide( ) - self.ScrollBar:GetWide( ) - 285, self.Search.Y )
 end
 
 vgui.Register( "EA_Editor", PANEL, "EditablePanel" )

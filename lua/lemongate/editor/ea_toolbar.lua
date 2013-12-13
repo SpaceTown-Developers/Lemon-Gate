@@ -47,6 +47,7 @@ function PANEL:Init( )
 	self.btnNewTab = self:SetupButton( "New tab", Material( "fugue/script--plus.png" ), LEFT )
 	self.btnCloseTab = self:SetupButton( "Close tab", Material( "fugue/script--minus.png" ), LEFT ) 
 	self.btnUploadPaste = self:SetupButton( "Upload code to pastebin", Material( "fugue/drive-upload.png" ), LEFT )
+	self.btnFind = self:SetupButton( "Find in code", Material( "fugue/binocular.png" ), LEFT )
 	
 	self.btnOptions = self:SetupButton( "Options", Material( "fugue/gear.png" ), RIGHT )
 	self.btnHelp = self:SetupButton( "Open helper", Material( "fugue/question.png" ), RIGHT )
@@ -130,6 +131,10 @@ function PANEL:Init( )
 	
 	function self.btnFontMinus:DoClick( )
 		self:GetParent( ):GetParent( ):IncreaseFontSize( -1 )
+	end
+	
+	function self.btnFind:DoClick( )
+		self:GetParent( ):GetParent( ).TabHolder:GetActiveTab( ):GetPanel( ).Search:FunctionKey( )
 	end
 	
 end

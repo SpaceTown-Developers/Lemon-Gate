@@ -254,7 +254,7 @@ local Valid_Words = {
 function Compiler:IsPreparable( Line )
 	Line = string.Trim( Line )
 	local _, _, Word = string.find( Line, "^([a-zA-Z_][a-zA-Z0-9_]*)" )
-	return Valid_Words[ Word ] or (Word and string.find( Line, "[=%(]" ))
+	return Valid_Words[ Word ] or ( Word and string.find( Line, "[=%(]" ) )
 end
 
 /*==========================================================================

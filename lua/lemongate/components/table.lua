@@ -207,11 +207,11 @@ Component:AddFunction( "copy", "t:", "t", "setmetatable( table.copy(value %1), %
 
 Component:SetPerf( LEMON_PERF_ABNORMAL )
 
-Component:AddFunction( "remove", "t:n", "", "value %1:Remove(value %2)" )
+Component:AddFunction( "remove", "t:n", "", "%Table.Remove(value %1, value %2)" )
 
-Component:AddFunction( "remove", "t:s", "", "value %1:Remove(value %2)" )
+Component:AddFunction( "remove", "t:s", "", "%Table.Remove(value %1, value %2)" )
 
-Component:AddFunction( "remove", "t:e", "", "value %1:Remove(value %2)" )
+Component:AddFunction( "remove", "t:e", "", "%Table.Remove(value %1, value %2)" )
 
 -- Type
 Component:AddFunction( "type", "t:n", "s", "LongType(value %1.Types[value %2])" )
@@ -232,7 +232,7 @@ Component:AddFunction( "exists", "t:e", "b", "(value %1.Data[value %2] ~= nil)" 
 -- Array:
 Component:SetPerf( LEMON_PERF_EXPENSIVE )
 
-Component:AddFunction( "pop", "t:", "", "value %1:Remove(value %1.Count)" )
+Component:AddFunction( "pop", "t:", "", "%Table.Remove(value %1, value %1.Count)" )
 
 
 -- Table:
@@ -326,7 +326,7 @@ for Key, Type, Value in value %2:Itorate( ) do
 	
 	%Tbl:Set( Key, Type, Value )
 end
-]], "" )
+]], LEMON_PREPARE_ONLY )
 
 Component:AddFunction( "add", "t:t", "", [[
 local %Tbl = value %1 
@@ -340,7 +340,7 @@ for Key, Type, Value in value %2:Itorate( ) do
 		%Tbl:Set( Key, Type, Value )
 	end
 end
-]], "" )
+]], LEMON_PREPARE_ONLY )
 
 /*==============================================================================================
 	Variant Index Operators
@@ -405,32 +405,32 @@ function Component:BuildOperators( )
 				
 				if Class.Short ~= "?" then
 					Component:AddOperator( "[]=", Format( "t,n,%s", Class.Short ), "",
-						"value %1:Set( value %2, type %3, value %3 )" )
+						"%Table.Set( value %1, value %2, type %3, value %3 )" )
 					
 					Component:AddOperator( "[]=", Format( "t,s,%s", Class.Short ), "",
-						"value %1:Set( value %2, type %3, value %3 )" )
+						"%Table.Set( value %1, value %2, type %3, value %3 )" )
 						
 					Component:AddOperator( "[]=", Format( "t,e,%s", Class.Short ), "",
-						"value %1:Set( value %2, type %3, value %3 )" )
+						"%Table.Set( value %1, value %2, type %3, value %3 )" )
 					
 				-- Insert
 					Component:AddOperator( "[]+", Format( "t,%s", Class.Short ), "",
-						"value %1:Insert( nil, type %2, value %2 )" )
+						"%Table.Insert( value %1, nil, type %2, value %2 )" )
 				end
 			
 			-- Insert Function:
 				Component:AddFunction( "insert", Format( "t:n,%s", Class.Short ), "",
-					"value %1:Insert( value %2, type %3, value %3 )" )
+					"%Table.Insert( value %1, value %2, type %3, value %3 )" )
 				
 				Component:AddFunction( "insert", Format( "t:%s", Class.Short ), "",
-					"value %1:Insert( nil, type %2, value %2 )" )
+					"%Table.Insert( value %1, nil, type %2, value %2 )" )
 			
 			-- Array:
 				Component:AddFunction( "push", Format( "t:%s", Class.Short ), "",
-					"value %1:Insert( nil, type %2, value %2 )" )
+					"%Table.Insert( value %1, nil, type %2, value %2 )" )
 					
 				Component:AddFunction( "unshift", Format( "t:%s", Class.Short ), "",
-					"value %1:Insert( 1, type %2, value %2 )" )
+					"%Table.Insert( value %1, 1, type %2, value %2 )" )
 		end
 	end
 end

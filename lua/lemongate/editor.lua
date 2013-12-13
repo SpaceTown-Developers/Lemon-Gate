@@ -59,6 +59,12 @@ local HomeScreen = [[/*=========================================================
 		* Ops rebalance in progress.
 		* Check out our new repo browser!
 		* You can now change editor font in the options menu.
+	
+	Editor Changes:
+		* Script Name Changer (not file name).
+		* Find in code, *prototype* (ctrl + f).
+		* Bookmark keys (f2 and ctrl + f2 )
+		* Pastebin.com uploader.
 		
 	Check Out Video Tutorials:
 		* https://www.youtube.com/watch?v=GzNsCWORiRw
