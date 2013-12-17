@@ -13,7 +13,7 @@ local TraceHull, TraceLine = util.TraceHull, util.TraceLine
 /*==============================================================================================
 	Section: Ranger Class
 ==============================================================================================*/
-local Ranger = { Default_Zero = false, Ignore_World = false, Hit_Water = false, Ignore_Entities = false }
+local Ranger = { Default_Zero = false, Ignore_World = false, Hit_Water = false, Ignore_Entities = false, Mins = false, Maxs = false }
 Ranger.Result = { }
 
 Ranger.__index = Ranger
@@ -135,8 +135,8 @@ Component:AddFunction( "setHull", "rd:v,v", "", [[
 ]], LEMON_PREPARE_ONLY )
 
 Component:AddFunction( "noHull", "rd:", "", [[
-	value %1.Mins = nil
-	value %1.Maxs = nil
+	value %1.Mins = false
+	value %1.Maxs = false
 ]], LEMON_PREPARE_ONLY )
 
 Component:AddFunction( "mins", "rd:", "", "( value %1.Mins or Vector3( 0, 0, 0 ) )", LEMON_INLINE_ONLY )
