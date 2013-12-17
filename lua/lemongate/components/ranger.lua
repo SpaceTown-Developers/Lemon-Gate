@@ -53,7 +53,7 @@ function Ranger:DoTrace( Start, End, Distance )
 	end
 	
 	if self.Hit_Water then
-		if self.Ignore_Entities then
+		if !self.Ignore_Entities then
 			TraceData.mask = -1
 		elseif Ignore_World then
 			Ignore_World = false
@@ -61,7 +61,7 @@ function Ranger:DoTrace( Start, End, Distance )
 		else
 			TraceData.mask = Bor( MASK_WATER, CONTENTS_SOLID )
 		end
-	elseif !self.Ignore_Entities then
+	elseif self.Ignore_Entities then
 		if Ignore_World then
 			Ignore_World = false
 			TraceData.mask = 0
