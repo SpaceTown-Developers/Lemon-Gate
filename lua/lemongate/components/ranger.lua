@@ -24,7 +24,7 @@ function Ranger.__call(  )
 	return setmetatable( { Filter = { } }, Ranger )
 end
 
-function Ranger:Filter( Entity )
+function Ranger:AddFilter( Entity )
 	if IsValid( Entity ) then
 		self.Filter[ Entity ] = true
 	end
@@ -168,7 +168,7 @@ Component:AddFunction( "end", "rd:", "v", "Vector3( value %1.End or Vector( 0, 0
 
 Component:SetPerf( LEMON_PERF_ABNORMAL )
 
-Component:AddFunction( "filter", "rd:e", "", "value %1:Filter( value %2 )", LEMON_PREPARE_ONLY )
+Component:AddFunction( "filter", "rd:e", "", "value %1:AddFilter( value %2 )", LEMON_PREPARE_ONLY )
 
 Component:AddFunction( "unfilter", "rd:e", "", "value %1:Unfilter( value %2 )", LEMON_PREPARE_ONLY )
 
