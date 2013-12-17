@@ -107,7 +107,7 @@ local Class = Component:NewClass( "rd", "ranger" )
 Component:SetPerf( LEMON_PERF_NORMAL )
 
 -- Create a ranger object
-Component:AddFunction( "ranger", "v,v", "rd", "%Ranger( )", LEMON_INLINE_ONLY )
+Component:AddFunction( "ranger", "", "rd", "%Ranger( )", LEMON_INLINE_ONLY )
 
 -- Set up a ranger.
 Component:AddFunction( "ignoreEntities", "rd:b", "", "value %1.Ignore_Entities = value %2", LEMON_PREPARE_ONLY )
@@ -151,7 +151,7 @@ Component:AddFunction( "fire", "rd:v,v", "", "value %1:DoTrace( value %2:Garry( 
 
 Component:AddFunction( "fire", "rd:v,v,n", "", "value %1:DoTrace( value %2:Garry( ), value %3:Garry( ), value %4 )", LEMON_PREPARE_ONLY )
 
-Component:AddFunction( "refire", "rd:", "", [[
+Component:AddFunction( "fire", "rd:", "", [[
 if ( value %1.Start and value %1.End ) then
 	value %1:DoTrace( value %1.Start, value %1.End )
 end]], LEMON_PREPARE_ONLY )

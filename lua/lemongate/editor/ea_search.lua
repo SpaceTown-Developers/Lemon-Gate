@@ -124,6 +124,10 @@ function PANEL:OpenMenu( )
 	Wrap:SetConVar( "lemon_editor_search_wrap" )
 	self.Menu:AddItem( Wrap )
 	
+	function self.Menu:OnCursorExited( )
+		self:Remove( )
+	end
+	
 	self.Menu:SetSize( 150, 100 )
 	self.Menu:MakePopup( )
 end
