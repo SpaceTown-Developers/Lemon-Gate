@@ -17,12 +17,12 @@ Core:AddExternal( "Color", Color )
 /*==============================================================================================
 	Class and Operators
 ==============================================================================================*/
-local Class = Core:NewClass( "c", "color", { 0, 0, 0, 0 } )
+local Class = Core:NewClass( "c", "color", { 255, 255, 255, 255 } )
 
 -- Assign:
 
 Core:AddOperator( "=", "c", "", [[
-local %A, %B = value %2, %memory[value %1] or {0, 0, 0, 0 }
+local %A, %B = value %2, %memory[value %1] or {255, 255, 255, 255 }
 %delta[value %1] = %B
 %memory[value %1] = %A
 %click[value %1] = (%A[1] == %B[1] and %A[2] == %B[2] and %A[3] == %B[3] and %B[4] == %A[4])
@@ -127,3 +127,18 @@ Core:AddFunction( "hsv2rgb", "n,n,n", "c", "local %C = %HSVToColor(value %1, val
 Core:AddFunction( "rgb2hsv", "c:", "c", "local %R, %G, %B = %ColorToHSV( %Color(value %1[1], value %1[2], value %1[3])", "{%R, %G, %B, 255}" )
 
 Core:AddFunction( "rgb2hsv", "n,n,n", "c", "local %C = %ColorToHSV( %Color(value %1, value %2, value %3) )", "{ %C.r, %C.g, %C.b, 255 }" )
+
+/*==============================================================================================
+	Section: Constants
+==============================================================================================*/
+Core:AddConstant( "color_white", "c", "{255,255,255,255}" )
+
+Core:AddConstant( "color_black", "c", "{0,0,0,255}" )
+
+Core:AddConstant( "color_red", "c", "{255,0,0,255}" )
+
+Core:AddConstant( "color_green", "c", "{0,255,0,255}" )
+
+Core:AddConstant( "color_blue", "c", "{0,0,255,255}" )
+
+Core:AddConstant( "color_yellow", "c", "{0,255,255,255}" )

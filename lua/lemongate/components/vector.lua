@@ -95,7 +95,11 @@ Core:AddOperator( "$", "v", "v", "((%memory[value %1] or Vector3.Zero) - (%delta
 
 -- Constructors:
 
-Core:AddFunction( "vec", "n,n,n", "v", "Vector3( value %1, value %2, value %3 )", nil )
+Core:AddFunction( "vec", "", "v", "Vector3( 0, 0, 0 )" )
+
+Core:AddFunction( "vec", "n", "v", "Vector3( value %1, value %1, value %1 )" )
+
+Core:AddFunction( "vec", "n,n,n", "v", "Vector3( value %1, value %2, value %3 )" )
 
 -- Co-ords:
 

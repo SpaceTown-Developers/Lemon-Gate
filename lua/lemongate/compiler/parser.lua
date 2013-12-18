@@ -1341,7 +1341,7 @@ function Compiler:FUNC_include( Trace )
 	
 	return self:Compile_INCLUDE( Trace, Path, Scoped )
 end
-
+ 
 function Compiler:FUNC_print( Trace )
 	Trace.Location = "print(...)"
 	

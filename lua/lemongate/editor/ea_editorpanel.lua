@@ -339,9 +339,12 @@ function PANEL:GetFileCode( Path )
 	if not string.StartWith( Path, "lemongate/" ) then Path = "lemongate/" .. Path end
 	if self.FileTabs[Path] then 
 		return self:GetCode( self.FileTabs[Path] )
-	else 
-		if !Path or file.IsDir( Path, "DATA" ) then return end
-		return file.Read( Path )
+	elseif !Path or file.IsDir( Path, "DATA" ) then
+		return
+	else
+		local Data = file.Read( Path )
+		local Title, Code = string.match( Data, "(.+)(.+)" )
+		return Code or Data
 	end 
 end
 

@@ -154,6 +154,8 @@ function API:Init( )
 	self.Externals = { }
 	self.Raw_Externals = { }
 	
+	self.Constants = { }
+	
 	MsgN( "Loading compiler." )
 	include( "lemongate/compiler/init.lua" )
 	
@@ -303,7 +305,7 @@ function API:LoadEditor( )
 		include( "lemongate/editor.lua" )
 		
 		include( "lemongate/components/kinect.lua" )
-		include( "lemongate/components/cl_file.lua" )
+		include( "lemongate/components/cl_files.lua" )
 		include( "lemongate/components/console.lua" )
 	end
 end
@@ -373,6 +375,7 @@ if SERVER then
 			Externals = self.Raw_Externals,
 			Exceptions = self.Exceptions,
 			Components = self.ComponentLK,
+			Constants = self.Constants,
 		}
 		
 		for Name, Class in pairs( self.Classes ) do
@@ -482,6 +485,8 @@ if SERVER then
 				Exceptions = { },
 				Externals = { },
 				Events = { },
+				
+				Constants = { },
 			}, Component )
 			
 		self.Components[ New.LName ] = New
@@ -575,6 +580,7 @@ function API:InstallComponents( )
 			Comp:LoadEvents( )
 			Comp:LoadExternals( )
 			Comp:LoadExceptions( )
+			Comp:LoadConstants( )
 		end
 		
 	elseif CLIENT then
@@ -587,6 +593,7 @@ function API:InstallComponents( )
 		self.Raw_Externals = DataPack.Externals
 		self.Exceptions = DataPack.Exceptions
 		self.Components = DataPack.Components
+		self.Constants = DataPack.Constants
 		
 		for _, Class in pairs( self.Classes ) do
 			self.ClassLU[Class.Short] = Class
@@ -965,7 +972,7 @@ if SERVER then
 	end
 
 /*==========================================================================
-	Section: Externals
+	Section: Exceptions
 ==========================================================================*/
 	function Component:AddException( Exception )
 		Util.CheckParams( 1, Exception, "string", false )
@@ -999,6 +1006,33 @@ if SERVER then
 				else
 					API.Externals[ Name ] = External
 					API.Raw_Externals[ "%" .. Name ] = "Externals[\"" .. Name .. "\"]"
+				end
+			end
+		end
+	end	
+
+/*==========================================================================
+	Section: Constants
+==========================================================================*/
+	
+	function Component:AddConstant( Name, Type, Value )
+		Util.CheckParams( 1, Name, "string", false, Type, "string", false )
+		self.Constants[ Name:upper( ) ] = { Type, Value }
+	end
+	
+	function Component:LoadConstants( )
+		if self.Enabled then
+			self:CallHook( "BuildConstantss" )
+			
+			for Name, Constant in pairs( self.Constants ) do
+			
+				local Type = API:GetClass( Constant[1], true )
+				
+				if !Type then
+					MsgN ( Format( "%s can't register constant %s\nclass %q doesn't exist." , self.Name, Name, Constant[1] ) )
+					continue
+				else
+					API.Constants[ Name ] = { Return = Type.Short, Inline = Constant[2] }
 				end
 			end
 		end
