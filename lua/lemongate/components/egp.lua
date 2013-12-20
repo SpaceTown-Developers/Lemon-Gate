@@ -313,6 +313,44 @@ if $EGP:ValidEGP( value %1 ) then //and %IsOwner( %context.Player, value %1 ) th
 end]], LEMON_NO_INLINE )
 
 /*==============================================================================================
+	Section: Poly
+==============================================================================================*/
+-- Component:AddFunction( "egpPoly", "wl:n,...", "", [[
+-- if $EGP:ValidEGP( value %1 ) then //and %IsOwner( %context.Player, value %1 ) then
+	-- local %Vertices = { }
+	-- local Max = EGP.ConVars.MaxVertices:GetInt( )
+	
+	-- for _, Data in pairs( { %... } ) do
+		-- local Type = Data[2]
+		
+		-- if #%Vertices > Max then
+			-- break
+		-- elseif ( Type == "xv2" ) then
+			
+		-- end
+	-- end
+	
+	-- local %Bool, %Obj = EGP:CreateObject( value %1, EGP.Objects.Names["Poly"], { index = value %2, vertices = %Vertices, %context.Player )
+	
+    -- if %Bool then
+		-- API.EGPAction( value %1, %context, "SendObject", %Obj )
+		-- %data.EGP[value %1] = true
+	-- end
+-- end]], LEMON_NO_INLINE )
+
+-- Component:AddFunction( "egpPolyOutline", "wl:n,...", "", [[
+-- if $EGP:ValidEGP( value %1 ) then //and %IsOwner( %context.Player, value %1 ) then
+	-- local %Vertices = { }
+	
+	-- local %Bool, %Obj = EGP:CreateObject( value %1, EGP.Objects.Names["PolyOutline"], { index = value %2, %Vertices, %context.Player )
+    -- if %Bool then
+		-- API.EGPAction( value %1, %context, "SendObject", %Obj )
+		-- %data.EGP[value %1] = true
+	-- end
+-- end]], LEMON_NO_INLINE )
+
+
+/*==============================================================================================
 	Section: 3D Tracker
 ==============================================================================================*/
 Component:AddFunction( "egp3DTracker", "wl:n,v", "", [[ 

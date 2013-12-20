@@ -66,7 +66,7 @@ function Table:Remove( Index )
 	self.Count = #Data
 end
 
-function Table:Pop( Index )
+function Table:Shift( Index )
 	local Data = self.Data
 
 	if Data[Index] ~= nil then
@@ -232,8 +232,11 @@ Component:AddFunction( "exists", "t:e", "b", "(value %1.Data[value %2] ~= nil)" 
 -- Array:
 Component:SetPerf( LEMON_PERF_EXPENSIVE )
 
-Component:AddFunction( "pop", "t:", "", "%Table.Remove(value %1, value %1.Count)" )
+Component:AddFunction( "pop", "t:", "", "%Table.Shift(value %1, value %1.Count)" )
 
+Component:AddFunction( "shift", "t:", "", "%Table.Shift(value %1, 1)" )
+
+Component:AddFunction( "shift", "t:n", "", "%Table.Shift(value %1, value %2)" )
 
 -- Table:
 
@@ -431,6 +434,10 @@ function Component:BuildOperators( )
 					
 				Component:AddFunction( "unshift", Format( "t:%s", Class.Short ), "",
 					"%Table.Insert( value %1, 1, type %2, value %2 )" )
+				
+					
+				Component:AddFunction( "unshift", Format( "t:n,%s", Class.Short ), "",
+					"%Table.Insert( value %1, value %2, type %3, value %3 )" )
 		end
 	end
 end
