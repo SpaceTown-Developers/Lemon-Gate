@@ -315,40 +315,53 @@ end]], LEMON_NO_INLINE )
 /*==============================================================================================
 	Section: Poly
 ==============================================================================================*/
--- Component:AddFunction( "egpPoly", "wl:n,...", "", [[
--- if $EGP:ValidEGP( value %1 ) then //and %IsOwner( %context.Player, value %1 ) then
-	-- local %Vertices = { }
-	-- local Max = EGP.ConVars.MaxVertices:GetInt( )
+Component:AddFunction( "egpPoly", "wl:n,...", "", [[
+if $EGP:ValidEGP( value %1 ) then //and %IsOwner( %context.Player, value %1 ) then
+	local Vertices, I = { }, 0
+	local Max = EGP.ConVars.MaxVertices:GetInt( )
 	
-	-- for _, Data in pairs( { %... } ) do
-		-- local Type = Data[2]
+	for _, Data in pairs( { %... } ) do
+		local Var, Type = Data[1], Data[2]
 		
-		-- if #%Vertices > Max then
-			-- break
-		-- elseif ( Type == "xv2" ) then
-			
-		-- end
-	-- end
+		if I > Max then
+			break
+		elseif Type == "xv2" then
+			I = I + 1
+			Vertices[ I ] = { x = Var.x, y= Var.y }
+		end
+	end
 	
-	-- local %Bool, %Obj = EGP:CreateObject( value %1, EGP.Objects.Names["Poly"], { index = value %2, vertices = %Vertices, %context.Player )
+	local %Bool, %Obj = EGP:CreateObject( value %1, EGP.Objects.Names["Poly"], { index = value %2, vertices = Vertices }, %context.Player )
 	
-    -- if %Bool then
-		-- API.EGPAction( value %1, %context, "SendObject", %Obj )
-		-- %data.EGP[value %1] = true
-	-- end
--- end]], LEMON_NO_INLINE )
+    if %Bool then
+		API.EGPAction( value %1, %context, "SendObject", %Obj )
+		%data.EGP[value %1] = true
+	end
+end]], LEMON_NO_INLINE )
 
--- Component:AddFunction( "egpPolyOutline", "wl:n,...", "", [[
--- if $EGP:ValidEGP( value %1 ) then //and %IsOwner( %context.Player, value %1 ) then
-	-- local %Vertices = { }
+Component:AddFunction( "egpPolyOutline", "wl:n,...", "", [[
+if $EGP:ValidEGP( value %1 ) then //and %IsOwner( %context.Player, value %1 ) then
+	local Vertices, I = { }, 0
+	local Max = EGP.ConVars.MaxVertices:GetInt( )
 	
-	-- local %Bool, %Obj = EGP:CreateObject( value %1, EGP.Objects.Names["PolyOutline"], { index = value %2, %Vertices, %context.Player )
-    -- if %Bool then
-		-- API.EGPAction( value %1, %context, "SendObject", %Obj )
-		-- %data.EGP[value %1] = true
-	-- end
--- end]], LEMON_NO_INLINE )
-
+	for _, Data in pairs( { %... } ) do
+		local Var, Type = Data[1], Data[2]
+		
+		if I > Max then
+			break
+		elseif Type == "xv2" then
+			I = I + 1
+			Vertices[ I ] = { x = Var.x, y= Var.y }
+		end
+	end
+	
+	local %Bool, %Obj = EGP:CreateObject( value %1, EGP.Objects.Names["PolyOutline"], { index = value %2, vertices = Vertices }, %context.Player )
+	
+    if %Bool then
+		API.EGPAction( value %1, %context, "SendObject", %Obj )
+		%data.EGP[value %1] = true
+	end
+end]], LEMON_NO_INLINE )
 
 /*==============================================================================================
 	Section: 3D Tracker

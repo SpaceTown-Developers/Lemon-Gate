@@ -435,7 +435,6 @@ function Component:BuildOperators( )
 				Component:AddFunction( "unshift", Format( "t:%s", Class.Short ), "",
 					"%Table.Insert( value %1, 1, type %2, value %2 )" )
 				
-					
 				Component:AddFunction( "unshift", Format( "t:n,%s", Class.Short ), "",
 					"%Table.Insert( value %1, value %2, type %3, value %3 )" )
 		end
@@ -484,6 +483,8 @@ do
 			if ExitDeph > 0 then
 				ExitDeph = ExitDeph - 1
 				error( Exit, 0 )
+			elseif Exit == "Break" then
+				break
 			elseif Exit ~= "Continue" then
 				error( Exit, 0 )
 			end
