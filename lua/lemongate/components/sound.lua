@@ -252,7 +252,7 @@ end]], "" )
 Component:AddFunction( "fade", "sd:n", "", [[
 local %SD = value %1
 if %SD then
-	%Fade = math.Clamp( value %2, 0, 1 )
+	local %Fade = math.Clamp( value %2, 0, 1 )
 	%SD:FadeOut( %Fade )
 	%SD.Fade = 0
 end]], "" )
