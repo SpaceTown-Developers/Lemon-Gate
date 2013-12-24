@@ -201,7 +201,7 @@ function Component.Download( Context, FileName, Data, Func_Status, Append )
 	Queue[ #Queue + 1 ] = Action
 	LookUp[ Action.ID ] = Action
 	
-	if #Data <= ( MaxSize:GetInt() * 1024 ) then
+	if #Data <= ( Component.Cvar_SizeMax:GetInt() * 1024 ) then
 		Action.Status = FILE_TRANSFER_ERROR
 		Finished[ #Finished + 1 ] = Action
 	else

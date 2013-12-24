@@ -426,5 +426,11 @@ else
         local Index = net.ReadUInt( 16 )
         if SyncBuffer[Index] then SyncBuffer[Index] = nil end 
     end )
+	
+	hook.Add( "NetworkEntityCreated", "lemon_holo_antilag", function( Entity )
+		if Entity:GetClass( ) == "lemon_holo" and Entity.Rescale then
+			Entity:Rescale( )
+		end
+	end)
 end
 
