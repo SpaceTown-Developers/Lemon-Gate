@@ -201,7 +201,7 @@ Component:AddFunction( "count", "t:", "n", "(value %1.Count)" )
 ==============================================================================================*/
 Component:SetPerf( LEMON_PERF_EXPENSIVE )
 
-Component:AddFunction( "copy", "t:", "t", "setmetatable( table.copy(value %1), %Table)" )
+Component:AddFunction( "copy", "t:", "t", "$setmetatable( table.Copy(value %1), %Table)" )
 
 -- Remove:
 

@@ -137,6 +137,8 @@ Core:AddFunction( "radius", "e:", "n", "($IsValid(value %1) and (value %1:Boundi
 
 Core:AddFunction( "getParent", "e:", "e", "($IsValid(value %1) and (value %1:GetParent( ) or %NULL_ENTITY) or %NULL_ENTITY)" )
 
+Core:AddFunction( "id", "e:", "n", "($IsValid(value %1) and (value %1:EntIndex( ) or 0) or 0)" )
+
 /*==============================================================================================
 	Section: Vehicle Stuff
 ==============================================================================================*/
@@ -498,6 +500,42 @@ if $IsValid(value %1) then
 		%util = Angle(%Inertia.y, %Inertia.z, %Inertia.x)
 	end
 end]], "(%util or Angle(0, 0, 0))")
+
+/*==============================================================================================
+	Section: Trails
+==============================================================================================*/
+Core:AddFunction( "setTrail", "e:n,n,n,s,c", "", [[
+if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) then
+	if !string.find( value %5, "\"", 1, true ) and $file.Exists( "materials/" .. value %5 .. ".vmt", "GAME" ) then
+		$duplicator.EntityModifiers.trail( %context.Player, value %1, {
+			Color = $Color( value %6[1], value %6[2], value %6[3], value %6[4] ),
+			Length = value %4,
+			StartSize = value %2,
+			EndSize = value %3,
+			Material = value %5,
+		} )
+	end
+end]], "" )
+
+Core:AddFunction( "setTrail", "e:n,n,n,s,c,n,b", "", [[
+if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) then
+	if !string.find( value %5, "\"", 1, true ) and $file.Exists( "materials/" .. value %5 .. ".vmt", "GAME" ) then
+		$duplicator.EntityModifiers.trail( %context.Player, value %1, {
+			Color = $Color( value %6[1], value %6[2], value %6[3], value %6[4] ),
+			Length = value %4,
+			StartSize = value %2,
+			EndSize = value %3,
+			Material = value %5,
+			AttachmentID = value %7,
+			Additive = value %8
+		} )
+	end
+end]], "" )
+
+Core:AddFunction( "removeTrail", "e:", "", [[
+if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) then
+	$duplicator.EntityModifiers.trail( %context.Player, value %1, nil )
+end]], "" )
 
 /*==============================================================================================
 	Section: Player Stuff

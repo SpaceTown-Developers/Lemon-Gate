@@ -7,8 +7,6 @@ if !WireLib or !LEMON then return end
 
 local Lemon = ENT
 
-Lemon.IsLemonGate = true 
-
 /*==============================================================================================
 	Speed Increases
 ==============================================================================================*/
@@ -49,6 +47,8 @@ local function CompileSoftly( Entity, Script, Files )
 		Entity:SetNWBool( "Crashed", false )
 		Entity:LoadInstance( Instance )
 	end
+	
+	Entity:LoadEffect( )
 	
 	if Entity:Pcall( "main thread", Instance.Execute, Entity.Context ) then
 		Entity:Update( )
@@ -153,7 +153,7 @@ function Lemon:Initialize( )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
 	
-	self:SetUseType( USE_TOGGLE  ) 
+	self:SetUseType( SIMPLE_USE )
 	
 	self.Inputs = WireLib.CreateInputs( self, { } )
 	self.Outputs = WireLib.CreateOutputs( self, { } )
@@ -383,4 +383,15 @@ end
 
 function Lemon:ApplyDupeInfo( Player, Entity, DupeTable, FromID )
 	coroutine.resume( coroutine.create( CompileDuped ), self, Player, Entity, DupeTable, FromID )
+end
+
+/*==============================================================================================
+	Section: Effects
+==============================================================================================*/
+
+function Lemon:LoadEffect( )
+	local Effect = EffectData( )
+		  Effect:SetEntity( self )
+		  
+	util.Effect( "lemon_load", Effect )
 end

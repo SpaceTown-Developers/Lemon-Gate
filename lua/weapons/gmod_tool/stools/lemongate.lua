@@ -52,7 +52,7 @@ function CITRIS:IsLemonGate(Entity)
 end
 
 function CITRIS:CanInteract( Entity )
-	return LEMON.API.Util.IsFriend(Entity.Player, self:GetOwner())
+	return LEMON.API.Util.IsFriend( Entity.Player, self:GetOwner( ) ) or self:GetOwner( ):IsAdmin( )
 end
 
 /*==============================================================================================
@@ -141,6 +141,8 @@ if SERVER then
 				
 				return true -- Send the player the Script!
 			end
+			
+			Player:PrintMessage( HUD_PRINTTALK, "You can't eat whats not yours." )
 			
 			return false
 		end

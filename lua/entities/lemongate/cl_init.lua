@@ -24,7 +24,7 @@ function ENT:GetOverlayText( )
 		Status = "Online: " .. string.format( "%s ops, %s%%", Perf, math.ceil((Perf / Max) * 100) ) 
 	end
 	
-	return string.format( "-Expression Advanced-\n%s\n%s\ncpu time: %ins\n(%s)", self:GetNWString( "GateName", "LemonGate" ), Status, math.Round( self:GetNWInt( "GateTime", 0 ), 4 ), self:GetPlayerName( ) )
+	return string.format( "-Expression Advanced-\n%s\n%s\ncpu time: %ius\n(%s)", self:GetNWString( "GateName", "LemonGate" ), Status, math.Round( self:GetNWInt( "GateTime", 0 ), 4 ), self:GetPlayerName( ) )
 	
 end
 
@@ -95,3 +95,7 @@ timer.Create( "Lemon_Crash_Animation", 1, 0, function( )
 		end
 	end
 end )
+
+/*==========================================================================
+	Section: Entity Context
+==========================================================================*/
