@@ -202,7 +202,7 @@ if $EGP:ValidEGP( value %1 ) then //and %IsOwner( %context.Player, value %1 ) th
 		local FontID = 0
 		
         for K,V in ipairs( EGP.ValidFonts ) do
-            if V:lower() == value %3:lower( ) then
+            if V:lower() == string.lower( value %3 ) then
                 FontID = K
                 break
             end
@@ -223,7 +223,7 @@ if $EGP:ValidEGP( value %1 ) then //and %IsOwner( %context.Player, value %1 ) th
 		local FontID = 0
 		
         for K,V in ipairs( EGP.ValidFonts ) do
-            if V:lower() == value %3:lower( ) then
+            if V:lower() == string.lower( value %3 ) then
                 FontID = K
                 break
             end

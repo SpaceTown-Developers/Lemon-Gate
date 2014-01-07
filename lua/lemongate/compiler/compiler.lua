@@ -676,10 +676,10 @@ function Compiler:Compile_OR( Trace, A, B )
 	-- Try normal Or
 	
 	local Op = self:GetOperator( "||", "b", "b" )
-	A, B = self:Compile_IS( Trace, A, true ), self:Compile_IS( Trace, B, true )
+	IsA, IsB = self:Compile_IS( Trace, A, true ), self:Compile_IS( Trace, B, true )
 	
-	if Op and A and B then
-		return Op.Compile( self, Trace, A, B )
+	if Op and IsA and IsB then
+		return Op.Compile( self, Trace, IsA, IsB )
 	end
 	
 	-- Error
@@ -695,10 +695,10 @@ function Compiler:Compile_AND( Trace, A, B )
 	end
 	
 	local Op = self:GetOperator( "&&", "b", "b" )
-	A, B = self:Compile_IS( Trace, A, true ), self:Compile_IS( Trace, B, true )
+	IsA, IsB = self:Compile_IS( Trace, A, true ), self:Compile_IS( Trace, B, true )
 	
-	if Op and A and B then
-		return Op.Compile( self, Trace, A, B )
+	if Op and IsA and IsB then
+		return Op.Compile( self, Trace, IsA, IsB )
 	end
 	
 	self:TraceError( Trace, "No such operator (%s && %s)", NType( A.Return ), NType( B.Return ) )
