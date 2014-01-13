@@ -21,7 +21,11 @@ function EFFECT:Init( Input )
 end
 
 function EFFECT:Think( )
-
+	
+	if !IsValid( self:GetParent( ) ) then
+		return false
+	end
+	
 	self.Alpha = self.Alpha - FrameTime( ) * 255 * 3
 	
 	self.Size = self.Size + FrameTime( ) * 156 * 0.5

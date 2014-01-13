@@ -1047,7 +1047,7 @@ end
 function Compiler:Compile_TABLE( Trace, Values, Keys, Count )
 	if Count == 0 then
 		return self:Instruction( Trace, LEMON_PERF_ABNORMAL, "t", "Externals.Table( )" )
-	end--else
+	end --else
 		local ID = self:NextLocal( )
 		local Statements = { }
 		

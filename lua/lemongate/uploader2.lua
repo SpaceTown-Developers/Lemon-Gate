@@ -160,7 +160,7 @@ end
 ==============================================================================================*/
 if CLIENT then
 	
-	function Uploader.Send_Script( Entity, Script, Name )
+	local function Send_Script( Entity, Script, Name )
 		
 		local EntID = Entity
 		
@@ -207,6 +207,10 @@ if CLIENT then
 				net.WriteData( Data[ChunkID], #Data[ChunkID] )
 			net.SendToServer( )
 		end
+	end
+	
+	function Uploader.Send_Script( Entity, Script, Name )
+		coroutine.resume( coroutine.create( Send_Script ), Entity, Script, Name )
 	end
 	
 	function LEMON:Upload( Entity, Script, Name )

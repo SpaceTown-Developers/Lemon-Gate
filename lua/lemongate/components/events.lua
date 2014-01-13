@@ -58,9 +58,13 @@ Core:SetPerf( LEMON_PERF_CHEAP )
 Core:AddEvent( "playerChat", "e,s", "s" )
 
 hook.Add("PlayerSay", "LemonGate", function( Player, Text )
-	local Result, Gate = API:CallEvent( "playerChat", Player, Text )
-	if Result and Gate.Player == Player then
-		return Result
+	
+	for _, Gate in pairs( API:GetEntitys( ) ) do
+		local Result = Gate:CallEvent( "playerChat", Player, Text )
+		
+		if Result and Player == Gate.Player then
+			return Result
+		end
 	end
 end)
 

@@ -278,9 +278,10 @@ function PANEL:Init( )
 	file.CreateDir( "Lemongate" )
 end
 
-
-function PANEL:DoValidate( Goto, NoCompile, Code )
-	if not LEMON.API.Initialized then return self.ValidateButton:SetText( "Downloading Validation Files, Please wait..." ) end
+local function ValidateSoftly( self, Goto, NoCompile, Code )
+	if not LEMON.API.Initialized then
+		return self.ValidateButton:SetText( "Downloading Validation Files, Please wait..." )
+	end
 	
 	local Error = self:Validate( Code or self:GetCode( ), NoCompile )
 	
@@ -303,6 +304,13 @@ function PANEL:DoValidate( Goto, NoCompile, Code )
 		self.ValidateButton:SetColor( Color( 0, 255, 0 ) )
 		self.ValidateButton:SetText( "Validation Successful!" )
 	end
+end
+
+function PANEL:DoValidate( Goto, NoCompile, Code )
+	self.ValidateButton:SetColor( Color( 0, 0, 255 ) )
+	self.ValidateButton:SetText( "Validating..." )
+		
+	coroutine.resume( coroutine.create( ValidateSoftly ), self, Goto, NoCompile, Code )
 end
 
 function PANEL:Validate( Script, NoCompile )

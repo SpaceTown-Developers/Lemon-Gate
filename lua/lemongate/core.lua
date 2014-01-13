@@ -964,9 +964,18 @@ if SERVER then
 	
 	function API:CallEvent( Name, ... )
 		if self.Events[ Name ] then
-			for _, Gate in pairs( self:GetEntitys( ) ) do
-				local Result = Gate:CallEvent( Name, ... )
-				if Result then return Result, Gate end
+			local Result, Gate
+			
+			for _, _Gate in pairs( self:GetEntitys( ) ) do
+				local _Result = _Gate:CallEvent( Name, ... )
+				
+				if _Result and !Result then
+					Result, Gate = _Result, _Gate
+				end
+			end
+			
+			if Result then
+				return Result, Gate
 			end
 		end
 	end
