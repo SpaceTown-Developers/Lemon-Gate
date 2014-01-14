@@ -124,9 +124,9 @@ Core:AddEvent( "onDamage", "e,e,n,v", "" )
 
 hook.Add("EntityTakeDamage", "LemonGate", function( Ent, Damage )
 	local Attacker = Damage:GetAttacker( ) or Entity( 0 )
-	local Damage = Damage:GetDamage( ) or 0
+	local Num = Damage:GetDamage( ) or 0
 	local Pos = Vector3( Damage:GetDamagePosition( ) or Vector( 0, 0, 0 ) )
-	API:CallEvent( "onDamage", Ent, Attacker, Damage, Pos )
+	API:CallEvent( "onDamage", Ent, Attacker, Num, Pos )
 end)
 
 Core:AddEvent( "propBreak", "e,e", "" )
