@@ -50,6 +50,12 @@ hook.Add("PlayerDisconnected", "LemonGate", function( Player )
 	API:CallEvent( "playerQuit", Player )
 end)
 
+Core:AddEvent( "playerSpawn", "e", "" )
+
+hook.Add("PlayerSpawn", "LemonGate", function( Player )
+	API:CallEvent( "playerSpawn", Player )
+end)
+
 /*==============================================================================================
 	Section: Player Chat event.
 ==============================================================================================*/
@@ -93,6 +99,42 @@ hook.Add( "AdvDupe_FinishPasting", "LemonGate", function( Data, Current )
 		end
 	end
 end )
+
+/*==============================================================================================
+	Section: Kills.
+==============================================================================================*/
+Core:AddEvent( "onKill", "e,e,e", "" )
+
+hook.Add("PlayerDeath", "LemonGate", function( Player, Inflictor, Attacker )
+	Attacker = Attacker or Entity( 0 )
+	Inflictor = Inflictor or Attacker
+	API:CallEvent( "onKill", Player, Attacker, Inflictor )
+end)
+
+hook.Add("OnNPCKilled", "LemonGate", function( Player, Attacker, Inflictor )
+	Attacker = Attacker or Entity( 0 )
+	Inflictor = Inflictor or Attacker
+	API:CallEvent( "onKill", Player, Attacker, Inflictor )
+end)
+
+/*==============================================================================================
+	Section: Damage.
+==============================================================================================*/
+Core:AddEvent( "onDamage", "e,e,n,v", "" )
+
+hook.Add("EntityTakeDamage", "LemonGate", function( Ent, Damage )
+	local Attacker = Damage:GetAttacker( ) or Entity( 0 )
+	local Damage = Damage:GetDamage( ) or 0
+	local Pos = Vector3( Damage:GetDamagePosition( ) or Vector( 0, 0, 0 ) )
+	API:CallEvent( "onDamage", Ent, Attacker, Damage, Pos )
+end)
+
+Core:AddEvent( "propBreak", "e,e", "" )
+
+hook.Add("PropBreak", "LemonGate", function( Attacker, Ent )
+	local Attacker = Attacker or Entity( 0 )
+	API:CallEvent( "propBreak", Ent, Attacker )
+end)
 
 /*==============================================================================================
 	Section: Player Input event.

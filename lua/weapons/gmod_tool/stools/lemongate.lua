@@ -16,7 +16,8 @@ CITRIS.Command 					= nil
 CITRIS.ConfigName 				= nil
 CITRIS.Tab						= "Wire"
 CITRIS.ClientConVar.Model 		= "models/mandrac/wire/e3.mdl"
-CITRIS.ClientConVar.WeldWorld 	= 0
+CITRIS.ClientConVar.Weldworld 	= 0
+CITRIS.ClientConVar.Frozen		= 0
 cleanup.Register( "lemongates" )
 
 /*==============================================================================================
@@ -185,6 +186,10 @@ if SERVER then
 				Constraint = constraint.Weld( Entity, WeldTo, 0, Trace.PhysicsBone, 0, 0, AllowWorld ) 
 			end
 			
+			if self:GetClientNumber("frozen") >= 1 then
+				Entity:GetPhysicsObject( ):EnableMotion( false )
+			end
+			
 			undo.Create("lemongate")
 				undo.AddEntity( Entity )
 				undo.SetPlayer( Player )
@@ -216,6 +221,7 @@ if CLIENT then
 		CPanel:AddControl( "Header", { Text = "#tool.lemongate.name", Description = "#tool.lemongate.help" }  )
 		CPanel:AddControl( "PropSelect", { Label = "Pick your lemon:", ConVar = "lemongate_model", Models = list.Get( "LemonGateModels" ), Height = 1 } )
 		CPanel:AddControl( "Checkbox", { Label = "Weld to world.", Command = "lemongate_weldworld" } )
+		CPanel:AddControl( "Checkbox", { Label = "Place frozen.", Command = "lemongate_frozen" } )
 		
 		/*******************************************************************/
 		

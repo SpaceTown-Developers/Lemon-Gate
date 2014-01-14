@@ -285,7 +285,7 @@ for Key, Value in pairs( value %1.Types ) do
 		%Result:Insert( nil, "n", Key )
 	elseif %IType == "string" then
 		%Result:Insert( nil, "s", Key )
-	elseif %IType == "entity" then
+	elseif %IType == "Entity" then
 		%Result:Insert( nil, "e", Key )
 	end
 end
