@@ -90,7 +90,7 @@ Core:AddOperator( "boolean", "n", "b", "(value %1 > 1)" )
 
 Core:AddOperator( "string", "n", "s", "$tostring(value %1)" )
 
-Core:AddOperator( "number", "s", "n", "$tonumber(value %1)" )
+Core:AddOperator( "number", "s", "n", "($tonumber(value %1) or 0)" )
 
 
 /*==============================================================================================

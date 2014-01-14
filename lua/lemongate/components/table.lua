@@ -345,6 +345,14 @@ for Key, Type, Value in value %2:Itorate( ) do
 end
 ]], LEMON_PREPARE_ONLY )
 
+Component:AddFunction( "concat", "t:s", "s", [[
+local %Result = { }
+
+for Key, Type, Value in value %1:Itorate( ) do
+	Context.Perf = Context.Perf + 0.1
+	table.insert( %Result, tostring( Value ) )
+end
+]], "string.Implode( value %2, %Result )" )
 /*==============================================================================================
 	Variant Index Operators
 ==============================================================================================*/
