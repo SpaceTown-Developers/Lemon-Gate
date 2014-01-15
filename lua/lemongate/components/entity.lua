@@ -578,7 +578,7 @@ Core:AddFunction( "vehicle", "e:", "e", "( ($IsValid(value %1) and value %1:IsPl
 
 Core:AddFunction( "isPlayer", "e:", "b", "($IsValid(value %1) and value %1:IsPlayer( ) and value %1:InVehicle() )" )
 
-Core:AddFunction( "inNoclip", "e:", "b", "($IsValid(value %1) and value %1:IsPlayer( ) and (value %1:GetMoveType() ~= $MOVETYPE_NOCLIP) )" )
+Core:AddFunction( "inNoclip", "e:", "b", "($IsValid(value %1) and value %1:IsPlayer( ) and (value %1:GetMoveType() == $MOVETYPE_NOCLIP) )" )
 
 Core:AddFunction( "flashLight", "e:", "b", "($IsValid(value %1) and value %1:IsPlayer( ) and value %1:FlashlightIsOn( ))" )
 

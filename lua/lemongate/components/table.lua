@@ -20,7 +20,7 @@ Table.__index = Table
 setmetatable( Table, Table )
 
 function Table.__call( )
-	return setmetatable( { Data = {}, Types = {}, Size = 0, Count = 0 }, Table )
+	return setmetatable( { Data = {}, Types = {}, Size = 0, Count = 0, Clk = true }, Table )
 end
 
 function Table.Results( Data, Type )
@@ -39,6 +39,7 @@ function Table:Set( Index, Type, Value )
 	Data[Index] = Value
 	self.Types[Index] = Type
 	
+	self.Clk = true
 	self.Count = #Data
 end
 
@@ -49,6 +50,7 @@ function Table:Insert( Index, Type, Value )
 	TableInsert( Data, Index, Value )
 	TableInsert( self.Types, Index, Type )
 	
+	self.Clk = true
 	self.Count = #Data
 	self.Size = self.Size + 1
 end
@@ -63,6 +65,7 @@ function Table:Remove( Index )
 	Data[Index] = nil
 	self.Types[Index] = nil
 	
+	self.Clk = true
 	self.Count = #Data
 end
 
@@ -76,6 +79,7 @@ function Table:Shift( Index )
 	TableRemove( Data, Index )
 	TableRemove( self.Types,Index )
 	
+	self.Clk = true
 	self.Count = #Data
 end
 
@@ -110,39 +114,155 @@ end
 local FromLua
 
 function FromLua( LuaTable )
-	local Data, Types = { }, { }
-	local Size, Count = 0, 0
+	error( "This function is abandoned!" )
+	-- local Data, Types = { }, { }
+	-- local Size, Count = 0, 0
 	
-	for Key, Value in pairs( LuaTable ) do
-		local Type = type( Value )
+	-- for Key, Value in pairs( LuaTable ) do
+		-- local Type = type( Value )
 		
-		if Type == "boolean" then
-			Data[ Key ], Types[ Key ] = Value, "b"
-			Size, Count = Size + 1, Count + 1
-		elseif Type == "number" then
-			Data[ Key ], Types[ Key ] = Value, "n"
-			Size, Count = Size + 1, Count + 1
-		elseif Type == "string" then
-			Data[ Key ], Types[ Key ] = Value, "s"
-			Size, Count = Size + 1, Count + 1
-		elseif Type == "Vector" then
-			Data[ Key ], Types[ Key ] = Vector3( Value.x, Value.y, Value.z ) , "v"
-			Size, Count = Size + 1, Count + 1
-		elseif Type == "Angle" then
-			Data[ Key ], Types[ Key ] = Angle( Value.p, Value.y, Value.r ) , "a"
-			Size, Count = Size + 1, Count + 1
-		elseif IsValid( Value ) then
-			Data[ Key ], Types[ Key ] = Value , "e"
-			Size, Count = Size + 1, Count + 1
-		elseif Type == "table" then
-			Value = FromLua( Value )
-			Data[ Key ], Types[ Key ] = Value , "t"
-			Size, Count = Size + Value.Size, Count + 1
+		-- if Type == "boolean" then
+			-- Data[ Key ], Types[ Key ] = Value, "b"
+			-- Size, Count = Size + 1, Count + 1
+		-- elseif Type == "number" then
+			-- Data[ Key ], Types[ Key ] = Value, "n"
+			-- Size, Count = Size + 1, Count + 1
+		-- elseif Type == "string" then
+			-- Data[ Key ], Types[ Key ] = Value, "s"
+			-- Size, Count = Size + 1, Count + 1
+		-- elseif Type == "Vector" then
+			-- Data[ Key ], Types[ Key ] = Vector3( Value.x, Value.y, Value.z ) , "v"
+			-- Size, Count = Size + 1, Count + 1
+		-- elseif Type == "Angle" then
+			-- Data[ Key ], Types[ Key ] = Angle( Value.p, Value.y, Value.r ) , "a"
+			-- Size, Count = Size + 1, Count + 1
+		-- elseif IsValid( Value ) then
+			-- Data[ Key ], Types[ Key ] = Value , "e"
+			-- Size, Count = Size + 1, Count + 1
+		-- elseif Type == "table" then
+			-- Value = FromLua( Value )
+			-- Data[ Key ], Types[ Key ] = Value , "t"
+			-- Size, Count = Size + Value.Size, Count + 1
+		-- end
+	-- end
+	
+	-- return setmetatable( { Data = Data, Types = Types, Size = Size, Count = Count }, Table )
+end; -- Table.From = FromLua
+
+/*==============================================================================================
+	E2 Convertor
+==============================================================================================*/
+local DEFAULT = { n = { }, ntypes = { }, s = { }, stypes = { }, e = { }, etypes = { }, size = 0 }
+
+local ToE2, FromE2
+
+local function ToE2( Context, Table )
+	local Converted = table.Copy( DEFAULT )
+	local Cache = { }
+	
+	for Key, Type, Value in Table:Itorate( ) do
+		Context.Perf = Context.Perf + 0.1
+		Converted.size = Converted.size + 1
+		
+		if Type == "v" then
+			Value = { Value.x, value.y, value.z }
+		elseif Type == "v2" then
+			Value, Type = { Value.x, value.y }, "v2"
+		elseif Type == "c" then
+			Value, Type = table.Copy( Value ), "v4"
+		elseif Type == "t" then
+			Cache[ Value ] = Cache[ Value ] or ToE2( Context, Value )
+			Value = Cache[ Value ]
+		elseif Type == "h" then
+			Type = "e"
+		elseif Type == "f" or Type == "tr" or Type == "sd" then
+			continue
+		end
+		
+		local IType = type( Key )
+		
+		if IType == "number" then
+			Converted.n[Key] = Value
+			Converted.ntypes[Key] = Type
+		elseif IType == "string" then
+			Converted.s[Key] = Value
+			Converted.stypes[Key] = Type
+		elseif IType == "Entity" then
+			Converted.e[Key] = Value
+			Converted.etypes[Key] = Type
 		end
 	end
 	
-	return setmetatable( { Data = Data, Types = Types, Size = Size, Count = Count }, Table )
-end; Table.From = FromLua
+	return Converted
+end
+
+function FromE2( Context, ETable )
+	local Converted = Table( )
+	local Cache = { }
+	
+	Converted.Count = ETable.size
+	
+	for Key, Value in pairs( ETable.n ) do
+		Context.Perf = Context.Perf + 0.1
+		
+		local Type = ETable.ntypes[Key]
+		
+		if Type == "v" then
+			Value = Vector3( Value[1], Value[2], Value[3] )
+		elseif Type == "xv2" then
+			Value, Type = Vector2( Value[1], Value[2]), "v2"
+		elseif Type == "xv4" then
+			Value, Type = table.Copy( Value ), "c"
+		elseif Type == "t" then
+			Cache[ Value ] = Cache[ Value ] or FromE2( Context, Value )
+			Value = Cache[ Value ]
+		end
+		
+		Converted:Set( Key, Type, Value )
+	end
+	
+	for Key, Value in pairs( ETable.s ) do
+		Context.Perf = Context.Perf + 0.1
+		
+		local Type = ETable.stypes[Key]
+		
+		if Type == "v" then
+			Value = Vector3( Value[1], Value[2], Value[3] )
+		elseif Type == "xv2" then
+			Value, Type = Vector2( Value[1], Value[2]), "v2"
+		elseif Type == "xv4" then
+			Value, Type = table.Copy( Value ), "c"
+		elseif Type == "t" then
+			Cache[ Value ] = Cache[ Value ] or FromE2( Context, Value )
+			Value = Cache[ Value ]
+		end
+		
+		Converted:Set( Key, Type, Value )
+	end
+	
+	if ETable.e then
+		for Key, Value in pairs( ETable.e ) do
+		Context.Perf = Context.Perf + 0.1
+		
+		local Type = ETable.etypes[Key]
+		
+		if Type == "v" then
+			Value = Vector3( Value[1], Value[2], Value[3] )
+		elseif Type == "xv2" then
+			Value, Type = Vector2( Value[1], Value[2]), "v2"
+		elseif Type == "xv4" then
+			Value, Type = table.Copy( Value ), "c"
+		elseif Type == "t" then
+			Cache[ Value ] = Cache[ Value ] or FromE2( Context, Value )
+			Value = Cache[ Value ]
+		end
+		
+		Converted:Set( Key, Type, Value )
+		end
+	end
+	
+	return Converted
+end
 
 /*==============================================================================================
 	Table Component
@@ -157,30 +277,32 @@ function Component:GetMetaTable( )
 	return Table
 end
 
-/*==============================================================================================
-	Register WireType
-==============================================================================================*/
-WireLib.DT.LTABLE = {
-	Zero = setmetatable( { 
-		Data = {},
-		Types = {},
-		Size = 0,
-		Count = 0,
-		Set = function( ) end,
-		Insert = function( ) end
-	}, Table )
-} -- Table must not be writable.
+-- /*==============================================================================================
+	-- Register WireType
+-- ==============================================================================================*/
+-- WireLib.DT.LTABLE = { DEPRICATED!
+	-- Zero = setmetatable( { 
+		-- Data = {},
+		-- Types = {},
+		-- Size = 0,
+		-- Count = 0,
+		-- Set = function( ) end,
+		-- Insert = function( ) end
+	-- }, Table )
+-- } -- Table must not be writable.
 
 /*==============================================================================================
 	Table Class
 ==============================================================================================*/
 local Class = Component:NewClass( "t", "table" )
 
-Class:Wire_Name( "LTABLE" )
+Class:Wire_Name( "TABLE" ) -- ( "LTABLE" )
 
-function Class.Wire_Out( Context, Cell ) return Context.Memory[ Cell ] or 0 end
+Class.OutClick = true
 
-function Class.Wire_In( Context, Cell, Value ) Context.Memory[ Cell ] = Value end
+function Class.Wire_Out( Context, Cell ) return ToE2( Context, Context.Memory[ Cell ] or Table( ) ) end
+
+function Class.Wire_In( Context, Cell, Value ) Context.Memory[ Cell ] = FromE2( Context, Value ) end
 
 Class:UsesMetaTable( Table )
 
@@ -254,8 +376,8 @@ for Key, Type, Value in value %1:Itorate( ) do
 		%Result = Value
 	end
 end
-
-%util = { %Key or 0, $type( %Key or 0 ):sub(1,1):lower( ) }
+local %Type = $type( %Key or 0 ):sub(1,1):lower( )
+%util = { %Key or 0, %Type ~= "p" and %Type or "e" }
 ]], "%util" )
 
 Component:AddFunction( "maxIndex", "t:", "?", [[
@@ -270,7 +392,8 @@ for Key, Type, Value in value %1:Itorate( ) do
 	end
 end
 
-%util = { %Key or 0, $type( %Key or 0 ):sub(1,1):lower( ) }
+local %Type = $type( %Key or 0 ):sub(1,1):lower( )
+%util = { %Key or 0, %Type ~= "p" and %Type or "e" }
 ]], "%util" )
 
 Component:AddFunction( "keys", "t:", "t", [[
@@ -285,7 +408,7 @@ for Key, Value in pairs( value %1.Types ) do
 		%Result:Insert( nil, "n", Key )
 	elseif %IType == "string" then
 		%Result:Insert( nil, "s", Key )
-	elseif %IType == "Entity" then
+	elseif %IType == "Entity" or %IType == "Player" then
 		%Result:Insert( nil, "e", Key )
 	end
 end
@@ -314,7 +437,7 @@ for Key, Value in pairs( value %1.Types ) do
 			%Result:Set( value %1.Data[ Key ], "n", Key )
 		elseif %IType == "string" then
 			%Result:Set( value %1.Data[ Key ], "s", Key )
-		elseif %IType == "entity" then
+		elseif %IType == "Entity" or %IType == "Player" then
 			%Result:Set( value %1.Data[ Key ], "e", Key )
 		end
 	end
@@ -469,6 +592,10 @@ do
 		%context:PushPerf( %trace, ]] .. LEMON_PERF_ABNORMAL .. [[ )
 		
 		local KeyType = $type( Key )[1]
+		
+		if KeyType == "E" or KeyType == "P" then
+			KeyType = "e"
+		end
 		
 		if VType ~= Type and VType ~= "?" then
 			continue

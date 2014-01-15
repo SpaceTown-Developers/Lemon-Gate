@@ -83,11 +83,18 @@ function Lemon:LoadInstance( Inst )
 		I = I + 1
 	end
 	
+	local OutClick = { }
 	local ONames, OTypes, I = { }, { }, 1
 	for Variable, Ref in pairs( Inst.OutPorts ) do
 		local Cell = Inst.Cells[ Ref ]
 		ONames[ I ] = Variable
 		OTypes[ I ] = Cell.Class.WireName
+		
+		if Cell.Class.OutClick then
+			print( "OutClick", Variable, Ref )
+			OutClick[ Ref ] = Variable
+		end
+		
 		I = I + 1
 	end
 	
@@ -96,6 +103,7 @@ function Lemon:LoadInstance( Inst )
 	
 	self.InPorts   = Inst.InPorts
 	self.OutPorts  = Inst.OutPorts
+	self.OutClick  = OutClick
 	self.Cells     = Inst.Cells
 	
 	for Variable, Port in pairs( self.Inputs ) do
@@ -303,9 +311,17 @@ function Lemon:TriggerOutputs( )
 		local Context = self.Context
 		
 		for Name, Ref in pairs( self.OutPorts ) do
+			local Class = self.Cells[ Ref ].Class
 			if Context.Click[ Ref ] then
-				local Value = self.Cells[ Ref ].Class.Wire_Out( Context, Ref )
+				local Value = Class.Wire_Out( Context, Ref )
 				WireLib.TriggerOutput( self, Name, Value )
+			elseif self.OutClick[ Ref ] then
+				local Val = Context.Memory[ Ref ]
+				if Val then //and Val.Click then
+					Val.Click = nil
+					local Value = Class.Wire_Out( Context, Ref )
+					WireLib.TriggerOutput( self, Name, Value )
+				end
 			end
 		end
 	end

@@ -86,7 +86,11 @@ else
 			end
 			
 			Player:ConCommand( Command:gsub( "%%", "%%%%" ) )
+			
+			return true
 		end
+		
+		return false
 	end )
 	
 	Component:SetPerf( LEMON_PERF_EXPENSIVE )

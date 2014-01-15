@@ -556,7 +556,7 @@ end]], "" )
 
 Component:AddFunction("jiggleBone", "h:n,b", "", [[
 if $IsValid( value %1 ) and value %1.Player == %context.Player then
-	if value %1:SetUpBoneJiggle( value %2, value %3= ) then
+	if value %1:SetUpBoneJiggle( value %2, value %3 ) then
 		%HoloLib.QueueHologram( value %1 )
 	end
 end]], "" )
