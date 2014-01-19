@@ -252,7 +252,9 @@ function Compiler:StringToken( StrChar )
 
 	if self.Char and self.Char == StrChar then
 		self:SkipChar()
-
+		
+		self.ReadData = string.gsub( self.ReadData, "%%", "%%%%" )
+		
 		return self:NewToken( "str", "String" )
 	end
 

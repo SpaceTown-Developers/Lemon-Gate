@@ -73,6 +73,9 @@ Core:AddFunction( "voidEntity", "", "e", "%NULL_ENTITY" )
 
 Core:AddFunction( "id", "e:", "n", "value %1:EntIndex( )" )
 
+
+Core:AddFunction( "playerID", "e:", "n", "(value %1:IsPlayer( ) and value %1:UserID( ) or 0)" )
+
 /*==============================================================================================
 	Section: Position and angles
 ==============================================================================================*/

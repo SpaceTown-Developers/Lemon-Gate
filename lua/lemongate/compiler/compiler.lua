@@ -466,17 +466,15 @@ end
 /*==============================================================================================
 	Section: Vars
 ==============================================================================================*/
-local Constants = LEMON.API.Constants
-
 function Compiler:GetConstant( Trace, Variable )
-	local Constant = Constants[ Variable ]
+	local Constant = LEMON.API.Constants[ Variable ]
 	return self:FakeInstr( Trace, Constant.Return, Constant.Inline )
 end
 
 function Compiler:Compile_VARIABLE( Trace, Variable )
 	local Ref, Class = self:GetVariable( Trace, Variable )
 	
-	if !Ref and Constants[Variable] then
+	if !Ref and LEMON.API.Constants[Variable] then
 		return self:GetConstant( Trace, Variable )
 	elseif !Ref then
 		self:TraceError( Trace, "Variable %s does not exist", Variable )
@@ -495,7 +493,7 @@ function Compiler:Compile_INCREMENT( Trace, Variable, Second )
 	local Ref, Class = self:GetVariable( Trace, Variable )
 	
 	if !Ref then
-		if Constants[Variable] then self:TraceError( Trace, "Increment operator (++) can not reach Constant %s", Variable ) end
+		if LEMON.API.Constants[Variable] then self:TraceError( Trace, "Increment operator (++) can not reach Constant %s", Variable ) end
 		self:TraceError( Trace, "Variable %s does not exist", Variable )
 	elseif self:IsInput( Trace, Ref ) then
 		self:TraceError( Trace, "Increment operator (++) can not reach Inport %s", Variable )
@@ -512,7 +510,7 @@ end
 function Compiler:Compile_DECREMENT( Trace, Variable, First )
 	local Ref, Class = self:GetVariable( Trace, Variable )
 	if !Ref then
-		if Constants[Variable] then self:TraceError( Trace, "Decrement operator (--) can not reach Constant %s", Variable ) end
+		if LEMON.API.Constants[Variable] then self:TraceError( Trace, "Decrement operator (--) can not reach Constant %s", Variable ) end
 		self:TraceError( Trace, "Variable %s does not exist", Variable )
 	elseif self:IsInput( Trace, Ref ) then
 		self:TraceError( Trace, "Decrement operator (--) can not reach Inport %s", Variable )
@@ -530,7 +528,7 @@ function Compiler:Compile_DELTA( Trace, Variable )
 	local Ref, Class = self:GetVariable( Trace, Variable )
 	
 	if !Ref then
-		if Constants[Variable] then self:TraceError( Trace, "Delta operator ($) can not reach Constant %s", Variable ) end
+		if LEMON.API.Constants[Variable] then self:TraceError( Trace, "Delta operator ($) can not reach Constant %s", Variable ) end
 		self:TraceError( Trace, "Variable %s does not exist", Variable )
 	end
 	
@@ -546,7 +544,7 @@ function Compiler:Compile_TRIGGER( Trace, Variable )
 	local Ref, Class = self:GetVariable( Trace, Variable )
 	
 	if !Ref then
-		if Constants[Variable] then self:TraceError( Trace, "Changed operator (~) can not reach Constant %s", Variable ) end
+		if LEMON.API.Constants[Variable] then self:TraceError( Trace, "Changed operator (~) can not reach Constant %s", Variable ) end
 		self:TraceError( Trace, "Variable %s does not exist", Variable )
 	end
 	

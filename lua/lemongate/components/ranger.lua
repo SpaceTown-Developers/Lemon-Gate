@@ -98,11 +98,17 @@ end
 
 Component:AddExternal( "Ranger", Ranger )
 
+function Component:GetMetaTable( )
+	return Ranger
+end
+
 /*==============================================================================================
 	Section: Class
 ==============================================================================================*/
 
 local Class = Component:NewClass( "rd", "ranger" )
+
+Class:UsesMetaTable( Ranger )
 
 Component:SetPerf( LEMON_PERF_NORMAL )
 

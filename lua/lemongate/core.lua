@@ -583,6 +583,8 @@ function API:InstallComponents( )
 			Comp:LoadConstants( )
 		end
 		
+		include( "lemongate/e2.lua" )
+		
 	elseif CLIENT then
 	
 		local DataPack = self.DataPack

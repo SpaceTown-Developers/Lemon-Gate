@@ -76,7 +76,7 @@ net.Receive( "lemon_request_file", function( Bytes )
 	
 	if !file.Exists( File_Path, "DATA" ) then
 		Status = FILE_404
-	elseif file.Size( File_Path, "DATA" ) <= ( MaxSize:GetInt() * 1024 ) then
+	elseif file.Size( File_Path, "DATA" ) >= ( MaxSize:GetInt() * 1024 ) then
 		Status = FILE_TRANSFER_ERROR
 	else
 		Chunks = GetChunks( file.Read( File_Path, "DATA" ), Chunk_Size )
@@ -161,7 +161,7 @@ net.Receive( "lemon_file_chunk", function( Bytes )
 			
 			net.Start( "lemon_file_status" )
 				net.WriteUInt( ID, 16 )
-				net.WriteUInt( FILE_404, 16 )
+				net.WriteUInt( FILE_OK, 16 ) -- Was 404, no idea why?
 			net.SendToServer( )
 		
 			Incomming[ ID ] = nil

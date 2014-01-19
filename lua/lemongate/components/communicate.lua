@@ -10,6 +10,7 @@ Component:AddException( "buffer" )
 
 /*==============================================================================================
 	Section: Buffer Class
+		TODO: Move internal types to e2.
 ==============================================================================================*/
 local Buffer = Component:NewClass( "bf", "buffer", { Cells = { }, Types = { }, R = 0, W = 0 } )
 
@@ -148,7 +149,7 @@ Component:AddFunction( "readPos", "bf", "n", "(value %1.R)" )
 
 -- Misc:
 
-Component:AddFunction( "type", "bf:", "s", "local %Buffer = value %1", "%LongType( %Buffer.Types[ %Buffer.R ] )" )
+Component:AddFunction( "type", "bf:", "s", "local %Buffer = value %1", "%LongType( %Buffer.Types[ %Buffer.R + 1 ] )" )
 
 Component:AddFunction( "type", "bf:n", "s", "%LongType( value %1.Types[ value %2 ] )" )
 

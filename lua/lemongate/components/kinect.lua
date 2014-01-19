@@ -8,12 +8,23 @@ AddCSLuaFile( )
 	Client Side Stuffs!
 ==============================================================================================*/
 if CLIENT then
-	CreateClientConVar( "lemon_kinect_status", 0, false, true )
-	CreateClientConVar( "lemon_kinect_allow", 0, true, true )
+						CreateClientConVar( "lemon_kinect_allow", 0, true, true )
+	local Cvar_Status = CreateClientConVar( "lemon_kinect_status", 0, false, true )
 	
 	timer.Create( "Lemon_Kinect", 0.5, 0, function( )
-		local Status = ( motionsensor.IsAvailable( ) and 1 or 0 ) + ( motionsensor.IsActive( ) and 1 or 0 )
-		RunConsoleCommand( "lemon_kinect_status", Status )
+		local Status = 0
+		
+		if motionsensor.IsAvailable( ) then
+			Status = 1
+			
+			if motionsensor.IsActive( ) then
+				Status = 2
+			end
+		end
+		
+		if Status ~= Cvar_Status:GetInt( ) then
+			RunConsoleCommand( "lemon_kinect_status", Status )
+		end
 	end )
 	
 	return -- Client stuff is done!

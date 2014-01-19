@@ -91,7 +91,6 @@ function Lemon:LoadInstance( Inst )
 		OTypes[ I ] = Cell.Class.WireName
 		
 		if Cell.Class.OutClick then
-			print( "OutClick", Variable, Ref )
 			OutClick[ Ref ] = Variable
 		end
 		
@@ -317,7 +316,7 @@ function Lemon:TriggerOutputs( )
 				WireLib.TriggerOutput( self, Name, Value )
 			elseif self.OutClick[ Ref ] then
 				local Val = Context.Memory[ Ref ]
-				if Val then //and Val.Click then
+				if Val and Val.Click then
 					Val.Click = nil
 					local Value = Class.Wire_Out( Context, Ref )
 					WireLib.TriggerOutput( self, Name, Value )
