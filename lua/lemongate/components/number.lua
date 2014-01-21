@@ -199,42 +199,39 @@ Core:AddFunction( "exp", "n", "n", "(math.exp(value %1))" )
 	Section: Trig
 ==============================================================================================*/
 Core:SetPerf( LEMON_PERF_CHEAP )
+Core:AddFunction( "pi", "", "n", "math.pi" )
 
-Core:AddExternal( "pi", math.pi )
-Core:AddExternal( "tau", 6.283185307179586 )
-
-Core:AddFunction( "pi", "", "n", "%pi" )
-Core:AddFunction( "tau", "", "n", "%tau" )
+Core:AddExternal( "deg2rad", math.pi / 180 )
+Core:AddExternal( "rad2deg", 180 / math.pi )
 
 Core:SetPerf( LEMON_PERF_NORMAL )
+Core:AddFunction( "toRad", "n", "n", "(value %1 * %deg2rad)" )
+Core:AddFunction( "toDeg", "n", "n", "(value %1 * %rad2deg)" )
 
-Core:AddFunction( "toRad", "n", "n", "(value %1 * (%tau / 360))" )
-Core:AddFunction( "toDeg", "n", "n", "(value %1 * (360 / %tau))" )
+Core:SetPerf( LEMON_PERF_ABNORMAL ) -- Arent these a little expensive?
 
-Core:SetPerf( LEMON_PERF_ABNORMAL )
+Core:AddFunction( "acos", "n", "n", "(math.acos(value %1) * %rad2deg)" )
+Core:AddFunction( "asin", "n", "n", "(math.asin(value %1) * %rad2deg)" )
+Core:AddFunction( "atan", "n", "n", "(math.atan(value %1) * %rad2deg)" )
+Core:AddFunction( "atan", "n,n", "n", "(math.atan(value %1, value %2) * %rad2deg)" )
 
-Core:AddFunction( "acos", "n", "n", "(math.acos(value %1) * (360 / %tau))" )
-Core:AddFunction( "asin", "n", "n", "(math.asin(value %1) * (360 / %tau))" )
-Core:AddFunction( "atan", "n", "n", "(math.atan(value %1) * (360 / %tau))" )
-Core:AddFunction( "atan", "n,n", "n", "(math.atan(value %1, value %2) * (360 / %tau))" )
+Core:AddFunction( "cos", "n", "n", "math.cos(value %1 * %deg2rad)" )
+Core:AddFunction( "sec", "n", "n", "(1 / math.cos(value %1 * %deg2rad))" )
 
-Core:AddFunction( "cos", "n", "n", "math.cos(value %1 * (%tau / 360))" )
-Core:AddFunction( "sec", "n", "n", "(1 / math.cos(value %1 * (%tau / 360)))" )
+Core:AddFunction( "sin", "n", "n", "math.sin(value %1 * %deg2rad)" )
+Core:AddFunction( "csc", "n", "n", "(1 / math.sin(value %1 * %deg2rad))" )
 
-Core:AddFunction( "sin", "n", "n", "math.sin(value %1 * (%tau / 360))" )
-Core:AddFunction( "csc", "n", "n", "(1 / math.sin(value %1 * (%tau / 360)))" )
+Core:AddFunction( "tan", "n", "n", "math.tan(value %1 * %deg2rad)" )
+Core:AddFunction( "cot", "n", "n", "(1 / math.tan(value %1 * %deg2rad))" )
 
-Core:AddFunction( "tan", "n", "n", "math.tan(value %1 * (%tau / 360))" )
-Core:AddFunction( "cot", "n", "n", "(1 / math.tan(value %1 * (%tau / 360)))" )
+Core:AddFunction( "cosh", "n", "n", "math.cosh(value %1)" )
+Core:AddFunction( "sech", "n", "n", "(1 / math.cosh(value %1))" )
 
-Core:AddFunction( "cosh", "n", "n", "math.cosh(value %1 * (%tau / 360))" )
-Core:AddFunction( "sech", "n", "n", "(1 / math.cosh(value %1 * (%tau / 360)))" )
+Core:AddFunction( "sinh", "n", "n", "math.sinh(value %1)" )
+Core:AddFunction( "csch", "n", "n", "(1 / math.sinh(value %1))" )
 
-Core:AddFunction( "sinh", "n", "n", "math.sinh(value %1 * (%tau / 360))" )
-Core:AddFunction( "csch", "n", "n", "(1 / math.sinh(value %1 * (%tau / 360)))" )
-
-Core:AddFunction( "tanh", "n", "n", "math.tanh(value %1 * (%tau / 360))" )
-Core:AddFunction( "coth", "n", "n", "(1 / math.tanh(value %1 * (%tau / 360)))" )
+Core:AddFunction( "tanh", "n", "n", "math.tanh(value %1)" )
+Core:AddFunction( "coth", "n", "n", "(1 / math.tanh(value %1))" )
 
 Core:AddFunction( "acosr", "n", "n", "math.acos(value %1)" )
 Core:AddFunction( "asinr", "n", "n", "math.asin(value %1)" )
@@ -267,7 +264,7 @@ Core:AddFunction( "log10", "n", "n", "math.log10(value %1)" )
 
 Core:AddFunction( "log", "n,n", "n", "(math.log(value %1) / math.log(value %2))" )
 
-Core:AddFunction("mix", "n,n,n", "n", "(value %1 * value %3 + value %2 * (1 - value %3))", LEMON_INLINE_ONLY )
+Core:AddFunction("mix", "n,n,n", "n", "(value %1 * value %3 + value %2 * (1 - value %3))" )
 
 /*==============================================================================================
 	Section: BINARY
@@ -278,3 +275,11 @@ Core:AddOperator( "|" , "n,n", "n", "bit.bor(value %1, value %2)" )
 Core:AddOperator( "^^", "n,n", "n", "bit.bxor(value %1, value %2)" )
 Core:AddOperator( ">>", "n,n", "n", "bit.rshift(value %1, value %2)" )
 Core:AddOperator( "<<", "n,n", "n", "bit.lshift(value %1, value %2)" )
+
+
+/*==============================================================================================
+	Section: CONSTANTS
+==============================================================================================*/
+Core:AddConstant( "PI", "n", "math.pi" )
+Core:AddConstant( "PHI", "n", "((1 + math.sqrt(5)) / 2)" )
+Core:AddConstant( "E", "n", "math.exp(1)" )

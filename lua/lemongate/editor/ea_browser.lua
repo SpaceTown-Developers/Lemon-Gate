@@ -10,6 +10,8 @@ local gradient_down = Material( "vgui/gradient-u" )
 local PANEL = {}
 
 function PANEL:Init( )
+	ErrorNoHalt( "EA_FILEBROWSER is obsolete, this should not happen." )
+	
 	self.Items = { }
 	
 	self.Browser = self:Add( "DTree" )

@@ -39,15 +39,15 @@ function PANEL:SetupButton( sName, mMaterial, nDock, fDoClick )
 end 
 
 function PANEL:Init( ) 
-	self:AddFileColapse( )
-	self:AddTabNamer( )
-	
 	self.btnSave = self:SetupButton( "Save", Material( "fugue/disk.png" ), LEFT )
 	self.btnSaveAs = self:SetupButton( "Save As", Material( "fugue/disks.png" ), LEFT )
+	self.btnOpen = self:SetupButton( "Open", Material( "fugue/blue-folder-horizontal-open.png" ), LEFT )
 	self.btnNewTab = self:SetupButton( "New tab", Material( "fugue/script--plus.png" ), LEFT )
 	self.btnCloseTab = self:SetupButton( "Close tab", Material( "fugue/script--minus.png" ), LEFT ) 
 	self.btnUploadPaste = self:SetupButton( "Upload code to pastebin", Material( "fugue/drive-upload.png" ), LEFT )
 	self.btnFind = self:SetupButton( "Find in code", Material( "fugue/binocular.png" ), LEFT )
+	
+	self:AddTabNamer( )
 	
 	self.btnOptions = self:SetupButton( "Options", Material( "fugue/gear.png" ), RIGHT )
 	self.btnHelp = self:SetupButton( "Open helper", Material( "fugue/question.png" ), RIGHT )
@@ -80,6 +80,10 @@ function PANEL:Init( )
 	else
 		hook.Add( "GComputeLoaded", "LemonGate", AddDebugIcon )
 	end
+	
+	function self.btnOpen:DoClick( )
+		self:GetParent( ):GetParent( ):ShowOpenFile( ) 
+	end 
 	
 	function self.btnSave:DoClick( )
 		self:GetParent( ):GetParent( ):SaveFile( true ) 
@@ -137,27 +141,6 @@ function PANEL:Init( )
 		self:GetParent( ):GetParent( ).TabHolder:GetActiveTab( ):GetPanel( ).Search:FunctionKey( )
 	end
 	
-end
-
-function PANEL:AddFileColapse( )
-	self.BrowserFolding = self:SetupButton( "Toggle file browser.", Material( "fugue/application-sidebar-collapse.png" ), LEFT )
-	self.BrowserFolding.Expanded = true
-	
-	self.BrowserFolding.DoClick = function( btn )
-		if btn.Expanded then
-			btn.Expanded = false
-			btn:SetMaterial( Material( "fugue/application-sidebar-expand.png" ) )
-			self:GetParent( ).Browser:SizeTo( 0, -1, 1, 0, 1 )
-			self:GetParent( ).BrowserRefresh:SizeTo( 0, -1, 1, 0, 1 )
-			self:GetParent( ).Browser:DockMargin( 0, self:GetParent( ).BrowserRefresh:GetTall( ) + 10, 0, 5 )
-		else
-			btn.Expanded = true
-			btn:SetMaterial( Material( "fugue/application-sidebar-collapse.png" ) )
-			self:GetParent( ).BrowserRefresh:SizeTo( 200, -1, 1, 0, 1 )
-			self:GetParent( ).Browser:SizeTo( 200, -1, 1, 0, 1 )
-			self:GetParent( ).Browser:DockMargin( 5, self:GetParent( ).BrowserRefresh:GetTall( ) + 10, 0, 5 )
-		end
-	end
 end
 
 function PANEL:AddTabNamer( )

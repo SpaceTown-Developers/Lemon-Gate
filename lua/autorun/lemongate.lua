@@ -18,7 +18,8 @@ if SERVER then
 	AddCSLuaFile( "lemongate/compiler/init.lua" )
 	
 	AddCSLuaFile( "lemongate/editor/ea_button.lua" )
-	AddCSLuaFile( "lemongate/editor/ea_browser.lua" )
+	AddCSLuaFile( "lemongate/editor/ea_browser.lua" ) -- TODO: Delte this!
+	AddCSLuaFile( "lemongate/editor/ea_filemenu.lua" )
 	AddCSLuaFile( "lemongate/editor/ea_closebutton.lua" )
 	AddCSLuaFile( "lemongate/editor/ea_editor.lua" )
 	AddCSLuaFile( "lemongate/editor/ea_editorpanel.lua" )

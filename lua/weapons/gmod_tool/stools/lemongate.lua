@@ -225,43 +225,25 @@ if CLIENT then
 		
 		/*******************************************************************/
 		
-		local FileBrowser = vgui.Create( "DTree", CPanel )
-		FileBrowser.DoClick = function( _, Node ) 
-			local Dir = Node:GetFileName() or ""
+		local OpenFile = vgui.Create( "DButton" )
+		OpenFile:SetText( "Open File" )
+		OpenFile.DoClick = function(button)
+			local FileMenu = vgui.Create( "EA_FileMenu" )
+			FileMenu:Center( )
+			FileMenu:MakePopup( )
 			
-			if !string.EndsWith( Dir, ".txt" ) then return end 
-			
-			if Node.LastClick and CurTime() - Node.LastClick < 0.5 then 
-				LEMON.Editor.Open( ) 
-				LEMON.Editor.GetInstance( ):LoadFile( Dir )
-				Node.LastClick = 0
-				return true 
-			end 
-			
-			Node.LastClick = CurTime() 
-		end 
-
-		local LemonNode = vgui.Create( "DTree_Node" )
-		FileBrowser.RootNode:InsertNode( LemonNode )
-		LemonNode:SetText( "LemonGate" ) 
-		LemonNode:MakeFolder( "lemongate", "DATA", true )  
-		LemonNode:SetExpanded( true ) 
-
-		FileBrowser:SetSize( CPanel:GetWide( ), 300 )
-		CPanel:AddItem( FileBrowser )
-
-		/*******************************************************************/
-
-		local BrowserRefresh = vgui.Create( "DButton" )
-		BrowserRefresh:SetText( "Update" )
-		BrowserRefresh.DoClick = function( ) 
-			LemonNode.ChildNodes:Remove()
-			LemonNode.ChildNodes = nil
-			LemonNode:CreateChildNodes()
-			LemonNode:SetNeedsPopulating( true )
-			LemonNode:PopulateChildrenAndSelf( true )
+			function FileMenu:DoLoadFile( Path, FileName )
+				print( "DoLoadFile:", Path, FileName )
+				
+				if string.EndsWith( FileName, ".txt" ) then
+					LEMON.Editor.Open( )
+					LEMON.Editor.GetInstance( ):LoadFile( Path .. "/" .. FileName )
+					
+					return true
+				end
+			end
 		end
-
+		
 		local OpenEditor = vgui.Create( "DButton" )
 		OpenEditor:SetText( "Open Editor" )
 		OpenEditor.DoClick = function(button)
@@ -273,7 +255,8 @@ if CLIENT then
 		NewExpression.DoClick = function(button)
 			LEMON.Editor.Open( nil, true )
 		end
-
+		
+		CPanel:AddItem( OpenFile )
 		CPanel:AddItem( BrowserRefresh )
 		CPanel:AddItem( OpenEditor )
 		CPanel:AddItem( NewExpression )

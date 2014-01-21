@@ -55,16 +55,18 @@ end )
 local HomeScreen = [[/*====================================================================
 	Expression Advanced:
 		* Con-commands added!
+		* Trig functions fixed!
 		* File functions are back!
 		* Ops rebalance in progress.
 		* Check out our new repo browser!
-		* You can now change editor font in the options menu.
 	
 	Editor Changes:
+		* New Open/Save menu.
 		* Script Name Changer (not file name).
 		* Find in code, *prototype* (ctrl + f).
 		* Bookmark keys (f2 and ctrl + f2 )
 		* Pastebin.com uploader.
+		* You can now change editor font in the options menu.
 		
 	Check Out Video Tutorials:
 		* https://www.youtube.com/watch?v=GzNsCWORiRw

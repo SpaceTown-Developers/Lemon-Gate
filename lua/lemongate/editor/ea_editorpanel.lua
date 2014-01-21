@@ -117,123 +117,6 @@ function PANEL:Init( )
 		self.ToolBar.pnlName.txt:SetText( Current:GetText( ) )
 	end
 	
-	self.Browser = self:Add( "DTree" )
-	self.Browser:Dock( LEFT )
-	self.Browser:DockMargin( 5, 5, 0, 40 )
-	self.Browser:SetWide( 200 )
-	
-	self.Browser.Paint = function( _, w, h )
-		surface.SetDrawColor( 100, 100, 100, 255 )
-		surface.DrawRect( 0, 0, w, h )
-		
-		surface.SetDrawColor( 75, 75, 75 )
-		surface.SetMaterial( gradient_down )
-		surface.DrawTexturedRect( 0, 0, w, h )
-		return true
-	end
-	
-	self.Browser.DoClick = function( _, Node )
-		local Dir = Node:GetFileName( ) or ""
-		
-		if !string.EndsWith( Dir, ".txt" ) then return end
-		
-		if Node.LastClick and CurTime( ) - Node.LastClick < 0.5 then
-			self:LoadFile( Dir )
-			Node.LastClick = 0
-			return true
-		end
-		
-		Node.LastClick = CurTime( )
-	end
-	
-	-- [[ TODO: Finish up all these options
-	self.Browser.DoRightClick = function( _, Node )
-		if Node then
-			if IsValid( self.Browser.m_pSelectedItem ) then
-				self.Browser.m_pSelectedItem:SetSelected( false )
-			end
-			
-			self.Browser.m_pSelectedItem = Node
-			Node:SetSelected( true )
-			
-			local Dir = Node:GetFileName( ) or ""
-			if string.EndsWith( Dir, ".txt" ) then
-				// File
-				local Menu = DermaMenu( )
-				
-				Menu:AddOption( "Open", function( ) self:LoadFile( Dir ) end )
-				
-				Menu:AddSpacer( )
-				
-				-- Menu:AddOption( "Copy", function( ) end )
-				-- Menu:AddOption( "Move", function( ) end )
-				-- Menu:AddOption( "Rename", function( ) end )
-				
-				-- Menu:AddSpacer( )
-				
-				Menu:AddOption( "New File", function( ) self:NewTab( ) end )
-				Menu:AddOption( "New Folder", function( )
-					Derma_StringRequest( "Create new folder", "", "new folder",
-					function( result )
-						file.CreateDir( "lemongate/" .. result )
-					end )
-				end )
-				Menu:AddOption( "Delete", function( ) 
-					Derma_Query( "Do you realy want to delete " .. Dir, "Delete file?", "Yes", function( ) file.Delete( Dir ) timer.Simple( 0, function( ) self:Update( ) end ) end, "No", function( ) end )
-				end )
-				
-				Menu:Open( )
-			else
-				// Folder
-				local Menu = DermaMenu( )
-				
-				// Keep or not to keep, that's the question
-				if Node.m_bExpanded then
-					Menu:AddOption( "Close", function( ) Node:SetExpanded( false ) end )
-				else
-					Menu:AddOption( "Open", function( ) Node:SetExpanded( true ) end )
-				end
-				Menu:AddSpacer( )
-				
-				Menu:AddOption( "New File", function( ) self:NewTab( ) end )
-				Menu:AddOption( "New Folder", function( )
-					Derma_StringRequest( "Create new folder", "", "new folder",
-					function( result )
-						file.CreateDir( "lemongate/" .. result )
-					end )
-				end )
-				
-				Menu:Open( )
-			end
-		else // TODO: Make this actually happen
-			// Panel
-			local Menu = DermaMenu( )
-			
-			Menu:AddOption( "New File", function( ) self:NewTab( ) end )
-			Menu:AddOption( "New Folder", function( ) end )
-			
-			Menu:Open( )
-		end
-	end
-	-- ]]
-	
-	
-	self.LemonNode = vgui.Create( "EA_FileNode" )
-	self.Browser.RootNode:InsertNode( self.LemonNode )
-	self.LemonNode:SetText( "Lemongate" )
-	self.LemonNode:MakeFolder( "lemongate", "DATA", true, false, false, "fugue/script-text.png" )
-	self.LemonNode:SetExpanded( true )
-	
-	
-	self.BrowserRefresh = self:Add( "EA_Button" )
-	self.BrowserRefresh:SetWide( 200 )
-	self.BrowserRefresh:SetTall( 30 )
-	self.BrowserRefresh:SetText( "Update" )
-	self.BrowserRefresh:SetTextCentered( true )
-	self.BrowserRefresh.DoClick = function( ) self:Update( ) end
-	
-	self.Browser:DockMargin( 5, self.BrowserRefresh:GetTall( ) + 10, 0, 5 )
-	
 	self.ToolBar = self:Add( "EA_ToolBar" )
 	self.ToolBar:Dock( TOP )
 	self.ToolBar:DockMargin( 5, 5, 5, 0 )
@@ -373,12 +256,25 @@ function PANEL:SaveFile( Path, SaveAs, Tab, bNoSound )
 	end
 	
 	if SaveAs or not Path then
-		Derma_StringRequest( "Save to New File", "", Tab:GetText( ),
-		function( result )
-			result = string.gsub( result, ".", invalid_filename_chars )
-			self:SaveFile( result .. ".txt", nil, Tab, bNoSound )
-		end )
-		return
+		
+		local FileMenu = vgui.Create( "EA_FileMenu" )
+		FileMenu:SetSaveFile( Tab:GetText( ) )
+		
+		function FileMenu.DoSaveFile( _, Path, FileName )
+			if !FileName:EndsWith( ".txt" ) then
+				FileName = FileName .. ".txt"
+			end
+			
+			FileName = string.gsub( FileName, ".", invalid_filename_chars )
+			self:SaveFile( Path .. "/" .. FileName, nil, Tab, bNoSound )
+			
+			return true
+		end
+		
+		FileMenu:Center( )
+		FileMenu:MakePopup( )
+		
+		return true
 	end
 	
 	if not ValidPanel( Tab ) then return end
@@ -396,6 +292,24 @@ function PANEL:SaveFile( Path, SaveAs, Tab, bNoSound )
 		Tab.FilePath = Path:sub( 11 )
 		self.FileTabs[Path:sub( 11 )] = Tab
 	end
+end
+
+function PANEL:ShowOpenFile( )
+	local FileMenu = vgui.Create( "EA_FileMenu" )
+	FileMenu:SetLoadFile( )
+	
+	function FileMenu.DoLoadFile( _, Path, FileName )
+		if !FileName:EndsWith( ".txt" ) then
+			FileName = FileName .. ".txt"
+		end
+			
+		self:LoadFile( Path .. "/" .. FileName )
+		
+		return true
+	end
+	
+	FileMenu:Center( )
+	FileMenu:MakePopup( )
 end
 
 function PANEL:LoadFile( Path )
@@ -654,10 +568,6 @@ function PANEL:Close( )
 	if ValidPanel( self.ToolBar.Options ) and self.ToolBar.Options:IsVisible( ) then 
 		self.ToolBar.Options:Close( ) 
 	end 
-end
-
-function PANEL:PerformLayout( )
-	self.BrowserRefresh:SetPos( 5, 30 )
 end
 
 /*============================================================================================================================================

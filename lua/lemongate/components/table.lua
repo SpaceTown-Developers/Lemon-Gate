@@ -518,11 +518,13 @@ function Table:Print( Context, Sep, Prints, Tables )
 			if Prints == 100 then
 				break
 			elseif Type == "t" then
-				Prints = Value:Print( Context, Sep .. "  " , Prints, Tables )
+				Context.Player:ChatPrint( "(t) " .. Sep .. "-- {" )
+				Prints = Value:Print( Context, Sep .. "    " , Prints, Tables )
+				Context.Player:ChatPrint( "   " .. Sep .. "} --" )
 			else
 				Prints = Prints + 1
 				Context.Perf = Context.Perf + 1
-				Context.Player:ChatPrint( Format( "(%s)" .. Sep .. " %s = %s", Type, tostring( Key ), tostring( Value ) ) )
+				Context.Player:ChatPrint( Format( Sep .. "(%s) %s = %s", Type, tostring( Key ), tostring( Value ) ) )
 			end
 		end
 		

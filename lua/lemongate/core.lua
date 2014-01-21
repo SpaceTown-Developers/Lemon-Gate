@@ -286,7 +286,8 @@ function API:LoadEditor( )
 		self.HelperData = setmetatable( {}, { __index = function( tbl, index ) return "" end } )  
 		
 		
-		include( "lemongate/editor/ea_browser.lua" )
+		include( "lemongate/editor/ea_browser.lua" ) -- TODO: Delte this!
+		include( "lemongate/editor/ea_filemenu.lua" )
 		include( "lemongate/editor/ea_button.lua" )
 		include( "lemongate/editor/ea_closebutton.lua" )
 		include( "lemongate/editor/ea_editor.lua" )
