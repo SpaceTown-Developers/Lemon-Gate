@@ -54,8 +54,10 @@ timer.Create( "Lemon.Files", 0.1, 0, function( )
 			UsedGates[ Action.Entity ] = true
 			Queue[ Player ] = ( Queue[ Player ] or 0 ) - 1
 			
-			if ( Action.Status ~= FILE_OK and Action.Fail ) or !Action.Sucess then
-				Action.Entity:Pcall( "file callback", Action.Fail, { Action.Status, "n" } ) 
+			if ( Action.Status ~= FILE_OK or !Action.Sucess ) then
+				if Action.Fail then
+					Action.Entity:Pcall( "file callback", Action.Fail, { Action.Status, "n" } )
+				end
 			elseif Action.Type == FILE_UPLOAD then
 				Action.Entity:Pcall( "file callback", Action.Sucess, { Action.Data, "s" } )
 			elseif Action.Type == FILE_LIST then
