@@ -111,7 +111,7 @@ net.Receive( "lemon_file_begin", function( Bytes )
 	local File_Path = Path .. File
 	
 	local Parts = net.ReadUInt( 16 )
-	local Append = ned.ReadBit( ) == 1
+	local Append = net.ReadBit( ) == 1
 	
 	if Append and !file.Exists( File_Path, "DATA" ) then
 		net.Start( "lemon_file_status" )

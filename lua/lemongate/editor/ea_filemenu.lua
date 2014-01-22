@@ -12,10 +12,14 @@ function PANEL:Init( )
 	
 	self.CurrentPath = "lemongate"
 	
-	self.SubPanel = vgui.Create( "DPanel" )
-	self:BuildPathBar( self.SubPanel )
-	self:BuildFileList( self.SubPanel )
-	self:BuildOpenSave( self.SubPanel )
+	self.RightPanel = vgui.Create( "DPanel" )
+	self:BuildPathBar( self.RightPanel )
+	self:BuildFileList( self.RightPanel )
+	self:BuildOpenSave( self.RightPanel )
+	
+	self.LeftPanel = vgui.Create( "DPanel" )
+	self:BuildToolBar( self.LeftPanel )
+	self:BuildBrowser( self.LeftPanel )
 	
 	self.Divider = vgui.Create( "DHorizontalDivider", self )
 	self.Divider:Dock( FILL )
@@ -23,8 +27,8 @@ function PANEL:Init( )
 	self.Divider:SetDividerWidth( 5 )
 	self.Divider:SetLeftMin( 50 )
 	self.Divider:SetRightMin( 50 )
-	self.Divider:SetLeft( self:BuildBrowser( ) )
-	self.Divider:SetRight( self.SubPanel )
+	self.Divider:SetLeft( self.LeftPanel )
+	self.Divider:SetRight( self.RightPanel )
 	
 	self:SetSizable( true )
 	self:SetMinWidth( 500 )
@@ -32,8 +36,9 @@ function PANEL:Init( )
 	self:SetSize( 500, 300 )
 end
 
-function PANEL:BuildBrowser( )
-	self.Browser = vgui.Create( "DTree" )
+function PANEL:BuildBrowser( Parent )
+	self.Browser = vgui.Create( "DTree", Parent )
+	self.Browser:Dock( FILL )
 	self:RefreshBrowser( )
 	return self.Browser
 end
@@ -47,7 +52,7 @@ function PANEL:RefreshBrowser( )
 	
 	self:AddFolderToBrowser( self.BrowserNode, "lemongate" )
 	
-	self.BrowserNode:SetExpanded( true )
+	self:ExpandAll( true )
 end
 
 function PANEL:AddFolderToBrowser( RootNode, Path )
@@ -81,14 +86,77 @@ function PANEL:SetUpBrowserNode( Node, Path, UpDir )
 	function Node.Label.DoDoubleClick( )
 		self:OpenFolder( Path, UpDir )
 	end
-	
-	-- TODO: Right click Refresh menu.
 end
+
+function PANEL:BuildToolBar( Parent )
+	self.ToolBar = vgui.Create( "DPanel", Parent )
+	self.ToolBar:Dock( TOP )
+	self.ToolBar:SetTall( 20 )
+	
+	local Refresh = vgui.Create( "EA_ImageButton", self.ToolBar )
+	Refresh:Dock( RIGHT ) 
+	Refresh:SetPadding( 5 )
+	Refresh:SetTooltip( "Refresh" ) 
+	Refresh:SetMaterial( Material( "fugue/arrow-retweet.png" ) )
+	self.ToolBar.Refresh = Refresh
+	
+	local Expand = vgui.Create( "EA_ImageButton", self.ToolBar )
+	Expand:Dock( LEFT ) 
+	Expand:SetPadding( 5 )
+	Expand:SetTooltip( "Expand Nodes" ) 
+	Expand:SetMaterial( Material( "fugue/node-insert-child.png" ) )
+	self.ToolBar.Expand = Expand
+	self.ExpandedNodes = false
+	
+	function Expand.DoClick( )
+		self:ExpandAll( !self.ExpandedNodes )
+	end
+	
+	function Refresh.DoClick( )
+		self.Browser:Remove( )
+		self.BrowserNode:Remove( )
+		self:BuildBrowser( Parent )
+	end
+	
+	--TODO: Make refresh rebuild main element on Parent
+	
+	return self.ToolBar
+end
+
+local Expand
+
+function Expand( Node, Bool )
+	MsgN( "Expand: ", Node, ", ", Bool )
+	Node:SetExpanded( Bool )
+	
+	if IsValid( Node.ChildNodes ) then
+		for _, NextNode in pairs( Node.ChildNodes:GetChildren( ) ) do
+			Expand( NextNode, Bool )
+		end
+	end
+end
+
+function PANEL:ExpandAll( Bool )
+	self.ExpandedNodes = Bool
+	
+	Expand( self.BrowserNode, Bool )
+	
+	local Panel = self.ToolBar.Expand
+	
+	if !Bool then
+		Panel:SetTooltip( "Expand Nodes" ) 
+		Panel:SetMaterial( Material( "fugue/node-insert-child.png" ) )
+	else
+		Panel:SetTooltip( "Colapse Nodes" ) 
+		Panel:SetMaterial( Material( "fugue/node-insert-next.png" ) )
+	end
+end
+
 
 function PANEL:BuildFileList( Parent )
 	self.FileList = vgui.Create( "DListView", Parent )
 	self.FileList:Dock( FILL )
-	self.FileList:DockMargin( 0, 0, 0, 0 )
+	self.FileList:DockMargin( 5, 0, 5, 0 )
 	
 	self.FileList:SetMultiSelect( false )
 	self.FileList:AddColumn( "" ):SetMaxWidth( 20 )
@@ -212,25 +280,25 @@ function PANEL:ToBytes( Bytes )
 	if !Bytes or Bytes == 0 then
 		return ""
 	elseif Bytes < 1024 then
-		return Bytes .. "b"
+		return Bytes .. "B"
 	end
 	
 	local KBytes = math.ceil( Bytes / 1024 )
 	if KBytes < 1024 then
-		return KBytes .. "kb"
+		return KBytes .. "KB"
 	end
 	
 	local MByte = math.ceil( KBytes / 1024 )
 	if MBytes < 1024 then
-		return MBytes .. "mb"
+		return MBytes .. "MB"
 	end
 	
 	local GByte = math.ceil( MBytes / 1024 )
 	if GBytes < 1024 then
-		return GBytes .. "mb"
+		return GBytes .. "GB"
 	end
 	
-	return "?tb"
+	return "?TB"
 end
 
 function PANEL:SetFileIcon( Line, Icon )
@@ -252,8 +320,12 @@ function PANEL:GetUpDir( Path )
 end
 
 function PANEL:BuildPathBar( Parent )
-	self.PathEntry = vgui.Create( "DTextEntry", Parent )
-	self.PathEntry:Dock( TOP )
+	self.PathPanel = vgui.Create( "DPanel", Parent )
+	self.PathPanel:Dock( TOP )
+	self.PathPanel:DockMargin( 5, 5, 5, 5 )
+	
+	self.PathEntry = vgui.Create( "DTextEntry", self.PathPanel )
+	self.PathEntry:Dock( FILL )
 	
 	function self.PathEntry.OnEnter( Entry )
 		local Path = Entry:GetValue( )
@@ -269,13 +341,89 @@ function PANEL:BuildPathBar( Parent )
 		end
 	end
 	
-	return self.PathEntry
+	self.Search = vgui.Create( "EA_ImageButton", self.PathPanel )
+	self.Search:Dock( RIGHT ) 
+	self.Search:SetPadding( 5 )
+	self.Search:SetTooltip( "Search (wild:*)" ) 
+	self.Search:SetMaterial( Material( "fugue/magnifier--plus.png" ) )
+	
+	function self.Search.DoClick( )
+		local Query = self.PathEntry:GetValue( )
+		
+		if #Query > 0 then
+			self:DoSearch( Query, self.CurrentPath )
+		end
+	end
+	
+	return self.PathPanel
+end
+
+function PANEL:DoSearch( Query, Path )
+	self.FileList:Clear( )
+	
+	-- Return (/..)
+	
+	local Parent = self.FileList:AddLine( "", "..", "", "" )
+	self:SetFileIcon( Parent, "fugue/blue-folder-horizontal-open.png" )
+
+	function Parent.OnDoubleClick( )
+		self:OpenFolder( self.CurrentPath, self:GetUpDir( self.CurrentPath ) )
+	end
+	
+	-- Seach:
+	
+	local Split = string.Explode( "/", Query )
+	if #Split > 1 then
+		Query = table.remove( Split, #Split )
+		Path = string.Implode( "/", Split )
+	end
+	
+	self:SearchDir( Query, Path )	
+end
+
+function PANEL:SearchDir( Query, Path )
+	MsgN( "Searching for : '", Query, "' in '" .. Path .. "'." )
+	
+	local Files, Folders = file.Find( Path .. "/*" .. Query .. "*", "DATA", "nameasc" )
+	
+	for _, File in pairs( Files ) do
+		local Line = self:AddFile( File, Path, "fugue/script.png" )
+		
+		function Line.OnSingleClick( )
+			self.SavePath:SetText( File )
+		end
+		
+		function Line.OnDoubleClick( )
+			local Close = false
+			
+			if self.IsSaveMenu then
+				Close = self:DoSaveFile( Path, File )
+			else
+				Close = self:DoLoadFile( Path, File )
+			end
+			
+			if Close then
+				self:Remove( )
+			end
+		end
+	end
+	
+	for _, Folder in pairs( Folders ) do
+		local Line = self:AddFile( Folder, Path, "fugue/blue-folder-horizontal.png" )
+		
+		function Line.Action( )
+			self:OpenFolder( Path .. "/" .. Folder, Path )
+		end
+		
+		self:SearchDir( Query, Path .. "/" .. Folder .. "/" .. Query )	
+	end
 end
 
 function PANEL:BuildOpenSave( Parent )
 	self.OpenSave = vgui.Create( "DPanel", Parent )
 	self.OpenSave:SetTall( 22 )
 	self.OpenSave:Dock( BOTTOM )
+	self.OpenSave:DockMargin( 5, 5, 5, 5 )
 	
 	self.SavePath = vgui.Create( "DTextEntry", self.OpenSave )
 	self.SavePath:Dock( FILL ) 
@@ -344,7 +492,7 @@ function PANEL:SetLoadFile( )
 	
 	self:SetText( "Load File:" )
 	self.SaveOrLoad:SetTooltip( "Open" )
-	self.SaveOrLoad:SetMaterial( Material( "fugue/script.png" ) ) 
+	self.SaveOrLoad:SetMaterial( Material( "fugue/blue-folder-horizontal-open.png" ) ) 
 	
 	function self.SaveOrLoad.DoClick( )
 		if self:DoLoadFile( self.CurrentPath, self.SavePath:GetValue( ) ) then
