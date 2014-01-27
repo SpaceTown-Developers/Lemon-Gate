@@ -218,8 +218,30 @@ end
 	Section: Expression Value
 ==============================================================================================*/
 
-function Compiler:GetValue( RootTrace )
-	local Value, PreInstr, CastType
+function Compiler:CheckCast( )
+	local Cast
+	
+	if self:AcceptToken( "lpa" ) then
+		if self:AcceptToken( "fun", "func" ) then
+			local Type = self.TokenData
+			
+			if self:AcceptToken( "rpa" ) then
+				Cast = Type
+			else
+				self:PrevToken( )
+				self:PrevToken( )
+			end
+		else
+			self:PrevToken( )
+		end
+	end
+	
+	return Cast
+end
+
+
+function Compiler:GetValue( RootTrace, IgnoreOperators )
+	local Value, PreInstr
 	
 	-- Prefix Operators
 	
@@ -244,23 +266,13 @@ function Compiler:GetValue( RootTrace )
 	
 	-- Casting Operator
 	local Trace = self:TokenTrace( RootTrace )
+	local CastType = self:CheckCast( )
+	local NextCastType = self:CheckCast( )
 	
-	if self:AcceptToken( "lpa" ) then
-		if self:AcceptToken( "fun", "func" ) then
-			local Type = self.TokenData
-			
-			if self:AcceptToken( "rpa" ) then
-				CastType = Type
-			else
-				self:PrevToken( )
-				self:PrevToken( )
-			end
-		else
-			self:PrevToken( )
-		end
-	end
-	
-	if self:AcceptToken( "lpa" ) then
+	if NextCastType then
+		Value = self:Compile_CAST( Trace, NextCastType, self:GetExpression( Trace ) )
+		
+	elseif self:AcceptToken( "lpa" ) then
 		Value = self:GetExpression( RootTrace )
 		
 		self:RequireToken( "rpa", "Right parenthesis ( )) missing, to close grouped equation" )
@@ -358,8 +370,10 @@ function Compiler:GetValue( RootTrace )
 		self:ExpressionError( )
 	end
 	
-	Value = self:NextValueOperator( Value, self:GetFlag( "ExprTrace" ) )
-			
+	if !IgnoreOperators then
+		Value = self:NextValueOperator( Value, self:GetFlag( "ExprTrace" ) )
+	end
+	
 	if CastType then
 		Value = self:Compile_CAST( Trace, CastType, Value )
 	end
@@ -951,6 +965,7 @@ function Compiler:Statment_FUNC( GlobalTrace )
 	local Trace = GlobalTrace or self:TokenTrace( )
 	
 	self:RequireToken( "fun", "Function variable expected after function Keyword" )
+	
 	local Variable = self.TokenData
 	local State = GlobalTrace and "Global" or "Local"
 	
@@ -1008,10 +1023,10 @@ function Compiler:BuildPerams( Trace )
 	return Perams, HasVarg, Count
 end
 
-function Compiler:BuildLambda( Trace, RootTrace )
+function Compiler:BuildLambda( RootTrace, Variable )
 	local Trace = Trace or self:TokenTrace( RootTrace )
 	
-	self:RequireToken( "lpa", "Left parenthesis (( ) missing, to open lambda parameters" )
+	self:RequireToken( "lpa", "Left parenthesis (( ) missing, to start lambda parameters." )
 	
 	self:PushScope( )
 	
@@ -1019,7 +1034,7 @@ function Compiler:BuildLambda( Trace, RootTrace )
 	
 	local Perams, HasVarg, Count = self:BuildPerams( Trace )	
 
-	self:RequireToken( "rpa", "Right parenthesis ( )) missing, to close lambda parameters" )
+	self:RequireToken( "rpa", "Right parenthesis ( )) missing, to close lambda parameters." )
 	
 	self:PushFlag( "HasVargs", HasVarg )
 	self:PushFlag( "ReturnedType", "" )
@@ -1039,6 +1054,49 @@ function Compiler:BuildLambda( Trace, RootTrace )
 	self:PopScope( )
 	
 	return Instr
+end
+
+function Compiler:Statment_METH( Trace, RootTrace )
+	local Trace = Trace or self:TokenTrace( RootTrace )
+	
+	local Meta = self:GetValue( Trace, true )
+	
+	self:RequireToken( "col", "Colon (:), expected after parent for method."  )
+	
+	self:RequireToken( "fun", "Method name, after colon (:)." )
+	local Name = self:FakeInstr( Trace, "s", "\"" .. self.TokenData .. "\"" ) 
+	
+	self:RequireToken( "lpa", "Left parenthesis (( ) missing, to open method parameters" )
+	
+	self:PushScope( )
+	
+	self:PushFlag( "NewCells", { } )
+	
+	local Perams, HasVarg, Count = self:BuildPerams( Trace )
+	
+	self:RequireToken( "rpa", "Right parenthesis ( )) missing, to close method parameters" )
+	
+	self:PushFlag( "HasVargs", HasVarg )
+	self:PushFlag( "ReturnedType", "" )
+	self:PushFlag( "CanReturn", true )
+	self:PushFlag( "Lambda", true )
+	self:PushFlag( "LoopDepth", 0 )
+	
+	local Ref, Scope = self:Assign( Trace, "This", Meta.Return, "Local" )
+	table.insert( Perams, 1, { "This", Meta.Return, Ref } )
+	
+	local Block = self:GetBlock( "method", Trace )
+	local Method = self:Compile_LAMBDA( Trace, Perams, HasVarg, Block ) -- TODO: Add Type (method/function)!
+	
+	self:PopFlag( "ReturnedType" )
+	self:PopFlag( "CanReturn" )
+	self:PopFlag( "NewCells" )
+	self:PopFlag( "HasVargs" )
+	self:PopFlag( "Lambda" )
+	
+	self:PopScope( )
+	
+	return self:Compile_ADDMETHOD( Trace, Meta, Name, Method )
 end
 
 /*==============================================================================================

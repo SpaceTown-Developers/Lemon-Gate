@@ -291,6 +291,8 @@ function Compiler:WordToken( )
 			return self:NewToken( "each", "foreach")
 		elseif RawData == "function" then
 			return self:NewToken( "func", "function")
+		elseif RawData == "method" then
+			return self:NewToken( "meth", "method")
 		elseif RawData == "switch" then
 			return self:NewToken( "swh", "switch")
 		elseif RawData == "case" then

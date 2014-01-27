@@ -432,6 +432,11 @@ function Syntaxer:Parse( Row )
 				continue 
 			end 
 			
+			if word == "method" then
+				addToken( "keyword", self.tokendata  )
+				continue
+			end
+			
 			if word == "event" then 
 				tokenname = "keyword"
 				self:NextPattern( " *" ) 

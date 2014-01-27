@@ -1564,11 +1564,16 @@ function PANEL:SetCode( Text )
 	self.Redo = { } 
 	self.PaintRows = { } 
 	
+	-- Fold: Generate Overall Offset.
+	
 	self.ScrollBar:SetUp( self.Size.x, #self.Rows + ( math_floor( self:GetTall( ) / self.FontHeight ) - 2 ) - table_Count( table_KeysFromValue( self.FoldedRows, true ) )) 
 	self:CalculateHScroll( ) 
 end 
 
 function PANEL:GetCode( )
+	
+	-- Fold: Generate from folds.
+	
 	local code = string_gsub( table_concat( self.Rows, "\n" ), "\r", "" )
 	return code
 end
@@ -1586,6 +1591,9 @@ function PANEL:CalculateHScroll( )
 	for i = 1, #self.Rows do
 		self.LongestRow = math.max( self.LongestRow, #self.Rows[i] )
 	end
+	
+	-- Fold: Skip folded rows.
+	
 	self.hScrollBar:SetUp( self.Size.y, self.LongestRow ) 
 end 
 

@@ -22,7 +22,7 @@ setmetatable( Table, Table )
 Table.Click = false
 
 function Table.__call( )
-	return setmetatable( { Data = {}, Types = {}, Size = 0, Count = 0, Clk = true }, Table )
+	return setmetatable( { Data = {}, Types = {}, Size = 0, Count = 0, Clk = true, MetaTable = false }, Table )
 end
 
 function Table.Results( Data, Type )
@@ -36,6 +36,11 @@ function Table:Set( Index, Type, Value )
 	
 	if Data[Index] == nil then
 		self.Size = self.Size + 1
+	end
+	
+	if Type == "?" then
+		Type = Value[2]
+		Value = Value[1]
 	end
 	
 	Data[Index] = Value
@@ -85,14 +90,30 @@ function Table:Shift( Index )
 	self.Count = #Data
 end
 
-
 function Table:Get( Index, Type )
 	local Object = self.Data[Index]
 	
-	if Type == "?" and Object ~= nil then
+	if Object == nil then
+		return self:GetFromMeta( Index, Type )
+	elseif Type == "?" then
 		return { self.Data[Index], self.Types[Index] }
-	elseif Object ~= nil and self.Types[Index] == Type then
+	elseif self.Types[Index] == Type then
 		return Object
+	end
+end
+
+function Table:GetFromMeta( Index, Type )
+	local Searched = { [self] = true }
+	
+	while self.MetaTable do
+		self = self.MetaTable
+		
+		if Searched[self] then return end
+		Searched[self] = true -- Prevent inf loop!
+		
+		if self.Data[Index] ~= nil then
+			return self:Get( Index, Type )
+		end
 	end
 end
 
@@ -107,7 +128,13 @@ function Table:Itorate( )
 end
 
 function Table.__tostring( Table )
-	return Format( "table[%s/%s]", Table.Count, Table.Size )
+	local Default = Format( "table[%s/%s]", Table.Count, Table.Size )
+	local Method = Table:Get( "operator_string", "f" )
+	
+	if !Method then return Default end
+	
+	local Val = Method( { Table, "t" } ) or { Default }
+	return tostring( Val[1] )
 end
 
 /*==============================================================================================
@@ -154,6 +181,10 @@ Component:AddOperator( "#", "t", "n", "(value %1.Count)" )
 Component:AddFunction( "size", "t:", "n", "(value %1.Size)" )
 
 Component:AddFunction( "count", "t:", "n", "(value %1.Count)" )
+
+-- Cast:
+
+Component:AddOperator( "string", "t", "s", "tostring( value %1 )" )
 
 /*==============================================================================================
 	General Functions
@@ -537,6 +568,41 @@ Component:SetPerf( LEMON_PERF_EXPENSIVE )
 
 Component:AddFunction( "printTable", "t", "", "value %1:Print( %context )", "" )
 
+/*==============================================================================================
+	Methods
+==============================================================================================*/
+Component:AddOperator( "setmethod", "t,s,f", "", [[
+	value %1:Set( value %3, "f", value %2 )
+]], "" )
+
+Component:AddOperator( "callmethod", "t,s,...", "?", [[
+	%prepare
+	local %Method = value %1:Get( value %2, "f" )
+	
+	if !%Method  then
+		%context:Throw( %trace, "table", "Attempt to call void method '" .. value %2 .. "'" )
+	end
+	
+	%util = %Method( {value %1, type %1}, $unpack( {%...} ) ) or { 0, "n" }
+]], "%util" )
+
+Component:AddFunction( "setMetaTable", "t,t", "t", [[
+	value %1.MetaTable = value %2
+]], "value %1" )
+
+Component:AddFunction( "removeMetaTable", "t,t", "", "value %1.MetaTable = false", "" )
+
+-- Lets done some cool Meta Stuff!
+
+Component:AddOperator( "call", "t,...", "?", [[
+	%prepare
+	local %Method = value %1:Get( "operator_call", "f" )
+	
+	if !%Method  then
+		%context:Throw( %trace, "table", "Attempt to call void method 'operator_call'" )
+	end
+	%util = %Method( {value %1, type %1}, %... ) or { 0, "n" }
+]], "%util" )
 
 /*==============================================================================================
 	Shared Tables

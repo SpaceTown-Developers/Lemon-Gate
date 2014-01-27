@@ -371,6 +371,16 @@ function Compiler:NextUtil( )
 	self.UtilID = self.UtilID + 1
 	return "_" .. ID
 end
+
+/*==============================================================================================
+	Section: Make Local
+==============================================================================================*/
+function Compiler:MakeLocal( Inst )
+	local ID = self:NextLocal( )
+	Inst.Prepare = Format( "%s\nlocal %s = %s", Inst.Prepare or " ", ID, Inst.Inline or "" )
+	Inst.Inline = ID
+end
+
 /*==============================================================================================
 	Section: Statments
 ==============================================================================================*/
@@ -389,16 +399,10 @@ function Compiler:Compile_SEQUENCE( Trace, Statements )
 		
 		if Instr.Prepare and self:IsPreparable( Instr.Prepare ) then
 			table.insert( Lines, Instr.Prepare )
-		-- elseif Instr.Prepare then
-			-- MsgN( "FAILED TO PREPARE:" )
-			-- MsgN( Instr.Prepare )
 		end
 		
 		if Instr.Inline and self:IsPreparable( Instr.Inline ) then
 			table.insert( Lines, Instr.Inline )
-		-- elseif Instr.Inline then
-			-- MsgN( "FAILED TO INLINE:" )
-			-- MsgN( Instr.Inline )
 		end
 	end
 	
@@ -635,6 +639,86 @@ function Compiler:DefaultValue( Trace, Type )
 end
 
 /*==============================================================================================
+	Section: Meta Operators
+==============================================================================================*/
+local MetaOperators = {
+	-- Mathmatic
+		["addition"] = { "addition" },
+		["subtraction"] = { "subtraction" },
+		["multiply"] = { "multiply" },
+		["division"] = { "division" },
+		["modulus"] = { "modulus" },
+		["exponent"] = { "exponent" },
+	
+	-- Comparason
+		["eq"] = { "equal", "boolean" },
+		["greater"] = { "greater", "boolean" },
+}
+		
+for K, Meta in pairs( MetaOperators ) do
+	Compiler["Compile_META_" .. string.upper( K ) ] = function( self, Trace, A, B )
+		local Op = self:GetOperator( "callmethod", A.Return, "s", "..." )
+		if !Op then return end
+		
+		local Instr = Op.Compile( self, Trace, A, self:FakeInstr( Trace, "s", "\"operator_" .. Meta[1] .. "\"" ), B )
+		
+		if Meta[2] then
+			Instr = self:Compile_CAST( Trace, Meta[2], Instr )
+		end -- Auto Cast!
+		
+		return Instr
+	end
+end
+
+function Compiler:Compile_META_NEGEQ( Trace, A, B )
+	local Equal = self:Compile_META_EQ( Trace, A, B )
+	if !Equal then return end
+	
+	return self:Compile_NOT( Trace, Equal )
+end
+
+function Compiler:Compile_META_LESS( Trace, A, B )
+	self:MakeLocal( A )
+	self:MakeLocal( B )
+	
+	local Equal = self:Compile_META_EQ( Trace, A, B )
+	local Grater = self:Compile_META_GREATER( Trace, A, B )
+	if !Equal or !Grater then return end
+	
+	local And = self:Compile_OR( Trace, Equal, Grater )
+	if !And then return end
+	
+	return self:Compile_NOT( Trace, And )
+end
+
+function Compiler:Compile_META_EQGREATER( Trace, A, B )
+	self:MakeLocal( A )
+	self:MakeLocal( B )
+	
+	local Equal = self:Compile_META_EQ( Trace, A, B )
+	local Grater = self:Compile_META_GREATER( Trace, A, B )
+	if !Equal or !Grater then return end
+	
+	return self:Compile_OR( Trace, Equal, Grater )
+end
+
+function Compiler:Compile_META_EQLESS( Trace, A, B )
+	self:MakeLocal( A )
+	self:MakeLocal( B )
+	
+	local Equal = self:Compile_META_EQ( Trace, A, B )
+	local Grater = self:Compile_META_GREATER( Trace, A, B )
+	if !Equal or !Grater then return end
+	
+	local Not = self:Compile_NOT( Trace, Grater )
+	if !Not then return end
+	
+	return self:Compile_OR( Trace, Equal, Not )
+end
+
+
+
+/*==============================================================================================
 	Section: Primary Operators
 ==============================================================================================*/
 TokenOperators = Compiler.TokenOperators -- Speed mainly!
@@ -643,14 +727,23 @@ for _, Operator in pairs( TokenOperators ) do
 	
 	Compiler["Compile_" .. string.upper( Operator[1] ) ] = function( self, Trace, A, B )
 		local Op = self:GetOperator( Operator[2], A.Return, B.Return )
-		if !Op then self:TraceError( Trace, "No such operator (%s %s %s)", NType( A.Return ), Operator[2], NType( B.Return ) ) end 
 		
-		return Op.Compile( self, Trace, A, B )
+		if Op then
+			return Op.Compile( self, Trace, A, B )
+		else
+			local Func = self["Compile_META_" .. string.upper( Operator[1] ) ]
+			
+			if Func then
+				local Instr = Func( self, Trace, A, B )
+				if Instr then return Instr end
+			end
+		end
+		
+		self:TraceError( Trace, "No such operator (%s %s %s)", NType( A.Return ), Operator[2], NType( B.Return ) )
 	end
 end
 
 function Compiler:Compile_OR( Trace, A, B )
-	
 	local Op = self:GetOperator( "||", A.Return, B.Return )
 	
 	if Op then
@@ -898,6 +991,19 @@ function Compiler:Compile_RETURN( Trace, Expression )
 end
 
 /*==============================================================================================
+	Section: Methods!
+==============================================================================================*/
+function Compiler:Compile_ADDMETHOD( Trace, Value, Name, Method )
+	local Op = self:GetOperator( "setmethod", Value.Return, "s", "f" )
+	
+	if !Op then
+		self:TraceError( Trace, "Can not set method on %s", NType( Value.Return ) )
+	end
+	
+	return Op.Compile( self, Trace, Value, Method, Name )
+end
+
+/*==============================================================================================
 	Section: Loops!
 ==============================================================================================*/
 function Compiler:Compile_FOR( Trace, Class, Assigment, Condition, Step, Statments )
@@ -1032,8 +1138,15 @@ function Compiler:Compile_METHOD( Trace, Function, Meta, ... )
 		Op = self:Compile_METHOD( Trace, Function, Meta, ... )
 	end
 	
-	if !Op then
-		self:TraceError( Trace, "No such method %s:%s(%s)", Meta.TrueReturn or Meta.Return, Function, self:BeautifulParams( ... ) )
+	if !Op then -- Test Meta Methods!	
+		local Op = self:GetOperator( "callmethod", MetaType, "s", "..." )
+		
+		if !Op then
+			self:TraceError( Trace, "No such method %s:%s(%s)", Meta.TrueReturn or Meta.Return, Function, self:BeautifulParams( ... ) )
+		end
+		
+		local Name = self:FakeInstr( Trace, "s", "\"" .. Function .. "\"" ) 
+		return Op.Compile( self, Trace, Meta, Name, ... )
 	end
 	
 	return Op

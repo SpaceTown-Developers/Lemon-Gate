@@ -550,9 +550,33 @@ Core:AddFunction( "isAdmin", "e:", "b", "($IsValid(value %1) and value %1:IsPlay
 Core:AddFunction( "isSuperAdmin", "e:", "b", "($IsValid(value %1) and value %1:IsPlayer( ) and value %1:IsSuperAdmin( ))" )
 
 /*==============================================================================================
+	Section: Team Stuff
+==============================================================================================*/
+Core:AddFunction( "team", "e:", "n", "( ($IsValid(value %1) and value %1:IsPlayer( )) and value %1:Team( ) or 0 )" )
+
+Core:AddFunction( "teamName", "n", "s", "($team.GetName(value %1) or \"\")" )
+
+Core:AddFunction( "teamScroe", "n", "n", "($team.GetScore(value %1) or 0)" )
+
+Core:AddFunction( "playersInTeam", "n", "n", "($team.NumPlayers(value %1) or 0)" )
+
+Core:AddFunction( "teamDeaths", "n", "n", "($team.TotalDeaths(value %1) or 0)" )
+
+Core:AddFunction( "teamFrags", "n", "n", "($team.TotalFrags(value %1) or 0)" )
+
+Core:AddFunction( "teamColor", "n", "c", "local %C = $team.GetColor(value %1)", "{ %C.r, %C.g, %C.b, %C.a }" )
+
+Core:AddFunction( "teams", "", "t", [[
+	%util = %Table( )
+	
+	for I, _ in pairs( $team.GetAllTeams() ) do
+		%util:Insert( nil, "n", I )
+	end
+]], "%util" )
+
+/*==============================================================================================
 	Section: Aiming and Eye
 ==============================================================================================*/
-
 Core:AddFunction( "shootPos", "e:", "v", "( ($IsValid(value %1) and value %1:IsPlayer( )) and Vector3( value %1:GetShootPos() ) or Vector3.Zero:Clone() )" )
 
 Core:AddFunction( "eye", "e:", "v", "($IsValid(value %1) and (( value %1:IsPlayer( ) and Vector3( value %1:GetAimVector() ) or value %1:GetForward() )) or Vector3.Zero:Clone() )" )
@@ -578,8 +602,6 @@ Core:AddFunction( "ping", "e:", "n", "( ($IsValid(value %1) and value %1:IsPlaye
 Core:AddFunction( "timeConnected", "e:", "n", "( ($IsValid(value %1) and value %1:IsPlayer( )) and value %1:TimeConnected() or 0 )" )
 
 Core:AddFunction( "vehicle", "e:", "e", "( ($IsValid(value %1) and value %1:IsPlayer( )) and value %1:GetVehicle() or %NULL_ENTITY or %NULL_ENTITY)" )
-
-Core:AddFunction( "isPlayer", "e:", "b", "($IsValid(value %1) and value %1:IsPlayer( ) and value %1:InVehicle() )" )
 
 Core:AddFunction( "inNoclip", "e:", "b", "($IsValid(value %1) and value %1:IsPlayer( ) and (value %1:GetMoveType() == $MOVETYPE_NOCLIP) )" )
 
@@ -715,7 +737,7 @@ end]], "%Res" )
 
 Core:AddFunction( "findInBox", "v,v", "t", [[
 local %Res = %Table( )
-for _, Find_Entity in pairs( $ents.FindInBox( value %1:Garry( ), value %2:Garry()) ) do
+for _, Find_Entity in pairs( $ents.FindInBox( value %1:Garry( ), value %2:Garry( ) ) ) do
 	if Find_Entity:IsValid() and !%FindFilter[Find_Entity:GetClass( )] then
 		%Res:Insert(nil, "e", Find_Entity)
 	end
@@ -758,7 +780,7 @@ for _, Find_Entity in pairs( $ents.FindInSphere( value %2:Garry( ), value %3 ) )
 	end
 end]], "%Res" )
 
-Core:AddFunction( "findInBox", "v,v", "t", [[
+Core:AddFunction( "findInBox", "s,v,v", "t", [[
 local %Res = %Table( )
 for _, Find_Entity in pairs( $ents.FindInBox( value %2:Garry( ), value %3:Garry()) ) do
 	local Class = Find_Entity:GetClass( )

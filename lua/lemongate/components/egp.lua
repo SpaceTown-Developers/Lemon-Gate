@@ -157,7 +157,7 @@ end]], LEMON_NO_INLINE )
 
 Component:AddFunction( "egpTextLayout", "wl:n,s,v2,v2", "", [[
 if $EGP:ValidEGP( value %1 ) then //and %IsOwner( %context.Player, value %1 ) then
-	local %Bool, %Obj = EGP:CreateObject( value %1, EGP.Objects.Names["TextLayout"], { index = value %2, text = value %3, w = value %4.x, h = value %4.y, x = value %5.x, y = value %5.y }, %context.Player )
+	local %Bool, %Obj = EGP:CreateObject( value %1, EGP.Objects.Names["TextLayout"], { index = value %2, text = value %3, w = value %4.x, h = value %4.y, x = value %4.x, y = value %4.y }, %context.Player )
     if %Bool then
 		API.EGPAction( value %1, %context, "SendObject", %Obj )
 		%data.EGP[value %1] = true
