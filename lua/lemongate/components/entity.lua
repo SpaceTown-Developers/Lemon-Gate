@@ -771,15 +771,6 @@ for _, Find_Entity in pairs( $ents.FindInSphere( value %2:Garry( ), value %3 ) )
 	end
 end]], "%Res" )
 
-Core:AddFunction( "findInSphere", "s,v,n", "t", [[
-local %Res = %Table( )
-for _, Find_Entity in pairs( $ents.FindInSphere( value %2:Garry( ), value %3 ) ) do
-	local Class = Find_Entity:GetClass( )
-	if Find_Entity:IsValid() and !%FindFilter[Class] and Class == value %1 then
-		%Res:Insert(nil, "e", Find_Entity)
-	end
-end]], "%Res" )
-
 Core:AddFunction( "findInBox", "s,v,v", "t", [[
 local %Res = %Table( )
 for _, Find_Entity in pairs( $ents.FindInBox( value %2:Garry( ), value %3:Garry()) ) do
