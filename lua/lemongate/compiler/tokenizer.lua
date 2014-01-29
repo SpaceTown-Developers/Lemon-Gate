@@ -242,6 +242,9 @@ function Compiler:StringToken( StrChar )
 			-- self:SkipChar( ) Next char is only for LUA convershion!
 		elseif self.Char == StrChar and !Escape then
 			break
+		elseif ( self.Char == "\"" or self.Char == "'") and self.Char ~= StrChar then
+			self.Char = "\\" .. self.Char
+			self:NextChar( ) -- TODO: Test this fix.
 		else
 			Escape = self.Char == "\\"
 			self:NextChar( )
