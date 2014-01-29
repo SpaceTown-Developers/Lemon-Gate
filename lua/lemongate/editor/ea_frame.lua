@@ -108,8 +108,26 @@ function PANEL:Think( )
 			self:SetCursor( "sizewe" ) 
 		elseif self.Sizing[2] and not self.Sizing[1] then 
 			self:SetCursor( "sizens" ) 
-		else 
-			self:SetCursor( "sizenwse" ) 
+		else
+			if self.Sizing.inverted[1] then 
+				-- left
+				if self.Sizing.inverted[2] then 
+					-- top
+					self:SetCursor( "sizenwse" ) 
+				else 
+					-- bottom
+					self:SetCursor( "sizenesw" ) 
+				end 
+			else 
+				-- right
+				if self.Sizing.inverted[2] then 
+					-- top
+					self:SetCursor( "sizenesw" ) 
+				else 
+					-- bottom 
+					self:SetCursor( "sizenwse" ) 
+				end 
+			end 
 		end 
 		
 		return 
@@ -117,23 +135,44 @@ function PANEL:Think( )
 	
 	if self.Hovered and not self.IsMaximized then
 		local x, y = self:CursorPos( )
-		if y < 25 and y > 0 and x < self:GetWide( ) and x > 0 then
+		if y < 25 and y > 5 and x < self:GetWide( ) - 5 and x > 5 then
 			self:SetCursor( "sizeall" )
 			return
 		end
 		
 		if self.m_bSizable then 
+			-- bottom right 
 			if x > self:GetWide( ) - 20 and y > self:GetTall( ) - 20 then 
 				self:SetCursor( "sizenwse" )
 				return 
 			end 
 			
-			if x > self:GetWide( ) - 20  then 
+			-- top left 
+			if x < 20 and y < 20 then 
+				self:SetCursor( "sizenwse" )
+				return 
+			end
+			
+			-- bottom left
+			if x < 20 and y > self:GetTall( ) - 20 then 
+				self:SetCursor( "sizenesw" )
+				return 
+			end
+			
+			-- top right
+			if x > self:GetWide( ) - 20 and y < 20 then 
+				self:SetCursor( "sizenesw" )
+				return 
+			end
+			
+			-- left and right 
+			if x > self:GetWide( ) - 20 or x < 20 then 
 				self:SetCursor( "sizewe" )
 				return
 			end 
 			
-			if y > self:GetTall( ) - 20 then 
+			-- up and down
+			if y > self:GetTall( ) - 20 or y < 20 then 
 				self:SetCursor( "sizens" )
 				return
 			end 
@@ -163,24 +202,54 @@ function PANEL:OnCursorMoved( x, y )
 	
 	if self.Sizing then
 		if self.Sizing[1] then 
-			_x = self:LocalToScreen( x, 0 ) 
-			if _x > ScrW( ) then 
-				self:SetWide( ScrW( ) - self.x ) 
-			elseif x < self.m_iMinWidth then 
-				self:SetWide( self.m_iMinWidth ) 
+			if self.Sizing.inverted[1] then 
+				_x = self:LocalToScreen( x, 0 ) 
+				x = -x + self:GetWide( ) 
+				if _x < 0 then 
+					self:SetWide( x ) 
+					self.x = 0  
+				elseif x < self.m_iMinWidth then 
+					self:SetWide( self.m_iMinWidth ) 
+					self.x = _x + ( x - self.m_iMinWidth )
+				else 
+					self:SetWide( x )
+					self.x = _x 
+				end 
 			else 
-				self:SetWide( x )
+				_x = self:LocalToScreen( x, 0 ) 
+				if _x > ScrW( ) then 
+					self:SetWide( ScrW( ) - self.x ) 
+				elseif x < self.m_iMinWidth then 
+					self:SetWide( self.m_iMinWidth ) 
+				else 
+					self:SetWide( x )
+				end 
 			end 
 		end 
 		
 		if self.Sizing[2] then 
-			_, _y = self:LocalToScreen( 0, y ) 
-			if _y > ScrH( ) then 
-				self:SetTall( ScrH( ) - self.y ) 
-			elseif y < self.m_iMinHeight then 
-				self:SetTall( self.m_iMinHeight ) 
+			if self.Sizing.inverted[2] then 
+				_, _y = self:LocalToScreen( 0, y) 
+				y = -y + self:GetTall( ) 
+				if _y < 0 then 
+					self:SetTall( y ) 
+					self.y = 0  
+				elseif y < self.m_iMinHeight then 
+					self:SetTall( self.m_iMinHeight ) 
+					self.y = _y + ( y - self.m_iMinHeight )
+				else 
+					self:SetTall( y )
+					self.y = _y 
+				end 
 			else 
-				self:SetTall( y )
+				_, _y = self:LocalToScreen( 0, y ) 
+				if _y > ScrH( ) then 
+					self:SetTall( ScrH( ) - self.y ) 
+				elseif y < self.m_iMinHeight then 
+					self:SetTall( self.m_iMinHeight ) 
+				else 
+					self:SetTall( y )
+				end 
 			end 
 		end 
 		
@@ -191,7 +260,7 @@ end
 function PANEL:OnMousePressed( m ) 
 	if m == MOUSE_LEFT then 
 		local x, y = self:CursorPos( ) 
-		if y < 25 and y > 0 and x < self:GetWide( ) and x > 0 then 
+		if y < 25 and y > 5 and x < self:GetWide( ) - 5 and x > 5 then 
 			if self.LastClick + 0.2 > CurTime( ) then
 				self:SetMaximized( )
 				self.LastClick = CurTime()
@@ -209,20 +278,58 @@ function PANEL:OnMousePressed( m )
 		end 
 		
 		if self.m_bSizable and not self.IsMaximized then
-			if x > self:GetWide( ) - 20 and y > self:GetTall( ) - 20 then            
-				self.Sizing = { true, true }
+			-- bottom right
+			if x > self:GetWide( ) - 20 and y > self:GetTall( ) - 20 then 
+				self.Sizing = { true, true, inverted = { } }
 				self:MouseCapture( true ) 
 				return
 			end
 			
+			-- top left
+			if x < 20 and y < 20 then 
+				self.Sizing = { true, true, inverted = { true, true } }
+				self:MouseCapture( true ) 
+				return
+			end
+			
+			-- bottom left
+			if x < 20 and y > self:GetTall( ) - 20 then 
+				self.Sizing = { true, true, inverted = { true, false } }
+				self:MouseCapture( true ) 
+				return
+			end
+			
+			-- top right
+			if x > self:GetWide( ) - 20 and y < 20 then 
+				self.Sizing = { true, true, inverted = { false, true } }
+				self:MouseCapture( true ) 
+				return
+			end
+			
+			-- right
 			if y < self:GetTall( ) and y > 0 and x < self:GetWide( ) and x > self:GetWide( ) - 20 then
-				self.Sizing = { true, false }
+				self.Sizing = { true, false, inverted = { false, false } }
 				self:MouseCapture( true )
 				return
 			end
 			
+			-- left
+			if y < self:GetTall( ) and y > 0 and x < 20 and x > 0 then
+				self.Sizing = { true, false, inverted = { true, false } }
+				self:MouseCapture( true )
+				return
+			end
+			
+			-- down
 			if y < self:GetTall( ) and y > self:GetTall( ) - 20 and x < self:GetWide( ) and x > 0 then
-				self.Sizing = { false, true }
+				self.Sizing = { false, true, inverted = { false, false } }
+				self:MouseCapture( true )
+				return
+			end
+			
+			-- up
+			if y < 20 and y > 0 and x < self:GetWide( ) and x > 0 then
+				self.Sizing = { false, true, inverted = { false, true } }
 				self:MouseCapture( true )
 				return
 			end
@@ -243,7 +350,7 @@ function PANEL:OnMouseReleased( m )
 			return
 		end
 		
-		if self.m_bSizable then
+		if self.m_bSizable and self.Sizing then
 			self.Sizing = false
 			self:MouseCapture( false )
 		end 
