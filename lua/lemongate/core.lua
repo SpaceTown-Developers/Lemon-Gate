@@ -826,10 +826,10 @@ if SERVER then
 				local Signature, Params, Optional, Locked = "", { }, false, false
 				local Return = API:GetClass( Data.Return, true )
 				
-				if !Return and Data.Return ~= "" then
+				if !Return and Data.Return ~= "" and Data.Return ~= "..." then
 					MsgN( Format( "%s can't register function %s[%s]\nclass %q doesn't exist." , self.Name, Data.Name, Data.Params, Data.Return ) )
 					continue
-				else
+				elseif Data.Return ~= "..." then
 					Data.Return = ( Return and Return.Short or "" )
 				end
 				

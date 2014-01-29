@@ -12,17 +12,6 @@ local Util = API.Util
 local Compiler = LEMON.Compiler
 
 /*==============================================================================================
-	Section: Util
-==============================================================================================*/
-local function NType( Type )
-	return API:GetClass( Type ).Name
-end
-
-local function SType( Type )
-	return API:GetClass( Type ).Short
-end
-
-/*==============================================================================================
 	Section: Scopes
 ==============================================================================================*/
 function Compiler:InitScopes( )
@@ -61,9 +50,9 @@ end
 function Compiler:TestCell( Trace, Ref, Type, Variable )
 	local Cell = self.Cells[ Ref ]
 	if !Cell and Variable then
-		self:TraceError( Trace, "%s of type %s does not exist", Variable, NType( Type ) )
+		self:TraceError( Trace, "%s of type %s does not exist", Variable, self:NType( Type ) )
 	elseif Cell.Type ~= Type and Variable then
-		self:TraceError( Trace, "%s of type %s can not be assigned as %s", Variable, NType( Cell.Type ), NType( Type ) )
+		self:TraceError( Trace, "%s of type %s can not be assigned as %s", Variable, self:NType( Cell.Type ), self:NType( Type ) )
 	else
 		return true
 	end
@@ -104,7 +93,7 @@ function Compiler:SetVariable( Trace, Variable, Type, GlobAss )
 	else
 		local Cell = self.Cells[ Ref ]
 		if Cell.Type ~= Type then
-			self:TraceError( Trace, "%s of type %s can not be assigned as %s", Variable, NType( Cell.Type ), NType( Type ) ) 
+			self:TraceError( Trace, "%s of type %s can not be assigned as %s", Variable, self:NType( Cell.Type ), self:NType( Type ) ) 
 		else
 			return Ref, Scope
 		end
@@ -158,7 +147,7 @@ function Compiler:Assign( Trace, Variable, Type, Assign, Static )
 		self.Scope[ Variable ] = Ref
 		return Ref, 0
 	elseif !Class.WireName then
-		self:TraceError( Trace, "%s is not a valid %s class", NType( Type ), Assign )
+		self:TraceError( Trace, "%s is not a valid %s class", self:NType( Type ), Assign )
 	elseif Assign == CELL_INPUT and Class.Wire_In then
 		local Ref = self.InPorts[ Variable ]
 		
@@ -196,7 +185,7 @@ function Compiler:Assign( Trace, Variable, Type, Assign, Static )
 		self.Scope[ Variable ] = Ref
 		return Ref, 0
 	else
-		self:TraceError( Trace, "%s is not a valid %s class", NType( Type ), Assign )
+		self:TraceError( Trace, "%s is not a valid %s class", self:NType( Type ), Assign )
 	end
 end
 
@@ -460,7 +449,7 @@ function Compiler:Compile_CAST( Trace, CastType, Value, NoError )
 	elseif CastTo.UpCast[ Value.Return ] then
 		return self:Instruction( Trace, LEMON_PERF_CHEAP, CastTo.Short, Value.Inline, Value.Prepare )
 	elseif !NoError then
-		self:TraceError( Trace, "%s can not be cast to %s",  NType( CastFrom ), CastTo.Name )
+		self:TraceError( Trace, "%s can not be cast to %s",  self:NType( CastFrom ), CastTo.Name )
 	end
 end
 	
@@ -506,7 +495,7 @@ function Compiler:Compile_INCREMENT( Trace, Variable, Second )
 	end
 	
 	local Op = Second and self:GetOperator( "i++", Class ) or self:GetOperator( "++i", Class )
-	if !Op then self:TraceError( Trace, "Increment operator (++) does not support %s", NType( Class ) ) end
+	if !Op then self:TraceError( Trace, "Increment operator (++) does not support %s", self:NType( Class ) ) end
 	
 	return self:Evaluate( Trace, Op.Compile( self, Trace, Ref ) )
 end
@@ -523,7 +512,7 @@ function Compiler:Compile_DECREMENT( Trace, Variable, First )
 	end
 	
 	local Op = Second and self:GetOperator( "i--", Class ) or self:GetOperator( "--i", Class )
-	if !Op then self:TraceError( Trace, "Decrement operator (--) does not support %s", NType( Class ) ) end
+	if !Op then self:TraceError( Trace, "Decrement operator (--) does not support %s", self:NType( Class ) ) end
 	
 	return self:Evaluate( Trace, Op.Compile( self, Trace, Ref ) )
 end
@@ -539,7 +528,7 @@ function Compiler:Compile_DELTA( Trace, Variable )
 	self:NotGarbage( Trace, Ref )
 	
 	local Op = self:GetOperator( "$", Class )
-	if !Op then self:TraceError( Trace, "Delta operator ($) does not support %s", NType( Class ) ) end
+	if !Op then self:TraceError( Trace, "Delta operator ($) does not support %s", self:NType( Class ) ) end
 	
 	return Op.Compile( self, Trace, Ref )
 end
@@ -553,7 +542,7 @@ function Compiler:Compile_TRIGGER( Trace, Variable )
 	end
 	
 	local Op = self:GetOperator( "~", Class )
-	if !Op then self:TraceError( Trace, "Changed operator (~) does not support %s", NType( Class ) ) end
+	if !Op then self:TraceError( Trace, "Changed operator (~) does not support %s", self:NType( Class ) ) end
 	
 	return Op.Compile( self, Trace, Ref )
 end
@@ -583,10 +572,10 @@ function Compiler:Compile_ASSIGN( Trace, Variable, Expression )
 	local Type = self.Cells[ Ref ].Type
 	
 	if Type ~= Expression.Return then
-		local Casted = self:Compile_CAST( Trace, NType( Type ), Expression, true )
+		local Casted = self:Compile_CAST( Trace, self:NType( Type ), Expression, true )
 		
 		if !Casted then
-			self:TraceError( Trace, "%s of type %s can not be assigned as %s", Variable, NType( Type ), NType( Expression.Return ) )
+			self:TraceError( Trace, "%s of type %s can not be assigned as %s", Variable, self:NType( Type ), self:NType( Expression.Return ) )
 		end
 		
 		Expression = Casted -- Auto-cast!
@@ -613,7 +602,7 @@ function Compiler:Compile_DECLAIR( Trace, Type, Variable, Class, Expression, Sta
 	end
 
 	if !Expression then
-		self:TraceError( Trace, "%s %s must be assigned", NType( Class ), Variable )
+		self:TraceError( Trace, "%s %s must be assigned", self:NType( Class ), Variable )
 	end
 
 	if !Static then
@@ -739,7 +728,7 @@ for _, Operator in pairs( TokenOperators ) do
 			end
 		end
 		
-		self:TraceError( Trace, "No such operator (%s %s %s)", NType( A.Return ), Operator[2], NType( B.Return ) )
+		self:TraceError( Trace, "No such operator (%s %s %s)", self:NType( A.Return ), Operator[2], self:NType( B.Return ) )
 	end
 end
 
@@ -775,7 +764,7 @@ function Compiler:Compile_OR( Trace, A, B )
 	
 	-- Error
 	
-	self:TraceError( Trace, "No such operator (%s || %s)", NType( A.Return ), NType( B.Return ) )
+	self:TraceError( Trace, "No such operator (%s || %s)", self:NType( A.Return ), self:NType( B.Return ) )
 end
 
 function Compiler:Compile_AND( Trace, A, B )
@@ -792,7 +781,7 @@ function Compiler:Compile_AND( Trace, A, B )
 		return Op.Compile( self, Trace, IsA, IsB )
 	end
 	
-	self:TraceError( Trace, "No such operator (%s && %s)", NType( A.Return ), NType( B.Return ) )
+	self:TraceError( Trace, "No such operator (%s && %s)", self:NType( A.Return ), self:NType( B.Return ) )
 end
 
 function Compiler:Compile_LENGTH( Trace, Expression )
@@ -800,7 +789,7 @@ function Compiler:Compile_LENGTH( Trace, Expression )
 	
 	if Op then return Op.Compile( self, Trace, Expression ) end
 	
-	self:TraceError( Trace, "No such operator (#%s)", NType( Expression.Return ) )
+	self:TraceError( Trace, "No such operator (#%s)", self:NType( Expression.Return ) )
 end
 
 function Compiler:Compile_NEGATIVE( Trace, Expression )
@@ -808,7 +797,7 @@ function Compiler:Compile_NEGATIVE( Trace, Expression )
 	
 	if Op then return Op.Compile( self, Trace, Expression ) end
 	
-	self:TraceError( Trace, "No such operator (-%s)", NType( Expression.Return ) )
+	self:TraceError( Trace, "No such operator (-%s)", self:NType( Expression.Return ) )
 end
 
 function Compiler:Compile_CONNECT( Trace, Variable )
@@ -840,7 +829,7 @@ function Compiler:Compile_IS( Trace, Expression, NoError )
 	elseif Expression.Return == "b" then
 		return Expression
 	elseif !NoError then
-		self:TraceError( Trace, "No such condition (is %s)", NType( Expression.Return ) )
+		self:TraceError( Trace, "No such condition (is %s)", self:NType( Expression.Return ) )
 	end
 end
 
@@ -849,7 +838,7 @@ function Compiler:Compile_NOT( Trace, Expression )
 	
 	if Op then return Op.Compile( self, Trace, Expression ) end
 	
-	self:TraceError( Trace, "No such operator (not %s)", NType( Expression.Return ) )
+	self:TraceError( Trace, "No such operator (not %s)", self:NType( Expression.Return ) )
 end
 
 /*==============================================================================================
@@ -997,7 +986,7 @@ function Compiler:Compile_ADDMETHOD( Trace, Value, Name, Method )
 	local Op = self:GetOperator( "setmethod", Value.Return, "s", "f" )
 	
 	if !Op then
-		self:TraceError( Trace, "Can not set method on %s", NType( Value.Return ) )
+		self:TraceError( Trace, "Can not set method on %s", self:NType( Value.Return ) )
 	end
 	
 	return Op.Compile( self, Trace, Value, Method, Name )
@@ -1012,7 +1001,7 @@ function Compiler:Compile_FOR( Trace, Class, Assigment, Condition, Step, Statmen
 	local Op = self:GetOperator( "for", Class )
 	
 	if !Op then
-		self:TraceError( Trace, "%s not compatable with for loops", NType( Class ) )
+		self:TraceError( Trace, "%s not compatable with for loops", self:NType( Class ) )
 	end
 	
 	Statments.Prepare = self:PushEnviroment( ) .. "\n" .. Statments.Prepare
@@ -1032,7 +1021,7 @@ function Compiler:Compile_FOREACH( Trace, Value, TypeV, RefV, TypeK, RefK, Statm
 	local Op = self:GetOperator( "foreach", Value.Return )
 	
 	if !Op then
-		self:TraceError( Trace, "foreach loop does not support %s", NType( Value.Return ) )
+		self:TraceError( Trace, "foreach loop does not support %s", self:NType( Value.Return ) )
 	end
 	
 	local Op1 = self:GetOperator( "=", TypeV ) or self:GetOperator( "=" )
@@ -1073,10 +1062,10 @@ function Compiler:BeautifulParams( ... )
 		return ""
 	end
 	
-	Beautiful = NType( Params[1].Return )
+	Beautiful = self:NType( Params[1].Return )
 	
 	for I = 2, #Params do
-		Beautiful = Format( "%s, %s", Beautiful, NType( Params[I].Return ) )
+		Beautiful = Format( "%s, %s", Beautiful, self:NType( Params[I].Return ) )
 		if #Beautiful > 15 then 
 			Beautiful = Beautiful .. "..."
 			break
@@ -1170,15 +1159,15 @@ function Compiler:Compile_TABLE( Trace, Values, Keys, Count )
 				local Op = self:GetOperator( "[]=", "t", Key.Return, Value.Return )
 				
 				if !Op then
-					self:TraceError( Trace, "No such operator ({[%s] = %s}).", NType( Key.Return ), NType( Value.Return ) )
+					self:TraceError( Trace, "No such operator ({[%s] = %s}).", self:NType( Key.Return ), self:NType( Value.Return ) )
 				end
 				
 				Statements[I] = Op.Compile( self, Trace, ID, Key, Value )
-			else
+			else --if Value.Return ~= "..." then
 				local Op = self:GetOperator( "[]+", "t", Value.Return )
 				
 				if !Op then
-					self:TraceError( Trace, "No such operator ({%s}).", NType( Value.Return ) )
+					self:TraceError( Trace, "No such operator ({%s}).", self:NType( Value.Return ) )
 				end
 				
 				Statements[I] = Op.Compile( self, Trace, ID, Value )
@@ -1202,9 +1191,9 @@ function Compiler:Compile_GET( Trace, Variable, Index, Type )
 	local Op = self:GetOperator( "[]", Variable.Return, Index.Return, Type )
 	
 	if !Op and Type then
-		self:TraceError( Trace, "No such operator (%s[%s, %s]).", NType( Variable.Return ), NType( Index.Return ), NType( Type ) )
+		self:TraceError( Trace, "No such operator (%s[%s, %s]).", self:NType( Variable.Return ), self:NType( Index.Return ), self:NType( Type ) )
 	elseif !Op then
-		self:TraceError( Trace, "No such operator (%s[%s]).", NType( Variable.Return ), NType( Index.Return ) )
+		self:TraceError( Trace, "No such operator (%s[%s]).", self:NType( Variable.Return ), self:NType( Index.Return ) )
 	end
 	
 	return Op.Compile( self, Trace, Variable, Index )
@@ -1212,13 +1201,13 @@ end
 
 function Compiler:Compile_SET( Trace, Variable, Index, Value, Type )
 	if Type and Value.Return ~= Type then
-		Value = self:Compile_CAST( Trace, NType( Type ), Value )
+		Value = self:Compile_CAST( Trace, self:NType( Type ), Value )
 	end -- Auto Cast!
 	
 	local Op = self:GetOperator( "[]=", Variable.Return, Index.Return, Value.Return )
 	
 	if !Op then
-		self:TraceError( Trace, "No such operator (%s[%s] = %s).", NType( Variable.Return ), NType( Index.Return ), NType( Value.Return ) )
+		self:TraceError( Trace, "No such operator (%s[%s] = %s).", self:NType( Variable.Return ), self:NType( Index.Return ), self:NType( Value.Return ) )
 	end
 	
 	return Op.Compile( self, Trace, Variable, Index, Value )
@@ -1284,7 +1273,7 @@ function Compiler:Compile_EVENT( Trace, EventName, Perams, HasVarg, Block, Exit 
 		
 		local Param = Perams[I]
 		if !EParams[I] or EParams[I] ~= Param[2] then
-			self:TraceError( Trace, "Event %s has no such parameter (#%s - %s )", EventName, I, NType( Param[2] ) )
+			self:TraceError( Trace, "Event %s has no such parameter (#%s - %s )", EventName, I, self:NType( Param[2] ) )
 		end
 		
 		local Var = "Peram_" .. I
@@ -1323,7 +1312,7 @@ function Compiler:Compile_EVENT( Trace, EventName, Perams, HasVarg, Block, Exit 
 		elseif Event.Return == "" then
 			self:TraceError( Trace, "Event %s does not accept a return value", EventName )
 		elseif Return != Event.Return then
-			self:TraceError( Trace, "Event %s must return %2", EventName, NType( Return ) )
+			self:TraceError( Trace, "Event %s must return %2", EventName, self:NType( Return ) )
 		end
 	end
 	
@@ -1453,7 +1442,19 @@ function Compiler:Compile_PRINT( Trace, Values, Count )
 		local Instr = Values[ I ]
 		Perf = Perf + ( Instr.Perf or 0 )
 		
-		Lua[I] = ( Instr.Prepare or "" ) .. "\nlocal __" .. I .. " = " .. Instr.Inline
+		if Instr.Return ~= "..." then
+			Lua[I] = Format( "%s\nlocal __%i = %s", Instr.Prepare or "", I, Instr.Inline )
+		else
+			Lua[I] = Format( [[%s
+				local __%i = { }
+				
+				for _, Varaint in pairs( { %s } ) do -- Inline
+					__%i[#__%i + 1] = tostring( Varaint[1] )
+				end
+				
+				__%i = string.Implode( " ", __%i )
+			]], Instr.Prepare or "", I, Instr.Inline, I, I, I, I )
+		end
 		
 		if Instr.Return == "?" then
 			Inline[I] = "tostring(__" .. I .. "[1])"

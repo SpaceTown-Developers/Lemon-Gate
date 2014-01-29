@@ -127,6 +127,15 @@ function Table:Itorate( )
 	return Itor, self
 end
 
+function Table:Unpack( Index )
+	local Object = self.Data[Index]
+	
+	if Object ~= nil then
+		return { Object, self.Types[Index] }, self:Unpack( Index + 1 )
+	end
+end
+
+
 function Table.__tostring( Table )
 	local Default = Format( "table[%s/%s]", Table.Count, Table.Size )
 	local Method = Table:Get( "operator_string", "f" )
@@ -359,6 +368,16 @@ Component:AddOperator( "[]=", "t,e,?", "", "value %1:Set( value %2, value %3[2],
 Component:AddOperator( "[]+", "t,?", "", "value %1:Set( nil, value %2[2], value %2[1] )" )
 
 /*==============================================================================================
+	VarArg Support:
+==============================================================================================*/
+Component:AddOperator( "[]+", "t,...", "", [[
+for _, Variant in pairs( { %... } ) do
+	value %1:Insert( nil, Variant[2], Variant[1] )
+end]], "" )
+
+Component:AddFunction( "unpack", "t", "...", "value %1:Unpack( 1 )" )
+
+/*==============================================================================================
 	Misc
 ==============================================================================================*/
 Component:AddOperator( "[]", "t,n", "?", [[( value %1:Get( value %2, "?") or %context:Throw(%trace, "table", "Attempt to reach a void value") )]] )
@@ -583,7 +602,7 @@ Component:AddOperator( "callmethod", "t,s,...", "?", [[
 		%context:Throw( %trace, "table", "Attempt to call void method '" .. value %2 .. "'" )
 	end
 	
-	%util = %Method( {value %1, type %1}, $unpack( {%...} ) ) or { 0, "n" }
+	%util = %Method( {value %1, type %1}, %... ) ) or { 0, "n" }
 ]], "%util" )
 
 Component:AddFunction( "setMetaTable", "t,t", "t", [[
@@ -624,3 +643,17 @@ end
 Component:AddFunction( "setSTable", "s,t", "", "%STable[ value %1 ] = value %2" )
 
 Component:AddFunction( "removeSTable", "s", "", "%STable[ value %1 ] = nil" )
+
+/*==============================================================================================
+	Existing Meta Tables
+==============================================================================================*/
+
+-- function Component:CreateContext( Context )
+	-- Context.MetaTables = {
+		-- entity = Table( )
+	-- } -- Meta Tables
+-- end
+
+-- Component:AddFunction( "getMetaTable", "s", "t", "(Context.MetaTables[value %1] or %Table( ))" )
+
+-- Component:AddFunction( "getMetaTable", "s", "t", "(Context.MetaTables[value %1] or %Table( ))" )

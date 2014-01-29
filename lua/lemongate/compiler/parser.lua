@@ -10,27 +10,6 @@ local API = LEMON.API
 local Compiler = LEMON.Compiler
 
 /*==============================================================================================
-	Section: Util
-==============================================================================================*/
-local function NType( Type )
-	return API:GetClass( Type ).Name
-end
-
-local function SType( Type )
-	return API:GetClass( Type ).Short
-end
-
-function Compiler:GetClass( Trace, Name )
-	local Class = API:GetClass( Name, true )
-	
-	if !Class or Class.Name ~= Name then
-		self:TraceError( Trace, "No such class %s", Name )
-	end
-	
-	return Class
-end
-
-/*==============================================================================================
 	Section: Token Managment
 ==============================================================================================*/
 
@@ -79,6 +58,10 @@ function Compiler:ExcludeWhiteSpace( Type, ... )
 	if !self:HasTokens( ) then 
 		self:TokenError( Message, ... )
 	end
+end
+
+function Compiler:ExcludeVarArg( )
+	self:ExcludeToken( "varg", "Invalid use of vararg (...)" )
 end
 
 /*==============================================================================================
@@ -204,6 +187,8 @@ function Compiler:GetTokenOperator( Token, ... )
 	local Compile = self[ "Compile_" .. string.upper( Operator[1] ) ]
 	
 	while self:AcceptToken( Token ) do
+		self:ExcludeVarArg( )
+		
 		local Second = self:GetTokenOperator( ... )
 		
 		if Operator[3] then Second = self:Evaluate( Trace, Second ) end
@@ -310,12 +295,12 @@ function Compiler:GetValue( RootTrace, IgnoreOperators )
 	elseif self:AcceptToken( "fls" ) then
 		Value = self:Compile_BOOLBEAN( self:TokenTrace( RootTrace ), false )
 	elseif self:AcceptToken( "varg" ) then
-		if !self.Varargs then self:TokenError( "Vararg (...) can only be used inside of vararg functions and events" ) end
+		
+		if !self:GetFlag( "HasVargs", false ) then
+			self:TokenError( "Vararg (...) must not appear outside of vararg function/method/event." )
+		end
+		
 		Value = self:Instruction( Trace, 3, "...", "..." )
-		
-	-- elseif self:AcceptToken( "nll" ) then
-		-- Value = self:Compile_NULL( self:TokenTrace( ) )
-		
 	-- Variable and Inc/Dec
 	
 	elseif self:AcceptToken( "var" ) then
@@ -402,19 +387,22 @@ function Compiler:BuildTable( RootTrace )
 			
 			Count = Count + 1
 			
-			local Expression, Key = self:GetExpression( Trace, true )
+			local Expression, Key = self:GetExpression( Trace, true ), nil
 			
 			if self:AcceptToken( "ass" ) then
-				Keys[Count] = Expression
+				Key = Expression
 				
 				Expression = self:GetExpression( Trace )
 				
 				if Expression.Return == "..." then
-					self:TraceError( Trace, "Varargs (...) can not have a set index.")
+					self:TraceError( Trace, "Invalid use of varargs (...)")
+				elseif Key.Return == "..." then
+					self:TraceError( Trace, "Invalid use of varargs (...)")
 				end
 			end
 			
 			Values[Count] = Expression
+			Keys[Count] = Key
 			
 			if !self:AcceptToken( "com" ) then
 				break
@@ -687,7 +675,9 @@ function Compiler:Statment_VAR( RootTrace )
 			local Var = Variables[ I ]
 			local Expression = self:GetExpression( Var[1] )
 			
-			if Operator then
+			if Expression.Return == "..." then
+				self:TokenError( "Invalid use of vararg (...)" )
+			elseif Operator then
 				Expression = self[Operator]( self, Var[1], self:Compile_VARIABLE( Var[1], Var[2] ), Expression )
 			end
 			
@@ -731,6 +721,7 @@ function Compiler:Statment_VAR( RootTrace )
 		local Instruction = self:Compile_GET( Data[3], Variable, Data[1], Data[2] )
 		
 		if self:AcceptToken( "ass" ) then
+			self:ExcludeVarArg( )
 			Instruction = self:GetExpression( Data[3] )
 		elseif self:AcceptToken( "aadd" ) then
 			Instruction = self:Compile_ADDITION( Trace, Instruction, self:GetExpression( Data[3] ) )
@@ -1036,7 +1027,7 @@ function Compiler:BuildLambda( RootTrace, Variable )
 
 	self:RequireToken( "rpa", "Right parenthesis ( )) missing, to close lambda parameters." )
 	
-	self:PushFlag( "HasVargs", HasVarg )
+	self:PushFlag( "HasVargs", HasVarg or self:GetFlag( "HasVargs", false ) )
 	self:PushFlag( "ReturnedType", "" )
 	self:PushFlag( "CanReturn", true )
 	self:PushFlag( "Lambda", true )
@@ -1415,7 +1406,7 @@ function Compiler:FUNC_print( Trace )
 			
 			local Value = self:GetExpression( Trace )
 			
-			if Value.Return ~= "s" and Value.Return ~= "?" then
+			if Value.Return ~= "s" and Value.Return ~= "?" and Value.Return ~= "..." then
 				Value = self:Compile_CAST( Trace, "string", Value )
 			end -- Auto cast to string!
 			

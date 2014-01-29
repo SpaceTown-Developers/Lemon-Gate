@@ -165,6 +165,29 @@ function Compiler:CompileTrace( Trace )
 end
 
 /*==============================================================================================
+	Section: Class
+==============================================================================================*/
+function Compiler:NType( Type )
+	if Type == "..." then self:TokenError( "Invalid use of vararg (...) or unpack(T)." ) end
+	return API:GetClass( Type ).Name
+end
+
+function Compiler:SType( Type )
+	if Type == "..." then return self:TokenError( "Invalid use of vararg (...) or unpack(T)." ) end
+	return API:GetClass( Type ).Short
+end
+
+function Compiler:GetClass( Trace, Name )
+	local Class = API:GetClass( Name, true )
+	
+	if !Class or Class.Name ~= Name then
+		self:TraceError( Trace, "No such class %s", Name )
+	end
+	
+	return Class
+end
+
+/*==============================================================================================
 	Section: Operators
 ==============================================================================================*/
 function Compiler:GetOperator( Name, Param1, Param2, ... )
@@ -336,6 +359,8 @@ function Compiler:ConstructOperator( Perf, Types, Second, First, ... )
 				
 				if RType == "?" then
 					table.insert( Variants, 1, Value )
+				elseif RType == "..." then
+					table.insert( Variants, 1, Value )
 				else
 					table.insert( Variants, 1, Format( "{%s,%q}", Value, RType ) )
 				end
@@ -367,7 +392,11 @@ function Compiler:ConstructOperator( Perf, Types, Second, First, ... )
 	-- 7) Replace Var-Args
 		if Vargs then
 			local Varargs = string.Implode( ",", Variants )
-		
+			
+			if !Varargs or Varargs == "" then
+				Varargs = "nil"
+			end
+			
 			First = string.gsub( First, "(%%%.%.%.)", Varargs )
 			
 			if Second then
