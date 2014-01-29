@@ -172,6 +172,7 @@ local keywords = {
 	["event"]    = { true, false },
 	["true"]     = { true, false },
 	["false"]    = { true, false },
+	["method"]   = { true, false },
 }
 
 -- fallback for nonexistant entries:
@@ -431,11 +432,6 @@ function Syntaxer:Parse( Row )
 				
 				continue 
 			end 
-			
-			if word == "method" then
-				addToken( "keyword", self.tokendata  )
-				continue
-			end
 			
 			if word == "event" then 
 				tokenname = "keyword"

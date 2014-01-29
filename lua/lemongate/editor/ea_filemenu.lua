@@ -10,7 +10,7 @@ function PANEL:Init( )
 	self:ShowCloseButton( true )
 	self:DockPadding( 0, 26, 0, 0 )
 	
-	self.CurrentPath = "lemongate"
+	self.CurrentPath = cookie.GetNumber( "eafilebrowser_cpath", "lemongate" )
 	
 	self.RightPanel = vgui.Create( "DPanel" )
 	self:BuildPathBar( self.RightPanel )
@@ -25,15 +25,28 @@ function PANEL:Init( )
 	self.Divider:Dock( FILL )
 	self.Divider:DockMargin( 5, 5, 5, 5 )
 	self.Divider:SetDividerWidth( 5 )
-	self.Divider:SetLeftMin( 50 )
-	self.Divider:SetRightMin( 50 )
+	self.Divider:SetLeftMin( 150 )
+	self.Divider:SetRightMin( 250 )
 	self.Divider:SetLeft( self.LeftPanel )
 	self.Divider:SetRight( self.RightPanel )
+	self.Divider:SetLeftWidth( cookie.GetNumber( "eafilebrowser_dwidth", 150 ) )
 	
 	self:SetSizable( true )
 	self:SetMinWidth( 500 )
 	self:SetMinHeight( 300 )
-	self:SetSize( 500, 300 )
+	
+	self:SetSize( cookie.GetNumber( "eafilebrowser_w", 500 ), cookie.GetNumber( "eafilebrowser_h", 300 ) ) 
+	self:SetPos( cookie.GetNumber( "eafilebrowser_x", ScrW( ) / 2 - self:GetWide( ) / 2 ), cookie.GetNumber( "eafilebrowser_y", ScrH( ) / 2 - self:GetTall( ) / 2 ) ) 
+end
+
+function PANEL:Close( )
+	cookie.Set( "eafilebrowser_x", self.x ) 
+	cookie.Set( "eafilebrowser_y", self.y ) 
+	cookie.Set( "eafilebrowser_w", self:GetWide( ) ) 
+	cookie.Set( "eafilebrowser_h", self:GetTall( ) ) 
+	cookie.Set( "eafilebrowser_cpath", self.CurrentPath ) 
+	cookie.Set( "eafilebrowser_dwidth", self.Divider:GetLeftWidth( ) ) 
+	self:Remove( ) 
 end
 
 function PANEL:BuildBrowser( Parent )
@@ -48,9 +61,9 @@ function PANEL:RefreshBrowser( )
 	
 	self.BrowserNode = self.Browser:AddNode( "LemonGate" )
 	
-	self:SetUpBrowserNode( self.BrowserNode, "lemongate" )
-	
 	self:AddFolderToBrowser( self.BrowserNode, "lemongate" )
+	
+	self:SetUpBrowserNode( self.BrowserNode, "lemongate" )
 	
 	self:ExpandAll( true )
 end
@@ -152,17 +165,16 @@ function PANEL:ExpandAll( Bool )
 	end
 end
 
-
 function PANEL:BuildFileList( Parent )
 	self.FileList = vgui.Create( "DListView", Parent )
 	self.FileList:Dock( FILL )
 	self.FileList:DockMargin( 5, 0, 5, 0 )
 	
 	self.FileList:SetMultiSelect( false )
-	self.FileList:AddColumn( "" ):SetMaxWidth( 20 )
+	self.FileList:AddColumn( "" ):SetFixedWidth( 20 )
 	self.FileList:AddColumn( "Name" ):SetMinWidth( 50 )
-	self.FileList:AddColumn( "Size" ):SetMaxWidth( 40 )
-	self.FileList:AddColumn( "Modified" ):SetMaxWidth( 80 )
+	self.FileList:AddColumn( "Size" ):SetFixedWidth( 40 )
+	self.FileList:AddColumn( "Modified" ):SetFixedWidth( 80 )
 	
 	function self.FileList.OnClickLine( _, Line, Bool )
 		if Bool then
@@ -176,6 +188,38 @@ function PANEL:BuildFileList( Parent )
 		end
 	end
 	
+	function self.FileList:SortByColumn( ColumnID, Desc )
+		if ColumnID == 1 then return end 
+		
+		table.Copy( self.Sorted, self.Lines )
+		
+		table.sort( self.Sorted, function( a, b ) 
+			if ( Desc ) then
+				a, b = b, a
+			end
+			
+			if ColumnID == 4 then 
+				return a.FileTimeRaw < b.FileTimeRaw 
+			end 
+			
+			if ColumnID == 3 then 
+				if a.Isfolder then 
+					return string.lower( a:GetColumnText( 2 ) ) < string.lower( b:GetColumnText( 2 ) )
+				end 
+				return a.FileSizeRaw < b.FileSizeRaw
+			end 
+			
+			if a.IsFolder ~= b.IsFolder then 
+				return a.IsFolder and !Desc
+			end 
+			
+			return string.lower( a:GetColumnText( ColumnID ) ) < string.lower( b:GetColumnText( ColumnID ) )
+		end )
+
+		self:SetDirty( true )
+		self:InvalidateLayout()
+	end
+	
 	self:OpenFolder( "lemongate" )
 	
 	return self.FileList
@@ -187,9 +231,10 @@ function PANEL:OpenFolder( Path, UpDir )
 	
 	self.FileList:Clear( )
 	
-	-- Parent Dir:
+	-- Parent Dir: 
 	if UpDir then
-		local Parent = self.FileList:AddLine( "", "..", "", "" )
+		local Parent = self.FileList:AddLine( "", "..", "", "" ) 
+		Parent.IsFolder = true 
 		self:SetFileIcon( Parent, "fugue/blue-folder-horizontal-open.png" )
 	
 		function Parent.OnDoubleClick( )
@@ -197,8 +242,17 @@ function PANEL:OpenFolder( Path, UpDir )
 		end
 	end
 	
-	-- Files and folders:
-	local Files, Folders = file.Find( Path .. "/*", "DATA", "nameasc" )
+	-- Files and folders: 
+	local Files, Folders = file.Find( Path .. "/*", "DATA" ) 
+	
+	for _, Folder in pairs( Folders ) do
+		local Line = self:AddFile( Folder, Path, "fugue/blue-folder-horizontal.png" )
+		Line.IsFolder = true 
+		
+		function Line.OnDoubleClick( )
+			self:OpenFolder( Path .. "/" .. Folder, Path )
+		end
+	end
 	
 	for _, File in pairs( Files ) do
 		if File:Right( 4 ) == ".txt" then
@@ -224,13 +278,7 @@ function PANEL:OpenFolder( Path, UpDir )
 		end
 	end
 	
-	for _, Folder in pairs( Folders ) do
-		local Line = self:AddFile( Folder, Path, "fugue/blue-folder-horizontal.png" )
-		
-		function Line.Action( )
-			self:OpenFolder( Path .. "/" .. Folder, Path )
-		end
-	end
+	self.FileList.Columns[2]:DoClick( )
 end
 
 function PANEL:AddFile( Name, Path, Icon )
@@ -240,6 +288,8 @@ function PANEL:AddFile( Name, Path, Icon )
 	local Time = os.date( "%d-%m-%Y", file.Time( NewPath, "DATA" ) )
 	
 	local Line = self.FileList:AddLine( "", Name, Bytes, Time )
+	Line.FileSizeRaw = file.Size( NewPath, "DATA" ) 
+	Line.FileTimeRaw = file.Time( NewPath, "DATA" ) 
 	
 	self:SetFileIcon( Line, Icon )
 	
@@ -490,7 +540,7 @@ end
 function PANEL:SetLoadFile( )
 	self.IsSaveMenu = false
 	
-	self:SetText( "Load File:" )
+	self:SetText( "Load" )
 	self.SaveOrLoad:SetTooltip( "Open" )
 	self.SaveOrLoad:SetMaterial( Material( "fugue/blue-folder-horizontal-open.png" ) ) 
 	

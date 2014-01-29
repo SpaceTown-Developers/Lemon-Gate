@@ -163,25 +163,25 @@ function PANEL:OnCursorMoved( x, y )
 	
 	if self.Sizing then
 		if self.Sizing[1] then 
-			self:SetWide( x )
-		
-			x = self:LocalToScreen( x, 0 ) 
-			if x > ScrW( ) then 
+			_x = self:LocalToScreen( x, 0 ) 
+			if _x > ScrW( ) then 
 				self:SetWide( ScrW( ) - self.x ) 
-				x = ScrW( ) - self.x
+			elseif x < self.m_iMinWidth then 
+				self:SetWide( self.m_iMinWidth ) 
+			else 
+				self:SetWide( x )
 			end 
-			if x < self.m_iMinWidth then self:SetWide( self.m_iMinWidth ) end 
 		end 
 		
 		if self.Sizing[2] then 
-			self:SetTall( y )
-		
-			_, y = self:LocalToScreen( 0, y ) 
-			if y > ScrH( ) then 
+			_, _y = self:LocalToScreen( 0, y ) 
+			if _y > ScrH( ) then 
 				self:SetTall( ScrH( ) - self.y ) 
-				y = ScrH( ) - self.y
+			elseif y < self.m_iMinHeight then 
+				self:SetTall( self.m_iMinHeight ) 
+			else 
+				self:SetTall( y )
 			end 
-			if y < self.m_iMinHeight then self:SetTall( self.m_iMinHeight ) end 
 		end 
 		
 		return true 

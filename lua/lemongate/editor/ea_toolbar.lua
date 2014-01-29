@@ -156,7 +156,7 @@ function PANEL:AddTabNamer( )
 	Panel.btn:SetIconCentered( false )
 	Panel.btn:SetTextCentered( false )
 	Panel.btn:DrawButton( true )
-	Panel.btn:SetTooltip( "Set script name:" ) 
+	Panel.btn:SetTooltip( "Set script name" ) 
 	Panel.btn:SetMaterial( Material( "fugue/script--pencil.png" ) )
 	
 	Panel.txt = vgui.Create( "DTextEntry", Panel )

@@ -26,29 +26,6 @@ local invalid_filename_chars = {
 	[","] = "",
 }
 
-local function sort( a, b )
-	if a.IsFile == b.IsFile then
-		return string.lower( a.Name ) < string.lower( b.Name )
-	end
-	return not a.IsFile
-end
-
-local function InvalidateLayout( panel )
-	if panel.ChildNodes then panel.ChildNodes:InvalidateLayout( true ) end
-	panel:InvalidateLayout( true )
-	if panel.GetParentNode then InvalidateLayout( panel:GetParentNode( ) ) end
-end
-
-function PANEL:Update( )
-	if self.LemonNode.ChildNodes then
-		self.LemonNode.ChildNodes:Remove( )
-		self.LemonNode.ChildNodes = nil
-	end
-	self.LemonNode:CreateChildNodes( )
-	self.LemonNode:SetNeedsPopulating( true )
-	self.LemonNode:PopulateChildrenAndSelf( true )
-end
-
 function PANEL:Init( )
 	-- self:SetFocusTopLevel( true ) // TODO: Figure out how this shit works!
 	self:SetKeyBoardInputEnabled( true )
@@ -308,7 +285,6 @@ function PANEL:ShowOpenFile( )
 		return true
 	end
 	
-	FileMenu:Center( )
 	FileMenu:MakePopup( )
 end
 

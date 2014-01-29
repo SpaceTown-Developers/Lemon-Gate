@@ -63,8 +63,12 @@ end
 local function GetType( word )
 	local Class = API:GetClass( word, true ) 
 	if Class then 
-		return Class.Name
+		return Class.Name or "" 
 	end 
+	if word == "..." then 
+		return "..."
+	end 
+	error( "this should never be shown!! " .. word ) 
 end
 
 local function NodeClick( self ) 
@@ -96,6 +100,7 @@ function PANEL:SetupHelperFunctions( filter )
 	
 	local cList = { } 
 	for Name, Data in pairs( API.Classes ) do
+		if Name == "..." then continue end 
 		cList[#cList + 1] = Name 
 	end 
 	
