@@ -7,6 +7,10 @@ function EFFECT:Init( Input )
 	
 	local Entity = Input:GetEntity( )
 	
+	if !IsValid( Entity ) then
+		return false
+	end
+	
 	self:SetPos( Entity:GetPos( ) )
 	
 	self:SetAngles( Entity:GetAngles( ) + Angle( 0.01, 0.01, 0.01 ) )
