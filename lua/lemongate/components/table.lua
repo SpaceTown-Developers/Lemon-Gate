@@ -602,7 +602,7 @@ Component:AddOperator( "callmethod", "t,s,...", "?", [[
 		%context:Throw( %trace, "table", "Attempt to call void method '" .. value %2 .. "'" )
 	end
 	
-	%util = %Method( {value %1, type %1}, %... ) ) or { 0, "n" }
+	%util = %Method( {value %1, type %1}, %... ) or { 0, "n" }
 ]], "%util" )
 
 Component:AddFunction( "setMetaTable", "t,t", "t", [[
