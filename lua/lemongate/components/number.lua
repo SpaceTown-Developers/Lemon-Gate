@@ -35,7 +35,7 @@ Core:SetPerf( LEMON_PERF_CHEAP )
 Core:AddOperator( "=", "n", "", [[
 %delta[value %1] = %memory[value %1]
 %memory[value %1] = value %2
-%click[value %1] = %delta[value %1] ~= %memory[value %1]
+%click[value %1] = ( %click[value %1] or ( %memory[value %1] ~= %delta[value %1] ) )
 ]], "" )
 
 Core:AddOperator( "~", "n", "b", "%click[value %1]" )
@@ -162,7 +162,7 @@ Core:AddFunction( "int", "n", "n", "((value %1 >= 0) and value %1 - value %1 mod
 
 Core:AddFunction( "frac", "n", "n", "(value %1 >= 0 and value %1 modulus 1 or value %1 modulus -1)" )
 
-Core:AddFunction( "clamp", "n,n,n", "n", "(value %1 < value %2 and value %2 or (value %1 > value %3 and value %3 or value %1))" )
+Core:AddFunction( "clamp", "n,n,n", "n", "math.Clamp( value %1, value %2, value %3 )" )
 
 Core:AddFunction( "inrange", "n,n,n", "n", "((value %1 < value %2 or value %1 > value %3) and 0 or 1)" )
 

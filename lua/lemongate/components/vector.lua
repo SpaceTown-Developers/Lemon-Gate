@@ -34,7 +34,7 @@ Core:AddOperator( "default", "v", "v", "Vector3.Zero:Clone()" )
 Core:AddOperator( "=", "v", "", [[
 %delta[value %1] = %memory[value %1] or Vector3( 0, 0, 0 )
 %memory[value %1] = value %2
-%click[value %1] = %delta[value %1] ~= %memory[value %1]
+%click[value %1] = %click[value %1] or ( %delta[value %1] ~= %memory[value %1] )
 ]], "" )
 
 Core:AddOperator( "~", "v", "b", "%click[value %1]" )

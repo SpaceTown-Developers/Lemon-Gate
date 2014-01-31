@@ -25,7 +25,7 @@ Core:AddOperator( "=", "c", "", [[
 local %A, %B = value %2, %memory[value %1] or {255, 255, 255, 255 }
 %delta[value %1] = %B
 %memory[value %1] = %A
-%click[value %1] = (%A[1] == %B[1] and %A[2] == %B[2] and %A[3] == %B[3] and %B[4] == %A[4])
+%click[value %1] = %click[value %1] or (%A[1] == %B[1] and %A[2] == %B[2] and %A[3] == %B[3] and %B[4] == %A[4])
 ]], "" )
 
 Core:AddOperator( "~", "c", "b", "%click[value %1]" )

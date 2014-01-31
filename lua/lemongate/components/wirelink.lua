@@ -111,7 +111,7 @@ if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) then
 	%util = value %1
 	
 	if !value %1.extended then
-		$WireLib.CreateWirelinkOutput( self.player, this, {true} )
+		$WireLib.CreateWirelinkOutput( %context.Player, value %1, {true} )
 	end
 else
 	%context:Throw( %trace, "wirelink", "Failed to create wirelink.") 
@@ -257,10 +257,12 @@ local Table_Concat = table.concat
 local ipairs, type = ipairs, type
 
 local function WriteStringZero( Entity, Address, String )
-        if ( Entity:WriteCell( Address+ #String, 0 ) ) then
+        local WriteCell = Entity.WriteCell
+		
+		if ( WriteCell( Entity, Address+ #String, 0 ) ) then
 
         for I = 1, #String do
-            if !Entity:WriteCell( Address + I - 1, String_Byte( String, I ) ) then
+            if !WriteCell( Entity, Address + I - 1, String_Byte( String, I ) ) then
 				return 0
 			end
         end
@@ -272,9 +274,12 @@ local function WriteStringZero( Entity, Address, String )
 end
 
 local function ReadStringZero( Entity, Address )
+	
 	local Table = { }
+	local ReadCell = Entity.ReadCell
+	
 	for I = Address, Address + 16384 do
-			local Byte = Entity:ReadCell( I, Byte )
+			local Byte = ReadCell( Entity, I, Byte )
 			
 			if !Byte then
 				return ""
@@ -294,29 +299,32 @@ local WA_Seralized, WriteArray = { }
 
 WriteArray = function( Entity, Address, Data, Clear )
 	local Count = #Data.Types
+	local WriteCell = Entity.WriteCell
 	
-	if ( !Entity:WriteCell( Address + Count - 1, 0 ) ) then 
+	if ( !WriteCell( Entity, Address + Count - 1, 0 ) ) then 
 		if ( Clear ) then WA_Seralized = { } end
 		return 0
 	end
 	
-	Entity:WriteCell( Address + Count, 0 )
+	WriteCell( Entity, Address + Count, 0 )
+	
 	local Free_Address = Address + Count + 1
 	local MemoryValid = true
 	
-	for I, Type in ipairs( Data.Types ) do
-			local Value = Data.Data[ I ]
-			
-			print( MemoryValid, I, Type, Value )
+	local Values = Data.Data
+	local Types = Data.Types
+	
+	for I = 1, #Values do
+			local Value, Type = Values[I], Types[I]
 			
 			if ( !MemoryValid ) then
 				if ( Clear ) then WA_Seralized = { } end
 				return 0
 				
 			elseif Type == "n" then
-					MemoryValid = Entity:WriteCell( Address + I - 1, Value )
+					MemoryValid = WriteCell( Entity, Address + I - 1, Value )
 					
-			elseif !Entity:WriteCell( Address + I - 1, Free_Address ) then
+			elseif !WriteCell( Entity, Address + I - 1, Free_Address ) then
 					MemoryValid = false
 					
 			elseif Type == "s" then
@@ -324,15 +332,15 @@ WriteArray = function( Entity, Address, Data, Clear )
 					MemoryValid = ( Free_Address ~= 0 )
 					
 			elseif Type == "v" then
-					Entity:WriteCell( Address + I - 1, Value.x )
-					Entity:WriteCell( Address + I, Value.y )
+					WriteCell( Entity, Address + I - 1, Value.x )
+					WriteCell( Entity, Address + I, Value.y )
 					
-					MemoryValid = Entity:WriteCell( Address + I + 1, Value.z )
+					MemoryValid = WriteCell( Entity, Address + I + 1, Value.z )
 					Free_Address = Free_Address + 3
 					
 			elseif Type == "t" then
 					if WA_Seralized[ Value ] then
-						MemoryValid = Entity:WriteCell( Address + I -1, WA_Seralized[ Value ] )
+						MemoryValid = WriteCell( Entity, Address + I -1, WA_Seralized[ Value ] )
 					else
 						WA_Seralized[ Value ] = Free_Address
 						Free_Address = WriteArray( Entity, Free_Address, Value )
