@@ -265,7 +265,10 @@ function PANEL:SaveFile( Path, SaveAs, Tab, bNoSound )
 		surface.PlaySound( "ambient/water/drip3.wav" )
 		self.ValidateButton:SetText( "Saved as " .. Path )
 	end
-	if not Tab.FilePath then
+	if not Tab.FilePath or Tab.FilePath:lower( ) ~= Path:sub( 11 ):lower( ) then
+		if self.FileTabs[Tab.FilePath] then 
+			self.FileTabs[Tab.FilePath] = nil 
+		end 
 		Tab.FilePath = Path:sub( 11 )
 		self.FileTabs[Path:sub( 11 )] = Tab
 	end
