@@ -27,6 +27,8 @@ function Class.Wire_In( Context, Cell, Value )
 	Context.Memory[ Cell ] = Vector3(Value)
 end
 
+Core:SetPerf( LEMON_PERF_CHEAP )
+
 Core:AddOperator( "default", "v", "v", "Vector3.Zero:Clone()" )
 
 -- Assign:

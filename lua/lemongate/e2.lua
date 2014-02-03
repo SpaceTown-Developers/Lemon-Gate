@@ -148,7 +148,9 @@ if TableCompnent then
 	API.E2:RegisterLemon( "t", "t", function( Context, Table, Cache )
 		local Cache = Cache or { }
 		
-		if Cache[ Table ] then
+		if Table.Lemon then
+			return setmetatable( table.Copy( Table.Lemon ), Meta )
+		elseif Cache[ Table ] then
 			return Cache[ Table ]
 		end
 		
@@ -195,6 +197,7 @@ if TableCompnent then
 		end
 		
 		local Converted = table.Copy( DEFAULT )
+		Converted.Lemon = Table -- Lemon -> Lemon no data loss!
 		
 		for Key, Type, Value in Table:Itorate( ) do
 			Context.Perf = Context.Perf + 0.1

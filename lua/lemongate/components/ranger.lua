@@ -110,10 +110,12 @@ local Class = Component:NewClass( "rd", "ranger" )
 
 Class:UsesMetaTable( Ranger )
 
-Component:SetPerf( LEMON_PERF_NORMAL )
+Component:SetPerf( LEMON_PERF_ABNORMAL )
 
 -- Create a ranger object
 Component:AddFunction( "ranger", "", "rd", "%Ranger( )", LEMON_INLINE_ONLY )
+
+Component:SetPerf( LEMON_PERF_CHEAP )
 
 -- Set up a ranger.
 Component:AddFunction( "ignoreEntities", "rd:b", "", "value %1.Ignore_Entities = value %2", LEMON_PREPARE_ONLY )

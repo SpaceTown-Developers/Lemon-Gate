@@ -22,7 +22,7 @@ setmetatable( Table, Table )
 Table.Click = false
 
 function Table.__call( )
-	return setmetatable( { Data = {}, Types = {}, Size = 0, Count = 0, Clk = true, MetaTable = false }, Table )
+	return setmetatable( { Data = {}, Types = {}, Look = {}, Size = 0, Count = 0, Clk = true, MetaTable = false }, Table )
 end
 
 function Table.Results( Data, Type )
@@ -45,6 +45,7 @@ function Table:Set( Index, Type, Value )
 	
 	Data[Index] = Value
 	self.Types[Index] = Type
+	self.Look[Index] = Index 
 	
 	self.Clk = true
 	self.Count = #Data
@@ -56,6 +57,7 @@ function Table:Insert( Index, Type, Value )
 	
 	TableInsert( Data, Index, Value )
 	TableInsert( self.Types, Index, Type )
+	self.Look[Index] = Index 
 	
 	self.Clk = true
 	self.Count = #Data
@@ -71,6 +73,7 @@ function Table:Remove( Index )
 	
 	Data[Index] = nil
 	self.Types[Index] = nil
+	self.Look[Index] = nil
 	
 	self.Clk = true
 	self.Count = #Data
@@ -84,7 +87,8 @@ function Table:Shift( Index )
 	end
 	
 	TableRemove( Data, Index )
-	TableRemove( self.Types,Index )
+	TableRemove( self.Types, Index )
+	TableRemove( self.Look, Index )
 	
 	self.Clk = true
 	self.Count = #Data
@@ -116,6 +120,8 @@ function Table:GetFromMeta( Index, Type )
 		end
 	end
 end
+
+local next = next
 
 local function Itor( Table, Key )
 	local Data = Table.Data
@@ -462,7 +468,7 @@ end
 /*==============================================================================================
 	ForEach Loop
 ==============================================================================================*/
-Component:SetPerf( LEMON_PERF_EXPENSIVE )
+Component:SetPerf( LEMON_PERF_NORMAL )
 
 Component:AddOperator( "foreach", "t", "", [[
 do
@@ -476,8 +482,6 @@ do
 	end
 	
 	for Key, Type, Value in value %1:Itorate( ) do
-		%context:PushPerf( %trace, ]] .. LEMON_PERF_ABNORMAL .. [[ )
-		
 		local KeyType = $type( Key )[1]
 		
 		if KeyType == "E" or KeyType == "P" then
@@ -521,6 +525,7 @@ end]] , "" )
 ==============================================================================================*/
 Component:SetPerf( LEMON_PERF_EXPENSIVE )
 
+/* OLD SORT FUNCTION, REMOVED CUS ITS AWFUL!
 Component:AddFunction( "sort", "t:f", "t", [[
 local %New, %Count = { }, 0
 
@@ -540,7 +545,7 @@ table.sort( %New, function( A, B )
 	local Ret = value %2( ValA, ValB )
 	
 	if Ret and Ret[2] ~= "b" then
-		%context:Throw( %trace, "table", "sort function returned " .. LongType( Ret[2] ) .. " boolean exspected." )
+		%context:Throw( %trace, "table", "sort function returned " .. LongType( Ret[2] ) .. " boolean expected." )
 	elseif Ret then
 		return Ret[1]
 	end
@@ -551,8 +556,51 @@ for Key, Val in pairs( %New ) do
 	Context.Perf = Context.Perf + 0.5
 	
 	%Sorted:Insert( Key, Val[2], Val[3] )
+end]], "%Sorted" ) */
+
+Component:AddFunction( "sort", "t:f", "t", [[
+local %Sorted = %Table( )
+
+do
+	%context.Perf = %context.Perf + ( value %1.Size * 2 )
+	%perf //Rebalance this?
+
+	local Data = value %1.Data
+	local Types = value %1.Types
+	
+	local Look = { }
+	for _, V in pairs( value %1.Look ) do Look[V] = V end
+
+	local Trace = %trace
+
+	table.sort( Look, function( KeyA, KeyB )
+		local Return = value %2( { Data[KeyA], Types[KeyA] }, { Data[KeyB], Types[KeyB] } )
+		
+		if !Return then
+			return false
+		elseif Return[2] == "b" then
+			return Return[1]
+		end
+		
+		%context:Throw( Trace, "table", "sort function returned " .. LongType( Return[2] ) .. " boolean expected." )
+	end )
+	
+	local SData = %Sorted.Data
+	local STypes = %Sorted.Types
+	local SLook = %Sorted.Look
+	
+	for I, Value in pairs( Look ) do
+		SData[ I ] = Data[ Value ]
+		STypes[ I ] = Types[ Value ]
+		SLook[ Value ] = Value
+	end
+	
+	%Sorted.Count = #SData
+	%Sorted.Size = value %1.Size
 end]], "%Sorted" )
 
+	
+	
 /*==============================================================================================
 	Print Table
 ==============================================================================================*/
@@ -590,9 +638,20 @@ Component:AddFunction( "printTable", "t", "", "value %1:Print( %context )", "" )
 /*==============================================================================================
 	Methods
 ==============================================================================================*/
+Component:SetPerf( LEMON_PERF_CHEAP )
+
+Component:AddFunction( "setMetaTable", "t,t", "t", [[
+	value %1.MetaTable = value %2
+]], "value %1" )
+
+Component:AddFunction( "removeMetaTable", "t,t", "", "value %1.MetaTable = false", "" )
+
+
 Component:AddOperator( "setmethod", "t,s,f", "", [[
 	value %1:Set( value %3, "f", value %2 )
 ]], "" )
+
+Component:SetPerf( LEMON_PERF_NORMAL )
 
 Component:AddOperator( "callmethod", "t,s,...", "?", [[
 	%prepare
@@ -605,11 +664,6 @@ Component:AddOperator( "callmethod", "t,s,...", "?", [[
 	%util = %Method( {value %1, type %1}, %... ) or { 0, "n" }
 ]], "%util" )
 
-Component:AddFunction( "setMetaTable", "t,t", "t", [[
-	value %1.MetaTable = value %2
-]], "value %1" )
-
-Component:AddFunction( "removeMetaTable", "t,t", "", "value %1.MetaTable = false", "" )
 
 -- Lets done some cool Meta Stuff!
 

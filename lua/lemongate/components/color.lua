@@ -19,6 +19,8 @@ Core:AddExternal( "Color", Color )
 ==============================================================================================*/
 local Class = Core:NewClass( "c", "color", { 255, 255, 255, 255 } )
 
+Core:SetPerf( LEMON_PERF_CHEAP )
+
 -- Assign:
 
 Core:AddOperator( "=", "c", "", [[

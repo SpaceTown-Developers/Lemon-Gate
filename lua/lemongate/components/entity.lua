@@ -165,6 +165,8 @@ if %Ent and %Ent:IsValid( ) and %IsOwner( %context.Player, value %1 ) then
 	end
 end]], LEMON_NO_INLINE )
 
+Core:SetPerf( LEMON_PERF_CHEAP )
+
 Core:AddFunction( "mass", "e:", "n", [[
 	if $IsValid(value %1) then
 		%util = value %1:GetPhysicsObject( )
@@ -192,7 +194,7 @@ Core:AddFunction( "massCenter", "e:", "v", [[
 /*==============================================================================================
 	Section: OBB Box
 ==============================================================================================*/
-Core:SetPerf( LEMON_PERF_NORMAL )
+Core:SetPerf( LEMON_PERF_CHEAP )
 
 -- Trying these with out IsValid() checks, hopfuly they will always be null_entity
 
@@ -206,7 +208,7 @@ Core:AddFunction( "boxMin", "e:", "v", "(Vector3( value %1:OBBMins( ) ) )" )
 
 /******************************************************************************/
 
-Core:SetPerf( LEMON_PERF_ABNORMAL )
+Core:SetPerf( LEMON_PERF_NORMAL )
 
 Core:AddFunction( "aabbMin", "e:", "v", [[
 local %Ent, %Val = value %1, Vector3.Zero:Clone( )
@@ -366,6 +368,7 @@ if %Ent and %Ent:IsValid( ) then
 	%Val = $constraint.HasConstraints( %Ent )
 end]], "%Val" )
 
+Core:SetPerf( LEMON_PERF_ABNORMAL )
 
 Core:AddFunction( "isWeldedTo", "e:", "e", [[
 local %Ent, %Val = value %1, %NULL_ENTITY
@@ -450,6 +453,8 @@ end]], "%Val" )
 /*==============================================================================================
 	Section: Material / Skin / Bodygroup
 ==============================================================================================*/
+Core:SetPerf( LEMON_PERF_CHEAP )
+
 Core:AddFunction( "getMaterial", "e:", "s", [[
 local %Ent, %Val = value %1, ""
 if %Ent and %Ent:IsValid( ) then
@@ -507,6 +512,8 @@ end]], "(%util or Angle(0, 0, 0))")
 /*==============================================================================================
 	Section: Trails
 ==============================================================================================*/
+Core:SetPerf( LEMON_PERF_ABNORMAL )
+
 Core:AddFunction( "setTrail", "e:n,n,n,s,c", "", [[
 if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) then
 	if !string.find( value %5, "\"", 1, true ) and $file.Exists( "materials/" .. value %5 .. ".vmt", "GAME" ) then
@@ -534,6 +541,8 @@ if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) then
 		} )
 	end
 end]], "" )
+
+Core:SetPerf( LEMON_PERF_CHEAP )
 
 Core:AddFunction( "removeTrail", "e:", "", [[
 if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) then
@@ -566,6 +575,8 @@ Core:AddFunction( "teamFrags", "n", "n", "($team.TotalFrags(value %1) or 0)" )
 
 Core:AddFunction( "teamColor", "n", "c", "local %C = $team.GetColor(value %1)", "{ %C.r, %C.g, %C.b, %C.a }" )
 
+Core:SetPerf( LEMON_PERF_NORMAL )
+
 Core:AddFunction( "teams", "", "t", [[
 	%util = %Table( )
 	
@@ -577,6 +588,8 @@ Core:AddFunction( "teams", "", "t", [[
 /*==============================================================================================
 	Section: Aiming and Eye
 ==============================================================================================*/
+Core:SetPerf( LEMON_PERF_CHEAP )
+
 Core:AddFunction( "shootPos", "e:", "v", "( ($IsValid(value %1) and value %1:IsPlayer( )) and Vector3( value %1:GetShootPos() ) or Vector3.Zero:Clone() )" )
 
 Core:AddFunction( "eye", "e:", "v", "($IsValid(value %1) and (( value %1:IsPlayer( ) and Vector3( value %1:GetAimVector() ) or value %1:GetForward() )) or Vector3.Zero:Clone() )" )
@@ -642,6 +655,8 @@ Core:AddFunction( "getEquipped", "e:", "e", "(($IsValid(value %1) and value %1:I
 	Section: Attachment Points
 ==============================================================================================*/
 Core:AddFunction( "lookupAttachment", "e:s", "n", "($IsValid(value %1) and value %1:LookupAttachment(value %2) or 0)" )
+
+Core:SetPerf( LEMON_PERF_CHEAP )
 
 Core:AddFunction( "attachmentPos", "e:n", "v", [[
 if $IsValid( value %1 ) then
@@ -794,6 +809,24 @@ local %Res = %Table( )
 for _, Find_Entity in pairs( $ents.FindInCone( value %2:Garry( ), value %3:Garry( ), value %4, value %5)) do
 	local Class = Find_Entity:GetClass( )
 	if Find_Entity:IsValid() and !%FindFilter[Class] and Class == value %1 then
+		%Res:Insert(nil, "e", Find_Entity)
+	end
+end]], "%Res" )
+
+/***********************************************************************************************/
+
+Core:AddFunction( "findByClass", "s,v", "t", [[
+local %Res, %Vec = %Table( ), value %2:Garry( )
+local %Ents = $ents.FindByClass( value %1 )
+
+table.sort( %Ents, function( A, B )
+	if !IsValid( A ) then return false end
+	if !IsValid( B ) then return true end
+	return %Vec:Distance( A:GetPos( ) ) < %Vec:Distance( B:GetPos( ) )
+end )
+
+for _, Find_Entity in pairs( %Ents ) do
+	if Find_Entity:IsValid() and !%FindFilter[Find_Entity:GetClass( )] then
 		%Res:Insert(nil, "e", Find_Entity)
 	end
 end]], "%Res" )

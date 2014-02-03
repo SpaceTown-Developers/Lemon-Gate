@@ -237,7 +237,7 @@ Core:AddOperator( "->o", "", "b", [[(#%context.Entity.Outputs["value %1"].Connec
 /*==============================================================================================
 	Section: Loops
 ==============================================================================================*/
-Core:SetPerf( LEMON_PERF_EXPENSIVE )
+Core:SetPerf( LEMON_PERF_NORMAL )
 
 -- 1:Ass, 2:Cnd, 3:Step, 4:Statment
 Core:AddOperator( "for", "n", "", [[
@@ -274,6 +274,8 @@ do -- For Loop
 	end
 end
 ]], "" )
+
+Core:SetPerf( LEMON_PERF_NORMAL * 0.5 )
 
 Core:AddOperator( "while", "", "", [[
 do -- While Loop

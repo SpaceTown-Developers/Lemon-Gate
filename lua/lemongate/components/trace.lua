@@ -20,7 +20,7 @@ Component:AddOperator( "default", "tr", "tr", DEFAULT_TRACE, LEMON_INLINE_ONLY )
 	Section: Constructors
 ==============================================================================================*/
 
-Component:SetPerf( LEMON_PERF_EXPENSIVE )
+Component:SetPerf( LEMON_PERF_ABNORMAL )
 
 Component:AddFunction( "trace", "", "tr", "{ start = Vector(0, 0, 0), endpos = Vector(0, 0, 0), filter = { } }", LEMON_INLINE_ONLY )
 
