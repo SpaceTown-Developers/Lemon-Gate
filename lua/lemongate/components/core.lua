@@ -78,7 +78,7 @@ Core:AddOperator( "variable", "", "", "%memory[value %1]" )
 
 Core:AddOperator( "||", "", "", "( value %1 or value %2 )" )
 
-Core:AddOperator( "?", "", "", "local value %1 = value %2", "( value %4 and value %2 or value %3 )" )
+Core:AddOperator( "?", "", "", "( value %1 and value %2 or value %3 )" )
 
 Core:AddOperator( "&&", "", "b", "( value %2 and value %2 )" )
 

@@ -121,13 +121,15 @@ function Compiler:GetExpression( RootTrace, IgnoreAss )
 		
 		self:PrevToken( )
 	end
-
-	self:PushFlag( "ExprTrace", self:TokenTrace( RootTrace ) )
+	
+	local Trace = self:TokenTrace( RootTrace )
+	
+	self:PushFlag( "ExprTrace", Trace )
 	
 	-- Operators
 	
 	local Expression = self:GetTokenOperator(
-		"or", "and", --"cnd",
+		"or", "and",
 		"bor", "band", "bxor",
 		"eq", "neq", "gth", "lth", "geq", "leq",
 		"bshr", "bshl",
@@ -137,7 +139,7 @@ function Compiler:GetExpression( RootTrace, IgnoreAss )
 
 	self:PopFlag( "ExprTrace" )
 	
-	return Expression
+	return self:PostExpression( Trace, Expression )
 end
 
 /*==============================================================================================
@@ -149,7 +151,6 @@ Compiler.TokenOperators = {
 	-- Conditional
 		["or"] = { "or", "||", true },
 		["and"] = { "and", "&&", true },
-		--["qsm"] = { "cnd", "?" },
 		
 	-- Comparason
 	
@@ -199,6 +200,19 @@ function Compiler:GetTokenOperator( Token, ... )
 	return Expression
 end
 
+function Compiler:PostExpression( RootTrace, Expression )
+	if self:AcceptToken( "qsm" ) then
+		local Trace = self:TokenTrace( RootTrace )
+		
+		local TrueExpr = self:GetExpression( Trace )
+		
+		self:RequireToken( "cnd", "Conditional operator (::) must appear after expression to complete conditional." )
+		
+		return self:Compile_CND( Trace, Expression, TrueExpr, self:GetExpression( Trace ) )
+	end
+	
+	return Expression
+end
 /*==============================================================================================
 	Section: Expression Value
 ==============================================================================================*/
@@ -455,6 +469,7 @@ function Compiler:ExpressionError( )
 
 		self:ExcludeToken( "com", "Comma (,) not expected here, missing an argument?" )
 		self:ExcludeToken( "col", "Method operator (:) must not be preceded by whitespace" )
+		self:ExcludeToken( "cnd", "Conditional operator (::) must be part of conditional expression (A ? B :: C)." )
 
 		self:ExcludeToken( "if", "If keyword (if) must not appear inside an equation" )
 		self:ExcludeToken( "eif", "Else-if keyword (elseif) must be part of an if-statement" )

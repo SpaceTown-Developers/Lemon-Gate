@@ -740,18 +740,18 @@ function Compiler:Compile_OR( Trace, A, B )
 	end
 	
 	-- Check for Conditonal Or
-
-	if A.Return == B.Return then
-		local Op = self:GetOperator( "?" )
-		local ID = "_" .. self:NextLocal( )
-		local C = self:Compile_IS( Trace, self:FakeInstr( Trace, A.Return, ID ), true )
+	-- Nope, lets do this properly!
+	-- if A.Return == B.Return then
+		-- local Op = self:GetOperator( "?" )
+		-- local ID = "_" .. self:NextLocal( )
+		-- local C = self:Compile_IS( Trace, self:FakeInstr( Trace, A.Return, ID ), true )
 		
-		if Op and C then
-			local Instr = Op.Compile( self, Trace, ID, A, B, C )
-			Instr.Return = A.Return
-			return Instr
-		end
-	end
+		-- if Op and C then
+			-- local Instr = Op.Compile( self, Trace, ID, A, B, C )
+			-- Instr.Return = A.Return
+			-- return Instr
+		-- end
+	-- end
 	
 	-- Try normal Or
 	
@@ -816,6 +816,20 @@ function Compiler:Compile_CONNECT( Trace, Variable )
 	else
 		self:TraceError( Trace, "Connect operator (->) can only reach inport or outport" )
 	end
+end
+
+function Compiler:Compile_CND( Trace, A, B, C )
+	local Op = self:GetOperator( "?" )
+	
+	if B.Return ~= C.Return or !Op then
+		self:TraceError( Trace, "No such conditional (%s ? %s : %s)", self:NType( A.Return ), self:NType( B.Return ), self:NType( C.Return ) )
+	end
+	
+	local Instr = Op.Compile( self, Trace, self:Compile_IS( Trace, A ), B, C )
+	
+	Instr.Return = B.Return
+	
+	return Instr
 end
 
 /*==============================================================================================

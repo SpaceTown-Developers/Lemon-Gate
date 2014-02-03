@@ -58,8 +58,8 @@ Compiler.RawTokens = {
 		{ "||", "or", "or" },
 
 	-- SYMBOLS:
-
-		{ "?", "qsm", "?" }, --Cant get this stable yet =(
+		
+		{ "?", "qsm", "?" },
 		{ ":", "col", "colon" },
 		{ ";", "sep", "semicolon" },
 		{ ",", "com", "comma" },
@@ -67,6 +67,7 @@ Compiler.RawTokens = {
 		{ "#", "len", "length" },
 		{ "~", "trg", "trigger" },
 		{ "->", "wc", "connect" },
+		{ "::", "cnd", "conditional" },
 
 	-- BRACKETS:
 
