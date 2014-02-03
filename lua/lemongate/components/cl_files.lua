@@ -172,6 +172,7 @@ end )
 /*==============================================================================================
 	List Dir
 ==============================================================================================*/
+
 net.Receive( "lemon_list_file", function( Bytes )
 	local ID = net.ReadUInt( 16 )
 	local Path, File = GetValidPath( net.ReadString( ) )
@@ -179,19 +180,26 @@ net.Receive( "lemon_list_file", function( Bytes )
 	if !file.IsDir( Path, "DATA" ) then
 		net.Start( "lemon_file_status" )
 			net.WriteUInt( ID, 16 )
-			net.WriteUInt( FILE_OK, 16 )
+			net.WriteUInt( FILE_404, 16 )
 		net.SendToServer( )
 	else
-		local Files, Folders = file.Find( Path .. "*","DATA" )
-		for _, File in pairs( Files ) do
-			if string.GetExtensionFromFilename( File ) == "txt" then
-				Folders[ #Folders + 1 ] = File
-			end
-		end
+		local Files, _ = file.Find( Path .. "/*.txt", "DATA" )
+		local __, Folders = file.Find( Path .. "/*", "DATA" )
 		
 		net.Start( "lemon_list_file_done" )
 			net.WriteUInt( ID, 16 )
-			net.WriteTable( Folders )
+			
+			//Send Files:
+				net.WriteUInt( #Files, 16 )
+				for I = 1, #Files do
+					net.WriteString( Files[I] )
+				end
+			
+			//Send Folders:
+				net.WriteUInt( #Folders, 16 )
+				for I = 1, #Folders do
+					net.WriteString( Folders[I] )
+				end
 		net.SendToServer( )
 	end
 end )

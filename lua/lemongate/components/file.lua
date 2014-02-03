@@ -56,12 +56,12 @@ timer.Create( "Lemon.Files", 0.1, 0, function( )
 			
 			if ( Action.Status ~= FILE_OK or !Action.Sucess ) then
 				if Action.Fail then
-					Action.Entity:Pcall( "file callback", Action.Fail, { Action.Status, "n" } )
+					Action.Entity:Pcall( "file callback", Action.Fail, { Action.Status or 0, "n" } )
 				end
 			elseif Action.Type == FILE_UPLOAD then
 				Action.Entity:Pcall( "file callback", Action.Sucess, { Action.Data, "s" } )
 			elseif Action.Type == FILE_LIST then
-				Action.Entity:Pcall( "file callback", Action.Sucess, { Action.Data, "t" } )
+				Action.Entity:Pcall( "file callback", Action.Sucess, { Action.Data[1], "t" }, { Action.Data[2], "t" } )
 			end
 		end
 		
@@ -236,8 +236,6 @@ util.AddNetworkString( "lemon_list_file" )
 function Component.List( Context, FileName, Func_Sucess, Func_Fail )
 	if !IsValid( Context.Entity ) or !IsValid( Context.Player ) or !Context.Player:IsPlayer( ) then
 		return
-	elseif FileName:Right( 4 ) != ".txt" then
-		return //Todo: Exception!
 	end
 	
 	local InQueue = Queue[ Player ] or 0
@@ -269,23 +267,33 @@ end
 util.AddNetworkString( "lemon_list_file_done" )
 
 net.Receive( "lemon_list_file_done", function( Bytes, Player )
+	local Table = API:GetComponent( "table" ):GetMetaTable( )
+	
 	local ID = net.ReadUInt( 16 )
 	local Part = net.ReadUInt( 16 )
 	local Chunk = net.ReadString( 3 )
 	
+	// Files:
+		local Files = Table( )
+		
+		for I = 1, net.ReadUInt( 16 ) do
+			local Name = net.ReadString( )
+			if Name ~= "" then Files:Insert( nil, "s", Name ) end
+		end
+	
+	// Folders:
+		local Folders = Table( )
+		
+		for I = 1, net.ReadUInt( 16 ) do
+			local Name = net.ReadString( )
+			if Name ~= "" then Folders:Insert( nil, "s", Name ) end
+		end
+	
 	local Action = LookUp[ ID ]
 	
 	if Action and IsValid( Action.Entity ) then
-		
-		local Table = API:GetComponent( "table" ):GetMetaTable( )
-			
-		local Files = Table( )
-		
-		for _, File in pairs( net.ReadTable( ) ) do
-			Files:Insert( nil, "s", File )
-		end
-		
-		Action.Data = Files
+		Action.Status = FILE_OK
+		Action.Data = { Files, Folders }
 		Finished[ #Finished + 1 ] = Action
 	else
 		LookUp[ ID ] = nil

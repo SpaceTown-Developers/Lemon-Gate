@@ -245,8 +245,10 @@ function Lemon:Pcall( Location, Func, ... )
 	if Status == "Script" then
 		self:ScriptError( Context.ScriptTrace, Context.ScriptError )
 	elseif Status == "Exception" then
-		local Excption = Context.Exception
-		self:ScriptError( Excption.Trace, "uncatched exception '" .. Excption.Type .. "' in " .. Location .. "." )
+		local Exception = Context.Exception
+		self:ScriptError( Exception.Trace, "uncatched exception '" .. Exception.Type .. "' in " .. Location .. "." )
+		WireLib.ClientError( "Msg: " .. Exception.Message, self.Player )
+		
 	elseif Status == "Break" or Status == "Continue" then
 		self:ScriptError( nil, "unexpected use of " .. Status .. " in " .. Location .. "." )
 	else
