@@ -44,9 +44,9 @@ Core:AddOperator( "!=", "c,c", "b", "(value %1[1] - value %2[1] > %Round or valu
 	   
 -- Arithmatic:
 
-Core:AddOperator( "+", "c,c", "c", "{math.Clamp(value %1[1] + value %2[1], 0, 255), math.Clamp(value %1[2] + value %2[2], 0, 255), 0, 255), math.Clamp(value %1[3] + value %2[3], 0, 255), 0, 255)}" )
+Core:AddOperator( "+", "c,c", "c", "{math.Clamp(value %1[1] + value %2[1], 0, 255), math.Clamp(value %1[2] + value %2[2], 0, 255), math.Clamp(value %1[3] + value %2[3], 0, 255)}" )
 
-Core:AddOperator( "-", "c,c", "c", "{math.Clamp(value %1[1] - value %2[1], 0, 255), math.Clamp(value %1[2] - value %2[2], 0, 255), 0, 255), math.Clamp(value %1[3] - value %2[3], 0, 255)}" )
+Core:AddOperator( "-", "c,c", "c", "{math.Clamp(value %1[1] - value %2[1], 0, 255), math.Clamp(value %1[2] - value %2[2], 0, 255), math.Clamp(value %1[3] - value %2[3], 0, 255)}" )
 
 Core:AddOperator( "*", "c,c", "c", "{math.Clamp(value %1[1] * value %2[1], 0, 255), math.Clamp(value %1[2] * value %2[2], 0, 255), math.Clamp(value %1[3] * value %2[3], 0, 255)}" )
 

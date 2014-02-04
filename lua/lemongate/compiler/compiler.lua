@@ -141,7 +141,7 @@ function Compiler:Assign( Trace, Variable, Type, Assign, Static )
 		
 		local LRef = self.Scope[ Variable ]
 		if LRef then
-			self:TraceError( Trace, "Global vairiable %s conflicts with %s variable %s", Variable, self.Cells[ LRef ].Assign, Variable )
+			self:TraceError( Trace, "Global variable %s conflicts with %s variable %s", Variable, self.Cells[ LRef ].Assign, Variable )
 		end
 		
 		self.Scope[ Variable ] = Ref
@@ -161,7 +161,7 @@ function Compiler:Assign( Trace, Variable, Type, Assign, Static )
 			
 		local LRef = self.Scope[ Variable ]
 		if LRef then
-			self:TraceError( Trace, "Inport vairiable %s conflicts with %s variable %s", Variable, self.Cells[ LRef ].Assign, Variable )
+			self:TraceError( Trace, "In port variable %s conflicts with %s variable %s", Variable, self.Cells[ LRef ].Assign, Variable )
 		end
 		
 		self.Scope[ Variable ] = Ref
@@ -179,7 +179,7 @@ function Compiler:Assign( Trace, Variable, Type, Assign, Static )
 			
 		local LRef = self.Scope[ Variable ]
 		if LRef then
-			self:TraceError( Trace, "Outport vairiable %s conflicts with %s variable %s", Variable, self.Cells[ LRef ].Assign, Variable )
+			self:TraceError( Trace, "Out port variable %s conflicts with %s variable %s", Variable, self.Cells[ LRef ].Assign, Variable )
 		end
 		
 		self.Scope[ Variable ] = Ref
@@ -213,7 +213,7 @@ function Compiler:CompileCode( Code, Files, NoCompile )
 	local Lua = self:GetStatements( { 0, 0, Location = "Root" } ).Prepare
 	
 	self.Native = self:LUA_Format( string.gsub( [[
-		-- Allow basic libaries & functions
+		-- Allow basic lemon gate stuff
 			local API = LEMON.API
 			local Externals = API.Externals
 			
@@ -221,7 +221,7 @@ function Compiler:CompileCode( Code, Files, NoCompile )
 				return API:GetClass( Type ).Name
 			end
 			
-		-- Allow basic libaries & functions	
+		-- Allow basic libraries & functions	
 			local pcall, error = pcall, error
 			local Vector3, Vector2, Vector, Angle = Vector3, Vector2, Vector, Angle
 			local math, string, table, bit = math, string, table, bit
@@ -236,7 +236,7 @@ function Compiler:CompileCode( Code, Files, NoCompile )
 		-- Lock Out Lua
 			setfenv(1, setmetatable( { }, {
 				__index = function( _, Value ) debug.Trace( ); error("Attempt to reach Lua environment " .. Value, 1 ) end,
-				__newindex = function( _, Value ) error("Attempt to write to Lua environment " .. Value, 1 ) end,
+				__newindex = function( _, Value ) error("Attempt to write to lua environment " .. Value, 1 ) end,
 			} ) )
 				
 		return function( Context )
@@ -371,7 +371,7 @@ function Compiler:MakeLocal( Inst )
 end
 
 /*==============================================================================================
-	Section: Statments
+	Section: Statements
 ==============================================================================================*/
 
 function Compiler:Compile_SEQUENCE( Trace, Statements )
@@ -381,7 +381,7 @@ function Compiler:Compile_SEQUENCE( Trace, Statements )
 		local Instr = Statements[ I ]
 		
 		if !Instr then
-			self:TraceError( Trace, "Unpredicted compile error, Sequence got invalid statment." )
+			self:TraceError( Trace, "Unpredicted compile error, Sequence got invalid statement." )
 		end
 		
 		Perf = Perf + (Instr.Perf or 0)
@@ -435,7 +435,7 @@ function Compiler:Compile_CAST( Trace, CastType, Value, NoError )
 	if CastTo.Short == CastFrom then
 		self:TraceError( Trace, "%s can not be cast to itself", CastTo.Name )
 	elseif !CastFrom or CastFrom == "" then
-		self:TraceError( Trace, "Casting operator recives void" )
+		self:TraceError( Trace, "Casting operator receives void" )
 	elseif CastFrom == "..." then
 		self:TraceError( Trace, "Invalid use of varargs (...)." )
 	end
@@ -489,7 +489,7 @@ function Compiler:Compile_INCREMENT( Trace, Variable, Second )
 		if LEMON.API.Constants[Variable] then self:TraceError( Trace, "Increment operator (++) can not reach Constant %s", Variable ) end
 		self:TraceError( Trace, "Variable %s does not exist", Variable )
 	elseif self:IsInput( Trace, Ref ) then
-		self:TraceError( Trace, "Increment operator (++) can not reach Inport %s", Variable )
+		self:TraceError( Trace, "Increment operator (++) can not reach In port %s", Variable )
 	elseif Scope ~= self.ScopeID and self:GetFlag( "Lambda", self:GetFlag( "Event" ) ) then
 		self:NotGarbage( Trace, Ref )
 	end
@@ -506,7 +506,7 @@ function Compiler:Compile_DECREMENT( Trace, Variable, First )
 		if LEMON.API.Constants[Variable] then self:TraceError( Trace, "Decrement operator (--) can not reach Constant %s", Variable ) end
 		self:TraceError( Trace, "Variable %s does not exist", Variable )
 	elseif self:IsInput( Trace, Ref ) then
-		self:TraceError( Trace, "Decrement operator (--) can not reach Inport %s", Variable )
+		self:TraceError( Trace, "Decrement operator (--) can not reach In port %s", Variable )
 	elseif Scope ~= self.ScopeID and self:GetFlag( "Lambda", self:GetFlag( "Event" ) ) then
 		self:NotGarbage( Trace, Ref )
 	end
@@ -564,7 +564,7 @@ function Compiler:Compile_ASSIGN( Trace, Variable, Expression )
 	if !Ref then
 		self:TraceError( Trace, "Variable %s does not exist", Variable )
 	elseif self:IsInput( Trace, Ref ) then
-		self:TraceError( Trace, "Assignment operator (=) can not reach Inport %s", Variable )
+		self:TraceError( Trace, "Assignment operator (=) can not reach in port %s", Variable )
 	elseif Scope ~= self.ScopeID and self:GetFlag( "Lambda", self:GetFlag( "Event" ) ) then
 		self:NotGarbage( Trace, Ref )
 	end
@@ -591,7 +591,7 @@ function Compiler:Compile_DECLAIR( Trace, Type, Variable, Class, Expression, Sta
 	
 	if self:IsInput( Trace, Ref ) then
 		if Expression then
-			self:TraceError( Trace, "Assignment operator (=) can not reach Inport %s", Variable )
+			self:TraceError( Trace, "Assignment operator (=) can not reach in port %s", Variable )
 		else
 			return self:FakeInstr( Trace, "", "" )
 		end
@@ -631,7 +631,7 @@ end
 	Section: Meta Operators
 ==============================================================================================*/
 local MetaOperators = {
-	-- Mathmatic
+	-- Mathematical
 		["addition"] = { "addition" },
 		["subtraction"] = { "subtraction" },
 		["multiply"] = { "multiply" },
@@ -639,7 +639,7 @@ local MetaOperators = {
 		["modulus"] = { "modulus" },
 		["exponent"] = { "exponent" },
 	
-	-- Comparason
+	-- Comparison
 		["eq"] = { "equal", "boolean" },
 		["greater"] = { "greater", "boolean" },
 }
@@ -739,20 +739,6 @@ function Compiler:Compile_OR( Trace, A, B )
 		return Op.Compile( self, Trace, A, B )
 	end
 	
-	-- Check for Conditonal Or
-	-- Nope, lets do this properly!
-	-- if A.Return == B.Return then
-		-- local Op = self:GetOperator( "?" )
-		-- local ID = "_" .. self:NextLocal( )
-		-- local C = self:Compile_IS( Trace, self:FakeInstr( Trace, A.Return, ID ), true )
-		
-		-- if Op and C then
-			-- local Instr = Op.Compile( self, Trace, ID, A, B, C )
-			-- Instr.Return = A.Return
-			-- return Instr
-		-- end
-	-- end
-	
 	-- Try normal Or
 	
 	local Op = self:GetOperator( "||", "b", "b" )
@@ -814,7 +800,7 @@ function Compiler:Compile_CONNECT( Trace, Variable )
 		local Op = self:GetOperator( "->o" )
 		return Op.Compile( self, Trace, Variable )
 	else
-		self:TraceError( Trace, "Connect operator (->) can only reach inport or outport" )
+		self:TraceError( Trace, "Connect operator (->) can only reach in port or out port" )
 	end
 end
 
@@ -858,7 +844,7 @@ end
 /*==============================================================================================
 	Section: If and ElseIf and else
 ==============================================================================================*/
-function Compiler:Compile_IF( Trace, Condition, Statments, Else )
+function Compiler:Compile_IF( Trace, Condition, Statements, Else )
 	local Lua = ""
 	
 	if Condition.Prepare then
@@ -870,7 +856,7 @@ function Compiler:Compile_IF( Trace, Condition, Statments, Else )
 	end
 	
 	Lua = Lua .. "if ( " .. Condition.Inline .. " ) then\n"
-	.. (Statments.Prepare or "") .. (Statments.Inline or "") .. "\n"
+	.. (Statements.Prepare or "") .. (Statements.Inline or "") .. "\n"
 	
 	if Else and Else.Inline then
 		Lua = Lua .. Else.Inline .. "\n"
@@ -881,7 +867,7 @@ function Compiler:Compile_IF( Trace, Condition, Statments, Else )
 	return self:Instruction( Trace, 1, "", "", Lua )
 end
 
-function Compiler:Compile_ELSEIF( Trace, Condition, Statments, Else )
+function Compiler:Compile_ELSEIF( Trace, Condition, Statements, Else )
 	local Prepare = ""
 	
 	if Condition.Prepare then
@@ -893,7 +879,7 @@ function Compiler:Compile_ELSEIF( Trace, Condition, Statments, Else )
 	end
 	
 	local Sequence = "elseif ( " .. Condition.Inline .. " ) then\n"
-	.. (Statments.Prepare or "") .. (Statments.Inline or "") .. "\n"
+	.. (Statements.Prepare or "") .. (Statements.Inline or "") .. "\n"
 	
 	if Else and Else.Inline then
 		Sequence = Sequence .. Else.Inline .. "\n"
@@ -902,8 +888,8 @@ function Compiler:Compile_ELSEIF( Trace, Condition, Statments, Else )
 	return self:Instruction( Trace, 1, "", Sequence, Prepare )
 end
 
-function Compiler:Compile_ELSE( Trace, Statments )
-	local Sequence = "else\n" .. (Statments.Prepare or "") .. (Statments.Inline or "") .. "\n"
+function Compiler:Compile_ELSE( Trace, Statements )
+	local Sequence = "else\n" .. (Statements.Prepare or "") .. (Statements.Inline or "") .. "\n"
 	return self:Instruction( Trace, 1, "", Sequence, "" )
 end
 
@@ -928,9 +914,9 @@ function Compiler:Compile_LAMBDA( Trace, Params, HasVarArg, Sequence )
 				
 				CallPrepare[I] = [[
 					if ( !]] .. Var .. " or (" .. Var ..[[[1] == nil) ) then
-						Context:Throw( Trace, "invoke", "Paramater ]] .. Param[1] .. [[ is a void value" )
+						Context:Throw( Trace, "invoke", "Parameter ]] .. Param[1] .. [[ is a void value" )
 					elseif ( ]] .. Var .. [[[2] ~= "]] .. Param[2] .. [[" ) then
-						Context:Throw( Trace, "invoke", "Paramater ]] .. Param[1] .. [[ got " .. ]] .. Var .. [[[2] .. " ]] .. Param[2].. [[ expected." )
+						Context:Throw( Trace, "invoke", "Parameter ]] .. Param[1] .. [[ got " .. ]] .. Var .. [[[2] .. " ]] .. Param[2].. [[ expected." )
 					else
 						]] ..  Assign.Prepare .. [[ 
 					end
@@ -940,7 +926,7 @@ function Compiler:Compile_LAMBDA( Trace, Params, HasVarArg, Sequence )
 				
 				CallPrepare[I] = [[
 					if ( !]] .. Var .. " or (" .. Var ..[[[1] == nil) ) then
-						Context:Throw( Trace, "invoke", "Paramater ]] .. Param[1] .. [[ is a void value" )
+						Context:Throw( Trace, "invoke", "Parameter ]] .. Param[1] .. [[ is a void value" )
 					else
 						]] ..  Assign.Prepare .. [[ 
 					end
@@ -1009,29 +995,29 @@ end
 /*==============================================================================================
 	Section: Loops!
 ==============================================================================================*/
-function Compiler:Compile_FOR( Trace, Class, Assigment, Condition, Step, Statments )
+function Compiler:Compile_FOR( Trace, Class, Assigment, Condition, Step, Statements )
 	local Condition = self:Evaluate( Trace, Condition )
 	local Step = self:Evaluate( Trace, Step )
 	local Op = self:GetOperator( "for", Class )
 	
 	if !Op then
-		self:TraceError( Trace, "%s not compatable with for loops", self:NType( Class ) )
+		self:TraceError( Trace, "for loop does not support %", self:NType( Class ) )
 	end
 	
-	Statments.Prepare = self:PushEnviroment( ) .. "\n" .. Statments.Prepare
+	Statements.Prepare = self:PushEnviroment( ) .. "\n" .. Statements.Prepare
 	
-	return Op.Compile( self, Trace, Assigment, Condition, Step, Statments )
+	return Op.Compile( self, Trace, Assigment, Condition, Step, Statements )
 end
 
-function Compiler:Compile_WHILE( Trace, Condition, Statments )
+function Compiler:Compile_WHILE( Trace, Condition, Statements )
 	local Condition = self:Evaluate( Trace, Condition )
 	
-	Statments.Prepare = self:PushEnviroment( ) .. "\n" .. Statments.Prepare
+	Statements.Prepare = self:PushEnviroment( ) .. "\n" .. Statements.Prepare
 	
-	return self:GetOperator( "while" ).Compile( self, Trace, Condition, Statments )
+	return self:GetOperator( "while" ).Compile( self, Trace, Condition, Statements )
 end
 
-function Compiler:Compile_FOREACH( Trace, Value, TypeV, RefV, TypeK, RefK, Statments )
+function Compiler:Compile_FOREACH( Trace, Value, TypeV, RefV, TypeK, RefK, Statements )
 	local Op = self:GetOperator( "foreach", Value.Return )
 	
 	if !Op then
@@ -1048,9 +1034,9 @@ function Compiler:Compile_FOREACH( Trace, Value, TypeV, RefV, TypeK, RefK, Statm
 		TypeK = '"' .. TypeK .. '"'
 	end
 	
-	Statments.Prepare = self:PushEnviroment( ) .. "\n" .. Statments.Prepare
+	Statements.Prepare = self:PushEnviroment( ) .. "\n" .. Statements.Prepare
 	
-	return Op.Compile( self, Trace, Value, TypeV, TypeK, AssVal, AssKey, Statments )
+	return Op.Compile( self, Trace, Value, TypeV, TypeK, AssVal, AssKey, Statements )
 end
 
 /*==============================================================================================
@@ -1270,13 +1256,13 @@ function Compiler:Compile_CATCH( Trace, Ref, Exceptions, Block, Catch )
 end
 
 /*==============================================================================================
-	Section: Events Statments
+	Section: Events Statements
 ==============================================================================================*/
 
 function Compiler:Compile_EVENT( Trace, EventName, Perams, HasVarg, Block, Exit )
 	local Event = LEMON.API.Events[ EventName ]
 	
-	if !Event then self:TraceError( Trace, "Unkown event %s", EventName ) end
+	if !Event then self:TraceError( Trace, "Unknown event %s", EventName ) end
 	
 	local EParams = Event.Params
 	

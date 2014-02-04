@@ -279,19 +279,19 @@ function Compiler:GetValue( RootTrace, IgnoreOperators )
 	-- Variable Prefix Operators
 	
 	elseif self:AcceptToken( "dlt" ) then
-		self:ExcludeWhiteSpace( "Delta operator ($) must not be succeeded by whitespace" )
+		self:ExcludeWhiteSpace( "Delta operator ($) must not be succeeded by white space" )
 		self:RequireToken( "var", "variable expected, after Delta operator ($)" )
 		
 		Value = self:Compile_DELTA( self:TokenTrace( RootTrace ), self.TokenData )
 
 	elseif self:AcceptToken( "trg" ) then
-		self:ExcludeWhiteSpace( "Changed operator (~) must not be succeeded by whitespace" )
+		self:ExcludeWhiteSpace( "Changed operator (~) must not be succeeded by white space" )
 		self:RequireToken( "var", "variable expected, after Changed operator (~)" )
 		
 		Value = self:Compile_TRIGGER( self:TokenTrace( RootTrace ), self.TokenData )
 		
 	elseif self:AcceptToken( "wc" ) then -- Wiremod IO connection.
-		self:ExcludeWhiteSpace( "Connect operator (->) must not be succeeded by whitespace" )
+		self:ExcludeWhiteSpace( "Connect operator (->) must not be succeeded by white space" )
 		self:RequireToken( "var", "variable expected, after Connect operator (->)" )
 		
 		Value = self:Compile_CONNECT( self:TokenTrace( RootTrace ), self.TokenData )
@@ -397,7 +397,7 @@ function Compiler:BuildTable( RootTrace )
 	if !self:CheckToken( "rcb" ) then
 		
 		while self:HasTokens( ) do
-			self:ExcludeToken( "com", "Expression seperator (,) can not appear here." )
+			self:ExcludeToken( "com", "Expression separator (,) can not appear here." )
 			
 			Count = Count + 1
 			
@@ -468,7 +468,7 @@ function Compiler:ExpressionError( )
 		self:ExcludeToken( "rsb", "Right square bracket (]) without matching left square bracket" )
 
 		self:ExcludeToken( "com", "Comma (,) not expected here, missing an argument?" )
-		self:ExcludeToken( "col", "Method operator (:) must not be preceded by whitespace" )
+		self:ExcludeToken( "col", "Method operator (:) must not be preceded by white space" )
 		self:ExcludeToken( "cnd", "Conditional operator (::) must be part of conditional expression (A ? B :: C)." )
 
 		self:ExcludeToken( "if", "If keyword (if) must not appear inside an equation" )
@@ -593,7 +593,7 @@ function Compiler:GetListedVariables( RootTrace )
 	local Variables, Count = { { self:TokenTrace( ), self.TokenData } }, 1
 		
 	while self:AcceptToken( "com" ) do
-		self:ExcludeToken( "com", "Variable seperator (,) must not appear here." )
+		self:ExcludeToken( "com", "Variable separator (,) must not appear here." )
 		self:RequireToken( "var", "Variable expected after comma (,) for variable statment" )
 		
 		Count = Count + 1
@@ -606,7 +606,7 @@ function Compiler:GetListedVariables( RootTrace )
 end
 
 /*==============================================================================================
-	Section: Statments
+	Section: Statements
 ==============================================================================================*/
 
 local Upper = string.upper
@@ -676,7 +676,7 @@ function Compiler:Statment_VAR( RootTrace )
 	elseif self:CheckToken( "com", "ass", "aadd", "asub", "amul", "adiv" ) then
 		local Variables, Count = self:GetListedVariables( RootTrace )
 		
-		local Statments, Operator = { }
+		local Statements, Operator = { }
 		
 		if self:AcceptToken( "ass" ) then
 			-- Nothing!
@@ -696,14 +696,14 @@ function Compiler:Statment_VAR( RootTrace )
 				Expression = self[Operator]( self, Var[1], self:Compile_VARIABLE( Var[1], Var[2] ), Expression )
 			end
 			
-			Statments[I] = self:Compile_ASSIGN( Var[1], Var[2], Expression )
+			Statements[I] = self:Compile_ASSIGN( Var[1], Var[2], Expression )
 			
 			if I != Count then
 				self:RequireToken( "com", "comma (,) expected after expression" ) -- TODO: Better error message!
 			end
 		end
 			
-		return self:Compile_SEQUENCE( Trace, Statments )
+		return self:Compile_SEQUENCE( Trace, Statements )
 	
 	-- Indexing!
 	
@@ -715,7 +715,7 @@ function Compiler:Statment_VAR( RootTrace )
 		
 		if #Indexs > 1 then
 			local Var = self:NextLocal( )
-			local Statments = { "local " ..  Var .. " = " .. Variable.Inline }
+			local Statements = { "local " ..  Var .. " = " .. Variable.Inline }
 			local Prepare = { Variable.Prepare }
 			local Perf = Variable.Perf
 			
@@ -725,12 +725,12 @@ function Compiler:Statment_VAR( RootTrace )
 				local Get = self:Compile_GET( Data[3], Fake, Data[1], Data[2] )
 				
 				Prepare[ #Prepare + 1 ] = Get.Prepare
-				Statments[ #Statments + 1 ] = Var .. " = " .. Get.Inline
+				Statements[ #Statements + 1 ] = Var .. " = " .. Get.Inline
 				Perf = Perf + Get.Perf
 			end
 			
 			local Data = Indexs[#Indexs - 1]
-			Variable = self:Instruction( Data[3], Perf, Data[2], Var, string.Implode( "\n", Prepare ) .. string.Implode( "\n", Statments ) )
+			Variable = self:Instruction( Data[3], Perf, Data[2], Var, string.Implode( "\n", Prepare ) .. string.Implode( "\n", Statements ) )
 		end
 		
 		local Instruction = self:Compile_GET( Data[3], Variable, Data[1], Data[2] )
@@ -830,16 +830,22 @@ end
 
 function Compiler:Statment_FUN( RootTrace, Static )
 	local Trace = self:TokenTrace( RootTrace )
+	local ClassName = self.TokenData
 	
 	if self:CheckToken( "var" ) then
-		local Class = self:GetClass( Trace, self.TokenData, true )
+		local Class = self:GetClass( Trace, ClassName, true )
 		
-		self:RequireToken( "var", "Variable expected for variable decleration." )
+		self:RequireToken( "var", "Variable expected for variable deceleration." )
 		
 		return self:Declair_Variables( Trace, Class.Short, "Local", Static )
-		
+	
 	elseif Static then
 		self:TraceError( RootTrace, "Modifier 'static' must not appear here." )
+		
+	elseif self:AcceptToken( "ass" ) then
+		local Ref = self:Assign( Trace, ClassName, "f", "Local" )
+		
+		return self:Compile_ASSIGN( Trace, ClassName, self:GetExpression( RootTrace ) )
 	end
 		
 	self:PrevToken( )
@@ -850,28 +856,28 @@ end
 function Compiler:Declair_Variables( Trace, Class, Type, Static )
 	local Trace = Trace or self:TokenTrace( )
 	local Variables, Count = self:GetListedVariables( )
-	local Statments, Start = { }, 1
+	local Statements, Start = { }, 1
 	
-	self:ExcludeToken( "aadd", "Assigment operator (+=) can not assign to uninitalized variables" )
-	self:ExcludeToken( "asub", "Assigment operator (-=) can not assign to uninitalized variables" )
-	self:ExcludeToken( "amul", "Assigment operator (*=) can not assign to uninitalized variables" )
-	self:ExcludeToken( "adiv", "Assigment operator (/=) can not assign to uninitalized variables" )
+	self:ExcludeToken( "aadd", "Assignment operator (+=) can not assign to uninitialized variables" )
+	self:ExcludeToken( "asub", "Assignment operator (-=) can not assign to uninitialized variables" )
+	self:ExcludeToken( "amul", "Assignment operator (*=) can not assign to uninitialized variables" )
+	self:ExcludeToken( "adiv", "Assignment operator (/=) can not assign to uninitialized variables" )
 		
 	if Type == "input" then
-		self:ExcludeToken( "ass", "Assigment operator (=) can not assign to inputs" )
+		self:ExcludeToken( "ass", "Assignment operator (=) can not assign to inputs" )
 	
 	elseif self:AcceptToken( "ass" ) then
-		-- Initalized Assigment
+		-- Initalized Assignment
 		
 		for I = 1, Count do 
-			self:ExcludeToken( "com", "Expression seperator (,) must not appear here." )
+			self:ExcludeToken( "com", "Expression separator (,) must not appear here." )
 			
 			if !self:HasTokens( ) then
-				self:TokenError( "invalid variable assigment" )
+				self:TokenError( "invalid variable assignment" )
 			end
 			
 			local Data = Variables[I]
-			Statments[I] = self:Compile_DECLAIR( Data[1], Type, Data[2], Class, self:GetExpression( Trace ), Static )
+			Statements[I] = self:Compile_DECLAIR( Data[1], Type, Data[2], Class, self:GetExpression( Trace ), Static )
 			
 			
 			Start = I + 1
@@ -889,10 +895,10 @@ function Compiler:Declair_Variables( Trace, Class, Type, Static )
 	for I = Start, Count do
 		local Data = Variables[I]
 		
-		Statments[I] = self:Compile_DECLAIR( Data[1], Type, Data[2], Class, nil, Static )
+		Statements[I] = self:Compile_DECLAIR( Data[1], Type, Data[2], Class, nil, Static )
 	end
 	
-	return self:Compile_SEQUENCE( Trace, Statments )
+	return self:Compile_SEQUENCE( Trace, Statements )
 end
 
 /****************************************************************************************************/
@@ -964,7 +970,7 @@ function Compiler:StatmentError( )
 end
 	
 /*==============================================================================================
-	Section: Function Statments
+	Section: Function Statements
 ==============================================================================================*/
 
 function Compiler:Statment_FUNC( GlobalTrace )
@@ -975,10 +981,10 @@ function Compiler:Statment_FUNC( GlobalTrace )
 	local Variable = self.TokenData
 	local State = GlobalTrace and "Global" or "Local"
 	
-	self:ExcludeToken( "aadd", "Assigment operator (+=) can not assign to functions" )
-	self:ExcludeToken( "asub", "Assigment operator (-=) can not assign to functions" )
-	self:ExcludeToken( "amul", "Assigment operator (*=) can not assign to functions" )
-	self:ExcludeToken( "adiv", "Assigment operator (/=) can not assign to functions" )
+	self:ExcludeToken( "aadd", "Assignment operator (+=) can not assign to functions" )
+	self:ExcludeToken( "asub", "Assignment operator (-=) can not assign to functions" )
+	self:ExcludeToken( "amul", "Assignment operator (*=) can not assign to functions" )
+	self:ExcludeToken( "adiv", "Assignment operator (/=) can not assign to functions" )
 	
 	if self:AcceptToken( "ass" ) then
 		return self:Compile_DECLAIR( Trace, State, Variable, "f", self:GetExpression( Trace ) )
@@ -993,7 +999,7 @@ function Compiler:BuildPerams( Trace )
 	
 	if self:CheckToken( "fun", "var", "func" ) then
 		while true do
-			self:ExcludeToken( "com", "Parameter seperator (,) must not appear here" )
+			self:ExcludeToken( "com", "Parameter separator (,) must not appear here" )
 			
 			local Class = self:GetClass( Trace, "number" )
 			if self:AcceptToken( "fun", "func" ) then
@@ -1110,14 +1116,14 @@ end
 ==============================================================================================*/
 
 function Compiler:Statment_IF( RootTrace ) -- If
-	return self:Compile_IF( self:TokenTrace( RootTrace ), self:GetCondition( RootTrace ), self:GetBlock( "if statment", RootTrace ), self:GetElseIf( RootTrace ) )
+	return self:Compile_IF( self:TokenTrace( RootTrace ), self:GetCondition( RootTrace ), self:GetBlock( "if statement", RootTrace ), self:GetElseIf( RootTrace ) )
 end
 
 function Compiler:GetElseIf( RootTrace ) -- ElseIf / Else
 	if self:AcceptToken( "eif" ) then
-		return self:Compile_ELSEIF( self:TokenTrace( RootTrace ), self:GetCondition( RootTrace ), self:GetBlock( "elseif statment", RootTrace ), self:GetElseIf( RootTrace ) )
+		return self:Compile_ELSEIF( self:TokenTrace( RootTrace ), self:GetCondition( RootTrace ), self:GetBlock( "elseif statement", RootTrace ), self:GetElseIf( RootTrace ) )
 	elseif self:AcceptToken( "els" ) then
-		return self:Compile_ELSE( self:TokenTrace( RootTrace ), self:GetBlock( "else statment", RootTrace ) )
+		return self:Compile_ELSE( self:TokenTrace( RootTrace ), self:GetBlock( "else statement", RootTrace ) )
 	end
 end
 
@@ -1147,7 +1153,7 @@ function Compiler:GetBlock( Type, RootTrace )
 	
 	self:PushScope( )
 	
-	local Statments = self:GetStatements( "rcb", RootTrace )
+	local Statements = self:GetStatements( "rcb", RootTrace )
 	
 	self:PopScope( )
 	
@@ -1156,7 +1162,7 @@ function Compiler:GetBlock( Type, RootTrace )
 	local ExitResult = self.StatmentExit
 	self.StatmentExit = StatmentExit
 	
-	return Statments, ExitResult
+	return Statements, ExitResult
 end
 
 /*==============================================================================================
@@ -1169,23 +1175,23 @@ function Compiler:Statment_FOR( RootTrace )
 	self:RequireToken( "lpa", "Left parenthesis (( ) missing, after for" )
 	
 	if !self:AcceptToken( "fun" ) then
-		self:RequireToken( "func", "variable type expected for loop decleration" )
+		self:RequireToken( "func", "variable type expected for loop deceleration" )
 	end
 	
 	local Class = self:GetClass( Trace, self.TokenData ).Short
 	
-	self:RequireToken( "var", "variable expected for loop decleration" )
+	self:RequireToken( "var", "variable expected for loop deceleration" )
 	
 	local Variable = self.TokenData
-	self:RequireToken( "ass", "assigment operator (=) expected for loop decleration" )
+	self:RequireToken( "ass", "assignment operator (=) expected for loop deceleration" )
 	
 	local Assignment = self:Compile_DECLAIR( Trace, "Local", Variable, Class, self:GetExpression( Trace ) )
 	
-	self:RequireToken( "sep", "seperator (;) expected after loop decleration" )
+	self:RequireToken( "sep", "separator (;) expected after loop deceleration" )
 	
 	local Condition = self:Compile_IS( self:TokenTrace( Trace ), self:GetExpression( Trace ) )
 	
-	self:RequireToken( "sep", "seperator (;) expected after loop condition" )
+	self:RequireToken( "sep", "separator (;) expected after loop condition" )
 	
 	self:RequireToken( "var", "Step expression expected after loop condition" )
 	
@@ -1260,7 +1266,7 @@ function Compiler:Statment_EACH( RootTrace )
 		RefB = self:Assign( Trace, self.TokenData, TypeB, "Local" )
 	end
 	
-	self:RequireToken( "col", "Colon (:) expected berfore table, in foreach loop" )
+	self:RequireToken( "col", "Colon (:) expected before table, in foreach loop" )
 	
 	local Value = self:GetExpression( Trace )
 	
@@ -1283,7 +1289,7 @@ function Compiler:Statment_EACH( RootTrace )
 	return Inst
 end
 
--- [[ Table 1, KeyType 2, KeyAss 3, ValType 4, ValAss 5, Statments 6
+-- [[ Table 1, KeyType 2, KeyAss 3, ValType 4, ValAss 5, Statements 6
 
 /*==============================================================================================
 	Section: Try Catch
@@ -1292,7 +1298,7 @@ function Compiler:Statment_TRY( RootTrace )
 	local Trace, Block = self:TokenTrace( RootTrace ), self:GetBlock( "try", RootTrace )
 	
 	if !self:CheckToken( "cth" ) then
-		self:TokenError( "catch statment (catch), expected after try." )
+		self:TokenError( "catch statement (catch), expected after try." )
 	end
 	
 	return self:Compile_TRY( Trace, Block, self:GetCatchStmt( RootTrace ), self:GetFinalStmt( RootTrace ) )
@@ -1311,9 +1317,9 @@ function Compiler:GetCatchStmt( RootTrace )
 			LK[ self.TokenData ] = true
 			
 			while self:AcceptToken( "com" ) do
-				self:ExcludeToken( "com", "Exception seperator (,) must not appear twice" )
+				self:ExcludeToken( "com", "Exception separator (,) must not appear twice" )
 				
-				self:RequireToken( "fun", "Exception class exspected after comma (,)" )
+				self:RequireToken( "fun", "Exception class expected after comma (,)" )
 				
 				if !API.Exceptions[ self.TokenData ] then
 					self:TokenError( "No such exception %s", self.TokenData )
@@ -1345,7 +1351,7 @@ function Compiler:GetFinalStmt( RootTrace )
 end
 
 /*==============================================================================================
-	Section: Events Statments
+	Section: Events Statements
 ==============================================================================================*/
 
 function Compiler:Statment_EVT( RootTrace )
@@ -1415,7 +1421,7 @@ function Compiler:FUNC_print( Trace )
 	
 	if !self:CheckToken( "rpa" ) then
 		while self:HasTokens( ) do
-			self:ExcludeToken( "com", "Expression seperator (,) can not appear here." )
+			self:ExcludeToken( "com", "Expression separator (,) can not appear here." )
 			
 			Index = Index + 1
 			
@@ -1438,311 +1444,7 @@ function Compiler:FUNC_print( Trace )
 	return self:Compile_PRINT( Trace, Values, Index )
 end
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 --[[ TODO LIST!
-/*==============================================================================================
-	Section: Util Functions
-	Purpose: These are here to make my life easier.
-	Creditors: Rusketh
-==============================================================================================*/
-
-function Parser:UniqueOperators( Expr1 )
-
-	if self:AcceptToken( "qsm" ) then
-		local Expr2 = self:Expression( )
-
-		self:RequireToken( "com", "seperator (,) expected for conditonal (?) 'A ? B, C'" )
-
-		return self:Instruction( "cnd", self.ExprTrace, Expr1, Expr2, self:Expression( ))
-	end
-
-	return Expr1
-end
-
-/********************************************************************************************************************/
-
-
-function Parser:StatementError( )
-	if self:HasTokens( ) then
-		self:ExcludeToken( "num", "Number must be part of statement or expression" )
-		self:ExcludeToken( "str", "String must be part of statement or expression" )
-		self:ExcludeToken( "var", "Variable must be part of statement or expression" )
-
-		self:Error( "Unexpected token found (%s)", self.NextTokenName)
-	else
-		self:TokenError(self.ExprTrace, "Further input required at end of code, incomplete statement / expression" )
-	end
-end
-
-
-function Parser:Catch(Reqired)
-	if self:AcceptToken( "cth" ) then
-		local Trace, Exceptions, Var = self:TokenTrace( ), { }
-
-		if !self:AcceptToken( "lpa" ) then
-			self:Error( "Left parenthesis (( ) missing, to start catch statement." )
-		elseif self.CatchList["*"] then
-			self:Error( "No exceptions can be caught here." )
-		end
-
-		if self:AcceptToken( "var" ) then
-			Var = self.TokenData
-			Exceptions["*"] = true
-			self.CatchList["*"] = true
-
-		elseif self:AcceptToken( "fun" ) then
-			local Exception = self.TokenData
-
-			if !E_A.Exceptions[ Exception ] then
-				self:Error( "invalid exception %s", Exception)
-			elseif self.CatchList[ Exception ] then
-				self:Error( "%s exception, can not be caught here", Exception)
-			end
-
-			Exceptions[Exception] = true
-			self.CatchList[Exception] = true
-
-			while self:AcceptToken( "com" ) do
-				if !self:AcceptToken( "fun" ) then
-					self:Error( "exception type expected after comma (,) for catch statement" )
-				end
-
-				local Exception = self.TokenData
-
-				if Exceptions[Exception] then
-					self:Error( "exception %s is already listed in catch statement", Exception)
-				elseif !E_A.Exceptions[ Exception ] then
-					self:Error( "invalid exception %s", Exception)
-				elseif self.CatchList[ Exception ] then
-					self:Error( "%s exception, can not be caught here", Exception)
-				end
-
-				Exceptions[Exception] = true
-				self.CatchList[Exception] = true
-			end
-
-			if !self:AcceptToken( "var" ) then
-				self:Error( "Variable expected after exception type" )
-			end
-
-			Var = self.TokenData
-
-		else
-			self:Error( "exception type, expected for catch statement" )
-		end
-
-		if !self:AcceptToken( "rpa" ) then
-			self:Error( "Right parenthesis ( )) missing, to close function parameters" )
-		end
-
-		return self:Instruction( "catch", Trace, Exceptions, Var, self:Block( "catch block" ), self:Catch( ))
-
-	elseif Required then
-		self:Error( "catch statement required, after try" )
-	end
-end
-
-/*==============================================================================================
-	Section: Hooks or Event
-	Purpose: Function Objects, just 20% cooler!
-	Creditors: Rusketh
-==============================================================================================*/
-
-function Parser:EventStatement( )
-	if self:AcceptToken( "evt" ) then
-		local Trace = self:TokenTrace( )
-
-		if !self:AcceptToken( "fun" ) then
-			self:Error( "event name expected, after (event)" )
-		end
-
-		local Event = self.TokenData
-
-		local ValidEvent = E_A.EventsTable[Event]
-
-		if !ValidEvent then
-			self:Error( "invalid event %q", Event)
-		end
-
-		local Params, Types, Sig = self:BuildParams( "event parameters" )
-
-		if Sig != ValidEvent[1] then
-			self:Error( "parameter mismatch for event %q", Event)
-		end
-
-		return self:Instruction( "event", Trace, Event, Sig, Params, Types, self:Block( "event body" ), ValidEvent[2], ValidEvent[3])
-	end
-end
-
-/*==============================================================================================
-	Section: Loops
-	Purpose: for loops, while loops.
-	Creditors: Rusketh
-==============================================================================================*/
-function Parser:ForLoop( )
-	-- Purpose: For loops will execute a body of code
-
-	local Trace = self:TokenTrace( )
-
-	if self:AcceptToken( "for" ) then
-
-		if !self:AcceptToken( "lpa" ) then
-			self:Error( "Left parenthesis (( ) missing, after 'for'" )
-		end
-
-		if !self:AcceptToken( "var" ) then
-			self:Error( "Variable assignment expected, after left parenthesis (( )" )
-		end
-
-		local VarName, Ass = self.TokenData
-
-		if self:AcceptToken( "ass" ) then -- Note: We allow a syntax for default vars.
-			Ass = self:Instruction( "assign_declare", Trace, VarName, self:Expression( ), "n", "local" )
-		else
-			Ass = self:Instruction( "assign_default", Trace, VarName, "n", "local" )
-
-		end
-
-		if !self:AcceptToken( "com" ) then
-			self:Error( "Comma (,) expected, after for loop assignment." )
-		end
-
-		local Cond = self:Expression( )
-
-		if !Cond then
-			self:Error( "Condition expected, after (,) in for loop." )
-		elseif !self:AcceptToken( "com" ) then
-			self:Error( "Comma (,) expected, after for loop condition." )
-		end
-
-		local Step = self:VariableStatement(true)
-
-		if !Step and self:AcceptToken( "var" ) then
-			self:Error( "Invalid step expression, after (,) in for loop." )
-		elseif !Step then
-			self:Error( "Step expression expected, after (,) in for loop." )
-		elseif !self:AcceptToken( "rpa" ) then
-			self:Error( "Right parenthesis ( )) missing, after loop step '%s'", self.NextTokenType) -- Todo: Make this error nicer.
-		end
-
-		self.LoopDepth = self.LoopDepth + 1
-
-		local Block = self:Block( "for loop" )
-
-		self.LoopDepth = self.LoopDepth - 1
-
-		return self:Instruction( "loop_for", Trace, Ass, Cond, Step, Block)
-	end
-end
-
-function Parser:WhileLoop( )
-	-- Purpose: While loops will execute a body of code
-
-	if self:AcceptToken( "whl" ) then
-
-		local Trace = self:TokenTrace( )
-
-		if !self:AcceptToken( "lpa" ) then
-			self:Error( "Left parenthesis (( ) missing, after 'while'" )
-		end
-
-		local Cond = self:Expression( )
-
-		if !self:AcceptToken( "rpa" ) then
-			self:Error( "Right parenthesis ( )) missing, after loop condition" )
-		end
-
-		self.LoopDepth = self.LoopDepth + 1
-
-		local Block = self:Block( "for loop" )
-
-		self.LoopDepth = self.LoopDepth - 1
-
-		return self:Instruction( "loop_while", Trace, Cond, Block)
-	end
-
-end
-
-function Parser:ForEachLoop( )
-	if self:AcceptToken( "each" ) then
-
-		local Trace = self:TokenTrace( )
-
-		if !self:AcceptToken( "lpa" ) then
-			self:Error( "Left parenthesis (( ) missing, after 'foreach'" )
-		end
-
-		local tValue, tKey = self:StrictType( ) or "n"
-
-		if !self:AcceptToken( "var" ) then
-			self:Error( "Variable expected, after left parenthesis (( )" )
-		end
-
-		local Value, Key = self.TokenData
-
-		if self:AcceptToken( "com" ) then
-			Key, tKey = Value, tValue
-
-			tValue = self:StrictType( ) or "n"
-
-			if !self:AcceptToken( "var" ) then
-				self:Error( "Variable expected, after comma (,)" )
-			end
-
-			Value = self.TokenData
-		end
-
-		if !self:AcceptToken( "col" ) then
-			self:Error( "colon (:) expected, after Variable" )
-		end
-
-		local Var = self:Expression( )
-
-		if !Var then
-			self:Error( "Variable expected, after colon (:)" )
-		end
-
-		if !self:AcceptToken( "rpa" ) then
-			self:Error( "Right parenthesis ( )) missing, in 'foreach'" )
-		end
-
-		self.LoopDepth = self.LoopDepth + 1
-
-		local Block = self:Block( "foreach loop" )
-
-		self.LoopDepth = self.LoopDepth - 1
-
-		if Key then
-			return self:Instruction( "loop_each2", Trace, Var, Key, tKey, Value, tValue, Block)
-		else
-			return self:Instruction( "loop_each", Trace, Var, Value, tValue, Block)
-		end
-	end
-end
-
-
 /*==============================================================================================
 	Section: Switch Case
 	Purpose: Cus TechBot will give me Admin!
@@ -1766,7 +1468,7 @@ function Parser:SwitchCase( )
 			self:Error( "Left curly bracket ({) expected after to start switch block" )
 		end
 
-		local Cases, Statments, Index, Default = { }, {}, 0
+		local Cases, Statements, Index, Default = { }, {}, 0
 
 		while true do
 			if self:CheckToken( "rcb" ) or !self:HasTokens( ) then
@@ -1785,7 +1487,7 @@ function Parser:SwitchCase( )
 				if !self:AcceptToken( "col" ) then
 					self:Error( "colon (:) expected after case in switch block" )
 				else
-					Statments[Index] = self:CaseBlock( )
+					Statements[Index] = self:CaseBlock( )
 				end
 			elseif self:AcceptToken( "dft" ) then
 				if !self:AcceptToken( "col" ) then
@@ -1794,7 +1496,7 @@ function Parser:SwitchCase( )
 					self:Error( "default case must not appear twice" )
 				else
 					Index, Default = Index + 1, true
-					Statments[Index] = self:CaseBlock( )
+					Statements[Index] = self:CaseBlock( )
 				end
 			else
 				self:Error( "case expected inside case block" )
@@ -1805,7 +1507,7 @@ function Parser:SwitchCase( )
 			self:Error( "Right curly bracket (}) missing, to close %s", Name or "condition" )
 		end
 
-		return self:Instruction( "switch", Trace, Expr, Cases, Statments, Index) 
+		return self:Instruction( "switch", Trace, Expr, Cases, Statements, Index) 
 	end
 end
 
@@ -1837,5 +1539,4 @@ function Parser:CaseBlock( )
 	self.LoopDepth = self.LoopDepth - 1
 	return self:Instruction( "sequence", Trace, Statements) 
 end
-
 ]]--

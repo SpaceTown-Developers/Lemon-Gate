@@ -182,7 +182,7 @@ function Compiler:SkipComments( )
 		while !self:NextPattern( Style, true ) do
 			if !self.Char then 
 				if Style == "*/" then
-					self:Error( 0, "Unterminated multiline comment (/*)", 0 )
+					self:Error( 0, "Un-terminated multi line comment (/*)", 0 )
 				else 
 					break 
 				end 
