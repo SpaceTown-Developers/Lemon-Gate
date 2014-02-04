@@ -48,6 +48,12 @@ function Compiler:RequireToken( Type, Message, ... )
 	end
 end
 
+function Compiler:RequireToken2( Type, Type2, Message, ... )
+	if !self:AcceptToken( Type, Type2 ) then
+		self:TokenError( Message, ... )
+	end
+end
+
 function Compiler:ExcludeToken( Type, Message, ... )
 	if self:AcceptToken( Type ) then
 		self:TokenError( Message, ... )
@@ -107,7 +113,7 @@ function Compiler:GetExpression( RootTrace, IgnoreAss )
 	if !self:HasTokens( ) then
 		return -- No tokens!
 		
-	elseif self:AcceptToken( "var" ) then
+	elseif self:AcceptToken( "var", "fun" ) then -- MARKER
 		-- Lets strip out bad operators
 
 		self:ExcludeToken( "aadd", "Additive assignment operator (+=), can't be part of Expression" )
@@ -207,6 +213,7 @@ function Compiler:PostExpression( RootTrace, Expression )
 		local TrueExpr = self:GetExpression( Trace )
 		
 		self:RequireToken( "cnd", "Conditional operator (::) must appear after expression to complete conditional." )
+		--self:RequireToken( "col", "Colon (:) must appear after expression to complete conditional." )
 		
 		return self:Compile_CND( Trace, Expression, TrueExpr, self:GetExpression( Trace ) )
 	end
@@ -280,19 +287,19 @@ function Compiler:GetValue( RootTrace, IgnoreOperators )
 	
 	elseif self:AcceptToken( "dlt" ) then
 		self:ExcludeWhiteSpace( "Delta operator ($) must not be succeeded by white space" )
-		self:RequireToken( "var", "variable expected, after Delta operator ($)" )
+		self:RequireToken2( "var", "fun", "variable expected, after Delta operator ($)" ) -- MARKER
 		
 		Value = self:Compile_DELTA( self:TokenTrace( RootTrace ), self.TokenData )
 
 	elseif self:AcceptToken( "trg" ) then
 		self:ExcludeWhiteSpace( "Changed operator (~) must not be succeeded by white space" )
-		self:RequireToken( "var", "variable expected, after Changed operator (~)" )
+		self:RequireToken2( "var", "fun", "variable expected, after Changed operator (~)" )
 		
 		Value = self:Compile_TRIGGER( self:TokenTrace( RootTrace ), self.TokenData )
 		
 	elseif self:AcceptToken( "wc" ) then -- Wiremod IO connection.
 		self:ExcludeWhiteSpace( "Connect operator (->) must not be succeeded by white space" )
-		self:RequireToken( "var", "variable expected, after Connect operator (->)" )
+		self:RequireToken2( "var", "fun", "variable expected, after Connect operator (->)" )
 		
 		Value = self:Compile_CONNECT( self:TokenTrace( RootTrace ), self.TokenData )
 	
@@ -315,53 +322,46 @@ function Compiler:GetValue( RootTrace, IgnoreOperators )
 		end
 		
 		Value = self:Instruction( Trace, 3, "...", "..." )
-	-- Variable and Inc/Dec
 	
-	elseif self:AcceptToken( "var" ) then
+	-- Variable / function / Inc / Dec
+	
+	elseif self:AcceptToken( "var", "fun" ) then
 		local Trace, Variable = self:TokenTrace( RootTrace ), self.TokenData
 
 		if self:AcceptToken( "inc" ) then
 			Value = self:Compile_INCREMENT( Trace, Variable, true )
+			
 		elseif self:AcceptToken( "dec" ) then
 			Value = self:Compile_DECREMENT( Trace, Variable, true )
+			
+		elseif self["FUNC_" .. Variable] then
+			Value = self["FUNC_" .. Variable]( self, Trace )
+		
+		elseif self:AcceptToken( "lpa" ) then
+			-- Call Function
+			Value = self:Compile_FUNCTION( Trace, Variable, self:NextInputPerams( RootTrace ) )
+			
+			self:RequireToken( "rpa", "Right parenthesis ( )) missing, to close function parameters" )
+			
 		else
 			Value = self:Compile_VARIABLE( Trace, Variable )
 		end
-	
+		
 	elseif self:AcceptToken( "inc" ) then
 		Value = self:Statment_INC( self:TokenTrace( RootTrace ) )
 		
 	elseif self:AcceptToken( "dec" ) then
 		Value = self:Statment_DEC( self:TokenTrace( RootTrace ) )
 	
-	-- Function	
-	
-	elseif self:AcceptToken( "fun" ) then
-		local Trace, Function = self:TokenTrace( RootTrace ), self.TokenData
-		
-		-- Custom Syntax function
-		if self["FUNC_" .. Function] then
-			Value = self["FUNC_" .. Function]( self, Trace )
-		
-		elseif self:AcceptToken( "lpa" ) then
-			-- Call Function
-			Value = self:Compile_FUNCTION( Trace, Function, self:NextInputPerams( RootTrace ) )
-			
-			self:RequireToken( "rpa", "Right parenthesis ( )) missing, to close function parameters" )
-		else
-		-- Lambda Variable
-			Value = self:Compile_VARIABLE( Trace, Function )
-		end
-	
 	-- Lambda Create
 	
 	elseif self:AcceptToken( "func" ) then
-		Value = self:BuildLambda( nil, RootTrace ) -- TODO: This
+		Value = self:BuildLambda( nil, RootTrace )
 	
 	-- Table
 	
 	elseif self:AcceptToken( "lcb" ) then
-		Value = self:BuildTable( RootTrace ) -- TODO: This!
+		Value = self:BuildTable( RootTrace )
 	
 	-- Error
 	
@@ -539,7 +539,7 @@ function Compiler:NextValueOperator( Value, RootTrace )
 	elseif self:AcceptToken( "col" ) then
 		local Trace = self:TokenTrace( RootTrace ) 
 		
-		self:RequireToken( "fun", "Method operator (:) must be followed by method name" )
+		self:RequireToken2( "fun", "var", "Method operator (:) must be followed by method name" )
 		
 		local Method = self.TokenData
 		
@@ -594,7 +594,7 @@ function Compiler:GetListedVariables( RootTrace )
 		
 	while self:AcceptToken( "com" ) do
 		self:ExcludeToken( "com", "Variable separator (,) must not appear here." )
-		self:RequireToken( "var", "Variable expected after comma (,) for variable statment" )
+		self:RequireToken2( "var", "fun", "Variable expected after comma (,) for variable statment" )
 		
 		Count = Count + 1
 		
@@ -612,7 +612,6 @@ end
 local Upper = string.upper
 
 function Compiler:Statement( RootTrace )
-	
 	local Func = self[ "Statment_" .. Upper( self.PrepTokenType ) ]
 	
 	if Func then
@@ -762,12 +761,12 @@ end
 
 -- TODO: Add Table support!
 function Compiler:Statment_INC( RootTrace )
-	self:RequireToken( "var", "Increment operator (++) must be proceeded by variable" )
+	self:RequireToken2( "var", "fun", "Increment operator (++) must be proceeded by variable" )
 	return self:Compile_INCREMENT( RootTrace, self.TokenData, false )
 end
 
 function Compiler:Statment_DEC( RootTrace )
-	self:RequireToken( "var", "Decrement operator (++) must be proceeded by variable" )
+	self:RequireToken2( "var", "fun", "Decrement operator (++) must be proceeded by variable" )
 	return self:Compile_DECREMENT( RootTrace, self.TokenData, false )
 end
 		
@@ -797,7 +796,7 @@ function Compiler:Statment_GLO( RootTrace, Static )
 	
 	local Class = self:GetClass( Trace, self.TokenData )
 	
-	self:RequireToken( "var", "Variable expected after variable type." )
+	self:RequireToken2( "var", "fun", "Variable expected for in port." )
 	
 	return self:Declair_Variables( Trace, Class.Short, "Global", Static )
 end
@@ -809,7 +808,7 @@ function Compiler:Statment_OUT( RootTrace )
 	
 	local Class = self:GetClass( Trace, self.TokenData )
 	
-	self:RequireToken( "var", "Variable expected after variable type." )
+	self:RequireToken( "var", "Upper-cased variable expected for out port." )
 	
 	return self:Declair_Variables( Trace, Class.Short, "Outport" )
 	
@@ -822,7 +821,7 @@ function Compiler:Statment_IN( RootTrace )
 	
 	local Class = self:GetClass( Trace, self.TokenData )
 	
-	self:RequireToken( "var", "Variable expected after variable type." )
+	self:RequireToken( "var", "Upper-cased variable expected after variable type." )
 	
 	return self:Declair_Variables( Trace, Class.Short, "Inport" )
 	
@@ -832,10 +831,10 @@ function Compiler:Statment_FUN( RootTrace, Static )
 	local Trace = self:TokenTrace( RootTrace )
 	local ClassName = self.TokenData
 	
-	if self:CheckToken( "var" ) then
+	if self:CheckToken( "var", "fun" ) then
 		local Class = self:GetClass( Trace, ClassName, true )
 		
-		self:RequireToken( "var", "Variable expected for variable deceleration." )
+		self:RequireToken2( "var", "fun", "Variable expected for variable deceleration." )
 		
 		return self:Declair_Variables( Trace, Class.Short, "Local", Static )
 	
@@ -962,6 +961,7 @@ function Compiler:StatmentError( )
 		self:ExcludeToken("num", "Number must be part of statement or expression")
 		self:ExcludeToken("str", "String must be part of statement or expression")
 		self:ExcludeToken("var", "Variable must be part of statement or expression")
+		self:ExcludeToken("fun", "Variable must be part of statement or expression")
 
 		self:Error(0, "Unexpected token found (%s)", self.PrepTokenName)
 	else
@@ -976,7 +976,7 @@ end
 function Compiler:Statment_FUNC( GlobalTrace )
 	local Trace = GlobalTrace or self:TokenTrace( )
 	
-	self:RequireToken( "fun", "Function variable expected after function Keyword" )
+	self:RequireToken2( "fun", "var", "Variable expected after function Keyword" )
 	
 	local Variable = self.TokenData
 	local State = GlobalTrace and "Global" or "Local"
@@ -1006,11 +1006,11 @@ function Compiler:BuildPerams( Trace )
 				Class = self:GetClass( Trace, self.TokenData )
 			end
 			
-			if Class.Short == "f" then
-				self:RequireToken( "fun", "Function variable expected for function parameter." )
-			else
-				self:RequireToken( "var", "Variable expected for function parameter." )
-			end
+			-- if Class.Short == "f" then
+				-- self:RequireToken( "fun", "Function variable expected for function parameter." )
+			-- else
+				self:RequireToken2( "var", "fun", "Variable expected for function parameter." )
+			-- end
 			
 			if LU[ self.TokenData ] then
 				self:TokenError( "Parameter %s may not appear twice", self.TokenData )
@@ -1075,7 +1075,7 @@ function Compiler:Statment_METH( Trace, RootTrace )
 	
 	self:RequireToken( "col", "Colon (:), expected after parent for method."  )
 	
-	self:RequireToken( "fun", "Method name, after colon (:)." )
+	self:RequireToken2( "fun", "var", "Method name, after colon (:)." )
 	local Name = self:FakeInstr( Trace, "s", "\"" .. self.TokenData .. "\"" ) 
 	
 	self:RequireToken( "lpa", "Left parenthesis (( ) missing, to open method parameters" )
@@ -1180,7 +1180,7 @@ function Compiler:Statment_FOR( RootTrace )
 	
 	local Class = self:GetClass( Trace, self.TokenData ).Short
 	
-	self:RequireToken( "var", "variable expected for loop deceleration" )
+	self:RequireToken2( "var", "fun", "variable expected for loop deceleration" )
 	
 	local Variable = self.TokenData
 	self:RequireToken( "ass", "assignment operator (=) expected for loop deceleration" )
@@ -1193,7 +1193,7 @@ function Compiler:Statment_FOR( RootTrace )
 	
 	self:RequireToken( "sep", "separator (;) expected after loop condition" )
 	
-	self:RequireToken( "var", "Step expression expected after loop condition" )
+	self:RequireToken2( "var", "fun", "Step expression expected after loop condition" )
 	
 	local Step = self:Statment_VAR( Trace )
 	
@@ -1249,7 +1249,7 @@ function Compiler:Statment_EACH( RootTrace )
 	
 	local TypeA, TypeB = self:GetClass( Trace, self.TokenData ).Short
 	
-	self:RequireToken( "var", "Variable expected after type, in foreach loop" )
+	self:RequireToken2( "var", "fun", "Variable expected after type, in foreach loop" )
 	
 	local RefA, RefB = self:Assign( Trace, self.TokenData, TypeA, "Local" )
 	
@@ -1261,7 +1261,7 @@ function Compiler:Statment_EACH( RootTrace )
 		
 		TypeB = self:GetClass( Trace, self.TokenData ).Short
 		
-		self:RequireToken( "var", "Variable expected after type, in foreach loop" )
+		self:RequireToken2( "var", "fun", "Variable expected after type, in foreach loop" )
 		
 		RefB = self:Assign( Trace, self.TokenData, TypeB, "Local" )
 	end
@@ -1319,22 +1319,31 @@ function Compiler:GetCatchStmt( RootTrace )
 			while self:AcceptToken( "com" ) do
 				self:ExcludeToken( "com", "Exception separator (,) must not appear twice" )
 				
-				self:RequireToken( "fun", "Exception class expected after comma (,)" )
+				if self:AcceptToken( "fun" ) then
+					local Type = self.TokenData
+					
+					if self:CheckToken( "com" ) then
+						I = I + 1
+						
+						Exceptions[I] = Type
+						LK[ Type ] = true
+					else
+						self:PrevToken( )
+						break
+					end
+				else
+					self:RequireToken( "fun", "Exception class expected after comma (,)" )
+				end -- ^Errors out the AcceptToken
 				
 				if !API.Exceptions[ self.TokenData ] then
 					self:TokenError( "No such exception %s", self.TokenData )
 				elseif LK[ self.TokenData ] then
 					self:TokenError( "Exception class %s can not be caught twice", self.TokenData )
 				end
-				
-				I = I + 1
-				
-				Exceptions[I] = self.TokenData
-				LK[ self.TokenData ] = true
 			end
 		end
 		
-		self:RequireToken( "var", "Variable expected for catch" )
+		self:RequireToken2( "var", "fun", "Variable expected for catch" )
 		
 		local Ref = self:Assign( Trace, self.TokenData, "!", "Local" ) 
 		

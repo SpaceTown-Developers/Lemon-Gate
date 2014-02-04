@@ -54,6 +54,7 @@ end )
 ---------------------------------------------------------------------------*/
 local HomeScreen = [[/*====================================================================
 	Expression Advanced:
+		* variables?
 		* Con-commands added!
 		* Trig functions fixed!
 		* File functions are back!

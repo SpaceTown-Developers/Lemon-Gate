@@ -16,7 +16,7 @@ function Component:CreateContext( Context )
 	Context.Data.Timers = { }
 end
 
-local CurTime, pcall = CurTime, pcall
+local CurTime, pcall, unpack = CurTime, pcall, unpack
 
 local function Timer( )
 	local Time, Sucess = CurTime( ), nil
@@ -43,7 +43,7 @@ local function Timer( )
 						Timer.Status = STOPPED
 					end
 					
-					if !Gate:Pcall( "timer " .. Key, Timer.Lambda ) then
+					if !Gate:Pcall( "timer " .. Key, Timer.Lambda, unpack( Timer.Args ) ) then
 						break
 					end
 					
@@ -86,7 +86,7 @@ Component:AddFunction("time", "s", "n", "tonumber( os.date(\"!*t\")[ value %1 ] 
 ==============================================================================================*/
 Component:SetPerf( LEMON_PERF_EXPENSIVE )
 
-Component:AddFunction("timerCreate", "s,n,n,f[,b", "", [[
+Component:AddFunction("timerCreate", "s,n,n,f[,b,...", "", [[
 %prepare
 
 %data.Timers[ value %1 ] = {
@@ -96,7 +96,8 @@ Component:AddFunction("timerCreate", "s,n,n,f[,b", "", [[
 	Delay = value %2,
 	Repetitions = value %3,
 	Lambda = value %4,
-	AutoRemove = value %5
+	AutoRemove = value %5,
+	Args = { %... }
 }]], "" )
 
 Component:SetPerf( LEMON_PERF_NORMAL )
