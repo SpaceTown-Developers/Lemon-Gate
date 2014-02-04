@@ -86,7 +86,21 @@ Component:AddFunction("time", "s", "n", "tonumber( os.date(\"!*t\")[ value %1 ] 
 ==============================================================================================*/
 Component:SetPerf( LEMON_PERF_EXPENSIVE )
 
-Component:AddFunction("timerCreate", "s,n,n,f[,b,...", "", [[
+Component:AddFunction("timerCreate", "s,n,n,f[,b", "", [[
+%prepare
+
+%data.Timers[ value %1 ] = {
+	N = 0,
+	Status = 1,
+	Last = $CurTime( ),
+	Delay = value %2,
+	Repetitions = value %3,
+	Lambda = value %4,
+	AutoRemove = value %5,
+	Args = { }
+}]], "" )
+
+Component:AddFunction("timerCreate", "s,n,n,f,b,...", "", [[
 %prepare
 
 %data.Timers[ value %1 ] = {
