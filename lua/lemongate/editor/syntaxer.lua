@@ -21,6 +21,8 @@ local string_gsub = string.gsub
 local string_match = string.match 
 local string_sub = string.sub 
 
+-- local RawTokens = LEMON.Compiler.RawTokens
+
 /*============================================================================================================================================
 	Build Syntaxer Tables
 ============================================================================================================================================*/
@@ -49,11 +51,24 @@ function Syntaxer:BuildEventsTable( )
 	self.Events = Events
 end
 
+function Syntaxer:BuildTokensTable( ) 
+	local Tokens = { } 
+	
+	for k,v in pairs( LEMON.Compiler.RawTokens ) do
+		Tokens[#Tokens+1] = string_gsub( v[1], "[%-%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%1" )
+	end
+	
+	self.Tokens = Tokens 
+end 
+
 function Syntaxer.Rebuild( )
 	if API.Initialized then
 		Syntaxer:BuildFunctionTable( )
 		Syntaxer:BuildEventsTable( )
+		Syntaxer:BuildTokensTable( )
 		Syntaxer.UserFunctions = { } 
+		Syntaxer.Variables = { } 
+		Syntaxer.MetaMethods = { } 
 	end
 end
 
@@ -304,7 +319,7 @@ Syntaxer.ColorConvars = colors_convars
 ============================================================================================================================================*/
 local cols, lastcol = { } 
 
-local function addToken(tokenname, tokendata)
+local function addToken( tokenname, tokendata )
 	local color = colors[tokenname]
 	if lastcol and color == lastcol[2] then
 		lastcol[1] = lastcol[1] .. tokendata
@@ -314,11 +329,14 @@ local function addToken(tokenname, tokendata)
 	end
 end
 
-function Syntaxer:InfProtect( )
+function Syntaxer:InfProtect( row )
 	self.Loops = self.Loops + 1
 	if SysTime( ) > self.Expire then 
-		error( "Code took to long to parse (" .. self.Loops .. ")" )
+		-- error( "Code on line " .. row .. " took to long to parse (" .. self.Loops .. ")" )
+		ErrorNoHalt( "Code on line " .. row .. " took to long to parse (" .. self.Loops .. ")\n" )
+		return false 
 	end
+	return true 
 end
 
 function Syntaxer:AddUserFunction( Row, Name ) 
@@ -326,8 +344,17 @@ function Syntaxer:AddUserFunction( Row, Name )
 	self.UserFunctions[Name] = Row
 end 
 
+function Syntaxer:CreateMethodFunction( nRow, sVarName, sFunctionName ) 
+	self.MetaMethods[sVarName] = self.MetaMethods[sVarName] or {} 
+	self.MetaMethods[sVarName][sFunctionName] = true 
+end 
+
 local function istype( word )
 	return API.Classes[word] and true or false 
+end
+
+local function isvar( word )
+	return Syntaxer.Variables[word] and true or false 
 end
 
 function Syntaxer:Parse( Row )
@@ -361,8 +388,8 @@ function Syntaxer:Parse( Row )
 		addToken( "string", self.tokendata )
 	end
 	
-	while self.char do
-		self:InfProtect( )
+	while self.char and self:InfProtect( Row ) do
+		
 		local tokenname = ""
 		self.tokendata = ""
 		
@@ -371,82 +398,72 @@ function Syntaxer:Parse( Row )
 		if !self.char then break end 
 		
 		
-		if self:NextPattern( "^[a-z][a-zA-Z0-9_]*" ) then 
+		if self:NextPattern( "^[a-zA-Z][a-zA-Z0-9_]*" ) then 
 			local word = self.tokendata 
 			local keyword = ( self.char or "" ) != "(" 
 				
 			tokenname = "notfound" 
-			
-			if self.Functions[self.tokendata] then 
-				tokenname = "function"
-			end 
-			
-			if self.UserFunctions[self.tokendata] and self.UserFunctions[self.tokendata] <= Row then 
-				tokenname = "userfunction"
-			end 
-			
-			if istype( word ) and keyword then 
-				tokenname = "typename" 
-			end 
-			
-			if keywords[word][1] then 
-				if keywords[word][2] then 
-					tokenname = "keyword" 
-				elseif keyword then 
-					tokenname = "keyword" 
-				end 
-			end 
+			-- tokenname = "variable" 
 			
 			if word == "function" then 
-				tokenname = "keyword"
 				self:NextPattern( " *" ) 
 				
 				if self.char == "]" then 
-					tokenname = "typename"
-					addToken( tokenname, self.tokendata  ) 
+					addToken( "typename", self.tokendata ) 
 					continue 
 				elseif self.char == "(" then 
-					tokenname = "keyword"
-					addToken( tokenname, self.tokendata  ) 
+					addToken( "keyword", self.tokendata ) 
 					continue 
 				end 
 				
-				if string_match( self.line, "^[a-z][a-zA-Z0-9_]* *=", self.position ) then 
-					tokenname = "typename"
-					addToken( tokenname, self.tokendata  ) 
+				if string_match( self.line, "^[a-zA-Z][a-zA-Z0-9_]* *=", self.position ) then 
+					addToken( "typename", self.tokendata ) 
 					self.tokendata = ""
-					self:NextPattern( "^[a-z][a-zA-Z0-9_]*" ) 
+					self:NextPattern( "^[a-zA-Z][a-zA-Z0-9_]*" ) 
 					addToken( "userfunction", self.tokendata )
 					self:AddUserFunction( Row, self.tokendata )
 					continue 
 				end 
 				
-				addToken( tokenname, self.tokendata  ) 
+				addToken( "keyword", self.tokendata  ) 
 				self.tokendata = ""
 				
-				if self:NextPattern( "^[a-z][a-zA-Z0-9_]*" ) then 
-					tokenname = "userfunction" 
+				if self:NextPattern( "^[a-zA-Z][a-zA-Z0-9_]*" ) then 
 					self:AddUserFunction( Row, self.tokendata )
-					addToken( tokenname, self.tokendata ) 
+					addToken( "userfunction", self.tokendata ) 
 				end 
 				
 				continue 
 			end 
 			
-			if word == "event" then 
-				tokenname = "keyword"
-				self:NextPattern( " *" ) 
-				addToken( tokenname, self.tokendata )
+			if istype( word ) and keyword then 
+				addToken( "typename", self.tokendata )
 				self.tokendata = ""
-				tokenname = ""
+				
+				local varname = string_match( self.line, " *([a-zA-Z][a-zA-Z0-9_]*)", self.position ) 
+				if varname then 
+					self.Variables[varname] = Row
+					
+					for nStart, sText, nEnd in string_gmatch( string_sub( self.line, self.position ), "(), *([a-zA-Z][a-zA-Z0-9_]*)()" ) do 
+						if not istype( sText ) then 
+							self.Variables[sText] = Row 
+						end 
+					end 
+				end 
+				continue 
+			end 
+			
+			if word == "event" then 
+				self:NextPattern( " *" ) 
+				addToken( "keyword", self.tokendata )
+				self.tokendata = ""
 				
 				if self:NextPattern( "^[a-z][a-zA-Z0-9_]*" ) then 
 					if self.Events[self.tokendata] then 
-						tokenname = "event" 
+						addToken( "event", self.tokendata )
 					else 
-						tokenname = "notfound"
+						addToken( "notfound", self.tokendata )
 					end 
-					addToken(tokenname, self.tokendata)
 				end 
 				
 				continue 
@@ -454,9 +471,8 @@ function Syntaxer:Parse( Row )
 			
 			if word == "catch" then 
 				self:NextPattern( " *" ) 
-				addToken( tokenname, self.tokendata )
-				self.tokendata = ""
-				tokenname = "" 
+				addToken( "keyword", self.tokendata )
+				self.tokendata = "" 
 				
 				if self:NextPattern( "%(" ) then 
 					self:NextPattern( " *" ) 
@@ -471,19 +487,86 @@ function Syntaxer:Parse( Row )
 							addToken( "exception", self.tokendata )
 						else 
 							addToken( "notfound", self.tokendata )
-						end  
+						end 
+						
+						self.tokendata = ""
+						self:NextPattern( "[a-zA-Z][a-zA-Z0-9_]*" ) 
+						self.Variables[self.tokendata] = Row 
+						addToken( "variable", self.tokendata ) 
 					end 
 				end 
 				
 				continue 
-			end
+			end 
 			
-		elseif self:NextPattern("^0[xb][0-9A-F]+") then
+			if word == "method" then 
+				self:NextPattern( " *" ) 
+				addToken( "keyword", self.tokendata )
+				self.tokendata = ""
+				
+				if self:NextPattern( "[a-zA-Z][a-zA-Z0-9_]*" ) then 
+					if isvar( self.tokendata ) then 
+						local MethodVar = self.tokendata 
+						addToken( "variable", self.tokendata ) 
+						self.tokendata = "" 
+						
+						self:NextPattern( " *: *" ) 
+						addToken( "operator", self.tokendata ) 
+						self.tokendata = "" 
+						
+						if self:NextPattern( "[a-zA-Z][a-zA-Z0-9_]*" ) then 
+							addToken( "userfunction", self.tokendata )
+							self:CreateMethodFunction( Row, MethodVar, self.tokendata )
+						end 
+						
+					end 
+				end 
+				
+				continue
+			end 
+			
+			if keywords[word][1] then 
+				if keywords[word][2] then 
+					addToken( "keyword", self.tokendata ) 
+					continue 
+				elseif keyword then 
+					addToken( "keyword", self.tokendata ) 
+					continue 
+				end 
+			end 
+			
+			if self.Functions[self.tokendata] then 
+				addToken( "function", self.tokendata ) 
+				continue 
+			end 
+			
+			if self.UserFunctions[self.tokendata] and self.UserFunctions[self.tokendata] <= Row then 
+				addToken( "userfunction", self.tokendata ) 
+				continue 
+			end 
+			
+			if isvar( word ) /*and self.Variables[word] <= Row*/ then 
+				addToken( "variable", self.tokendata ) 
+				self.tokendata = "" 
+				
+				if self:NextPattern( " *: *" ) then 
+					addToken( "operator", self.tokendata ) 
+					self.tokendata = "" 
+					
+					if string_match( self.line, "^[a-zA-Z][a-zA-Z0-9_]*", self.position ) then 
+						local func = string_match( self.line, "^[a-zA-Z][a-zA-Z0-9_]*", self.position )
+						if self.MetaMethods[word] and self.MetaMethods[word][func] then 
+							self:NextPattern( "^[a-zA-Z][a-zA-Z0-9_]*" )
+							addToken( "userfunction", self.tokendata )
+						end 
+					end 
+				end
+				continue 
+			end 
+		elseif self:NextPattern( "^0[xb][0-9A-F]+" ) then
 			tokenname = "number"
-		elseif self:NextPattern("^[0-9][0-9.e]*") then
+		elseif self:NextPattern( "^[0-9][0-9.e]*" ) then
 			tokenname = "number"
-		elseif self:NextPattern("^[A-Z][a-zA-Z0-9_]*") then
-			tokenname = "variable"
 		elseif self.char == '"' or self.char == "'" then
 			local sType = self.char 
 			self:NextCharacter()
@@ -527,9 +610,19 @@ function Syntaxer:Parse( Row )
 			else 
 				tokenname = "operator"
 			end
-		else
-			self:NextCharacter()
-			tokenname = "operator"
+		else 
+			local b = false
+			for i = 1, #self.Tokens do 
+				if self:NextPattern( self.Tokens[i] ) then 
+					addToken( "operator", self.tokendata ) 
+					b = true
+					break
+				end 
+			end 
+			if b then continue end 
+			
+			self:NextCharacter( )
+			tokenname = "notfound"
 		end
 		
 		addToken(tokenname, self.tokendata)

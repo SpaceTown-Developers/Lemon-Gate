@@ -1441,9 +1441,6 @@ function PANEL:PaintRowUnderlay( Row, LinePos )
 			surface_DrawRect( ( self.Params[2].y - self.Scroll.y ) * self.FontWidth + self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth, (LinePos+1) * self.FontHeight, self.FontWidth, 1 ) 
 		end 
 	end
-	
-	
-	
 end 
 
 function PANEL:PaintRow( Row, LinePos )
