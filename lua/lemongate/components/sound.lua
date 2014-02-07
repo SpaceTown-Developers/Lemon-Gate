@@ -69,7 +69,7 @@ end)
 /*==============================================================================================
 	Sound Object
 ==============================================================================================*/
-local Sound = { }
+local Sound = { Sound = false }
 Sound.__index = Sound
 
 setmetatable( Sound, Sound )
@@ -98,7 +98,7 @@ end
 function Sound:Destroy( Context )	
 	if IsValid( Context.Entity ) then
 		Sounds[ Context.Entity ][ self ] = nil
-	end; self:Stop()
+	end; self:Stop( )
 end
 
 function Sound.__tostring( Sound )

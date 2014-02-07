@@ -330,8 +330,12 @@ WriteArray = function( Entity, Address, Data, Clear )
 			elseif Type == "s" then
 					Free_Address = WriteStringZero( Entity, Free_Address, Value )
 					MemoryValid = ( Free_Address ~= 0 )
-					
+			elseif WA_Seralized[ Value ] then
+					MemoryValid = WriteCell( Entity, Address + I -1, WA_Seralized[ Value ] )
+			
 			elseif Type == "v" then
+					WA_Seralized[ Value ] = Free_Address
+					
 					WriteCell( Entity, Address + I - 1, Value.x )
 					WriteCell( Entity, Address + I, Value.y )
 					
@@ -339,12 +343,8 @@ WriteArray = function( Entity, Address, Data, Clear )
 					Free_Address = Free_Address + 3
 					
 			elseif Type == "t" then
-					if WA_Seralized[ Value ] then
-						MemoryValid = WriteCell( Entity, Address + I -1, WA_Seralized[ Value ] )
-					else
-						WA_Seralized[ Value ] = Free_Address
-						Free_Address = WriteArray( Entity, Free_Address, Value )
-					end
+					WA_Seralized[ Value ] = Free_Address
+					Free_Address = WriteArray( Entity, Free_Address, Value )
 			end
 	end
 	

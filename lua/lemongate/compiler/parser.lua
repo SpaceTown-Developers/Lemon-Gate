@@ -1001,16 +1001,11 @@ function Compiler:BuildPerams( Trace )
 		while true do
 			self:ExcludeToken( "com", "Parameter separator (,) must not appear here" )
 			
-			local Class = self:GetClass( Trace, "number" )
-			if self:AcceptToken( "fun", "func" ) then
-				Class = self:GetClass( Trace, self.TokenData )
-			end
+			self:RequireToken2( "fun", "func", "Variable type expected for function parameter." )
 			
-			-- if Class.Short == "f" then
-				-- self:RequireToken( "fun", "Function variable expected for function parameter." )
-			-- else
-				self:RequireToken2( "var", "fun", "Variable expected for function parameter." )
-			-- end
+			local Class = self:GetClass( Trace, self.TokenData )
+			
+			self:RequireToken2( "var", "fun", "Variable expected for function parameter." )
 			
 			if LU[ self.TokenData ] then
 				self:TokenError( "Parameter %s may not appear twice", self.TokenData )
