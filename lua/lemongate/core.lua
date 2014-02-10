@@ -445,7 +445,7 @@ if SERVER then
 			for _, Entity in pairs( API:GetEntitys( ) ) do
 				if Util.IsOwner( Player, Entity ) then
 					Entity:ShutDown( )
-					Entity:CallHook( "Remove", Entity )
+					API:CallHook( "Remove", Entity )
 					Entity.AutoShutDown = true
 				end
 			end
