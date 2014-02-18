@@ -259,7 +259,9 @@ function Compiler:CompileCode( Code, Files, NoCompile )
 			file.Write( "LemonTest.txt", Code .. "\n/*=== COMPILED ===*/\n" .. self.Native )
 			self:Error( 0, "Failed to compile native lua (%s)", Compiled )
 		end
-	
+		
+		//file.Write( "LemonTest.txt", self.Native )
+
 		self.Execute = Compiled( )
 	end
 	

@@ -592,7 +592,7 @@ Core:SetPerf( LEMON_PERF_CHEAP )
 
 Core:AddFunction( "shootPos", "e:", "v", "( ($IsValid(value %1) and value %1:IsPlayer( )) and Vector3( value %1:GetShootPos() ) or Vector3.Zero:Clone() )" )
 
-Core:AddFunction( "eye", "e:", "v", "($IsValid(value %1) and (( value %1:IsPlayer( ) and Vector3( value %1:GetAimVector() ) or value %1:GetForward() )) or Vector3.Zero:Clone() )" )
+Core:AddFunction( "eye", "e:", "v", "( ( $IsValid(value %1) and value %1:IsPlayer( ) ) and Vector3( value %1:GetAimVector() or value %1:GetForward() ) or Vector3.Zero:Clone( )  )" )
 
 Core:AddFunction( "eyeAngles", "e:", "a", "($IsValid(value %1) and value %1:EyeAngles() or Angle(0, 0, 0))" )
 

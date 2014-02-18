@@ -23,7 +23,9 @@ do
 		return Vector3( self.x - other.x, self.y - other.y, self.z - other.z ) 
 	end 
  
-	function meta:__mul( other ) 
+	function meta:__mul( other )
+		print( "MUL:", self, other )
+		debug.Trace( )
 		return Vector3( self.x * other.x, self.y * other.y, self.z * other.z ) 
 	end 
 
