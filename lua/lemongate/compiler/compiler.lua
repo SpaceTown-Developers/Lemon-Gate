@@ -583,7 +583,10 @@ function Compiler:Compile_ASSIGN( Trace, Variable, Expression )
 	
 	local Op = self:GetOperator( "=", Type ) or self:GetOperator( "=" )
 	
-	return Op.Compile( self, Trace, Ref, Expression )
+	local Instr = Op.Compile( self, Trace, Ref, Expression )
+	Instr.Return = Instr.Return or Type
+
+	return Instr
 end
 
 function Compiler:Compile_DECLAIR( Trace, Type, Variable, Class, Expression, Static )

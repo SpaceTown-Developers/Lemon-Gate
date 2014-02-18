@@ -38,11 +38,11 @@ Core:AddOperator( "default", "e", "e", "%NULL_ENTITY" )
 
 -- Assign:
 
-Core:AddOperator( "=", "e", "", [[
+Core:AddOperator( "=", "e", "e", [[
 %delta[value %1] = %memory[value %1] or %NULL_ENTITY
 %memory[value %1] = value %2
 %click[value %1] = %click[value %1] or ( %delta[value %1] ~= %memory[value %1] )
-]], "" )
+]], "value %2" )
 
 Core:AddOperator( "~", "e", "b", "%click[value %1]" )
 

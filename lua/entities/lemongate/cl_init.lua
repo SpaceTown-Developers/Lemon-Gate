@@ -48,7 +48,7 @@ timer.Create( "Lemon_Editor_Animation", 1, 0, function( )
 				local Particle = Emitter:Add("omicron/lemongear", BonePos + Vector(0, 0, 10) )
 			
 				if Particle then
-					Particle:SetColor( 255, 244, 79 )
+					Particle:SetColor( 255, 255, 255 )
 					Particle:SetVelocity( Vector( math.random(-8, 8), math.random(-8, 8), math.random(5, 15) ) )
 
 					Particle:SetDieTime( 3 )

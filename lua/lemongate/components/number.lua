@@ -32,11 +32,11 @@ Core:SetPerf( LEMON_PERF_CHEAP )
 
 -- Assign:
 
-Core:AddOperator( "=", "n", "", [[
+Core:AddOperator( "=", "n", "n", [[
 %delta[value %1] = %memory[value %1]
 %memory[value %1] = value %2
 %click[value %1] = ( %click[value %1] or ( %memory[value %1] ~= %delta[value %1] ) )
-]], "" )
+]], "value %2" )
 
 Core:AddOperator( "~", "n", "b", "%click[value %1]" )
 

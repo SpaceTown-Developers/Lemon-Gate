@@ -23,12 +23,12 @@ Core:SetPerf( LEMON_PERF_CHEAP )
 
 -- Assign:
 
-Core:AddOperator( "=", "c", "", [[
+Core:AddOperator( "=", "c", "c", [[
 local %A, %B = value %2, %memory[value %1] or {255, 255, 255, 255 }
 %delta[value %1] = %B
 %memory[value %1] = %A
 %click[value %1] = %click[value %1] or (%A[1] == %B[1] and %A[2] == %B[2] and %A[3] == %B[3] and %B[4] == %A[4])
-]], "" )
+]], "%A" )
 
 Core:AddOperator( "~", "c", "b", "%click[value %1]" )
 
@@ -130,9 +130,9 @@ Core:AddFunction( "rgb2hsv", "c:", "c", "local %R, %G, %B = %ColorToHSV( %Color(
 
 Core:AddFunction( "rgb2hsv", "n,n,n", "c", "local %C = %ColorToHSV( %Color(value %1, value %2, value %3) )", "{ %C.r, %C.g, %C.b, 255 }" )
 
-Core:AddFunction( "rgb2dgi", "c:", "n", "math.Clamp( math.floor( math.Clamp( math.floor( value %1[1] / 28), 0, 9 ) ) * 100 + math.floor( math.Clamp( math.floor( value %1[2] / 28), 0, 9 ) ) * 10 + math.floor( math.Clamp( math.floor( value %1[3] / 28), 0, 9 ) ), 0, 999 )" )
+Core:AddFunction( "rgb2digi", "c:", "n", "math.Clamp( math.floor( math.Clamp( math.floor( value %1[1] / 28), 0, 9 ) ) * 100 + math.floor( math.Clamp( math.floor( value %1[2] / 28), 0, 9 ) ) * 10 + math.floor( math.Clamp( math.floor( value %1[3] / 28), 0, 9 ) ), 0, 999 )" )
 
-Core:AddFunction( "rgb2dgi", "n,n,n", "n", "math.Clamp( math.floor( math.Clamp( math.floor( value %1 / 28), 0, 9 ) ) * 100 + math.floor( math.Clamp( math.floor( value %2 / 28), 0, 9 ) ) * 10 + math.floor( math.Clamp( math.floor( value %3 / 28), 0, 9 ) ), 0, 999 )" )
+Core:AddFunction( "rgb2digi", "n,n,n", "n", "math.Clamp( math.floor( math.Clamp( math.floor( value %1 / 28), 0, 9 ) ) * 100 + math.floor( math.Clamp( math.floor( value %2 / 28), 0, 9 ) ) * 10 + math.floor( math.Clamp( math.floor( value %3 / 28), 0, 9 ) ), 0, 999 )" )
 
 /*==============================================================================================
 	Section: Constants

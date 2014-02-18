@@ -72,7 +72,7 @@ Core:SetPerf( LEMON_PERF_CHEAP )
 Core:AddOperator( "=", "", "", [[
 %memory[value %1] = value %2
 %click[value %1] = true -- Defaq
-]], "" )
+]], "value %2" )
 
 Core:AddOperator( "variable", "", "", "%memory[value %1]" )
 

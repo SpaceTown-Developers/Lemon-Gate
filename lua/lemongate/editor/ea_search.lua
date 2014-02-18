@@ -33,6 +33,7 @@ function PANEL:Init( )
 		self.btnMenu:SetIconCentered( true )
 		self.btnMenu:SetIconFading( false ) 
 		self.btnMenu.Expanded = true 
+		self.btnMenu:SetToolTip( "Search Query Settings." ) 
 		self.btnMenu:SetMaterial( Material( "fugue/binocular.png" ) ) 
 		self.btnMenu.DoClick = function( )
 			self:OpenMenu( )
@@ -63,7 +64,8 @@ function PANEL:Init( )
 		self.btnUp:SetPos( 235, 25 )
 		self.btnUp:SetIconCentered( true )
 		self.btnUp:SetIconFading( false ) 
-		self.btnUp.Expanded = true 
+		self.btnUp.Expanded = true
+		self.btnUp:SetToolTip( "Find Previous." ) 
 		self.btnUp:SetMaterial( Material( "fugue/arrow-090.png" ) ) 
 		self.btnUp.DoClick = function( )
 			self:FindQuery( true )
@@ -75,6 +77,7 @@ function PANEL:Init( )
 		self.btnDown:SetIconCentered( true )
 		self.btnDown:SetIconFading( false ) 
 		self.btnDown.Expanded = true 
+		self.btnDown:SetToolTip( "Find Next." ) 
 		self.btnDown:SetMaterial( Material( "fugue/arrow-270.png" ) )
 		self.btnDown.DoClick = function( )
 			self:FindQuery( false )
@@ -163,7 +166,12 @@ Util
 function PANEL:ValidQuery( )
 	local Value = self:GetValue( )
 	
-	if self.Extended and Value then //and #Value > 3 then
+	if self.Extended and Value then
+		
+		if !self.AllowRegex:GetBool( ) then
+			Value = string.gsub( Value, "[%-%^%$%(%)%%%.%[%]%*%+%?]", "%%%1" )
+		end
+		
 		return Value
 	end
 end
@@ -214,9 +222,9 @@ function PANEL:FindQuery( Up )
 	if self:GetValue( ) == "" then
 		self.txtFind.bgCol = nil
 	elseif self:DoFind( Up, Looped ) then
-		self.txtFind.bgCol = Color( 0, 255, 128 )
+		self.txtFind.bgCol = Color( 0, 255, 128, 100 )
 	else
-		self.txtFind.bgCol = Color( 255, 0, 128 )
+		self.txtFind.bgCol = Color( 255, 0, 128, 100 )
 	end
 end
 

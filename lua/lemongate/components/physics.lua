@@ -14,14 +14,6 @@ local Class = Core:NewClass( "p", "physics" )
 
 Core:SetPerf( LEMON_PERF_CHEAP )
 
--- Assign:
-
-Core:AddOperator( "=", "v2", "", [[
-%delta[value %1] = %memory[value %1]
-%memory[value %1] = value %2
-%click[value %1] = %delta[value %1] ~= %memory[value %1]
-]], "" )
-
 Core:AddOperator( "~", "p", "b", "%click[value %1]" )
 
 -- Compare:

@@ -238,6 +238,7 @@ function API:LoadCoreComponents( )
 		include( "lemongate/components/quaternion.lua" )
 		include( "lemongate/components/file.lua" )
 		include( "lemongate/components/console.lua" )
+		include( "lemongate/components/coroutine.lua" )
 	end
 end
 
@@ -1124,6 +1125,8 @@ function API:BuildFunction( Sig, Perf, Types, Ret, Second, First )
 	
 	
 	return function( Compiler, Trace, ... )
+		if !Trace then deubg.Trace( ) end
+		
 		local Local_Values = { }
 		local PopPerf = false
 		Trace.Location = Sig

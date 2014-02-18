@@ -113,7 +113,7 @@ function Compiler:GetExpression( RootTrace, IgnoreAss )
 	if !self:HasTokens( ) then
 		return -- No tokens!
 		
-	elseif self:AcceptToken( "var", "fun" ) then -- MARKER
+	/*elseif self:AcceptToken( "var", "fun" ) then -- MARKER
 		-- Lets strip out bad operators
 
 		self:ExcludeToken( "aadd", "Additive assignment operator (+=), can't be part of Expression" )
@@ -125,7 +125,7 @@ function Compiler:GetExpression( RootTrace, IgnoreAss )
 			self:ExcludeToken( "ass", "Assignment operator (=), can't be part of Expression" )
 		end
 		
-		self:PrevToken( )
+		self:PrevToken( )*/
 	end
 	
 	local Trace = self:TokenTrace( RootTrace )
@@ -343,6 +343,15 @@ function Compiler:GetValue( RootTrace, IgnoreOperators )
 			
 			self:RequireToken( "rpa", "Right parenthesis ( )) missing, to close function parameters" )
 			
+		elseif self:CheckToken( "ass", "aadd", "asub", "adiv", "amul" ) then
+			if self:AcceptToken( "ass" ) then
+				Value = self:Compile_ASSIGN( Trace, Variable, self:GetExpression( Trace ) )
+			elseif self:AcceptToken( "aadd", "asub", "amul", "adiv" ) then
+				
+				Operator = "Compile_" .. string.upper( TokenOperators[ string.sub( self.TokenType, 2 ) ][1] )
+				local Expression = self[Operator]( self, Trace, self:Compile_VARIABLE( Trace, Variable ), self:GetExpression( Trace ) )
+				Value = self:Compile_ASSIGN( Trace, Variable, Expression )
+			end
 		else
 			Value = self:Compile_VARIABLE( Trace, Variable )
 		end
@@ -568,8 +577,30 @@ function Compiler:NextValueOperator( Value, RootTrace )
 			local Class = self:GetClass( Trace, self.TokenData )
 		
 			self:RequireToken( "rsb", "Right square bracket (]) missing, to close indexing operator [Index]" )
-		
-			Value = self:Compile_GET( Trace, Value, Expression, Class.Short )
+			
+			local Instruction = self:Compile_GET( Trace, Value, Expression, Class.Short )
+
+			if self:CheckToken( "ass", "aadd", "asub", "adiv", "amul" ) then
+				if self:AcceptToken( "ass" ) then
+					self:ExcludeVarArg( )
+					Instruction = self:GetExpression( Trace )
+				elseif self:AcceptToken( "aadd" ) then
+					Instruction = self:Compile_ADDITION( Trace, Instruction, self:GetExpression( Trace ) )
+				elseif self:AcceptToken( "asub" ) then
+					Instruction = self:Compile_SUBTRACT( Trace, Instruction, self:GetExpression( Trace ) )
+				elseif self:AcceptToken( "amul" ) then
+					Instruction = self:Compile_MULTIPLY( Trace, Instruction, self:GetExpression( Trace ) )
+				elseif self:AcceptToken( "adiv" ) then
+					Instruction = self:Compile_DIVIDIE( Trace, Instruction, self:GetExpression( Trace ) )
+				else
+					return self:NextValueOperator( Instruction, Trace )
+				end
+				
+				
+				return self:Compile_SET( Trace, Value, Expression, Instruction, Class.Short )		
+			end
+
+			return Instruction
 		end
 		
 	-- Call
@@ -672,37 +703,7 @@ function Compiler:Statment_VAR( RootTrace )
 	
 	-- Multi Assign/Arithmatic Assign
 	
-	elseif self:CheckToken( "com", "ass", "aadd", "asub", "amul", "adiv" ) then
-		local Variables, Count = self:GetListedVariables( RootTrace )
-		
-		local Statements, Operator = { }
-		
-		if self:AcceptToken( "ass" ) then
-			-- Nothing!
-		elseif self:AcceptToken( "aadd", "asub", "amul", "adiv" ) then
-			Operator = "Compile_" .. string.upper( TokenOperators[ string.sub( self.TokenType, 2 ) ][1] )
-		else
-			self:TokenError( "Assignment operator (=) expected after Variable" )
-		end
-		
-		for I = 1, Count do
-			local Var = Variables[ I ]
-			local Expression = self:GetExpression( Var[1] )
-			
-			if Expression.Return == "..." then
-				self:TokenError( "Invalid use of vararg (...)" )
-			elseif Operator then
-				Expression = self[Operator]( self, Var[1], self:Compile_VARIABLE( Var[1], Var[2] ), Expression )
-			end
-			
-			Statements[I] = self:Compile_ASSIGN( Var[1], Var[2], Expression )
-			
-			if I != Count then
-				self:RequireToken( "com", "comma (,) expected after expression" ) -- TODO: Better error message!
-			end
-		end
-			
-		return self:Compile_SEQUENCE( Trace, Statements )
+	
 	
 	-- Indexing!
 	
@@ -715,7 +716,7 @@ function Compiler:Statment_VAR( RootTrace )
 		if #Indexs > 1 then
 			local Var = self:NextLocal( )
 			local Statements = { "local " ..  Var .. " = " .. Variable.Inline }
-			local Prepare = { Variable.Prepare }
+			local Prepare = { Variable.Prepare }	
 			local Perf = Variable.Perf
 			
 			local Fake = self:FakeInstr( Variable.Trace, Variable.Return, Var )
@@ -1065,7 +1066,64 @@ end
 
 function Compiler:Statment_METH( Trace, RootTrace )
 	local Trace = Trace or self:TokenTrace( RootTrace )
+		
+		/*if self:AcceptToken( "fun", "func" ) then
+			local Class, Return = self:GetClass( Trace, self.TokenData, true )
+
+			if Class and self:AcceptToken( "fun", "func" ) then
+				Return = Class
+				Class = self:GetClass( Trace, self.TokenData )
+			end
+
+			if !Class then
+				self:PrevToken( )
+				return self:NewMetaMethod( Trace )
+			end
+
+			self:TokenError( "Unavalible Feature.")
+
+			self:RequireToken( "col", "Colon (:), expected after meta class."  )
 	
+			self:RequireToken2( "fun", "var", "Method name, after colon (:)." )
+			local Name = self:FakeInstr( Trace, "s", "\"" .. self.TokenData .. "\"" ) 
+			
+			self:RequireToken( "lpa", "Left parenthesis (( ) missing, to open method parameters" )
+			
+			self:PushScope( )
+			
+			self:PushFlag( "NewCells", { } )
+			
+			local Perams, HasVarg, Count = self:BuildPerams( Trace )
+			
+			self:RequireToken( "rpa", "Right parenthesis ( )) missing, to close method parameters" )
+			
+			self:PushFlag( "HasVargs", HasVarg )
+			self:PushFlag( "ReturnedType", "" )
+			self:PushFlag( "CanReturn", true )
+			self:PushFlag( "Lambda", true )
+			self:PushFlag( "LoopDepth", 0 )
+			
+			local Ref, Scope = self:Assign( Trace, "This", Meta.Return, "Local" )
+			table.insert( Perams, 1, { "This", Meta.Return, Ref } )
+			
+			local Block = self:GetBlock( "method", Trace )
+			local Method = self:Compile_LAMBDA( Trace, Perams, HasVarg, Block ) -- TODO: Add Type (method/function)!
+			
+			self:PopFlag( "ReturnedType" )
+			self:PopFlag( "CanReturn" )
+			self:PopFlag( "NewCells" )
+			self:PopFlag( "HasVargs" )
+			self:PopFlag( "Lambda" )
+			
+			self:PopScope( )
+			
+			return self:Compile_ADDMETAMETHOD( Trace, Meta, Name, Method )
+		end*/ -- NO WAY TO IPILMENT THIS WITH OUT IT BEIN UGLY AS HELL!
+
+	return self:NewMetaMethod( Trace )
+end
+
+function Compiler:NewMetaMethod( Trace )
 	local Meta = self:GetValue( Trace, true )
 	
 	self:RequireToken( "col", "Colon (:), expected after parent for method."  )

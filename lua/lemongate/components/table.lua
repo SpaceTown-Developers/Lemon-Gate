@@ -49,6 +49,8 @@ function Table:Set( Index, Type, Value )
 	
 	self.Clk = true
 	self.Count = #Data
+
+	return Value
 end
 
 function Table:Insert( Index, Type, Value )
@@ -364,14 +366,14 @@ end
 ==============================================================================================*/
 Component:SetPerf( LEMON_PERF_NORMAL )
 
-Component:AddOperator( "[]=", "t,n,?", "", "value %1:Set( value %2, value %3[2], value %3[1] )" )
+Component:AddOperator( "[]=", "t,n,?", "?", "value %1:Set( value %2, value %3[2], value %3[1] )" )
 
-Component:AddOperator( "[]=", "t,s,?", "", "value %1:Set( value %2, value %3[2], value %3[1] )" ) 
+Component:AddOperator( "[]=", "t,s,?", "?", "value %1:Set( value %2, value %3[2], value %3[1] )" ) 
 	
-Component:AddOperator( "[]=", "t,e,?", "", "value %1:Set( value %2, value %3[2], value %3[1] )" ) 
+Component:AddOperator( "[]=", "t,e,?", "?", "value %1:Set( value %2, value %3[2], value %3[1] )" ) 
 
 -- Insert
-Component:AddOperator( "[]+", "t,?", "", "value %1:Set( nil, value %2[2], value %2[1] )" )
+Component:AddOperator( "[]+", "t,?", "?", "value %1:Set( nil, value %2[2], value %2[1] )" )
 
 /*==============================================================================================
 	VarArg Support:
@@ -431,13 +433,13 @@ function Component:BuildOperators( )
 			-- Set Operators:
 				
 				if Class.Short ~= "?" then
-					Component:AddOperator( "[]=", Format( "t,n,%s", Class.Short ), "",
+					Component:AddOperator( "[]=", Format( "t,n,%s", Class.Short ), Class.Short,
 						"%Table.Set( value %1, value %2, type %3, value %3 )" )
 					
-					Component:AddOperator( "[]=", Format( "t,s,%s", Class.Short ), "",
+					Component:AddOperator( "[]=", Format( "t,s,%s", Class.Short ), Class.Short,
 						"%Table.Set( value %1, value %2, type %3, value %3 )" )
 						
-					Component:AddOperator( "[]=", Format( "t,e,%s", Class.Short ), "",
+					Component:AddOperator( "[]=", Format( "t,e,%s", Class.Short ), Class.Short,
 						"%Table.Set( value %1, value %2, type %3, value %3 )" )
 					
 				-- Insert

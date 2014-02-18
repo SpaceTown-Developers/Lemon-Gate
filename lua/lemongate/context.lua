@@ -57,6 +57,7 @@ end
 
 function Context:PushPerf( Trace, Ammount )
 	self.Perf = self.Perf + Ammount
+
 	if self.Perf > self.MaxPerf then
 		self:Error( Trace, "Maximum operations count exceeded." )
 	end

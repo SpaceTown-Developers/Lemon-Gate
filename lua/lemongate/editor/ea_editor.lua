@@ -1352,6 +1352,7 @@ function PANEL:PaintRowUnderlay( Row, LinePos )
 	
 	-- Search Box, Hilight.
 	local FindQuery = self.Search:ValidQuery( )
+
 	if FindQuery then
 		local Row = self.Rows[ Row ]
 		
@@ -1359,17 +1360,19 @@ function PANEL:PaintRowUnderlay( Row, LinePos )
 			FindQuery = FindQuery:lower( )
 			Row = Row:lower( )
 		end
-		
+
 		surface_SetDrawColor( 128, 255, 0, 50 )
 		
-		for overS, overE in string_gmatch( Row, "()" .. FindQuery .. "()" ) do
-			surface_DrawRect( 
-				( overS - 1 ) * self.FontWidth + self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth, 
-				( LinePos ) * self.FontHeight, 
-				self.FontWidth * ( overE - overS ), 
-				self.FontHeight 
-			)
-		end
+		pcall( function( ) -- For now untill we fix the invalid pattern bug.
+			for overS, overE in string_gmatch( Row, "()" .. FindQuery .. "()" ) do
+				surface_DrawRect( 
+					( overS - 1 ) * self.FontWidth + self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth, 
+					( LinePos ) * self.FontHeight, 
+					self.FontWidth * ( overE - overS ), 
+					self.FontHeight 
+				)
+			end
+		end )
 	end
 		
 	if self:HasSelection( ) then 
