@@ -340,10 +340,10 @@ function Compiler:GetValue( RootTrace, IgnoreOperators )
 		elseif self:AcceptToken( "lpa" ) then
 			-- Call Function
 			Value = self:Compile_FUNCTION( Trace, Variable, self:NextInputPerams( RootTrace ) )
-			
 			self:RequireToken( "rpa", "Right parenthesis ( )) missing, to close function parameters" )
 			
 		elseif self:CheckToken( "ass", "aadd", "asub", "adiv", "amul" ) then
+			
 			if self:AcceptToken( "ass" ) then
 				Value = self:Compile_ASSIGN( Trace, Variable, self:GetExpression( Trace ) )
 			elseif self:AcceptToken( "aadd", "asub", "amul", "adiv" ) then
@@ -701,10 +701,40 @@ function Compiler:Statment_VAR( RootTrace )
 	elseif self:AcceptToken( "dec" ) then
 		return self:Compile_DECREMENT( Trace, Variable, true )
 	
-	-- Multi Assign/Arithmatic Assign
-	
-	
-	
+	 	-- Multi Assign/Arithmatic Assign
+  	
+ 	elseif self:CheckToken( "com", "ass", "aadd", "asub", "amul", "adiv" ) then
+ 		local Variables, Count = self:GetListedVariables( RootTrace )
+ 		
+ 		local Statements, Operator = { }
+ 		
+ 		if self:AcceptToken( "ass" ) then
+ 			-- Nothing!
+ 		elseif self:AcceptToken( "aadd", "asub", "amul", "adiv" ) then
+ 			Operator = "Compile_" .. string.upper( TokenOperators[ string.sub( self.TokenType, 2 ) ][1] )
+ 		else
+ 			self:TokenError( "Assignment operator (=) expected after Variable" )
+ 		end
+ 		
+ 		for I = 1, Count do
+ 			local Var = Variables[ I ]
+ 			local Expression = self:GetExpression( Var[1] )
+ 			
+ 			if Expression.Return == "..." then
+ 				self:TokenError( "Invalid use of vararg (...)" )
+ 			elseif Operator then
+ 				Expression = self[Operator]( self, Var[1], self:Compile_VARIABLE( Var[1], Var[2] ), Expression )
+ 			end
+ 			
+ 			Statements[I] = self:Compile_ASSIGN( Var[1], Var[2], Expression )
+ 			
+ 			if I != Count then
+ 				self:RequireToken( "com", "comma (,) expected after expression" ) -- TODO: Better error message!
+ 			end
+ 		end
+			
+ 		return self:Compile_SEQUENCE( Trace, Statements )
+
 	-- Indexing!
 	
 	elseif self:CheckToken( "lsb" ) then
@@ -753,9 +783,9 @@ function Compiler:Statment_VAR( RootTrace )
 		
 		return self:Compile_SET( Data[3], Variable, Data[1], Instruction, Data[2] )
 	
-	else
-		return self:NextValueOperator( self:Compile_VARIABLE( Trace, Variable ), RootTrace )
 	end
+	
+	return self:NextValueOperator( self:Compile_VARIABLE( Trace, Variable ), RootTrace )
 end
 
 /****************************************************************************************************/
