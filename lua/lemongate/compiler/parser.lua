@@ -592,15 +592,12 @@ function Compiler:NextValueOperator( Value, RootTrace )
 					Instruction = self:Compile_MULTIPLY( Trace, Instruction, self:GetExpression( Trace ) )
 				elseif self:AcceptToken( "adiv" ) then
 					Instruction = self:Compile_DIVIDIE( Trace, Instruction, self:GetExpression( Trace ) )
-				else
-					return self:NextValueOperator( Instruction, Trace )
 				end
 				
-				
-				return self:Compile_SET( Trace, Value, Expression, Instruction, Class.Short )		
+				Value = self:Compile_SET( Trace, Value, Expression, Instruction, Class.Short )		
 			end
 
-			return Instruction
+			Value = Instruction
 		end
 		
 	-- Call
