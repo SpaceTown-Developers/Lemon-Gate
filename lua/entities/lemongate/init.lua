@@ -412,3 +412,16 @@ function Lemon:LoadEffect( )
 		  
 	util.Effect( "lemon_load", Effect )
 end
+
+/*==============================================================================================
+	Section: No silly WorkShop dupes!
+==============================================================================================*/
+
+local RealSSE = gmsave.ShouldSaveEntity
+function gmsave.ShouldSaveEntity( Ent, ... )
+ 	if Ent:GetClass( ) == "lemongate" then
+ 		return false
+ 	end
+
+ 	return RealSSE( Ent, ... )
+end

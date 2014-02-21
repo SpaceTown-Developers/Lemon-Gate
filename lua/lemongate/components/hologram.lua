@@ -504,6 +504,9 @@ if $IsValid( value %1 ) and value %1.Player == %context.Player then
 	end
 end]], "" )
 
+Component:AddFunction("isVisible", "h:", "b", "($IsValid( value %1 ) and value %1.IsVisible or false )" )
+
+
 /*==============================================================================================
     Section: Clipping
 ==============================================================================================*/

@@ -53,31 +53,24 @@ end )
 	Home Screen
 ---------------------------------------------------------------------------*/
 local HomeScreen = [[/*====================================================================
+	Hey Check out our new community, Just click the home button above!
+		* Thanks - Muneris :D
+
 	Expression Advanced:
-		* variables?
-		* Con-commands added!
+		* Lowercased Variables
 		* Trig functions fixed!
 		* File functions are back!
 		* Ops rebalance in progress.
-		* Check out our new repo browser!
 	
 	Editor Changes:
 		* New Open/Save menu.
 		* Script Name Changer (not file name).
-		* Find in code, *prototype* (ctrl + f).
-		* Bookmark keys (f2 and ctrl + f2 )
+		* Find in code (ctrl + f).
 		* Pastebin.com uploader.
-		* You can now change editor font in the options menu.
-		
-	Check Out Video Tutorials:
-		* https://www.youtube.com/watch?v=GzNsCWORiRw
-		* http://www.youtube.com/watch?v=1fPyhSEa2EI
-	
-	Please Share Your Gates:
-	 - http://www.wiremod.com/forum/wiremod-addons-coding/32173-lemon-gate-thread.html
 	
 	Check Our Wiki For Help:
 	 - https://github.com/SpaceTown-Developers/Lemon-Gate/wiki
+		* New wiki, under Construction.
 		
 	Also Report Bugs:
 	 - https://github.com/SpaceTown-Developers/Lemon-Gate/issues

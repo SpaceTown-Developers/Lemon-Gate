@@ -51,7 +51,7 @@ function PANEL:Init( )
 	
 	self.btnOptions = self:SetupButton( "Options", Material( "fugue/gear.png" ), RIGHT )
 	self.btnHelp = self:SetupButton( "Open helper", Material( "fugue/question.png" ), RIGHT )
-	self.btnWiki = self:SetupButton( "Open wiki", Material( "fugue/home.png" ), RIGHT )
+	self.btnWiki = self:SetupButton( "Visit the community", Material( "fugue/home.png" ), RIGHT )
 	
 	self.btnRepoLink = self:SetupButton( "Open repository", Material( "github.png" ), RIGHT )
 	
@@ -122,7 +122,7 @@ function PANEL:Init( )
 	end 
 	
 	function self.btnWiki:DoClick( )
-		gui.OpenURL( "http://github.com/SpaceTown-Developers/Lemon-Gate/wiki" )
+		gui.OpenURL( "http://poweredbylemons.com/index.php" )
 	end
 	
 	function self.btnRepoLink:DoClick( )

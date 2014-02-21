@@ -364,27 +364,29 @@ Core:AddFunction( "softPerf", "", "n", "((%context.MaxPerf * 0.90) - %context.Pe
 ==============================================================================================*/
 Core:AddFunction( "map", "", "s", "($game.GetMap( ) or \"\")" )
 
-Core:AddFunction( "isSinglePlayer", "", "b", "game.SinglePlayer()" )
+Core:AddFunction( "hostName", "", "s", "$GetConVar(\"hostname\"):GetString()" )
 
-Core:AddFunction( "isDedicated", "", "b", "game.IsDedicated()" )
+Core:AddFunction( "isSinglePlayer", "", "b", "$game.SinglePlayer()" )
+
+Core:AddFunction( "isDedicated", "", "b", "$game.IsDedicated()" )
 
 Core:AddFunction( "numPlayers", "", "n", "(#player.GetAll())" )
 
-Core:AddFunction( "maxPlayers", "", "n", "game.MaxPlayers()" )
+Core:AddFunction( "maxPlayers", "", "n", "$game.MaxPlayers()" )
 
-Core:AddFunction( "gravity", "", "n", "( $GetConVar(\"sv_gravity\"):GetFloat() )" )
+Core:AddFunction( "gravity", "", "n", "$GetConVar(\"sv_gravity\"):GetFloat()" )
 
-Core:AddFunction( "propGravity", "", "v", "Vector3( physenv.GetGravity() )" )
+Core:AddFunction( "propGravity", "", "v", "Vector3( $physenv.GetGravity() )" )
 
-Core:AddFunction( "airDensity", "", "n", "physenv.GetAirDensity()" )
+Core:AddFunction( "airDensity", "", "n", "$physenv.GetAirDensity()" )
 
-Core:AddFunction( "maxFrictionMass", "", "n", "(physenv.GetPerformanceSettings()[\"MaxFrictionMass\"])" )
+Core:AddFunction( "maxFrictionMass", "", "n", "($physenv.GetPerformanceSettings()[\"MaxFrictionMass\"])" )
 
-Core:AddFunction( "minFrictionMass", "", "n", "(physenv.GetPerformanceSettings()[\"MinFrictionMass\"])" )
+Core:AddFunction( "minFrictionMass", "", "n", "($physenv.GetPerformanceSettings()[\"MinFrictionMass\"])" )
 
-Core:AddFunction( "speedLimit", "", "n", "(physenv.GetPerformanceSettings()[\"MaxVelocity\"])" )
+Core:AddFunction( "speedLimit", "", "n", "($physenv.GetPerformanceSettings()[\"MaxVelocity\"])" )
 
-Core:AddFunction( "angSpeedLimit", "", "n", "(physenv.GetPerformanceSettings()[\"MaxAngularVelocity\"])" )
+Core:AddFunction( "angSpeedLimit", "", "n", "($physenv.GetPerformanceSettings()[\"MaxAngularVelocity\"])" )
 
 /*==============================================================================================
 	Section: Do not exist functions (Compiler operators)
