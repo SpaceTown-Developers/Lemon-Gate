@@ -225,7 +225,7 @@ function Compiler:CompileCode( Code, Files, NoCompile )
 			local pcall, error = pcall, error
 			local Vector3, Vector2, Vector, Angle = Vector3, Vector2, Vector, Angle
 			local math, string, table, bit = math, string, table, bit
-			local tostring, unpack, pairs, print = tostring, unpack, pairs, print
+			local tostring, unpack, pairs, ipairs, print = tostring, unpack, pairs, ipairs, print
 		
 		-- Required Locals
 			local ExitDeph
