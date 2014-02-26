@@ -70,7 +70,7 @@ local %Buffer = value %1
 
 Component:SetPerf( LEMON_PERF_CHEAP )
 
-Component:AddFunction( "writePos", "bf", "n", "(value %1.W)" )
+Component:AddFunction( "writePos", "bf:", "n", "(value %1.W)" )
 
 -- Read Functions:
 
@@ -145,7 +145,7 @@ end]], "%Val" )
 
 Component:SetPerf( LEMON_PERF_CHEAP )
 
-Component:AddFunction( "readPos", "bf", "n", "(value %1.R)" )
+Component:AddFunction( "readPos", "bf:", "n", "(value %1.R)" )
 
 -- Misc:
 

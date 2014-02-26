@@ -12,6 +12,9 @@ do
 		end
 	*/
 	
+	local Vector3 = { }
+	local Vector = Vector --Speed!
+
 	local meta = { __Vector3 = true } 
 	meta.__index = meta 
 	
@@ -24,8 +27,6 @@ do
 	end 
  
 	function meta:__mul( other )
-		print( "MUL:", self, other )
-		debug.Trace( )
 		return Vector3( self.x * other.x, self.y * other.y, self.z * other.z ) 
 	end 
 
@@ -170,7 +171,7 @@ do
 		return setmetatable( {x = a or 0, y = b or 0, z = c or 0}, meta)
 	end 
 
-	Vector3 = {} 
+	_G.Vector3 = Vector3
 	setmetatable( Vector3, Vec3 ) 
 	debug.getregistry().Vector3 = meta
 end 

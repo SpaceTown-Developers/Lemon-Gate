@@ -12,7 +12,7 @@ local Core = API:GetComponent( "core" )
 Core:SetPerf( LEMON_PERF_NORMAL )
 Core:AddEvent( "shutdown", "", "" )
 
-Core:AddEvent( "trigger", "s", "" )
+Core:AddEvent( "trigger", "s,s", "" )
 
 Core:AddEvent( "use", "e", "" )
 

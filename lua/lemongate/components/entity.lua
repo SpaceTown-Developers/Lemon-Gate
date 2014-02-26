@@ -196,15 +196,13 @@ Core:AddFunction( "massCenter", "e:", "v", [[
 ==============================================================================================*/
 Core:SetPerf( LEMON_PERF_CHEAP )
 
--- Trying these with out IsValid() checks, hopfuly they will always be null_entity
+Core:AddFunction( "boxSize", "e:", "v", "(IsValid( value %1) and Vector3( value %1:OBBMaxs( ) - value %1:OBBMins( ) ) or Vector3(0,0,0) )" )
 
-Core:AddFunction( "boxSize", "e:", "v", "(Vector3( value %1:OBBMaxs( ) - value %1:OBBMins( ) ) )" )
+Core:AddFunction( "boxCenter", "e:", "v", "(IsValid( value %1) and  Vector3( value %1:OBBCenter( ) ) or Vector3(0,0,0) )" )
 
-Core:AddFunction( "boxCenter", "e:", "v", "(Vector3( value %1:OBBCenter( ) ) )" )
+Core:AddFunction( "boxMax", "e:", "v", "(IsValid( value %1) and  Vector3( value %1:OBBMaxs( ) ) or Vector3(0,0,0) )" )
 
-Core:AddFunction( "boxMax", "e:", "v", "(Vector3( value %1:OBBMaxs( ) ) )" )
-
-Core:AddFunction( "boxMin", "e:", "v", "(Vector3( value %1:OBBMins( ) ) )" )
+Core:AddFunction( "boxMin", "e:", "v", "(IsValid( value %1) and  Vector3( value %1:OBBMins( ) ) or Vector3(0,0,0) )" )
 
 /******************************************************************************/
 
@@ -284,7 +282,7 @@ if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) and %AngleNotH
 end]], "" )
 
 Core:AddFunction( "applyTorque", "e:v", "", [[
-if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 )  and value %2:IsNotHuge( ) then
+if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) and value %2:IsNotHuge( ) then
 	local %Phys = value %1:GetPhysicsObject( )
 	
 	if %Phys and %Phys:IsValid( ) then
