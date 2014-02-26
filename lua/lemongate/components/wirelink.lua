@@ -145,7 +145,7 @@ end]], "%Val" )
 /*==============================================================================================
 	Cell Writing
 ==============================================================================================*/
-Core:SetPerf( LEMON_PERF_EXPENSIVE )
+Core:SetPerf( LEMON_PERF_CHEAP )
 
 Core:AddFunction("writeCell", "wl:n,n", "b", [[
 local %WL, %Val = value %1, false
@@ -164,8 +164,11 @@ local %WL, %Result = value %1, %Table()
 if $IsValid(%WL) and %WL.ReadCell then
 	local Start = value %2
 	for I = Start, Start + value %3 do
+		%context.Perf = %context.Perf + 0.1
 		%Result:Insert( nil, "n", %WL:ReadCell(I) or 0 )
 	end
+
+	%pef
 end]], "%Result" )
 
 /*==============================================================================================
@@ -199,6 +202,8 @@ if $IsValid( %WL ) and %WL.ReadCell then
 	local Cell= value %2
 	
 	for I = Cell, Cell + 16384 do
+		%context.Perf = %context.Perf + 0.1
+
 		local Byte = %WL:ReadCell(I, Byte)
 		if !Byte then
 			%Val = ""; break
@@ -210,6 +215,8 @@ if $IsValid( %WL ) and %WL.ReadCell then
 			%Val = %Val .. string.char( math.floor( Byte ) )
 		end
 	end
+
+	%perf
 end]], "%Val" )
 
 -- Set Cell:
@@ -256,10 +263,12 @@ local Math_Floor = math.floor
 local Table_Concat = table.concat
 local ipairs, type = ipairs, type
 
-local function WriteStringZero( Entity, Address, String )
-        local WriteCell = Entity.WriteCell
+local function WriteStringZero( Context, Entity, Address, String )
+    local WriteCell = Entity.WriteCell
 		
-		if ( WriteCell( Entity, Address+ #String, 0 ) ) then
+	if ( WriteCell( Entity, Address+ #String, 0 ) ) then
+
+		Context:PushPerf( nil, #String * 0.1 )
 
         for I = 1, #String do
             if !WriteCell( Entity, Address + I - 1, String_Byte( String, I ) ) then
@@ -273,9 +282,9 @@ local function WriteStringZero( Entity, Address, String )
 	return 0
 end
 
-local function ReadStringZero( Entity, Address )
+local function ReadStringZero( Contex, Entity, Address )
 	
-	local Table = { }
+	local Table, Perf = { }, 0
 	local ReadCell = Entity.ReadCell
 	
 	for I = Address, Address + 16384 do
@@ -292,12 +301,14 @@ local function ReadStringZero( Entity, Address )
 			Table[#Table + 1] = String_Char( Math_Floor( Byte ) )
 	end
 	
+	Context:PushPerf( nil, #Table * 0.1 )
+
 	return Table_Concat( Table )
 end
 
 local WA_Seralized, WriteArray = { }
 
-WriteArray = function( Entity, Address, Data, Clear )
+WriteArray = function( Context, Entity, Address, Data, Clear )
 	local Count = #Data.Types
 	local WriteCell = Entity.WriteCell
 	
@@ -317,6 +328,10 @@ WriteArray = function( Entity, Address, Data, Clear )
 	for I = 1, #Values do
 			local Value, Type = Values[I], Types[I]
 			
+			if ( I % 10 == 0 ) then
+				Context:PushPerf( nil, 2 )
+			end
+			
 			if ( !MemoryValid ) then
 				if ( Clear ) then WA_Seralized = { } end
 				return 0
@@ -328,7 +343,7 @@ WriteArray = function( Entity, Address, Data, Clear )
 					MemoryValid = false
 					
 			elseif Type == "s" then
-					Free_Address = WriteStringZero( Entity, Free_Address, Value )
+					Free_Address = WriteStringZero( Context, Entity, Free_Address, Value )
 					MemoryValid = ( Free_Address ~= 0 )
 			elseif WA_Seralized[ Value ] then
 					MemoryValid = WriteCell( Entity, Address + I -1, WA_Seralized[ Value ] )
@@ -344,7 +359,7 @@ WriteArray = function( Entity, Address, Data, Clear )
 					
 			elseif Type == "t" then
 					WA_Seralized[ Value ] = Free_Address
-					Free_Address = WriteArray( Entity, Free_Address, Value )
+					Free_Address = WriteArray( Context, Entity, Free_Address, Value )
 			end
 	end
 	
@@ -358,24 +373,26 @@ Core:AddExternal( "WriteArray", WriteArray )
 
 /************************************************************************/
 
-Core:SetPerf( LEMON_PERF_EXPENSIVE )
+Core:SetPerf( LEMON_PERF_NORMAL )
 
 Core:AddFunction("writeString", "wl:n,s", "n", [[
 if $IsValid(value %1) and value %1.WriteCell then
-	%util = %WriteStringZero(value %1, value %2, value %3 )
+	%util = %WriteStringZero( %context, value %1, value %2, value %3 )
 end]], "( %util or 0 )" )
 
 Core:AddFunction("readString", "wl:n", "s", [[
 if $IsValid(value %1) and value %1.WriteCell then
-	%util = %ReadStringZero(value %1, value %2 )
+	%util = %ReadStringZero( %context, value %1, value %2 )
 end]], "( %util or \"\" )" )
 
 
 /******************************************************************************/
 
+Core:SetPerf( LEMON_PERF_EXPENSIVE )
+
 Core:AddFunction("writeTable", "wl:n,t", "n", [[
 if $IsValid(value %1) and value %1.WriteCell then
-	%util = %WriteArray(value %1, value %2, value %3, true )
+	%util = %WriteArray( %context, value %1, value %2, value %3, true )
 end]], "( %util or 0 )" )
 
 /*==============================================================================================

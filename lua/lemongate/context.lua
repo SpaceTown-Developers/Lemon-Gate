@@ -55,11 +55,13 @@ function Context:Error( Trace, Message )
 	error( "Script", 0 )
 end
 
+local FakeTrace = { 0, 0 }
+
 function Context:PushPerf( Trace, Ammount )
 	self.Perf = self.Perf + Ammount
 
 	if self.Perf > self.MaxPerf then
-		self:Error( Trace, "Maximum operations count exceeded." )
+		self:Error( Trace or FakeTrace, "Maximum operations count exceeded." )
 	end
 end
 
