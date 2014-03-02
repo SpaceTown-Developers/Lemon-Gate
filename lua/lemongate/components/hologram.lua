@@ -607,6 +607,11 @@ if $IsValid( value %1 ) and value %1.Player == %context.Player and $IsValid( val
 	value %1:SetParent(value %2)
 end]], "" )
 
+Component:AddFunction("unParent", "h:", "", [[
+if $IsValid( value %1 ) and value %1.Player == %context.Player then
+	value %1:SetParent( nil )
+end]], "" )
+
 Component:AddFunction("getParentHolo", "h:", "h", [[
 local %Val = %NULL_ENTITY
 

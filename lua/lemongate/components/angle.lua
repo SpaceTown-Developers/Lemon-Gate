@@ -153,11 +153,9 @@ local %A, %B = value %1, value %2
 local %Shift = 10 ^ math.floor(%B + 0.5)
 ]], "Angle(%A.p - ((%A.p * %Shift) modulus -1) / %Shift, %A.y - ((%A.y * %Shift) modulus -1) / %Shift, %A.r - ((%A.r * %Shift) modulus -1) / %Shift)" )
 
-Core:AddFunction( "round", "a", "a", "Angle(value %1.p - (value %1.p + 0.5) modulus 1 + 0.5, value %1.y - (value %1.y + 0.5) modulus 1 + 0.5, value %1.r - (value %1.r + 0.5) modulus 1 + 0.5)" )
+Core:AddFunction( "round", "a", "a", "Angle( math.round( value %1.p ), math.round( value %1.y ), math.round( value %1.r ) )" )
 
-Core:AddFunction( "round", "a,n", "a", [[
-local %Shift = 10 ^ math.floor(value %2 + 0.5)
-]], "Angle(math.floor(value %1.p * %Shift+0.5) / %Shift, math.floor(value %1.y * %Shift+0.5) / %Shift, math.floor(value %1.r * %Shift+0.5) / %Shift)" )
+Core:AddFunction( "round", "a,n", "a", "Angle( math.round( value %1.p, value %2 ), math.round( value %1.y, value %2 ), math.round( value %1.r, value %2 ) )" )
 
 /*==============================================================================================
 	Section: Clamping and Inrange

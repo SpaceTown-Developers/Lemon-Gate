@@ -68,17 +68,23 @@ end
 
 function Table:Remove( Index )
 	local Data = self.Data
-
+	local Types = self.Types
+	
 	if Data[Index] ~= nil then
 		self.Size = self.Size - 1
 	end
 	
+	local Value = Data[Index] or 0
+	local Type = Types[Index] or "n"
+	
 	Data[Index] = nil
-	self.Types[Index] = nil
+	Types[Index] = nil
 	self.Look[Index] = nil
 	
 	self.Clk = true
 	self.Count = #Data
+	
+	return { Value, Type }
 end
 
 function Table:Shift( Index )
@@ -88,12 +94,14 @@ function Table:Shift( Index )
 		self.Size = self.Size - 1
 	end
 	
-	TableRemove( Data, Index )
-	TableRemove( self.Types, Index )
+	local Value = TableRemove( Data, Index ) or 0
+	local Type = TableRemove( self.Types, Index ) or "n"
 	TableRemove( self.Look, Index )
 	
 	self.Clk = true
 	self.Count = #Data
+	
+	return { Value, Type }
 end
 
 function Table:Get( Index, Type )
@@ -214,11 +222,11 @@ Component:AddFunction( "copy", "t:", "t", "$setmetatable( table.Copy(value %1), 
 
 Component:SetPerf( LEMON_PERF_ABNORMAL )
 
-Component:AddFunction( "remove", "t:n", "", "%Table.Remove(value %1, value %2)" )
+Component:AddFunction( "remove", "t:n", "?", "%Table.Remove(value %1, value %2)" )
 
-Component:AddFunction( "remove", "t:s", "", "%Table.Remove(value %1, value %2)" )
+Component:AddFunction( "remove", "t:s", "?", "%Table.Remove(value %1, value %2)" )
 
-Component:AddFunction( "remove", "t:e", "", "%Table.Remove(value %1, value %2)" )
+Component:AddFunction( "remove", "t:e", "?", "%Table.Remove(value %1, value %2)" )
 
 -- Type
 Component:AddFunction( "type", "t:n", "s", "LongType(value %1.Types[value %2])" )
@@ -239,11 +247,11 @@ Component:AddFunction( "exists", "t:e", "b", "(value %1.Data[value %2] ~= nil)" 
 -- Array:
 Component:SetPerf( LEMON_PERF_EXPENSIVE )
 
-Component:AddFunction( "pop", "t:", "", "%Table.Shift(value %1, value %1.Count)" )
+Component:AddFunction( "pop", "t:", "?", "%Table.Shift(value %1, value %1.Count)" )
 
-Component:AddFunction( "shift", "t:", "", "%Table.Shift(value %1, 1)" )
+Component:AddFunction( "shift", "t:", "?", "%Table.Shift(value %1, 1)" )
 
-Component:AddFunction( "shift", "t:n", "", "%Table.Shift(value %1, value %2)" )
+Component:AddFunction( "shift", "t:n", "?", "%Table.Shift(value %1, value %2)" )
 
 -- Table:
 
