@@ -19,6 +19,9 @@ function Compiler:InitScopes( )
 	self.Global, self.Scope = { }, { }
 	self.Scopes = { [0] = self.Global, self.Scope }
 	
+	self.Prediction = { }
+	self.Predictions = { [0] = { }, self.Prediction }
+
 	self.IncRef = 0
 	
 	self.Cells = { }
@@ -30,12 +33,18 @@ function Compiler:PushScope( )
 	self.Scope = { }
 	self.ScopeID = self.ScopeID + 1
 	self.Scopes[ self.ScopeID ] = self.Scope
+
+	self.Prediction = { }
+	self.Predictions[ self.ScopeID ] = self.Prediction
 end
 
 function Compiler:PopScope( )
 	self.Scopes[ self.ScopeID ] = nil
+	self.Predictions[ self.ScopeID ] = nil
+
 	self.ScopeID = self.ScopeID - 1
 	self.Scope = self.Scopes[ self.ScopeID ]
+	self.Prediction = self.Predictions[ self.ScopeID ]
 end
 
 /*==============================================================================================
@@ -73,6 +82,20 @@ end
 function Compiler:IsOutput( Trace, Ref )
 	local Cell = self.Cells[ Ref]
 	return Cell and Cell.Assign == "Outport"
+end
+
+function Compiler:GetPrediction( Variable, UseMaster )
+	for Scope = self.ScopeID, 0, -1 do
+		local Prediction = self.Predictions[ Scope ][ Variable ]
+		
+		if Prediction then
+			return Prediction, Scope
+		end
+	end
+
+	if UseMaster then
+		return self:GetPrediction( "*", false )
+	end
 end
 
 /*==============================================================================================
@@ -480,6 +503,7 @@ function Compiler:Compile_VARIABLE( Trace, Variable )
 	local Op = self:GetOperator( "variable", Class ) or self:GetOperator( "variable" )
 	
 	local Instr = Op.Compile( self, Trace, Ref, Variable )
+	Instr.Variable = Variable
 	Instr.Return = Class
 	return Instr
 end
@@ -656,6 +680,14 @@ for K, Meta in pairs( MetaOperators ) do
 		
 		local Instr = Op.Compile( self, Trace, A, self:FakeInstr( Trace, "s", "\"operator_" .. Meta[1] .. "\"" ), B )
 		
+		if A.Variable then
+			local PredClass = self:GetPrediction( A.Variable .. ".operator_" .. Meta[1], true )
+
+			if PredClass then
+				return self:Compile_CAST( Trace, PredClass, Instr, false )
+			end
+		end
+
 		if Meta[2] then
 			Instr = self:Compile_CAST( Trace, Meta[2], Instr )
 		end -- Auto Cast!
@@ -1082,7 +1114,15 @@ end
 
 function Compiler:Compile_FUNCTION( Trace, Function, ... )
 	if self:GetVariable( Trace, Function ) then
-		return self:Compile_CALL( Trace, self:Compile_VARIABLE( Trace, Function ), ... )
+		local Instr = self:Compile_CALL( Trace, self:Compile_VARIABLE( Trace, Function ), ... )
+
+		local PredClass = self:GetPrediction( Function, false ) or self:GetPrediction( Function .. ".operator_call", true )
+		
+		if PredClass then
+			Instr = self:Compile_CAST( Trace, PredClass, Instr, false )
+		end
+
+		return Instr
 	end
 	
 	local Perams, Signature, BestMatch = { ... }, ""
@@ -1140,7 +1180,17 @@ function Compiler:Compile_METHOD( Trace, Function, Meta, ... )
 		end
 		
 		local Name = self:FakeInstr( Trace, "s", "\"" .. Function .. "\"" ) 
-		return Op.Compile( self, Trace, Meta, Name, ... )
+		local Instr = Op.Compile( self, Trace, Meta, Name, ... )
+		
+		if Meta.Variable then
+			local PredClass = self:GetPrediction( Meta.Variable .. "." .. Function, true )
+
+			if PredClass then
+				Instr = self:Compile_CAST( Trace, PredClass, Instr, false )
+			end
+		end
+
+		return Instr		
 	end
 	
 	return Op
@@ -1475,4 +1525,64 @@ function Compiler:Compile_PRINT( Trace, Values, Count )
 		
 		Context.Player:PrintMessage( 3, string.Left( ]] .. string.Implode( " .. \" \" .. ", Inline ) .. [[, 249 ) )
 	end]] )
+end
+
+/*==============================================================================================
+	Section: Prediction
+==============================================================================================*/
+
+function Compiler:Statment_PRED( RootTrace )
+	local Trace = self:TokenTrace( RootTrace )
+
+	self:RequireToken2( "fun", "ret", "instruction expected after predictive operator (@)" )
+
+	local Prediction = self.TokenData
+	self:RequireToken( "col", "colon (:) expected after return for prediction" )
+
+	if Prediction == "return" then
+		
+		local Variable, Class = "*" //Start using wildcard!
+
+		if !self:CheckToken( "fun", "func", "var" ) then
+			self:TokenError( "Variable or class expected for return prediction." )
+		end
+		
+		if self:AcceptToken( "fun", "var" ) then
+
+			if !self:CheckToken( "func", "fun", "wc" ) then
+				self:PrevToken( )
+			elseif API.Classes[ self.TokenData ] then
+				self:PrevToken( )
+			else
+				Variable = self.TokenData
+
+				local Ref, VarClass = self:GetVariable( Trace, Variable )
+
+				if !Ref then
+					self:TraceError( Trace, "Variable %s does not exist", Variable )
+				
+				elseif self:AcceptToken( "wc" ) then
+					if VarClass ~= "t" then
+						self:TraceError( Trace, "Can not predict method return for %s", self:NType( VarClass ) )
+					end
+
+					self:RequireToken2( "fun", "var", "method name expected after ->" )
+					Variable = Variable .. "." .. self.TokenData
+
+				elseif VarClass ~= "f" and VarClass ~= "t" then
+					self:TraceError( Trace, "Can not predict return for %s", self:NType( VarClass ) )
+				end
+			end
+		end
+
+		self:RequireToken2( "fun", "func", "Class type expected for return prediction")
+		
+		Class = self:GetClass( Trace, self.TokenData ).Name
+
+		self.Prediction[ Variable ] = Class
+
+		return self:FakeInstr( Trace, "", "" )
+	else
+		self:TokenError( "Uknown prediction '@%s'", Prediction )
+	end
 end

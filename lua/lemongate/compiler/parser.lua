@@ -112,20 +112,6 @@ function Compiler:GetExpression( RootTrace, IgnoreAss )
 	
 	if !self:HasTokens( ) then
 		return -- No tokens!
-		
-	/*elseif self:AcceptToken( "var", "fun" ) then -- MARKER
-		-- Lets strip out bad operators
-
-		self:ExcludeToken( "aadd", "Additive assignment operator (+=), can't be part of Expression" )
-		self:ExcludeToken( "asub", "Subtractive assignment operator (-=), can't be part of Expression" )
-		self:ExcludeToken( "amul", "Multiplicative assignment operator (*=), can't be part of Expression" )
-		self:ExcludeToken( "adiv", "Divisive assignment operator (/=), can't be part of Expression" )
-		
-		if !IgnoreAss then
-			self:ExcludeToken( "ass", "Assignment operator (=), can't be part of Expression" )
-		end
-		
-		self:PrevToken( )*/
 	end
 	
 	local Trace = self:TokenTrace( RootTrace )
@@ -491,6 +477,8 @@ function Compiler:ExpressionError( )
 		self:ExcludeToken( "try", "Try keyword (try) must be part of a try-statement" )
 		self:ExcludeToken( "cth", "Catch keyword (catch) must be part of an try-statement" )
 		self:ExcludeToken( "fnl", "Final keyword (final) must be part of an try-statement" )
+
+		self:ExcludeToken( "pred", "predictive operator (@) must not appear inside an equation" )
 		
 		self:TokenError( "Unexpected token found (%s)", self.PrepTokenName )
 	else

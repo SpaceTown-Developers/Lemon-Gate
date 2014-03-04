@@ -80,6 +80,7 @@ Compiler.RawTokens = {
 
 	-- MISC:
 
+		{ '@', "pred", "predictive operator" },
 		{ "...", "varg", "varargs" },
 }
 

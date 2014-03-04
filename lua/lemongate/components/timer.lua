@@ -79,7 +79,7 @@ Component:AddFunction("realtime", "", "n", "$RealTime( )" )
 
 Component:AddFunction("sysTime", "", "n", "$SysTime( )" )
 
-Component:AddFunction("time", "s", "n", "tonumber( os.date(\"!*t\")[ value %1 ] or 0 )" )
+Component:AddFunction("time", "s", "n", "$tonumber( $os.date(\"!*t\")[ value %1 ] or 0 )" )
 
 /*==============================================================================================
 	Section: Timers

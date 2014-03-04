@@ -161,6 +161,19 @@ end
 	Syntaxer Keywords
 ============================================================================================================================================*/
 
+-- operator_<key>
+local MetaMethods = {
+	["addition"] = true, 
+	["call"] = true, 
+	["division"] = true, 
+	["equal"] = true, 
+	["exponent"] = true, 
+	["greater"] = true, 
+	["modulus"] = true, 
+	["multiply"] = true, 
+	["subtraction"] = true, 
+}
+
 local keywords = {
 	-- keywords that can be followed by a "(":
 	["if"]       = { true, true }, 
@@ -226,18 +239,20 @@ local colors = {
 		Add syntax color options 
 	*/
 	
-	["comment"]      = Color( 128, 128, 128 ), 
-	["event"]        = Color(  80, 160, 240 ), // TODO: Other color? 
-	["exception"]    = Color(  80, 160, 240 ), // TODO: Other color? 
-	["function"]     = Color(  80, 160, 240 ), 
-	["keyword"]      = Color(   0, 120, 240 ), 
-	["notfound"]     = Color( 240, 160,   0 ), 
-	["number"]       = Color(   0, 200,   0 ), 
-	["operator"]     = Color( 240,   0,   0 ),  
-	["string"]       = Color( 188, 188, 188 ), 
-	["typename"]     = Color( 140, 200,  50 ), 
-	["userfunction"] = Color( 102, 122, 102 ), 
-	["variable"]     = Color(   0, 180,  80 ), 
+	["comment"]      = Color(  128,  128,  128 ), 
+	["event"]        = Color(   80,  160,  240 ), // TODO: Other color? 
+	["exception"]    = Color(   80,  160,  240 ), // TODO: Other color? 
+	["function"]     = Color(   80,  160,  240 ), 
+	["keyword"]      = Color(    0,  120,  240 ), 
+	["notfound"]     = Color(  240,  160,    0 ), 
+	["number"]       = Color(    0,  200,    0 ), 
+	["operator"]     = Color(  240,    0,    0 ),  
+	["string"]       = Color(  188,  188,  188 ), 
+	["typename"]     = Color(  140,  200,   50 ), 
+	["userfunction"] = Color(  102,  122,  102 ), 
+	["variable"]     = Color(    0,  180,   80 ), 
+	["annotation"]   = Color( 0xe3, 0xb5, 0x2d ), 
+	["metamethod"]   = Color( 0x00, 0xc8, 0xff ), 
 }
 
 -- fallback for nonexistant entries: 
@@ -366,6 +381,11 @@ function Syntaxer:Parse( Row )
 	self:ResetTokenizer( Row )
 	self:NextCharacter( )
 	
+	if self:NextPattern( "^@return" ) then 
+		addToken( "annotation", self.tokendata ) 
+		self.tokendata = "" 
+	end 
+
 	if self.blockcomment then
 		if self:NextPattern(".-%*/") then
 			self.blockcomment = nil
@@ -389,9 +409,8 @@ function Syntaxer:Parse( Row )
 	end
 	
 	while self.char and self:InfProtect( Row ) do
-		
-		local tokenname = ""
-		self.tokendata = ""
+		local tokenname = "" 
+		self.tokendata = "" 
 		
 		local spaces = self:NextPattern( " *", true ) 
 		if spaces then addToken( "operator", spaces ) end 
@@ -515,10 +534,16 @@ function Syntaxer:Parse( Row )
 						self.tokendata = "" 
 						
 						if self:NextPattern( "[a-zA-Z][a-zA-Z0-9_]*" ) then 
-							addToken( "userfunction", self.tokendata )
-							self:CreateMethodFunction( Row, MethodVar, self.tokendata )
+							if MetaMethods[string_match( self.tokendata, "operator_(.*)" )] then 
+								addToken( "metamethod", self.tokendata ) 
+							else 
+								addToken( "userfunction", self.tokendata )
+								self:CreateMethodFunction( Row, MethodVar, self.tokendata )
+							end 
 						end 
-						
+					else 
+						addToken( "notfound", self.tokendata ) 
+						self.tokendata = "" 
 					end 
 				end 
 				
