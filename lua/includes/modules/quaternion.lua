@@ -56,10 +56,6 @@ do
 	/*==============================================================================================
 	Section: Meta
 	==============================================================================================*/
-	function meta:Garry( )
-		return Vector( self.x, self.y, self.z )
-	end
-
 	function meta:__add( other )
 		if type( self ) == "number" then
 			return Quaternion( self + other.r, other.i, other.j, other.k )
@@ -209,7 +205,7 @@ do
 	end 
  
 	function meta:__tostring( ) 
-		return "Quaternion: " .. self.r .. " " .. self.i .. " " .. self.j .. " " .. self.k
+		return "Quaternion<" .. self.r .. ", " .. self.i .. ", " .. self.j .. ", " .. self.k .. ">"
 	end 
 
 	function meta:Clone( )

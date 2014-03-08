@@ -246,7 +246,7 @@ function Compiler:CompileCode( Code, Files, NoCompile )
 			
 		-- Allow basic libraries & functions	
 			local pcall, error = pcall, error
-			local Vector3, Vector2, Vector, Angle = Vector3, Vector2, Vector, Angle
+			local Vector3, Vector2, Vector, Angle, Quaternion = Vector3, Vector2, Vector, Angle, Quaternion
 			local math, string, table, bit = math, string, table, bit
 			local tostring, unpack, pairs, ipairs, print = tostring, unpack, pairs, ipairs, print
 		

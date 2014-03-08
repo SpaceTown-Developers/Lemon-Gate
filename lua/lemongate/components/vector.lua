@@ -222,9 +222,9 @@ Core:AddFunction( "ceil", "v,n", "v", [[
 local %Shift = 10 ^ math.floor(value %2 + 0.5)
 ]], "Vector3(value %1.x - ((value %1.x * %Shift) modulus -1) / %Shift, value %1.y - ((value %1.y * %Shift) modulus -1) / %Shift, value %1.z - ((value %1.z * %Shift) modulus -1) / %Shift)" )
 
-Core:AddFunction( "round", "v", "v", "Vector3( math.round( value %1.x ), math.round( value %1.y ), math.round( value %1.z ) )" )
+Core:AddFunction( "round", "v", "v", "Vector3( math.Round( value %1.x ), math.Round( value %1.y ), math.Round( value %1.z ) )" )
 
-Core:AddFunction( "round", "v,n", "v", "Vector3( math.round( value %1.x, value %2 ), math.round( value %1.y, value %2 ), math.round( value %1.z, value %2 ) )" )
+Core:AddFunction( "round", "v,n", "v", "Vector3( math.Round( value %1.x, value %2 ), math.Round( value %1.y, value %2 ), math.Round( value %1.z, value %2 ) )" )
 
 Core:AddFunction( "abs", "v:", "v", [[
 local %X, %Y, %Z = value %1.x, value %1.y, value %1.z

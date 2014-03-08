@@ -128,7 +128,7 @@ Core:AddFunction( "shiftL", "a", "a", "Angle(value %1.y, value %1.r, value %1.p)
 Core:AddFunction( "shiftR", "a", "a", "Angle(value %1.r, value %1.p, value %1.y)", LEMON_INLINE_ONLY )
 
 Core:AddFunction( "rotateAroundAxis", "a:v,n", "a", [[
-local %Ang = Angle( value %1.p, value %1.y, value %1.r)
+local %Ang = Angle( value %1.p, value %1.y, value %1.r )
 %Ang:RotateAroundAxis( value %2:Garry(), value %3 )
 ]], "%Ang" )
 
@@ -153,9 +153,9 @@ local %A, %B = value %1, value %2
 local %Shift = 10 ^ math.floor(%B + 0.5)
 ]], "Angle(%A.p - ((%A.p * %Shift) modulus -1) / %Shift, %A.y - ((%A.y * %Shift) modulus -1) / %Shift, %A.r - ((%A.r * %Shift) modulus -1) / %Shift)" )
 
-Core:AddFunction( "round", "a", "a", "Angle( math.round( value %1.p ), math.round( value %1.y ), math.round( value %1.r ) )" )
+Core:AddFunction( "round", "a", "a", "Angle( math.Round( value %1.p ), math.Round( value %1.y ), math.Round( value %1.r ) )" )
 
-Core:AddFunction( "round", "a,n", "a", "Angle( math.round( value %1.p, value %2 ), math.round( value %1.y, value %2 ), math.round( value %1.r, value %2 ) )" )
+Core:AddFunction( "round", "a,n", "a", "Angle( math.Round( value %1.p, value %2 ), math.Round( value %1.y, value %2 ), math.Round( value %1.r, value %2 ) )" )
 
 /*==============================================================================================
 	Section: Clamping and Inrange

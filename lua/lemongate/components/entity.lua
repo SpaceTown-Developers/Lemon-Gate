@@ -409,7 +409,7 @@ if %Ent and %Ent:IsValid( ) then
 	local %Pos = %Ent:WorldToLocal( value %2:Garry( ) )
 	local %Len = %Pos:Length()
 	if %Len > %Round then 
-		%Val = %Rad2Deg * -math.asin(%Pos.z / %Len)
+		%Val = %Rad2Deg * math.asin(%Pos.z / %Len)
 	end
 end]], "%Val" )
 

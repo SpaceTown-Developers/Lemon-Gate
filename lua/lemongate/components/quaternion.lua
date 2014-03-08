@@ -26,8 +26,8 @@ Quaternion:UsesMetaTable( FindMetaTable( "Quaternion" ) )
 	-- Context.Memory[ Cell ] = { Value[1], Value[2], Value[3], Value[4] }
 -- end
 
-Core:AddOperator( "default", "q", "q", "$Quaternion.Zero:Clone()" )
-Core:AddOperator( "string", "q", "s", [[("<" .. tostring( value %1 ) .. ">")]] )
+Core:AddOperator( "default", "q", "q", "Quaternion.Zero:Clone()" )
+Core:AddOperator( "string", "q", "s", "tostring( value %1 )" )
 
 /*==============================================================================================
 	Section: Operators
@@ -123,24 +123,24 @@ Core:AddOperator( "/", "q,q", "q", [[
 ==============================================================================================*/
 Core:SetPerf( LEMON_PERF_NORMAL )
 
-Core:AddFunction( "quat", "", "q", "$Quaternion.Zero:Clone()" )
-Core:AddFunction( "quat", "n", "q", "$Quaternion(value %1, 0, 0, 0)" )
-Core:AddFunction( "quat", "n,n,n,n", "q", "$Quaternion(value %1, value %2, value %3, value %4)" )
-Core:AddFunction( "quat", "v", "q", "$Quaternion(0, value %1.x, value %1.y, value %1.z)" )
+Core:AddFunction( "quat", "", "q", "Quaternion.Zero:Clone()" )
+Core:AddFunction( "quat", "n", "q", "Quaternion(value %1, 0, 0, 0)" )
+Core:AddFunction( "quat", "n,n,n,n", "q", "Quaternion(value %1, value %2, value %3, value %4)" )
+Core:AddFunction( "quat", "v", "q", "Quaternion(0, value %1.x, value %1.y, value %1.z)" )
 
-Core:AddFunction("qi", "", "q", "$Quaternion(0, 1, 0, 0)" )
-Core:AddFunction("qj", "", "q", "$Quaternion(0, 0, 1, 0)" )
-Core:AddFunction("qk", "", "q", "$Quaternion(0, 0, 0, 1)" )
+Core:AddFunction("qi", "", "q", "Quaternion(0, 1, 0, 0)" )
+Core:AddFunction("qj", "", "q", "Quaternion(0, 0, 1, 0)" )
+Core:AddFunction("qk", "", "q", "Quaternion(0, 0, 0, 1)" )
 
-Core:AddFunction("qi", "n", "q", "$Quaternion(0, value %1, 0, 0)" )
-Core:AddFunction("qj", "n", "q", "$Quaternion(0, 0, value %1, 0)" )
-Core:AddFunction("qk", "n", "q", "$Quaternion(0, 0, 0, value %1)" )
+Core:AddFunction("qi", "n", "q", "Quaternion(0, value %1, 0, 0)" )
+Core:AddFunction("qj", "n", "q", "Quaternion(0, 0, value %1, 0)" )
+Core:AddFunction("qk", "n", "q", "Quaternion(0, 0, 0, value %1)" )
 
 Core:SetPerf( LEMON_PERF_EXPENSIVE)
 
-Core:AddFunction( "quat", "a", "q", "$Quaternion.Zero:Clone():AngleToQuat(value %1)" )
-Core:AddFunction( "quat", "e", "q", "$IsValid(value %1) and $Quaternion.Zero:Clone():AngleToQuat(value %1:GetAngles()) or $Quaternion.Zero:Clone()" )
-Core:AddFunction( "quat", "v,v", "q", "$Quaternion.Zero:Clone():VecsToQuat(value %1, value %2)" )
+Core:AddFunction( "quat", "a", "q", "Quaternion.Zero:Clone():AngleToQuat(value %1)" )
+Core:AddFunction( "quat", "e", "q", "$IsValid(value %1) and Quaternion.Zero:Clone():AngleToQuat(value %1:GetAngles()) or Quaternion.Zero:Clone()" )
+Core:AddFunction( "quat", "v,v", "q", "Quaternion.Zero:Clone():VecsToQuat(value %1, value %2)" )
 
 /*==============================================================================================
 	Section: Get Quat
@@ -153,10 +153,7 @@ Core:AddFunction( "j", "q:", "n", "(value %1.j)" )
 Core:AddFunction( "k", "q:", "n", "(value %1.k)" )
 Core:AddFunction( "vec", "q", "v", "$Vector3( value %1.i, value %1.j, value %1.k )" )
 
-Core:AddFunction( "qMod", "q", "q", [[
-	local %A = value %1
-	local %Quat = %A.r < 0 and Quaternion(-%A.r, -%A.i, -%A.j, -%A.k) or %A
-]], "%Quat" )
+Core:AddFunction( "qMod", "q", "q", "( value %1.r < 0 and Quaternion(-value %1.r, -value %1.i, -value %1.j, -value %1.k) or value %1 )" )
 
 Core:SetPerf( LEMON_PERF_NORMAL )
 
@@ -186,16 +183,16 @@ Core:AddFunction( "inv", "q", "q", [[
 	local %Quat = %Div == 0 and Quaternion(0, 0, 0, 0) or Quaternion(%A.r / %Div, -%A.i / %Div, -%A.j / %Div, -%A.k / %Div)
 ]], "%Quat" )
 
-Core:AddFunction( "conj", "q", "q", "$Quaternion(value %1.r, -value %1.i, -value %1.j, -value %1.k)" )
+Core:AddFunction( "conj", "q", "q", "Quaternion(value %1.r, -value %1.i, -value %1.j, -value %1.k)" )
 Core:AddFunction( "exp", "q", "q", "(value %1:Exp())" )
 Core:AddFunction( "log", "q", "q", "(value %1:Log())" )
 
 Core:SetPerf( LEMON_PERF_ABNORMAL )
 
-Core:AddFunction( "qRotation", "v,n", "q", "$Quaternion.Zero:Clone():RotateQuat(value %1, value %2)" )
-Core:AddFunction( "qRotation", "v", "q", "$Quaternion.Zero:Clone():RotateQuat(value %1)" )
-Core:AddFunction( "toAngle", "q:", "a", "(value %1:QuatToAngle())" )
-Core:AddFunction( "slerp", "q,q,n", "q", "$Quaternion.Zero:Clone():SlerpQuat(value %1, value %2, value %3)" )
+Core:AddFunction( "qRotation", "v,n", "q", "Quaternion.Zero:Clone():RotateQuat(value %1, value %2)" )
+Core:AddFunction( "qRotation", "v", "q", "Quaternion.Zero:Clone():RotateQuat(value %1)" )
+Core:AddFunction( "toAngle", "q:", "a", "value %1:QuatToAngle()" )
+Core:AddFunction( "slerp", "q,q,n", "q", "Quaternion.Zero:Clone():SlerpQuat(value %1, value %2, value %3)" )
 
 Core:AddFunction( "rotationAngle", "q", "n", [[
 	local %Ret = 0
