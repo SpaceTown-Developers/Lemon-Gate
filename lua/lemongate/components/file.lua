@@ -45,13 +45,10 @@ function Component.CanQue( Player )
 end
 
 timer.Create( "Lemon.Files", 0.1, 0, function( )
-	local UsedGates = { }
-	
 	for I = 1, #Finished do
 		local Action = Finished[I]
 		
 		if IsValid( Action.Entity ) and Action.Entity:IsRunning( ) and IsValid( Action.Player ) then
-			UsedGates[ Action.Entity ] = true
 			Queue[ Player ] = ( Queue[ Player ] or 0 ) - 1
 			
 			if ( Action.Status ~= FILE_OK or !Action.Sucess ) then
@@ -66,12 +63,6 @@ timer.Create( "Lemon.Files", 0.1, 0, function( )
 		end
 		
 		LookUp[ Action.ID ] = nil
-	end
-	
-	for Entity, _ in pairs( UsedGates ) do
-		if Entity:IsRunning( ) then
-			Entity:Update( )
-		end
 	end
 	
 	Finished = { }

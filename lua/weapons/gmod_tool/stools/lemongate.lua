@@ -88,16 +88,17 @@ end
 	Entity Creation Helper
 ==============================================================================================*/
 if SERVER then
-	function LEMON.MakeLemonGate(Player, Pos, Ang, Model)
+	function LEMON.MakeLemonGate( Player, Pos, Ang, Model, InPorts, OutPorts )
 		if Player:CheckLimit("lemongates") then
 			local Entity = ents.Create("lemongate")
             
-			if Entity and Entity:IsValid() then 
-				Entity:SetModel(Model)
-				Entity:SetAngles(Ang)
-				Entity:SetPos(Pos)
+			if Entity and Entity:IsValid( ) then 
+				Entity:SetModel( Model )
+				Entity:SetAngles( Ang )
+				Entity:SetPos( Pos )
 				Entity:Spawn()
 				
+				Entity:ApplyDupePorts( InPorts, OutPorts )
 				
 				Entity:SetNWEntity( "player", Player )
 				Entity:SetPlayer( Player )
@@ -112,7 +113,7 @@ if SERVER then
 	
 	local MakeLemonGate = LEMON.MakeLemonGate
 
-	duplicator.RegisterEntityClass( "lemongate", MakeLemonGate, "Pos", "Ang", "Model" )
+	duplicator.RegisterEntityClass( "lemongate", MakeLemonGate, "Pos", "Ang", "Model", "DupeInPorts", "DupeOutPorts" )
 
 /*==============================================================================================
 	Tool Clicks

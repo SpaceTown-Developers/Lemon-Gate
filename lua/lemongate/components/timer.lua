@@ -55,10 +55,6 @@ local function Timer( )
 				
 				Context.Perf = Context.Perf + LEMON_PERF_CHEAP
 			end
-			
-			if Gate:IsRunning( ) then
-				Gate:Update( )
-			end
 		end
 	end
 end

@@ -3,59 +3,146 @@
 	Purpose: This is the entity that does everything!
 	Creditors: Rusketh
 ==============================================================================================*/
-if !WireLib or !LEMON then return end
-
-local Lemon = ENT
-
-/*==============================================================================================
-	Speed Increases
-==============================================================================================*/
-local UpperStr = string.upper -- Speed
-local FormatStr = string.format -- Speed
-local MathCeil = math.ceil -- Speed
-
-local CurTime = CurTime -- Speed
-local pairs = pairs -- Speed
-local pcall = pcall -- Speed
-
-local GoodColor = Color( 255, 255, 255, 255 )
-local BadColor = Color( 255, 0, 0, 0 )
-
-local CaveJohnson = CreateConVar( "combustible_lemon", "0" )
+if WireLib and LEMON then
+	include( "shared.lua" )
+	AddCSLuaFile( "shared.lua" )
+	AddCSLuaFile( "cl_init.lua" )
+else
+	return MsgN( "Skipping LemonGate Entity" )
+end
 
 /*==============================================================================================
-	Includes
+	NameSpaces
 ==============================================================================================*/
-include( "shared.lua" )
-AddCSLuaFile( "shared.lua" )
-AddCSLuaFile( "cl_init.lua" )
+local string = string
+local Str_Upper, Str_Format = string.upper, string.format
+local CurTime, SysTime, pairs ,pcall = CurTime, SysTime, pairs ,pcall
 
 /*==============================================================================================
-	Script Handeling
+	Section: Erroring!
 ==============================================================================================*/
+local CrashColor = Color( 255, 0, 0 )
 
-local function CompileSoftly( Entity, Script, Files )
-	local Ok, Instance = LEMON.Compiler.Execute( Script, Files )
+function ENT:Crash( )
+	self.Context = nil
+	self:SetColor( CrashColor )
+	self:SetNWBool( "Crashed", true )
+end
+
+function ENT:ScriptError( Trace, ErrorMsg, First, ... )
+	ErrorMsg = ErrorMsg or "Unkown error"
 	
-	if !Ok then
-		Entity:Error( "Compiler Error" )
-		WireLib.ClientError( Instance, Entity.Player )
-	elseif !Instance.Execute then
-		Entity:Error( "Reload Required" )
+	if Trace then ErrorMsg = Str_Format( "%s at Line %s Char %s", ErrorMsg, Trace[1], Trace[2] ) end
+	
+	if First then ErrorMsg = Str_Format( ErrorMsg, First, ... ) end
+	
+	self:Crash( )
+	
+	WireLib.ClientError( ErrorMsg, self.Player )
+end
+
+function ENT:ExceptionError( ExectionData, Location )
+	self:ScriptError( ExectionData.Trace, "uncatched exception '" .. ExectionData.Type .. "' in " .. Location .. "." )	
+	WireLib.ClientError( "Msg: " .. ExectionData.Message, self.Player )
+end
+
+function ENT:LuaError( ErrorMsg )
+	self:Crash( )
+	
+	WireLib.ClientError( "LemonGate: Suffered a LUA error" , self.Player )
+	WireLib.ClientError( "LUA: " .. ErrorMsg , self.Player )
+end
+
+function ENT:Error( ErrorType, ErrorMsg )
+	self:Crash( )
+	
+	WireLib.ClientError( ErrorType, self.Player )
+	
+	if !ErrorMsg then return end
+	
+	WireLib.ClientError( ErrorMsg, self.Player )
+end
+
+/*==============================================================================================
+	Execution
+==============================================================================================*/
+local Updates = { }
+
+hook.Add( "Tick", "LemonGate.Update", function( )
+	for Gate, _ in pairs( Updates ) do
+		Gate:Update( )
+	end; Updates = { }
+end )
+
+function ENT:Update( )
+	self:TriggerOutputs( )
+	self.Context:Update( )
+	self:GarbageCollect( )
+	LEMON.API:CallHook( "UpdateEntity", self )
+end
+
+function ENT:Pcall( Location, Function, ... )
+	if self.PreCall then self:PreCall( ) end
+	
+	local BenchMark = SysTime( )
+	local Ok, Status = pcall( Function, ... )
+	
+	local Context = self.Context
+	Context.Time = Context.Time + (SysTime( ) - BenchMark)
+	
+	if Ok or Status == "Exit" then
+		Updates[self] = true
+		return true, Status
+	elseif Status == "Script" then
+		self:ScriptError( Context.ScriptTrace, Context.ScriptError )
+	elseif Status == "Exception" then
+		self:ExceptionError( Context.Exception, Location )
+	elseif Status == "Break" or Status == "Continue" then
+		self:ScriptError( nil, "unexpected use of %s in %s.", Status, Location )
 	else
-		Entity:SetColor( GoodColor )
-		Entity:SetNWBool( "Crashed", false )
-		Entity:LoadInstance( Instance )
+		self:LuaError( Status )
 	end
 	
-	Entity:LoadEffect( )
+	return false, nil
+end
+
+function ENT:CallEvent( Name, ... )
+	local Context = self.Context
+	if !context then return end
 	
-	if Entity:Pcall( "main thread", Instance.Execute, Entity.Context ) then
-		Entity:Update( )
+	local Event = Context["Event_" .. Name]
+	if Event then return end
+	
+	local Ok, Status = self:Pcall( "event " .. Name, Event, ... )
+	
+	if Ok then return end
+	if Status then return Status[1], self end
+end
+
+function ENT:GarbageCollect( )
+	local Context = self.Context
+	if !Context then return end
+	
+	local Memory, Delta = Context.Memory, Context.Delta
+	if !Memory then return end
+	
+	for Reference, Cell in pairs( self.Cells ) do
+		
+		if Cell.NotGarbage then
+			-- Do Nothing
+		elseif Cell.Class.GarbageCollect then
+			Cell.Class:GarbageCollect( self.Context, Ref )
+		else
+			Memory[Ref] = nil
+			Delta[Ref] = nil
+		end
 	end
 end
 
-function Lemon:LoadScript( Script, Files, ScriptName )
+/*==============================================================================================
+	Compiling
+==============================================================================================*/
+function ENT:LoadScript( Script, Files, ScriptName )
 	if self:IsRunning( ) then self:ShutDown( ) end
 	
 	local Context = LEMON:BuildContext( self )
@@ -68,94 +155,242 @@ function Lemon:LoadScript( Script, Files, ScriptName )
 		self.GateName = ScriptName
 	end
 	
-	coroutine.resume( coroutine.create( CompileSoftly ), self, Script, Files )
+	self:CompileScript( Script, Files )
 end
 
-function Lemon:LoadInstance( Inst )
-	local _Inputs = self.Inputs
-	local _Outputs = self.OutPuts
+local NormalColor = Color( 255, 255, 255 )
+
+function ENT:CompileScript( Script, Files )
+	local Ok, Instance = LEMON.Compiler.Execute( Script, Files )
 	
-	local INames, ITypes, I = { }, { }, 1
-	for Variable, Ref in pairs( Inst.InPorts ) do
-		local Cell = Inst.Cells[ Ref ]
-		INames[ I ] = Variable
-		ITypes[ I ] = Cell.Class.WireName
-		I = I + 1
+	if !Ok then
+		self:Error( "Compiler Error", Instance )
+	elseif !Instance.Execute then
+		self:Error( "Reload Required" )
+	else
+		self:SetColor( NormalColor )
+		self:SetNWBool( "Crashed", false )
+		self:BuildScript( Instance )
 	end
 	
+	self:LoadEffect( )
+	
+	self:Pcall( "main thread", Instance.Execute, self.Context )
+end
+
+function ENT:BuildScript( Instance )
+	self.Cells = Instance.Cells
+	
+	self:BuildInputs( self.Cells, Instance.InPorts )
+	self:BuildOutputs( self.Cells, Instance.OutPorts )
+	self:LoadFromInputs( )
+end
+
+/*==============================================================================================
+	Wire Functions
+==============================================================================================*/
+local function SortPorts( PortA, PortB )
+	local TypeA = PortA[2] or "NORMAL"
+	local TypeB = PortB[2] or "NORMAL"
+	
+	if TypeA ~= TypeB then
+		if TypeA == "NORMAL" then
+			return true
+		elseif TypeB == "NORMAL" then
+			return false
+		end
+		
+		return TypeA < TypeB
+	else
+		return PortA[1] < PortB[1]
+	end
+end
+
+function ENT:BuildInputs( Cells, Ports )
+	local Unsorted = { }
+	
+	for Variable, Reference in pairs( Ports ) do
+		local Cell = Cells[ Reference ]
+		Unsorted[ #Unsorted + 1 ] = { Variable, Cell.Class.WireName }
+	end
+	
+	table.sort( Unsorted, SortPorts )
+	
+	local Names = { }
+	local Types = { }
+	
+	for I = 1, #Unsorted do
+		local Port = Unsorted[I]
+		Names[I] = Port[1]
+		Types[I] = Port[2]
+	end
+	
+	self.InPorts = Ports
+	self.DupeInPorts = { Names, Types }
+	self.Inputs = WireLib.AdjustSpecialInputs( self, Names, Types )
+end
+
+
+function ENT:BuildOutputs( Cells, Ports )
 	local OutClick = { }
-	local ONames, OTypes, I = { }, { }, 1
-	for Variable, Ref in pairs( Inst.OutPorts ) do
-		local Cell = Inst.Cells[ Ref ]
-		ONames[ I ] = Variable
-		OTypes[ I ] = Cell.Class.WireName
+	local Unsorted = { }
+	
+	for Variable, Reference in pairs( Ports ) do
+		local Cell = Cells[ Reference ]
+		Unsorted[ #Unsorted + 1 ] = { Variable, Cell.Class.WireName }
 		
 		if Cell.Class.OutClick then
-			OutClick[ Ref ] = Variable
+			OutClick[ Reference ] = Variable
 		end
-		
-		I = I + 1
 	end
 	
-	self.Inputs  = WireLib.AdjustSpecialInputs( self, INames, ITypes )
-	self.Outputs = WireLib.AdjustSpecialOutputs( self, ONames, OTypes )
+	table.sort( Unsorted, SortPorts )
 	
-	self.InPorts   = Inst.InPorts
-	self.OutPorts  = Inst.OutPorts
-	self.OutClick  = OutClick
-	self.Cells     = Inst.Cells
+	local Names = { }
+	local Types = { }
+	
+	for I = 1, #Unsorted do
+		local Port = Unsorted[I]
+		Names[I] = Port[1]
+		Types[I] = Port[2]
+	end
+	
+	self.OutPorts = Ports
+	self.OutClick = OutClick
+	self.DupeOutPorts = { Names, Types }
+	self.Outputs = WireLib.AdjustSpecialOutputs( self, Names, Types )
+end
+
+function ENT:LoadFromInputs( )
+	--Note: This will load inports into memory!
+	local Cells = self.Cells
 	
 	for Variable, Port in pairs( self.Inputs ) do
-		local Ref = self.InPorts[ Variable ]
+		local Reference = self.InPorts[ Variable ]
 		
-		if Ref then
-			local Cell = self.Cells[ Ref ]
+		if Reference then
+			local Cell = Cells[ Reference ]
+			
 			if Cell and Port.Type == Cell.Class.WireName then
-				Cell.Class.Wire_In( self.Context, Ref, Port.Value )
+				Cell.Class.Wire_In( self.Context, Reference, Port.Value )
 			end
 		end
 	end
 end
 
-function Lemon:GarbageCollect( )
-	if self.Context then
-		local Memory, Delta = self.Context.Memory, self.Context.Delta
+function ENT:TriggerInput( Key, Value )
+	local Context = self.Context
+	if !self.Context then return end
+	
+	local Reference = self.InPorts[ Key ]
+	local Cell = self.Cells[ Reference ]
+	
+	if !Cell then return end
+	
+	Cell.Class.Wire_In( self.Context, Reference, Value )
+	Context.Click[ Reference ] = true
+			
+	self:CallEvent( "trigger", Key, Cell.Class.Name )
+			
+	Context.Click[ Reference ] = false
+end
+
+function ENT:TriggerOutputs( )
+	local Context = self.Context
+	if !self.Context then return end
+	
+	local Cells = self.Cells
+	
+	for Name, Reference in pairs( self.OutPorts ) do
+		local Class = Cells[ Reference ].Class
 		
-		if Memory then
-			for Ref, Cell in pairs( self.Cells ) do
-				if Cell.NotGarbage then
-					-- Do Nothing
-				elseif Cell.Class.GarbageCollect then
-					Cell.Class:GarbageCollect( self.Context, Ref )
-				else
-					Memory[Ref] = nil
-					Delta[Ref] = nil
-				end
+		if Context.Click[ Reference ] then
+			local Value = Class.Wire_Out( Context, Reference )
+			
+			WireLib.TriggerOutput( self, Name, Value )
+		elseif self.OutClick[ Reference ] then
+			local Val = Context.Memory[ Reference ]
+			
+			if Val and Val.Click then
+				Val.Click = nil
+				local Value = Class.Wire_Out( Context, Reference )
+				WireLib.TriggerOutput( self, Name, Value )
 			end
 		end
-	end
-end -- Woot custom garbage collection =D
-
-local Updates = { }
-
-hook.Add( "Tick", "LemonGate.Update", function( )
-	Updates = { } -- Only allow gates to update once per Tick!
-end )
-
-function Lemon:Update( )
-	if !Updates[ self ] then
-		Updates[ self ] = true
-		self:TriggerOutputs( )
-		self.Context:Update( )
-		self:GarbageCollect( )
-		self:API( ):CallHook( "UpdateEntity", self )
 	end
 end
 
 /*==============================================================================================
-	Init
+	Lemon Stuff
 ==============================================================================================*/
-function Lemon:Initialize( )
+function ENT:IsRunning( )
+	return self.Context ~= nil
+end
+
+function ENT:SetGateName( Name )
+	self.GateName = Name or "LemonGate"
+end
+
+function ENT:GetScript( )
+	return self.Script or "", self.Files or { }
+end
+
+function ENT:Reset( )
+	if self.Script then
+		self:LoadScript( self:GetScript( ) )
+	end
+end
+
+function ENT:ShutDown( )
+	self:CallEvent( "shutdown" )
+	LEMON.API:CallHook( "ShutDown", self, self.Context )
+end
+
+/*==============================================================================================
+	Section: Duplication
+==============================================================================================*/
+function ENT:BuildDupeInfo( )
+	local DupeTable = self.BaseClass.BuildDupeInfo( self )
+	
+	local Script, Files = self:GetScript( )
+	
+	DupeTable.ScriptName = self.ScriptName
+	DupeTable.Script = Script
+	DupeTable.Files = Files
+	
+	LEMON.API:CallHook( "BuildDupeInfo", self, DupeTable )
+	
+	return DupeTable
+end
+
+function ENT:ApplyDupeInfo( Player, Entity, DupeTable, FromID )
+	self.Player = Player
+	
+	self:LoadScript( DupeTable.Script, DupeTable.Files, DupeTable.ScriptName )
+		
+	self.BaseClass.ApplyDupeInfo( self, Player, Entity, DupeTable, FromID )
+	
+	if self.Context then self:CallEvent( "dupePasted" ) end
+			
+	LEMON.API:CallHook( "ApplyDupeInfo", self, DupeTable, FromID )
+end
+
+function ENT:ApplyDupePorts( InPorts, OutPorts )
+	if InPorts then
+		self.DupeInPorts = OutPorts
+		self.Inputs = WireLib.AdjustSpecialInputs( self, InPorts[1], InPorts[2] )
+	end
+	
+	if OutPorts then
+		self.DupeOutPorts = OutPorts
+		self.Outputs = WireLib.AdjustSpecialOutputs( self, OutPorts[1], OutPorts[2] )
+	end
+end
+
+/*==============================================================================================
+	Entity
+==============================================================================================*/
+function ENT:Initialize( )
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
@@ -168,15 +403,14 @@ function Lemon:Initialize( )
 	self.Overlay = "Offline"
 	self.GateName = "LemonGate"
 	
-	self:API( ):CallHook("Create", self )
+	LEMON.API:CallHook("Create", self )
 end
 
-function Lemon:Think( )
+function ENT:Think( )
 	local Time = CurTime( )
+	local Context = self.Context
 	
-	if self:IsRunning( ) then
-		local Context = self.Context
-		
+	if Context then
 		Context.CPUTime = Context.CPUTime * 0.95 + Context.Time * 0.05
 		self:SetNWInt( "GateTime", Context.CPUTime * 1000000 )
 		
@@ -193,235 +427,39 @@ function Lemon:Think( )
 	return true
 end
 
-function Lemon:OnRemove( ) 
+local ExplodeOnRemove = CreateConVar( "combustible_lemon", "0" )
+
+function ENT:OnRemove( ) 
 	self:ShutDown( )
-	self:API( ):CallHook("Remove", self )
+	LEMON.API:CallHook("Remove", self )
 	
-	if CaveJohnson:GetBool( ) then
+	if ExplodeOnRemove:GetBool( ) then
 		local ED = EffectData( )
 		ED:SetOrigin( self:GetPos( ) )
 		util.Effect( "Explosion", ED )
 	end
 end
 
-function Lemon:Use( Activator, Caller )
+function ENT:Use( Activator, Caller )
 	self:CallEvent( "use", Activator or Caller )
 end
 
-/*==============================================================================================
-	Section: Stuff.
-==============================================================================================*/
-local pcall, SysTime = pcall, SysTime
-
-function Lemon:API( )
-	return LEMON.API
-end
-
-function Lemon:SetGateName( Name )
-	self.GateName = Name or "LemonGate"
-end
-
-function Lemon:GetScript( )
-	return self.Script or "", self.Files or { }
-end
-
-function Lemon:Reset( )
-	if self.Script then
-		self:LoadScript( self:GetScript( ) )
-	end
-end
-
-function Lemon:Pcall( Location, Func, ... )
-	local Bench = SysTime( )
-	local Context = self.Context
-	local Ok, Status = pcall( Func, ... )
-	
-	Context.Time = Context.Time + (SysTime( ) - Bench)
-	
-	if Ok or Status == "Exit" then
-		return Ok, Status
-	end
-	
-	if Status == "Script" then
-		self:ScriptError( Context.ScriptTrace, Context.ScriptError )
-	elseif Status == "Exception" then
-		local Exception = Context.Exception
-		self:ScriptError( Exception.Trace, "uncatched exception '" .. Exception.Type .. "' in " .. Location .. "." )
-		WireLib.ClientError( "Msg: " .. Exception.Message, self.Player )
-		
-	elseif Status == "Break" or Status == "Continue" then
-		self:ScriptError( nil, "unexpected use of " .. Status .. " in " .. Location .. "." )
-	else
-		self:LuaError( Status )
-	end
-	
-	return false, nil, nil
-end
-
-function Lemon:IsRunning( )
-	return self.Context ~= nil
-end
-
-function Lemon:ShutDown( )
-	self:CallEvent( "shutdown" )
-	self:API( ):CallHook( "ShutDown", self, self.Context )
-end
-
-/*==============================================================================================
-	Section: Events
-==============================================================================================*/
-function Lemon:CallEvent( Name, ... )
-	if self:IsRunning( ) then
-		local Event = self.Context["Event_" .. Name]
-		
-		if Event then
-			local Ok, Status, Value = self:Pcall( "event " .. Name, Event, ... )
-			
-			if Ok then
-				self:Update( )
-				
-				if Status then 
-					return Status[1], self
-				end
-			end
-		end
-	end
-end
-
-/*==============================================================================================
-	Section: Wire Mod Stuff
-==============================================================================================*/
-function Lemon:TriggerInput( Key, Value )
-	if self:IsRunning( ) then
-		local Ref = self.InPorts[ Key ]
-		local Cell = self.Cells[ Ref ]
-		
-		if Cell then
-			Cell.Class.Wire_In( self.Context, Ref, Value )
-			self.Context.Click[ Ref ] = true
-			
-			self:CallEvent( "trigger", Key, Cell.Class.Name )
-			
-			self.Context.Click[ Ref ] = false
-		end
-	end
-end
-
-function Lemon:TriggerOutputs( )
-	if self:IsRunning( ) then
-		local Context = self.Context
-		
-		for Name, Ref in pairs( self.OutPorts ) do
-			local Class = self.Cells[ Ref ].Class
-			if Context.Click[ Ref ] then
-				local Value = Class.Wire_Out( Context, Ref )
-				WireLib.TriggerOutput( self, Name, Value )
-			elseif self.OutClick[ Ref ] then
-				local Val = Context.Memory[ Ref ]
-				if Val and Val.Click then
-					Val.Click = nil
-					local Value = Class.Wire_Out( Context, Ref )
-					WireLib.TriggerOutput( self, Name, Value )
-				end
-			end
-		end
-	end
-end
-
-/*==============================================================================================
-	Section: Erroring!
-==============================================================================================*/
-function Lemon:LuaError( Message )
-	self.Context = nil -- Shut Down!
-	self:SetColor( BadColor )
-	self:SetNWBool( "Crashed", true )
-	
-	WireLib.ClientError( "LemonGate: Suffered a LUA error" , self.Player )
-	WireLib.ClientError( "LUA: " .. Message , self.Player )
-end
-
-function Lemon:ScriptError( Trace, Message )
-	self.Context = nil -- Shut Down!
-	self:SetColor( BadColor )
-	self:SetNWBool( "Crashed", true )
-	
-	if Trace then
-		Message = string.format( "%s at Line %s Char %s", Message or "Uknown Error", Trace[1], Trace[2] )
-	else
-		Message = Message or "Untrackable Error"
-	end
-	
-	WireLib.ClientError( Message, self.Player )
-end
-
-function Lemon:Error( Message )
-	self.Context = nil -- Shut Down!
-	self:SetColor( BadColor )
-	self:SetNWBool( "Crashed", true )
-	
-	WireLib.ClientError( Message, self.Player )
-end
-
-/*==============================================================================================
-	Section: Duplication
-==============================================================================================*/
-function Lemon:BuildDupeInfo( )
-	local DupeTable = self.BaseClass.BuildDupeInfo( self )
-	
-	local Script, Files = self:GetScript( )
-	
-	DupeTable.Script = Script
-	DupeTable.Files = Files
-	
-	self:API( ):CallHook( "BuildDupeInfo", self, DupeTable )
-	
-	return DupeTable
-end
-
-function CompileDuped( self, Player, Entity, DupeTable, FromID )
-	self.Player = Player
-	self.Script = DupeTable.Script
-	self.Files = DupeTable.Files or { }
-	
-	local Context = LEMON:BuildContext( self, Player )
-	
-	if self.Script and self.Script != "" then
-		CompileSoftly( self, self.Script, self.Files )
-	end
-	
-	self.BaseClass.ApplyDupeInfo( self, Player, Entity, DupeTable, FromID )
-	
-	if self:IsRunning( ) then
-		self:CallEvent( "dupePasted" )
-	end
-	
-	self:API( ):CallHook( "ApplyDupeInfo", self, DupeTable, FromID )
-end
-
-function Lemon:ApplyDupeInfo( Player, Entity, DupeTable, FromID )
-	coroutine.resume( coroutine.create( CompileDuped ), self, Player, Entity, DupeTable, FromID )
-end
-
-/*==============================================================================================
-	Section: Effects
-==============================================================================================*/
-
-function Lemon:LoadEffect( )
+function ENT:LoadEffect( )
 	local Effect = EffectData( )
-		  Effect:SetEntity( self )
-		  
+	Effect:SetEntity( self )
 	util.Effect( "lemon_load", Effect )
 end
 
 /*==============================================================================================
 	Section: No silly WorkShop dupes!
 ==============================================================================================*/
+-- I Changed my mind, for now!
 
-local RealSSE = gmsave.ShouldSaveEntity
-function gmsave.ShouldSaveEntity( Ent, ... )
- 	if Ent:GetClass( ) == "lemongate" then
- 		return false
- 	end
+-- local RealSSE = gmsave.ShouldSaveEntity
+-- function gmsave.ShouldSaveEntity( Ent, ... )
+ 	-- if Ent:GetClass( ) == "lemongate" then
+ 		-- return false
+ 	-- end
 
- 	return RealSSE( Ent, ... )
-end
+ 	-- return RealSSE( Ent, ... )
+-- end
