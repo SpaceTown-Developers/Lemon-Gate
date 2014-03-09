@@ -1089,7 +1089,9 @@ local function Replace_Context( Line )
 	 Line = string.gsub( Line, "%%memory", "Memory" )
 	 Line = string.gsub( Line, "%%delta", "Delta" )
 	 Line = string.gsub( Line, "%%click", "Click" )
+	 Line = string.gsub( Line, "%%trigger", "Trigger" )
 	return  string.gsub( Line, "%%data", "Context.Data" )
+	
 end
 
 local function Replace_Internals( Line, Perf, Trace )

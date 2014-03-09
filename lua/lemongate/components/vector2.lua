@@ -36,10 +36,18 @@ Core:AddOperator( "default", "v2", "v2", "Vector2.Zero:Clone()" )
 Core:AddOperator( "=", "v2", "v2", [[
 %delta[value %1] = %memory[value %1] or Vector2( 0, 0, 0 )
 %memory[value %1] = value %2
-%click[value %1] = %click[value %1] or ( %delta[value %1] ~= %memory[value %1] )
+%trigger[value %1] = %trigger[value %1] or ( %delta[value %1] ~= %memory[value %1] )
 ]], "value %2" )
 
-Core:AddOperator( "~", "v2", "b", "%click[value %1]" )
+-- Changed:
+
+Core:AddOperator( "~", "v2", "b", [[
+local %Memory = %memory[value %1]
+local %Changed = (%click[value %1] == nil) or (%click[value %1] ~= %Memory)
+%click[value %1] = %Memory 
+]], "%Changed" )
+
+//Core:AddOperator( "~", "v2", "b", "%click[value %1]" )
 
 -- Compare:
 

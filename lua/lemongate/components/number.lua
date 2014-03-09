@@ -35,10 +35,18 @@ Core:SetPerf( LEMON_PERF_CHEAP )
 Core:AddOperator( "=", "n", "n", [[
 %delta[value %1] = %memory[value %1]
 %memory[value %1] = value %2
-%click[value %1] = ( %click[value %1] or ( %memory[value %1] ~= %delta[value %1] ) )
+%trigger[value %1] = ( %trigger[value %1] or ( %trigger[value %1] ~= %delta[value %1] ) )
 ]], "value %2" )
 
-Core:AddOperator( "~", "n", "b", "%click[value %1]" )
+-- Changed:
+
+Core:AddOperator( "~", "n", "b", [[
+local %Memory = %memory[value %1]
+local %Changed = (%click[value %1] == nil) or (%click[value %1] ~= %Memory)
+%click[value %1] = %Memory 
+]], "%Changed" )
+
+//Core:AddOperator( "~", "n", "b", "%click[value %1]" )
 
 Core:SetPerf( LEMON_PERF_NORMAL )
 
@@ -103,14 +111,14 @@ Core:AddOperator( "i++", "n", "n", [[
 local %Value = %memory[value %1]
 %delta[value %1] = %Value
 %memory[value %1] = %Value + 1
-%click[value %1] = true
+%trigger[value %1] = true
 ]], "%Value" )
 
 Core:AddOperator( "i--", "n", "n", [[
 local %Value = %memory[value %1]
 %delta[value %1] = %Value
 %memory[value %1] = %Value - 1
-%click[value %1] = true
+%trigger[value %1] = true
 ]], "%Value" )
 
 -- Assign After
@@ -118,14 +126,14 @@ Core:AddOperator( "++i", "n", "n", [[
 local %Value = %memory[value %1]
 %delta[value %1] = %Value
 %memory[value %1] = %Value + 1
-%click[value %1] = true
+%trigger[value %1] = true
 ]], "(%Value + 1)" )
 
 Core:AddOperator( "--i", "n", "n", [[
 local %Value = %memory[value %1]
 %delta[value %1] = %Value
 %memory[value %1] = %Value - 1
-%click[value %1] = true
+%trigger[value %1] = true
 ]], "(%Value - 1)" )
 
 /*==============================================================================================

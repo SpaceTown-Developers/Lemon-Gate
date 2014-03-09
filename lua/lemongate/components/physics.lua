@@ -14,7 +14,15 @@ local Class = Core:NewClass( "p", "physics" )
 
 Core:SetPerf( LEMON_PERF_CHEAP )
 
-Core:AddOperator( "~", "p", "b", "%click[value %1]" )
+-- Changed:
+
+Core:AddOperator( "~", "p", "b", [[
+local %Memory = %memory[value %1]
+local %Changed = (%click[value %1] == nil) or (%click[value %1] ~= %Memory)
+%click[value %1] = %Memory 
+]], "%Changed" )
+
+//Core:AddOperator( "~", "p", "b", "%click[value %1]" )
 
 -- Compare:
 

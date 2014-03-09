@@ -22,7 +22,7 @@ setmetatable( Table, Table )
 Table.Click = false
 
 function Table.__call( )
-	return setmetatable( { Data = {}, Types = {}, Look = {}, Size = 0, Count = 0, Clk = true, MetaTable = false }, Table )
+	return setmetatable( { Data = {}, Types = {}, Look = {}, Size = 0, Count = 0, Clk = true, Changed = false, MetaTable = false }, Table )
 end
 
 function Table.Results( Data, Type )
@@ -33,8 +33,9 @@ end
 
 function Table:Set( Index, Type, Value )
 	local Data = self.Data
+	local Old  = Data[Index]
 	
-	if Data[Index] == nil then
+	if Old == nil then
 		self.Size = self.Size + 1
 	end
 	
@@ -43,11 +44,15 @@ function Table:Set( Index, Type, Value )
 		Value = Value[1]
 	end
 	
+	if Old ~= Value then
+		self.Clk = true
+		self.Changed = true
+	end
+	
 	Data[Index] = Value
 	self.Types[Index] = Type
 	self.Look[Index] = Index 
 	
-	self.Clk = true
 	self.Count = #Data
 
 	return Value
@@ -62,6 +67,7 @@ function Table:Insert( Index, Type, Value )
 	self.Look[Index] = Index 
 	
 	self.Clk = true
+	self.Changed = true
 	self.Count = #Data
 	self.Size = self.Size + 1
 end
@@ -69,9 +75,12 @@ end
 function Table:Remove( Index )
 	local Data = self.Data
 	local Types = self.Types
+	local Old = Data[Index]
 	
-	if Data[Index] ~= nil then
+	if Old ~= nil then
 		self.Size = self.Size - 1
+		self.Clk = true
+		self.Changed = true
 	end
 	
 	local Value = Data[Index] or 0
@@ -81,7 +90,6 @@ function Table:Remove( Index )
 	Types[Index] = nil
 	self.Look[Index] = nil
 	
-	self.Clk = true
 	self.Count = #Data
 	
 	return { Value, Type }
@@ -99,6 +107,7 @@ function Table:Shift( Index )
 	TableRemove( self.Look, Index )
 	
 	self.Clk = true
+	self.Changed = true
 	self.Count = #Data
 	
 	return { Value, Type }
@@ -198,6 +207,15 @@ Class:UsesMetaTable( Table )
 Component:SetPerf( LEMON_PERF_CHEAP )
 
 Component:AddOperator( "default", "t", "t", "%Table()" )
+
+-- Changed:
+
+Component:AddOperator( "~", "t", "b", [[
+local %Memory = %memory[value %1] or { }
+local %Changed = (%click[value %1] == nil) or (%click[value %1] ~= %Memory) or %Memory.Changed
+%click[value %1] = %Memory
+%Memory.Changed = false
+]], "%Changed" )
 
 -- Size Operators
 

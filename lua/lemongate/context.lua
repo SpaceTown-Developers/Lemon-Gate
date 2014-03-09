@@ -31,6 +31,7 @@ function LEMON:BuildContext( Entity, Player )
 		Memory = { },
 		Delta = { },
 		Click = { },
+		Trigger = { },
 	}
 	
 	Entity.Context = New
@@ -67,7 +68,7 @@ end
 
 local Empty = table.Empty
 function Context:Update( )
-	Empty( self.Click )
+	Empty( self.Trigger )
 	API:CallHook( "UpdateContext", self )
 end
 

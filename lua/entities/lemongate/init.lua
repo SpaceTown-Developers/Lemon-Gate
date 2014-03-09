@@ -70,7 +70,7 @@ local Updates = { }
 
 hook.Add( "Tick", "LemonGate.Update", function( )
 	for Gate, _ in pairs( Updates ) do
-		Gate:Update( )
+		if IsValid( Gate ) then Gate:Update( ) end
 	end; Updates = { }
 end )
 
@@ -131,10 +131,10 @@ function ENT:GarbageCollect( )
 		if Cell.NotGarbage then
 			-- Do Nothing
 		elseif Cell.Class.GarbageCollect then
-			Cell.Class:GarbageCollect( self.Context, Ref )
+			Cell.Class:GarbageCollect( self.Context, Reference )
 		else
-			Memory[Ref] = nil
-			Delta[Ref] = nil
+			Memory[Reference] = nil
+			Delta[Reference] = nil
 		end
 	end
 end
@@ -304,7 +304,7 @@ function ENT:TriggerOutputs( )
 	for Name, Reference in pairs( self.OutPorts ) do
 		local Class = Cells[ Reference ].Class
 		
-		if Context.Click[ Reference ] then
+		if Context.Trigger[ Reference ] then
 			local Value = Class.Wire_Out( Context, Reference )
 			
 			WireLib.TriggerOutput( self, Name, Value )

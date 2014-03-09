@@ -268,6 +268,7 @@ function Compiler:CompileCode( Code, Files, NoCompile )
 				local Memory = Context.Memory
 				local Delta = Context.Delta
 				local Click = Context.Click
+				local Trigger = Context.Trigger
 				
 				]] .. string.Implode( "\n", self.PrepCode ) .. [[
 		
