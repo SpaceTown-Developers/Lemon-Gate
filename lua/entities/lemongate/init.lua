@@ -111,11 +111,11 @@ function ENT:CallEvent( Name, ... )
 	if !context then return end
 	
 	local Event = Context["Event_" .. Name]
-	if Event then return end
+	if !Event then return end
 	
 	local Ok, Status = self:Pcall( "event " .. Name, Event, ... )
 	
-	if Ok then return end
+	if !Ok then return end
 	if Status then return Status[1], self end
 end
 
