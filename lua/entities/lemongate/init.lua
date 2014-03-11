@@ -108,7 +108,7 @@ end
 
 function ENT:CallEvent( Name, ... )
 	local Context = self.Context
-	if !context then return end
+	if !Context then return end
 	
 	local Event = Context["Event_" .. Name]
 	if !Event then return end
