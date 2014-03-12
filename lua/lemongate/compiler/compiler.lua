@@ -1583,6 +1583,27 @@ function Compiler:Statment_PRED( RootTrace )
 		self.Prediction[ Variable ] = Class
 
 		return self:FakeInstr( Trace, "", "" )
+
+	elseif Prediction == "model" then
+		if self.ScopeID ~= 1 then
+			self:TraceError( Trace, "The model directive, must appear in root of code." )
+		end
+
+		if !self:NextPattern( "^[^%s]+%.mdl" ) then
+			self:TraceError( Trace, "Model path expected for, @model directive" )
+		elseif !util.IsValidModel( "models" .. self.ReadData ) then
+			self:TraceError( Trace, "Invalid model used for, @model directive" )
+		elseif self.Model then
+			self:TraceError( Trace, "@model directive, can not be used twice." )
+		end
+
+		self.Directive_Model = "models" .. self.ReadData
+
+		self:NewToken( "modelpath", "model" )
+		self:NextToken( )
+
+		return self:FakeInstr( Trace, "", "" )
+
 	else
 		self:TokenError( "Uknown prediction '@%s'", Prediction )
 	end

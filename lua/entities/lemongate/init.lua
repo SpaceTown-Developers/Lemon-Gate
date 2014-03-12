@@ -173,6 +173,11 @@ function ENT:CompileScript( Script, Files )
 		self:BuildScript( Instance )
 	end
 	
+	if Instance.Directive_Model then
+		self:SetModel( Instance.Directive_Model )
+		self:PhysicsInit( SOLID_VPHYSICS )
+	end
+
 	self:LoadEffect( )
 	
 	self:Pcall( "main thread", Instance.Execute, self.Context )
