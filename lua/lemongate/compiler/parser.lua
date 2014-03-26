@@ -295,7 +295,7 @@ function Compiler:GetValue( RootTrace, IgnoreOperators )
 		Value = self:Compile_NUMBER( self:TokenTrace( RootTrace ), self.TokenData )
 	
 	elseif self:AcceptToken( "str" ) then
-		Value = self:Compile_STRING( self:TokenTrace( RootTrace ), "\"" .. self.TokenData .. "\"" )
+		Value = self:Compile_STRING( self:TokenTrace( RootTrace ), self.TokenData )
 	
 	elseif self:AcceptToken( "tre" ) then
 		Value = self:Compile_BOOLBEAN( self:TokenTrace( RootTrace ), true )
@@ -1319,6 +1319,8 @@ function Compiler:Statment_EACH( RootTrace )
 	
 	self:RequireToken2( "var", "fun", "Variable expected after type, in foreach loop" )
 	
+	self:PushScope( )
+	
 	local RefA, RefB = self:Assign( Trace, self.TokenData, TypeA, "Local" )
 	
 	if self:AcceptToken( "sep" ) then
@@ -1353,6 +1355,7 @@ function Compiler:Statment_EACH( RootTrace )
 	
 	self:PopFlag( "NewCells" )
 	self:PopFlag( "LoopDepth" )
+	self:PopScope( )
 	
 	return Inst
 end

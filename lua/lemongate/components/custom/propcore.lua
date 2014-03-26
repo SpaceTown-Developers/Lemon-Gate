@@ -259,7 +259,7 @@ end]], "" )
 ==============================================================================================*/
 Component:AddFunction("setNotSolid", "e:b", "", [[
 if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) then
-	value %1:SetNotSolid( value 2 )
+	value %1:SetNotSolid( value %2 )
 end]], "" )
 
 /*==============================================================================================
@@ -295,3 +295,22 @@ Component:AddFunction("setPhysProp", "e:s,b", "", [[
 if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) then
 	$construct.SetPhysProp( %context.Player, value %1, 0, nil, { GravityToggle = value %3, Material = value %2 } )
 end]], "" )
+
+/*==============================================================================================
+	Section: Properties
+==============================================================================================*/
+Component:AddFunction("destroy", "e:", "",[[
+if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) then
+	value %1:GibBreakClient( Vector() )
+	%PropCore.RemoveProp( value %1 )
+end]], "" )
+
+Component:AddFunction("destroy", "e:v,b", "",[[
+if $IsValid( value %1 ) and value %2:IsNotHuge( ) and %IsOwner( %context.Player, value %1 ) then
+	if !( value %2.x ~= value %2.x and value %2.y ~= value %2.y and value %2.z ~= value %2.z ) then
+		value %1:GibBreakClient( value %2:Garry( ) )
+		if ( value %3 ) then
+			%PropCore.RemoveProp( value %1 )
+		end
+	end
+end]], "" ) -- TODO: Make this use isnothuge!

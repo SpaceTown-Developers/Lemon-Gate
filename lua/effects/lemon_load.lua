@@ -7,9 +7,7 @@ function EFFECT:Init( Input )
 	
 	local Entity = Input:GetEntity( )
 	
-	if !IsValid( Entity ) then
-		return false
-	end
+	if !IsValid( Entity ) then return false end
 	
 	self:SetPos( Entity:GetPos( ) )
 	
@@ -26,11 +24,9 @@ end
 
 function EFFECT:Think( )
 	
-	if !IsValid( self:GetParent( ) ) then
-		return false
-	end
+	if !IsValid( self:GetParent( ) ) then return false end
 	
-	self.Alpha = self.Alpha - FrameTime( ) * 255 * 3
+	self.Alpha = ( self.Alpha or 255 ) - FrameTime( ) * 255 * 3
 	
 	self.Size = self.Size + FrameTime( ) * 156 * 0.5
 	
@@ -38,10 +34,11 @@ function EFFECT:Think( )
 end
 
 function EFFECT:Render( )
-
-	if self.Alpha >= 1 then
+	local Alpha = self.Alpha or 255
+	
+	if Alpha >= 1 then
 		render.SetMaterial( Mat )
-		render.DrawQuadEasy( self:GetPos( ), self:GetAngles( ):Up( ), self.Size, self.Size, Color( 255, 255, 255, self.Alpha ) )
+		render.DrawQuadEasy( self:GetPos( ), self:GetAngles( ):Up( ), self.Size, self.Size, Color( 255, 255, 255, Alpha ) )
 	end
 
 end

@@ -232,6 +232,7 @@ function Compiler:CompileCode( Code, Files, NoCompile )
 	self.ImportsLK = { }
 	self.PrepCode = { }
 	self.PrepCodeLK = { }
+	self.Strings = { }
 	
 	local Lua = self:GetStatements( { 0, 0, Location = "Root" } ).Prepare
 	
@@ -248,12 +249,13 @@ function Compiler:CompileCode( Code, Files, NoCompile )
 			local pcall, error = pcall, error
 			local Vector3, Vector2, Vector, Angle, Quaternion = Vector3, Vector2, Vector, Angle, Quaternion
 			local math, string, table, bit = math, string, table, bit
-			local tostring, unpack, pairs, ipairs, print = tostring, unpack, pairs, ipairs, print
+			local tostring, tonumber, unpack, pairs, ipairs, print = tostring, tonumber, unpack, pairs, ipairs, print
 		
 		-- Required Locals
 			local ExitDeph
 			local UTIL = { }
 		-- Imports
+			local Strings = LEMON_STRINGS
 			]] .. string.Implode( "\n", self.Imports ) .. [[
 			
 		-- Lock Out Lua
@@ -277,6 +279,7 @@ function Compiler:CompileCode( Code, Files, NoCompile )
 		end]], " modulus ", "%%" ) )
 		
 	if !NoCompile then
+		LEMON_STRINGS = self.Strings
 		local Compiled = CompileString( self.Native, "LemonCompiler", false )
 		
 		if type( Compiled ) == "string" then
@@ -387,6 +390,12 @@ function Compiler:NextUtil( )
 	return "_" .. ID
 end
 
+function Compiler:AddString( String )
+	local ID = #self.Strings + 1
+	self.Strings[ ID ] = String
+	return "Strings[" .. ID .. "]"
+end
+
 /*==============================================================================================
 	Section: Make Local
 ==============================================================================================*/
@@ -445,7 +454,8 @@ function Compiler:Compile_NUMBER( Trace, Value )
 end
 
 function Compiler:Compile_STRING( Trace, Value )
-	return self:Instruction( Trace, LEMON_PERF_CHEAP, "s", Value )
+	-- return self:Instruction( Trace, LEMON_PERF_CHEAP, "s", self:AddString( Value ) ) )
+	return self:FakeInstr( Trace, "s", self:AddString( Value ) )
 end
 
 function Compiler:Compile_BOOLBEAN( Trace, Value )
