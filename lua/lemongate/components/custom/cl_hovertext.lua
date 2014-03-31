@@ -57,7 +57,7 @@ end)
 --Strip text from the entity
 net.Receive( "lemon_hovertext_removeText", function( Bytes )
 	for _, Data in pairs(net.ReadTable()) do
-		local Ent = Entity(Data.Entity)
+		local Ent = Entity(Data.EntityID)
 		if IsValid(Ent) then
 			Hovertext.Data[Ent] = nil
 		end
