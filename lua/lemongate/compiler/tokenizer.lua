@@ -69,6 +69,16 @@ function Compiler:NextPattern( Pattern, Exact )
 	return false
 end
 
+function Compiler:ManualPattern( Pattern, Exact )
+	local Char, ReadData = self.Char, self.ReadData
+
+	local Result = self:NextPattern( Pattern, Exact )
+
+	self.Char, self.ReadData = Char, ReadData
+
+	return Result
+end
+
 function Compiler:SkipSpaces( )
 	self:NextPattern( "^[%s\n]*" )
 
@@ -235,29 +245,67 @@ function Compiler:StringToken( StrChar )
 
 	while self.Char do
 		if self.Char == "\n" then
-			break
-		elseif Escape and self.Char == "\\" then
+			
+			if StrChar == "'" then
+				self:NextChar( )
+			else
+				break -- End of Line.
+			end
+
+		elseif !Escape then
+			
+			if self.Char == StrChar then
+				break -- End of string.
+			elseif self.Char == "\\" then
+				Escape = true
+				self:SkipChar( ) -- Escape Sequence.
+			else
+				self:NextChar( )
+			end
+
+		elseif self.Char == "\\" then
 			Escape = false
 			self:NextChar( )
-			-- self:SkipChar( ) Next char is only for LUA convershion!
-		elseif self.Char == StrChar and !Escape then
-			break
-		elseif ( self.Char == "\"" or self.Char == "'") and self.Char ~= StrChar then
-			self.Char = "\\" .. self.Char
-			self:NextChar( ) -- TODO: Test this fix.
-		else
-			Escape = self.Char == "\\"
+
+		elseif self.Char == StrChar then
+			Escape = false
 			self:NextChar( )
+
+		elseif self.Char == "n" then
+			Escape = false
+			self.Char = "\n"
+			self:NextChar( )
+
+		elseif self.Char == "t" then
+			Escape = false
+			self.Char = "\t"
+			self:NextChar( )
+
+		elseif self.Char == "r" then
+			Escape = false
+			self.Char = "\r"
+			self:NextChar( )
+
+		elseif self:ManualPattern( "^([0-9]+)" ) then
+			
+			local Num = tonumber( self.PatternMatch )
+			if !Num or Num < 0 or Num > 255 then
+				self:Error( 0, "Invalid char (%s)", Num or "?" )
+			end
+
+			Escape = false
+			self.Pos = self.Pos - 1
+			self.ReadData = self.ReadData .. string.char( Num )
+
+		else
+			self:Error( 0, "Unfinished escape sequence (\\%s)", self.Char )
 		end
 
 		self:TimeCheck(  )
 	end
 
 	if self.Char and self.Char == StrChar then
-		self:SkipChar()
-		
-		//self.ReadData = string.gsub( self.ReadData, "%%", "%%%%" )
-		
+		self:SkipChar( )
 		return self:NewToken( "str", "String" )
 	end
 

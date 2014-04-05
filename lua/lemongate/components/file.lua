@@ -28,6 +28,7 @@ local FILE_UPLOAD = 1
 local FILE_DOWNLOAD = 2
 local FILE_LIST = 3
 local FILE_DELETE = 4
+local FILE_CANCEL = 5
 
 /*==============================================================================================
 	Net Work Stuffs
@@ -61,12 +62,25 @@ timer.Create( "Lemon.Files", 0.1, 0, function( )
 				Action.Entity:Pcall( "file callback", Action.Sucess, { Action.Data[1], "t" }, { Action.Data[2], "t" } )
 			end
 		end
-		
 		LookUp[ Action.ID ] = nil
 	end
 	
 	Finished = { }
 end )
+
+function Component:Remove( Gate )
+	for ID = 1, #Queue do
+		local Action = Queue[ID]
+		if !Action then continue end
+
+		if Action.Entity == Gate then
+			Queue[ID] = nil
+			Queue[ Action.Player ] = ( Queue[ Action.Player ] or 0 ) - 1
+		end
+	end
+end
+
+Component.ShutDown = Component.Remove
 
 /*==============================================================================================
 	Upload File

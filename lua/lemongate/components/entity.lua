@@ -75,7 +75,7 @@ Core:AddOperator( "string", "e", "s", "tostring(value %1)" )
 ==============================================================================================*/
 Core:AddFunction( "entity", "n", "e", "($Entity(value %1) or %NULL_ENTITY)" )
 
-Core:AddFunction( "world", "", "e", "game.GetWorld()" )
+Core:AddFunction( "world", "", "e", "$game.GetWorld()" )
 
 Core:AddFunction( "voidEntity", "", "e", "%NULL_ENTITY" )
 
@@ -836,3 +836,14 @@ for _, Find_Entity in pairs( %Ents ) do
 		%Res:Insert(nil, "e", Find_Entity)
 	end
 end]], "%Res" )
+
+/***********************************************************************************************/
+
+Core:AddFunction( "playerByName", "s,b", "e", [[
+for _, Ply in pairs( $player.GetAll( ) ) do
+	if Ply:Name( ) == value %1 or ( !value %2 and Ply:Name( ):lower( ):find( value %1:lower( ) ) > 0 ) then
+		%util = Ply
+		break
+	end
+end
+]], "(%util or %NULL_ENTITY)" )

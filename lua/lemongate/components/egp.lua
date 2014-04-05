@@ -11,8 +11,6 @@ local LEMON, API = LEMON, LEMON.API
 local EGP = EGP
 
 function API.EGPAction( Entity, Context, ... )
-	print( "ACTION:", ... )
-	
 	local EMU = { player = Context.Player, entity = Context.Entity, prf = 0 }
 	
 	EGP:DoAction( Entity, EMU, ... )

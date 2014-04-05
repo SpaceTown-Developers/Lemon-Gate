@@ -95,6 +95,10 @@ Core:AddOperator( "$", "a", "a", "((%memory[value %1]or Angle(0, 0, 0)) - (%delt
 
 Core:AddFunction( "ang", "n,n,n", "a", "Angle(value %1, value %2, value %3)", LEMON_INLINE_ONLY )
 
+Core:AddFunction( "ang", "n", "a", "Angle(value %1, value %1, value %1)", LEMON_INLINE_ONLY )
+
+Core:AddFunction( "ang", "", "a", "Angle(0, 0, 0)", LEMON_INLINE_ONLY )
+
 -- Co-ords:
 
 Core:AddFunction( "p", "a:", "n", "value %1.p", LEMON_INLINE_ONLY )
