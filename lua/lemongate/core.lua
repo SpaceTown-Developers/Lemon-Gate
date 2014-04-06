@@ -978,12 +978,12 @@ if SERVER then
 				end
 			end
 			
-			if Result then
-				return Result, Gate
-			end
+			self:CallHook( "PostEvent", Name, ... )
+
+			if Result then return Result, Gate end
 		end
 	end
-
+	
 /*==========================================================================
 	Section: Exceptions
 ==========================================================================*/

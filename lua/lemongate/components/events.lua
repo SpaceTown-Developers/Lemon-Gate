@@ -63,26 +63,37 @@ Core:SetPerf( LEMON_PERF_CHEAP )
 
 Core:AddEvent( "playerChat", "e,s", "s" )
 
-hook.Add("PlayerSay", "LemonGate", function( Player, Text )
-	
+hook.Add( "PlayerSay", "LemonGate", function( Player, Text )
+	local Ret
+
 	for _, Gate in pairs( API:GetEntitys( ) ) do
 		local Result = Gate:CallEvent( "playerChat", Player, Text )
 		
-		if Result and Player == Gate.Player then
-			return Result
+		if !Ret and Result and Player == Gate.Player then
+			Ret = Result
 		end
 	end
+
+	API:CallHook( "PostEvent", "playerChat", Player, Text )
+
+	return Ret
 end)
 
 Core:AddEvent( "playerSpeak", "e", "b" )
 
-hook.Add("PlayerCanHearPlayersVoice", "LemonGate", function( Player, Speaker )
+hook.Add( "PlayerCanHearPlayersVoice", "LemonGate", function( Player, Speaker )
+	local Ret
+
 	for _, Gate in pairs( API:GetEntitys(  ) ) do
 		if Player == Gate.Player then
 			local Result, Gate = Gate:CallEvent( "playerSpeak", Speaker )
-			if Result then return Result end
+			if !Ret and Result then Ret = Result end
 		end
 	end
+
+	API:CallHook( "PostEvent", "playerSpeak", Speaker )
+
+	return Ret
 end)
 
 /*==============================================================================================

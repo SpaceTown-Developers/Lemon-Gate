@@ -88,6 +88,8 @@ function ENT:Pcall( Location, Function, ... )
 	local Ok, Status = pcall( Function, ... )
 	
 	local Context = self.Context
+	if !Context then return self:Error( "Context lost." ) end
+
 	Context.Time = Context.Time + (SysTime( ) - BenchMark)
 	
 	if Ok or Status == "Exit" then

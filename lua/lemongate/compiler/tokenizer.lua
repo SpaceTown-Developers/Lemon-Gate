@@ -297,6 +297,7 @@ function Compiler:StringToken( StrChar )
 			self.Pos = self.Pos - 1
 			self.ReadData = self.ReadData .. string.char( Num )
 
+			self:SkipChar( )
 		else
 			self:Error( 0, "Unfinished escape sequence (\\%s)", self.Char )
 		end

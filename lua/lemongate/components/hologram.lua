@@ -4,7 +4,7 @@
 ==============================================================================================*/
 local LEMON, API = LEMON, LEMON.API
 
-local Component = API:NewComponent( "hologram", true )
+local Component = API:NewComponent( "false", true )
 
 /*==============================================================================================
 	Section: HoloGram Lib
