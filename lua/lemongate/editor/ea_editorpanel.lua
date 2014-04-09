@@ -45,7 +45,7 @@ function PANEL:Init( )
 	self.TabHolder:SetFadeTime( 0 )
 	timer.Simple( 0.1, function( )
 		if self:OpenOldTabs( ) then return end 
-		self:NewTab( ) 
+		-- self:NewTab( ) 
 	end )
 	
 	function self.TabHolder:CloseTab( tab, bRemovePanelToo )
@@ -413,10 +413,11 @@ function PANEL:CloseTab( bSave, Tab )
 		self.TabHolder:GetActiveTab( ):GetPanel( ):RequestFocus( )
 	end
 	
-	-- Oskar I added this to fix the no active tab bug =D
-	if #self.TabHolder.Items == 0 then
-		self:NewTab( )
-	end
+	-- Oskar I added this to fix the no active tab bug =D 
+	-- Seems to work again for no reason, lets test it for a while then
+	-- if #self.TabHolder.Items == 0 then
+	-- 	self:NewTab( )
+	-- end
 end
 
 function PANEL:CloseAll( )
@@ -439,7 +440,9 @@ end
 
 function PANEL:SaveTabs( )
 	local strtabs = ""
-	for i = 1, #self.TabHolder.Items do
+	for i = 1, #self.TabHolder.Items do 
+		-- print( "Saving tabs: ", i,self.TabHolder.Items[i].Tab.Panel.Global,self.TabHolder.Items[i].Tab.Global )
+		-- if self.TabHolder.Items[i].Tab.Panel.Global then continue end 
 		local FilePath = self.TabHolder.Items[i].Tab.FilePath
 		if FilePath and FilePath != "" then
 			strtabs = strtabs .. FilePath .. ";"
@@ -459,7 +462,7 @@ function PANEL:AutoSave( Tab )
 end
 
 function PANEL:OpenOldTabs( )
-	if !file.Exists( "lemongate/_tabs_.txt", "DATA" ) then return end
+	if !file.Exists( "lemongate/_tabs_.txt", "DATA" ) then return end 
 	
 	local tabs = file.Read( "lemongate/_tabs_.txt" )
 	if !tabs or tabs == "" then return end

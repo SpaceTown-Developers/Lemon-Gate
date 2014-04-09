@@ -190,10 +190,6 @@ function API:Init( )
 		self:SaveConfig( )
 		self:BuildDataPack( )
 		
-		for _, Player in pairs( player.GetHumans( ) ) do
-			self:SendDataPack( Player )
-		end
-		
 		self:ReloadEntitys( )
 	end
 	
@@ -288,27 +284,30 @@ function API:LoadEditor( )
 		
 		
 		include( "lemongate/editor/ea_browser.lua" ) -- TODO: Delte this!
-		include( "lemongate/editor/ea_filemenu.lua" )
 		include( "lemongate/editor/ea_button.lua" )
 		include( "lemongate/editor/ea_closebutton.lua" )
 		include( "lemongate/editor/ea_editor.lua" )
 		include( "lemongate/editor/ea_editorpanel.lua" )
+		include( "lemongate/editor/ea_filemenu.lua" )
 		include( "lemongate/editor/ea_filenode.lua" )
 		include( "lemongate/editor/ea_frame.lua" )
 		include( "lemongate/editor/ea_helper.lua" )
 		include( "lemongate/editor/ea_helperdata.lua" )
 		include( "lemongate/editor/ea_hscrollbar.lua" )
 		include( "lemongate/editor/ea_imagebutton.lua" )
+		include( "lemongate/editor/ea_search.lua" )
 		include( "lemongate/editor/ea_toolbar.lua" )
 		include( "lemongate/editor/syntaxer.lua" )
 		include( "lemongate/editor/pastebin.lua" )
 		include( "lemongate/editor/repo.lua" )
-		include( "lemongate/editor/ea_search.lua" )
 		include( "lemongate/editor.lua" )
+		-- include( "lemongate/editor/share.lua" ) -- WIP
 		
 		include( "lemongate/components/kinect.lua" )
 		include( "lemongate/components/cl_files.lua" )
 		include( "lemongate/components/console.lua" )
+	else 
+		-- include( "lemongate/editor/share.lua" ) -- WIP
 	end
 end
 

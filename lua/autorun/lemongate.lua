@@ -34,6 +34,7 @@ if SERVER then
 	AddCSLuaFile( "lemongate/editor/pastebin.lua" )
 	AddCSLuaFile( "lemongate/editor/ea_search.lua" )
 	AddCSLuaFile( "lemongate/editor/repo.lua" )
+	-- AddCSLuaFile( "lemongate/editor/share.lua" ) -- WIP
 	AddCSLuaFile( "ea_version.lua" )
 	
 	AddCSLuaFile( "lemongate/editor.lua" )
