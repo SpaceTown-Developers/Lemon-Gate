@@ -601,7 +601,7 @@ if SERVER then
 	end
 
 	function ENT:SetClipEnabled( ID, bEnable )
-		if ID < 1 or ID > GetConVarNumber( "lemon_holograms__clips", 5 ) then return end
+		if ID < 1 or ID > GetConVarNumber( "lemon_holograms_clips", 5 ) then return end
 		
 		self.CLIPS[ ID ] = self.CLIPS[ ID ] or NewClippingTable( )
 
@@ -611,7 +611,7 @@ if SERVER then
 	end
 
 	function ENT:SetClipOrigin( ID, Vector )
-		if ID < 1 or ID > GetConVarNumber( "lemon_holograms__clips", 5 ) then return end
+		if ID < 1 or ID > GetConVarNumber( "lemon_holograms_clips", 5 ) then return end
 		
 		self.CLIPS[ ID ] = self.CLIPS[ ID ] or NewClippingTable( )
 
@@ -637,7 +637,7 @@ if SERVER then
 	end
 
 	function ENT:SetClipNormal( ID, Vector )
-		if ID < 1 or ID > GetConVarNumber( "lemon_holograms__clips", 5 ) then return end
+		if ID < 1 or ID > GetConVarNumber( "lemon_holograms_clips", 5 ) then return end
 		
 		self.CLIPS[ ID ] = self.CLIPS[ ID ] or NewClippingTable( )
 
@@ -941,13 +941,13 @@ function ENT:ApplyHoloInfo( )
 
 	if Info.BONES and self:GetBoneCount( ) > 1 then
 		
-		for ID = 0, self:GetBoneCount( ) - 1 do
+		/*for ID = 0, self:GetBoneCount( ) - 1 do
 			local BoneMatrix = self:GetBoneMatrix( ID )
 
 			BoneMatrix:Scale( Scale )
 
 			self:SetBoneMatrix( ID, BoneMatrix )
-		end
+		end*/
 
 		for ID, Bone in pairs( self.BONES ) do
 			

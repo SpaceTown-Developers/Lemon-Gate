@@ -120,16 +120,6 @@ Core:SetPerf( LEMON_PERF_ABNORMAL )
 
 Core:AddOperator( "string", "a", "s", "tostring(value %1)", LEMON_INLINE_ONLY )
 
--- Assigment:
-
-Core:AddOperator( "=", "a", "", [[
-local %Value = %memory[value %1] or Angle(0, 0, 0)
-local %Value2 = value %2
-%delta[value %1] = Angle( %Value.p, %Value.y, %Value.r )
-%memory[value %1] = Angle( %Value2.p, %Value2.y, %Value2.r )
-%click[value %1] = true
-]], LEMON_PREPARE_ONLY )
-
 /*==============================================================================================
 	Section: General
 ==============================================================================================*/

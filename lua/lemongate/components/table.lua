@@ -328,7 +328,7 @@ end
 Component:AddFunction( "values", "t:", "t", [[
 local %Result = %Table( )
 
-for Key, Type, Value in value %2:Itorate( ) do
+for Key, Type, Value in value %1:Itorate( ) do
 	Context.Perf = Context.Perf + 0.5
 	
 	%Result:Insert( nil, Type, Value )
@@ -341,7 +341,7 @@ local %Result = %Table( )
 for Key, Value in pairs( value %1.Types ) do
 	Context.Perf = Context.Perf + 0.5
 	
-	if Value == "n" or Value == "s" or Value == "s" then
+	if Value == "n" or Value == "s" then
 		local %IType = $type( Key )
 		
 		if %IType == "number" then
@@ -387,6 +387,24 @@ for Key, Type, Value in value %1:Itorate( ) do
 	table.insert( %Result, tostring( Value ) )
 end
 ]], "string.Implode( value %2, %Result )" )
+
+Component:AddFunction( "flip", "t:", "t", [[
+local %Result = %Table( )
+
+for Key, Type, Value in value %1:Itorate( ) do
+	local IType = $type( Key )
+
+	if Type == "n" and IType[1] == "s" then
+		%Result:Set( Value, "s", Key )
+	elseif Type == "s" and IType[1] == "n" then
+		%Result:Set( Value, "n", Key )
+	else
+		%Result:Set( Key, Type, Value )
+	end
+end]], "%Result" )
+
+
+
 /*==============================================================================================
 	Variant Index Operators
 ==============================================================================================*/

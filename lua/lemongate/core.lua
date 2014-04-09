@@ -971,10 +971,12 @@ if SERVER then
 			local Result, Gate
 			
 			for _, _Gate in pairs( self:GetEntitys( ) ) do
-				local _Result = _Gate:CallEvent( Name, ... )
+				if IsValid( _Gate ) and _Gate.CallEvent then
+					local _Result = _Gate:CallEvent( Name, ... )
 				
-				if _Result and !Result then
-					Result, Gate = _Result, _Gate
+					if _Result and !Result then
+						Result, Gate = _Result, _Gate
+					end
 				end
 			end
 			

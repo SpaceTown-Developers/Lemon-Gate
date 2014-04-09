@@ -32,10 +32,13 @@ Core:SetPerf( LEMON_PERF_CHEAP )
 
 -- Assign:
 
-Core:AddOperator( "=", "n", "n", [[
-%delta[value %1] = %memory[value %1]
-%memory[value %1] = value %2
-%trigger[value %1] = ( %trigger[value %1] or ( %trigger[value %1] ~= %delta[value %1] ) )
+Core:AddOperator( "=", "a", "a", [[
+local %Current = %memory[value %1] or Angle(0, 0, 0)
+%memory[value %1] = Angle( value %2.p, value %2.y, value %2.r )
+%delta[ value %1] = %Current
+if !%trigger[value %1] then 
+	%trigger[value %1] = %Current.p ~= value %2.p or %Current.y ~= value %2.y or %Current.r ~= value %2.r
+end
 ]], "value %2" )
 
 -- Changed:

@@ -11,9 +11,9 @@ Component:AddExternal( "hologram", Component )
 /*==============================================================================================
     Section: Convars
 ==============================================================================================*/
-local Cvar_MaxHolograms = CreateConVar( "lemon_holograms_max", "150" )
+local Cvar_MaxHolograms = CreateConVar( "lemon_holograms_max", "250" )
 local Cvar_SpawnRate = CreateConVar( "lemon_holograms_rate", "20" )
-local Cvar_MaxClips = CreateConVar( "lemon_holograms__clips", "5" )
+local Cvar_MaxClips = CreateConVar( "lemon_holograms_clips", "5" )
 local Cvar_MaxScale = CreateConVar( "lemon_holograms_Size", "50" )
 local Cvar_ModelAll = CreateConVar( "lemon_holograms_model_any", "1" )
 
@@ -22,7 +22,7 @@ Component:SetPerf( LEMON_PERF_CHEAP )
 
 Component:AddFunction( "hologramLimit", "", "n", "$GetConVarNumber(\"lemon_holograms_max\", 0)" )
 Component:AddFunction( "hologramSpawnRate", "", "n", "$GetConVarNumber(\"lemon_holograms_per_tick\", 0)" )
-Component:AddFunction( "hologramClipLimit", "", "n", "$GetConVarNumber(\"lemon_holograms__clips\", 0)" )
+Component:AddFunction( "hologramClipLimit", "", "n", "$GetConVarNumber(\"lemon_holograms_clips\", 0)" )
 Component:AddFunction( "hologramMaxScale", "", "n", "$GetConVarNumber(\"lemon_holograms_Size\", 0)" )
 Component:AddFunction( "hologramAnyModel", "", "n", "$tobool( $GetConVarNumber(\"lemon_holograms_model_any\", 0) )" )
 
@@ -71,7 +71,7 @@ hook.Add( "PlayerInitialSpawn", "lemon.hologram.owners", function( Ply )
 
 	local Total = 0
 
-	for _, Holo in pairs( Holos ) do Total = Totla + 1 end
+	for _, Holo in pairs( Holos ) do Total = Total + 1 end
 
 	Ply:SetNWInt( "lemon.holograms", Total )
 end )
@@ -583,19 +583,19 @@ end]], "( %util or 0 )" )
 Component:SetPerf( LEMON_PERF_CHEAP )
 
 Component:AddFunction("setAnimation", "h:n,[n,n", "", [[
-if $IsValid( value %1 ) and value %1.Player == %context.Player and $IsValid( value %2 )then
+if $IsValid( value %1 ) and value %1.Player == %context.Player then
 	value %1:SetAnimation(value %2, value %3, value %4)
 end]], "" )
 
 Component:AddFunction("setAnimation", "h:s,[n,n", "", [[
-if $IsValid( value %1 ) and value %1.Player == %context.Player and $IsValid( value %2 )then
+if $IsValid( value %1 ) and value %1.Player == %context.Player then
 	value %1:SetAnimation(value %1:LookupSequence( value %2 ), value %3, value %4)
 end]], "" )
 
 Component:AddFunction("AnimationLength", "h:", "n", "( $IsValid( value %1 ) and value %1:SequenceDuration( ) or 0 )" )
 
 Component:AddFunction("setPose", "h:s,n", "", [[
-if $IsValid( value %1 ) and value %1.Player == %context.Player and $IsValid( value %2 )then
+if $IsValid( value %1 ) and value %1.Player == %context.Player then
 	value %1:SetPoseParameter value %2, value %3 )
 end]], "" )
 
@@ -605,6 +605,6 @@ Component:AddFunction("getPose", "h:s", "n", "( $IsValid( value %1 ) and value %
     Section: Remove
 ==============================================================================================*/
 Component:AddFunction("remove", "h:", "", [[
-if $IsValid( value %1 ) and value %1.Player == %context.Player and $IsValid( value %2 )then
+if $IsValid( value %1 ) and value %1.Player == %context.Player then
 	value %1:Remove( )
 end]], "" )

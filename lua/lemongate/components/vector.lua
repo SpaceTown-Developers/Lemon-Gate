@@ -34,9 +34,13 @@ Core:AddOperator( "default", "v", "v", "Vector3.Zero:Clone()" )
 -- Assign:
 
 Core:AddOperator( "=", "v", "v", [[
-%delta[value %1] = %memory[value %1] or Vector3( 0, 0, 0 )
-%memory[value %1] = value %2
-%trigger[value %1] = %trigger[value %1] or ( %delta[value %1] ~= %memory[value %1] )
+local %Current = %memory[value %1] or Vector3.Zero:Clone()
+%memory[value %1] = value %2:Clone()
+%delta[ value %1] = %Current
+if !%trigger[value %1] then 
+	%trigger[value %1] = %Current.x ~= value %2.x or %Current.y ~= value %2.y or %Current.z ~= value %2.z
+	print( "Checker:", value %1, %trigger[value %1] )
+end
 ]], "value %2" )
 
 -- Changed:
@@ -131,15 +135,6 @@ Core:SetPerf( LEMON_PERF_ABNORMAL )
 -- Casting:
 
 Core:AddOperator( "string", "v", "s", [[("<" .. tostring( value %1 ) .. ">")]] )
-
--- Assigment:
-
-Core:AddOperator( "=", "v", "", [[
-local %Value = %memory[value %1] or Vector3.Zero
-%delta[value %1] = %Value:Clone()
-%memory[value %1] = value %2:Clone()
-%click[value %1] = true
-]], "" )
 
 /*==============================================================================================
 	Section: Externals
