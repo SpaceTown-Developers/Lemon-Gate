@@ -1,105 +1,86 @@
 /*==============================================================================================
 	Expression Advanced: Component -> Holograms.
-	Creditors: Rusketh, Oskar94
+	Creditors: Rusketh
 ==============================================================================================*/
 local LEMON, API = LEMON, LEMON.API
 
-local Component = API:NewComponent( "false", true )
+local Component = API:NewComponent( "hologram", true )
 
-/*==============================================================================================
-	Section: HoloGram Lib
-==============================================================================================*/
-local NeedsSync, Recent = false, { }
-local HoloLib = { Owners = { }, Holograms = { }, HologramOwners = { }, Queue = { } }
-local Owners, Holograms, HologramOwners, Queue = HoloLib.Owners, HoloLib.Holograms, HoloLib.HologramOwners, HoloLib.Queue
-LEMON.HoloLib = HoloLib
-
--- Create external!
-Component:AddExternal( "HoloLib", HoloLib )
-
-function HoloLib.GetAll( Gate )
-	return Holograms[ Gate ] or { }
-end
-
-function HoloLib.Remove( Context, Holo )
-    if Holo and Holo:IsValid( ) and Holo.Player == Context.Player then
-        local Gate, Owner = Context.Entity, Context.Player
-        Owners[Owner] = Owners[Owner] - 1
-        Holograms[Gate][Holo] = nil
-        Holo:Remove( )
-    end
-end
-
-function HoloLib.RemoveAll( Gate )
-	local Holos = Holograms[Gate]
-
-    if Holos then
-        local Count = Owners[Gate.Player] or 0
-
-        for _, Holo in pairs( Holograms[Gate] ) do
-            if Holo:IsValid( ) then
-                if table.Count( Holo.Clips ) > 0 then 
-                    net.Start( "lemon_hologram_remove_clips" )
-                        net.WriteUInt( Holo:EntIndex( ), 16 )
-                    net.Broadcast( )
-                end 
-                Count = Count - 1
-                Holo:Remove( )
-            end
-        end
-
-        if Count < 0 then Count = 0 end -- Should never happen!
-
-        Owners[Gate.Player] = Count
-        Holograms[Gate] = { }
-    end
-end
-
-
-function HoloLib.QueueHologram( Gate )
-    if Gate and Gate:IsValid( ) and Gate.IsHologram then
-        Queue[Gate] = true
-        NeedsSync = true
-    end
-end
-
-function HoloLib.RescaleAny( X, Y, Z, Max, Size )
-    TestMax = Max * 12
-
-    local TextX = X * Size.x
-    if TextX > TestMax or TextX < -TestMax then
-        local Val = Size.x * TestMax
-        X = math.Clamp(Max / Size.x, -Val, Val)
-    end
-
-    local TextY = Y * Size.y
-    if TextY > TestMax or TextY < -TestMax then
-        local Val = Size.y * TestMax
-        Y = math.Clamp(Max / Size.y, -Val, Val)
-    end
-
-    local TextZ = Z * Size.z
-    if TextZ > TestMax or TextZ < -TestMax then
-        local Val = Size.z * TestMax
-        Z = math.Clamp(Max / Size.z, -Val, Val)
-    end
-
-    return X, Y, Z
-end
+Component:AddExternal( "hologram", Component )
 
 /*==============================================================================================
     Section: Convars
 ==============================================================================================*/
-HoloLib._Max = CreateConVar( "lemon_holograms_max", "128" )
-HoloLib._Rate = CreateConVar( "lemon_holograms_per_tick", "20" )
-HoloLib._Clips = CreateConVar( "lemon_holograms__clips", "5" )
-HoloLib._Size = CreateConVar( "lemon_holograms_Size", "50" )
-HoloLib._Model = CreateConVar( "lemon_holograms_model_any", "1" )
+local Cvar_MaxHolograms = CreateConVar( "lemon_holograms_max", "150" )
+local Cvar_SpawnRate = CreateConVar( "lemon_holograms_rate", "20" )
+local Cvar_MaxClips = CreateConVar( "lemon_holograms__clips", "5" )
+local Cvar_MaxScale = CreateConVar( "lemon_holograms_Size", "50" )
+local Cvar_ModelAll = CreateConVar( "lemon_holograms_model_any", "1" )
+
+-- Cvar based functions
+Component:SetPerf( LEMON_PERF_CHEAP )
+
+Component:AddFunction( "hologramLimit", "", "n", "$GetConVarNumber(\"lemon_holograms_max\", 0)" )
+Component:AddFunction( "hologramSpawnRate", "", "n", "$GetConVarNumber(\"lemon_holograms_per_tick\", 0)" )
+Component:AddFunction( "hologramClipLimit", "", "n", "$GetConVarNumber(\"lemon_holograms__clips\", 0)" )
+Component:AddFunction( "hologramMaxScale", "", "n", "$GetConVarNumber(\"lemon_holograms_Size\", 0)" )
+Component:AddFunction( "hologramAnyModel", "", "n", "$tobool( $GetConVarNumber(\"lemon_holograms_model_any\", 0) )" )
 
 /*==============================================================================================
-	Section: Models
+    Section: Hologram Handeling
 ==============================================================================================*/
-HoloLib.ModelList = {
+local HolosByEntity = { }
+
+local HolosByPlayer = { }
+
+local DeltaPerPlayer = { }
+
+function Component:ShutDown( Gate )
+	if IsValid( Gate.Player ) then
+		local PlyTbl = HolosByPlayer[ Gate.Player:UniqueID( ) ]
+
+		for _, Holo in pairs( HolosByEntity[ Gate ] or { } ) do
+			PlyTbl[ Holo ] = nil
+			Holo:Remove( )
+		end
+	else
+		for _, Holo in pairs( HolosByEntity[ Gate ] or { } ) do
+			Holo:Remove( )
+		end
+	end
+end
+
+function Component:APIReload( )
+	HolosByPlayer = { }
+
+	for Gate, Holos in pairs( HolosByEntity ) do
+		for _, Holo in pairs( Holos ) do
+			if IsValid( Holo ) then Holo:Remove( ) end
+		end
+	end
+end
+
+timer.Create( "lemon.holograms", 1, 0, function( )
+	DeltaPerPlayer = { }
+end )
+
+hook.Add( "PlayerInitialSpawn", "lemon.hologram.owners", function( Ply )
+	local Holos = HolosByPlayer[ Ply:UniqueID( ) ]
+	
+	if !Holos then return end
+
+	local Total = 0
+
+	for _, Holo in pairs( Holos ) do Total = Totla + 1 end
+
+	Ply:SetNWInt( "lemon.holograms", Total )
+end )
+
+/*==============================================================================================
+    Section: Really Big Model List
+==============================================================================================*/
+
+local ModelEmu = {
     ["cone"]              = "cone",
     ["cube"]              = "cube",
     ["cylinder"]          = "cylinder",
@@ -181,128 +162,12 @@ HoloLib.ModelList = {
     ["hqcubinder"]       = "hq_cubinder"
 }
 
--- TODO: Add Hook!
+-- TODO: Api Hook!
 
-for _, Model in pairs( HoloLib.ModelList ) do
-    util.PrecacheModel( "models/Holograms/" .. Model .. ".mdl" )
-end
+Component:SetPerf( LEMON_PERF_CHEAP )
 
-local IsValidModel = util.IsValidModel
-
-function HoloLib.Model( Trace, Context, Holo, ModelS )
-	if IsValid( Holo ) and Holo.Player == Context.Player then
-        local ValidModel = HoloLib.ModelList[ ModelS ]
-		if ValidModel then
-            Holo:SetModel( "models/Holograms/" .. ValidModel .. ".mdl" )
-            Holo.ModelAny = false
-        elseif HoloLib._Model:GetInt( ) >= 1 and util.IsValidModel( ModelS ) then
-            Holo:SetModel( Model( ModelS ) )
-            Holo.ModelAny = true
-        else
-            Context:Throw( Trace, "hologram", "unknown hologram model used" )
-        end	
-	end
-end
-	
-/*==============================================================================================
-	Section: Creators
-==============================================================================================*/
-
-function HoloLib.Query( Context )
-	local Burst = Recent[ Context.Entity ] or 0
-	local Count = Owners[ Context.Player ] or 0
-	return ( Burst <= HoloLib._Rate:GetInt( ) ) and ( Count < HoloLib._Max:GetInt( ) )
-end
-
-function HoloLib.Create( Trace, Context )
-    local Ent, Owner = Context.Entity, Context.Player
-
-    local Burst = Recent[Ent]
-    if !Burst then
-        Burst = 0
-    elseif Burst > HoloLib._Rate:GetInt( ) then
-        Context:Throw( Trace, "hologram", "too many holograms made at once")
-    end
-
-    local Count = Owners[Owner]
-
-    if !Count then
-        Count = 0
-    elseif Count >= HoloLib._Max:GetInt( ) then
-        Context:Throw( Trace, "hologram", "hologram limit reached")
-    end
-
-    local Holo = ents.Create( "lemon_holo" )
-    if !Holo or !Holo:IsValid( ) then
-        Context:Throw( Trace, "hologram", "unable to create hologram")
-    end
-
-    Holo.Player = Owner
-    if CPPI then Holo:CPPISetOwner( Owner ) end
-	
-	Recent[Ent] = Burst + 1
-    Owners[Owner] = Count + 1
-    
-	Holograms[Ent][Holo] = Holo -- Hmm?
-	
-    Holo:SetModel( "models/Holograms/sphere.mdl" )
-    Holo:SetPos( Ent:GetPos( ) )
-    Holo:Spawn( )
-    Holo:Activate( )
-
-    NeedsUpdate = true 
-    Queue[Holo] = true
-    NeedsSync = true
-    
-    return Holo
-end
-
-function HoloLib.Create2( Trace, Context, ModelS )
-    local Holo = HoloLib.Create( Trace, Context )
-    local ValidModel = HoloLib.ModelList[ ModelS ]
-
-    if ValidModel then
-        Holo:SetModel( "models/Holograms/" .. ValidModel .. ".mdl" )
-        Holo.ModelAny = false
-        return Holo
-
-    elseif HoloLib._Model:GetInt() >= 1 and IsValidModel( ModelS ) then
-        Holo:SetModel( Model(ModelS) )
-        Holo.ModelAny = true
-        return Holo
-    end
-
-    Holo:Remove( )
-	
-    Context:Throw( Trace, "hologram", "unknown hologram model used")
-end
-
-/*==============================================================================================
-	Section: API Hooks
-==============================================================================================*/
-function Component:Create( Gate )
-	Holograms[ Gate ] = { }
-end
-
-function Component:CreateContext( Context )
-	HoloLib.RemoveAll( Context.Entity )
-end
-
-function Component:Remove( Gate )
-	HoloLib.RemoveAll( Gate )
-end
-
-function Component:ShutDown( Gate )
-	HoloLib.RemoveAll( Gate )
-end
-
-function Component:APIReload( )
-	for Gate, Holos in pairs( Holograms ) do
-		for _, Holo in pairs( Holos ) do
-			if IsValid( Holo ) then Holo:Remove( ) end
-		end
-	end
-end
+Component:AddExternal( "holomodel", ModelEmu )
+Component:AddFunction( "asGameModel", "s", "s", "( %holomodel[value %1] or \"\" )" )
 
 /*==============================================================================================
 	Section: Class and Operators
@@ -321,117 +186,253 @@ Component:SetPerf( LEMON_PERF_ABNORMAL )
 
 Component:AddOperator( "hologram", "e", "h", [[
 if !$IsValid( value %1 ) or !value %1.IsHologram then
-	%context:Throw( %trace, "hologram", "casted none hologram from entity")
+	%context:Throw( %trace, "hologram", "casted none hologram from entity.")
 end ]], "value %1" )
 
--- Util:
+/*==============================================================================================
+    Section: Set Model
+==============================================================================================*/
 
-Component:AddFunction( "holoCanCreate", "", "b", "%HoloLib.Query( %context )")
+function Component.SetModel( Context, Entity, Model )
+	local ValidModel = ModelEmu[ Model or "sphere" ]
+
+	if ValidModel then
+		if Entity.IsHologram and Entity.Player == Context.Player then
+			Entity:SetModel( "models/Holograms/" .. ValidModel .. ".mdl" )
+		end
+
+	elseif !Cvar_ModelAll:GetBool( ) or !util.IsValidModel( Model ) then
+		Context:Throw( nil, "hologram", "Invalid model set " .. Model )
+	elseif Entity.IsHologram and Entity.Player == Context.Player then
+		Entity:SetModel( ValidModel or Model )
+	end
+end
+
+Component:AddFunction( "setModel", "h:s", "", "%hologram.SetModel( %context, value %1, value %2 )" )
 
 /*==============================================================================================
-    Section: Creator Functions
+    Section: ID Emulation
+    	-- Don't worry, they are still objects!
 ==============================================================================================*/
-Component:SetPerf( LEMON_PERF_EXPENSIVE )
 
-Component:AddFunction( "hologram", "", "h", "%HoloLib.Create( %trace, %context )")
+function Component:SetID( Context, Entity, ID )
+	if ID < 1 or !Entity.IsHologram then return end
 
-Component:AddFunction( "hologram", "s", "h", "%HoloLib.Create2( %trace, %context, value %1 )")
+	Context.Holograms[ Entity.ID or -1 ] = nil
 
-Component:AddFunction( "hologram", "s,v", "h", [[
-local %Holo = %HoloLib.Create2( %trace, %context, value %1 )
-%Holo:SetPos( value %2:Garry( ) )
-]], "%Holo" )
+	Context.Holograms[ ID ] = Entity
 
-/*==============================================================================================
-    Section: Util
-==============================================================================================*/
+	Entity.ID = ID
+end
+
 Component:SetPerf( LEMON_PERF_NORMAL )
 
-Component:AddFunction( "remove", "h:", "", "%HoloLib.Remove( %context, value %1 )" )
+Component:AddFunction( "getID", "h:", "n", "(value %1.ID or -1)" )
+Component:AddFunction( "setID", "h:n", "", "%hologram:SetID( %context, value %1, value %2 )", "" )
+Component:AddFunction( "hologram", "n", "h", "(%context.Holograms[ value %1] or %NULL_ENTITY)" )
 
-Component:AddFunction( "setModel", "h:s", "", "%HoloLib.Model( %trace, %context, value %1, value %2 )", "" )
+/*==============================================================================================
+    Section: Creation
+==============================================================================================*/
 
+function Component.NewHolo( Context, Model, Position, Angle )
+	local UID = Context.Player:UniqueID( )
+
+	if Context.Player:GetNWInt( "lemon.holograms", 0 ) >= Cvar_MaxHolograms:GetInt( ) then
+		Context:Throw( nil, "hologram", "Hologram limit reached." )
+	elseif ( DeltaPerPlayer[ UID ] or 0 ) >= Cvar_SpawnRate:GetInt( ) then
+		Context:Throw( nil, "hologram", "Hologram cooldown reached." )
+	end
+
+	local Entity = ents.Create( "lemon_holo" )
+
+	if !IsValid( Entity ) then
+		Context:Throw( nil, "hologram", "Failed to create hologram." )
+	end
+
+	Context.Player:SetNWInt( "lemon.holograms", Context.Player:GetNWInt( "lemon.holograms", 0 ) + 1 )
+
+	Entity.Player = Context.Player
+
+	Entity:Spawn( )
+
+	Entity:Activate( )
+
+	HolosByEntity[ Context.Entity ] = HolosByEntity[ Context.Entity ] or { }
+
+	HolosByEntity[ Context.Entity ][ Entity ] = Entity
+
+	HolosByPlayer[ UID ] = HolosByPlayer[ UID ] or { }
+
+	HolosByPlayer[ UID ][ Entity ] = Entity
+
+	DeltaPerPlayer[ UID ] = ( DeltaPerPlayer[ UID ] or 0 ) + 1
+
+	Context.Holograms = Context.Holograms or { }
+
+	local ID = #Context.Holograms + 1
+	Context.Holograms[ ID ] = ID
+
+	--if !Model then return Entity end
+	Component.SetModel( Context, Entity, Model or "sphere" )
+
+	if !Position then
+		Entity:SetPos( Context.Entity:GetPos( ) )
+	else
+		Entity:SetPos( Position:Garry( ) )
+	end
+
+	if !Angle then
+		Entity:SetAngles( Context.Entity:GetAngles( ) )
+	else
+		Entity:SetAngles( Angle )
+	end
+
+	return Entity
+end
+
+Component:SetPerf( LEMON_PERF_EXPENSIVE )
+
+Component:AddFunction( "hologram", "", "h", "%hologram.NewHolo( %context )" )
+
+Component:AddFunction( "hologram", "s", "h", "%hologram.NewHolo( %context, value %1 )" )
+
+Component:AddFunction( "hologram", "s,v", "h", "%hologram.NewHolo( %context, value %1, value %2 )" )
+
+Component:AddFunction( "hologram", "s,v,a", "h", "%hologram.NewHolo( %context, value %1, value %2, value %3 )" )
+
+/*==============================================================================================
+    Section: Can Hologram
+==============================================================================================*/
+function Component.CanHolo( Context )
+	if Context.Player:GetNWInt( "lemon.holograms", 0 ) >= Cvar_MaxHolograms:GetInt( ) then
+		return false
+	elseif ( DeltaPerPlayer[ UID ] or 0 ) >= Cvar_SpawnRate:GetInt( ) then
+		return false
+	end
+
+	return true
+end
+
+Component:AddFunction( "canMakeHologram", "", "b", "%hologram.CanHolo( %context )" )
+
+/*==============================================================================================
+    Position
+==============================================================================================*/
 Component:SetPerf( LEMON_PERF_CHEAP )
-
-Component:AddFunction( "isHologram", "e:", "b", "local %Holo = value %1", "(%Holo and %Holo:IsValid( ) and %Holo.IsHologram)" )
-
--- CVars:
-
-Component:AddFunction( "maxHolograms", "", "n", "%HoloLib._Max:GetInt( )" )
-
-Component:AddFunction( "maxHologramClips", "", "n", "%HoloLib._Clips:GetInt( )" )
-
-Component:SetPerf( LEMON_PERF_EXPENSIVE )
-
-Component:AddFunction( "holograms", "", "t", [[
-local %Results = %Table( )
-for _, Holo in pairs( %HoloLib.GetAll( %context.Entity ) ) do
-	%Results:Insert( nil, "h", Holo )
-end]], "%Results" )
-
-/*==============================================================================================
-    Section: Position and Angles
-==============================================================================================*/
-Component:SetPerf( LEMON_PERF_NORMAL )
 
 Component:AddFunction("setPos", "h:v", "",[[
 if $IsValid( value %1 ) and value %1.Player == %context.Player then
 	value %1:SetPos( value %2:Garry( ) )
 end]], "" )
 
+Component:AddFunction("moveTo", "h:v,n", "",[[
+if $IsValid( value %1 ) and value %1.Player == %context.Player then
+	value %1:MoveTo( value %2:Garry( ), value %3 )
+end]], "" )
+
+Component:AddFunction("stopMove", "h:", "",[[
+if $IsValid( value %1 ) and value %1.Player == %context.Player then
+	value %1:StopMove( )
+end]], "" )
+
+/*==============================================================================================
+    Angles
+==============================================================================================*/
+Component:SetPerf( LEMON_PERF_CHEAP )
+
 Component:AddFunction("setAng", "h:a", "",[[
 if $IsValid( value %1 ) and value %1.Player == %context.Player then
 	value %1:SetAngles( value %2 )
 end]], "" )
 
+Component:AddFunction("rotateTo", "h:a,n", "",[[
+if $IsValid( value %1 ) and value %1.Player == %context.Player then
+	value %1:RotateTo( value %2, value %3 )
+end]], "" )
+
+Component:AddFunction("stopRotate", "h:", "",[[
+if $IsValid( value %1 ) and value %1.Player == %context.Player then
+	value %1:StopRotate( )
+end]], "" )
+
 /*==============================================================================================
-    Section: Scale
+    Scale
 ==============================================================================================*/
-Component:SetPerf( LEMON_PERF_ABNORMAL )
+Component:SetPerf( LEMON_PERF_NORMAL )
 
-Component:AddFunction("scale", "h:v", "", [[
+Component:AddFunction("setScale", "h:v", "",[[
 if $IsValid( value %1 ) and value %1.Player == %context.Player then
-	local %Max = %HoloLib._Size:GetInt()
-	local %X, %Y, %Z
-
-	if !value %1.ModelAny then
-		%X = math.Clamp(value %2.x, -%Max, %Max)
-		%Y = math.Clamp(value %2.y, -%Max, %Max)
-		%Z = math.Clamp(value %2.z, -%Max, %Max)
-	else
-		local %Size = value %1:OBBMaxs() - value %1:OBBMins()
-		%X, %Y, %Z = %HoloLib.RescaleAny(value %2.x, value %2.y, value %2.z, %Max, %Size)
-	end
-
-	if value %1:SetScale(%X, %Y, %Z) then
-		%HoloLib.QueueHologram( value %1 )
-	end
+	value %1:SetScale( value %2:Garry( ) )
 end]], "" )
 
-Component:AddFunction("scaleUnits", "h:v", "", [[
+Component:AddFunction("setScaleUnits", "h:v", "",[[
 if $IsValid( value %1 ) and value %1.Player == %context.Player then
-	local %Scale = value %1:OBBMaxs() - value %1:OBBMins()
-	local %Max = %HoloLib._Size:GetInt()
-
-	local %X = math.Clamp(value %2.x / %Scale.x, -%Max, %Max)
-	local %Y = math.Clamp(value %2.y / %Scale.y, -%Max, %Max)
-	local %Z = math.Clamp(value %2.z / %Scale.z, -%Max, %Max)
-
-	if value %1.ModelAny then
-		%X, %Y, %Z = %HoloLib.RescaleAny(%X, %Y, %Z, %Max, %Scale)
-	end
-
-	if value %1:SetScale(%X, %Y, %Z) then
-		%HoloLib.QueueHologram( value %1 )
-	end
+	value %1:SetScaleUnits( value %2:Garry( ) )
 end]], "" )
 
-Component:SetPerf( LEMON_PERF_CHEAP )
+Component:AddFunction("scaleTo", "h:v,n", "",[[
+if $IsValid( value %1 ) and value %1.Player == %context.Player then
+	value %1:ScaleTo( value %2:Garry( ), value %3 )
+end]], "" )
 
-Component:AddFunction("getScale", "h:", "v", [[
-if $IsValid( value %1 ) and value %1.Scale then
-	%util = %Holo.Scale
-end]], "Vector3( %util or or Vector(0, 0, 0) )" )
+Component:AddFunction("stopScale", "h:", "",[[
+if $IsValid( value %1 ) and value %1.Player == %context.Player then
+	value %1:StopScale( )
+end]], "" )
+
+Component:AddFunction("getScale", "h:", "v",[[
+if $IsValid( value %1 ) and value %1.GetScale then
+	%util = value %1:GetScale( )
+end]], "Vector3( %util or Vector( 0, 0, 0 ) )" )
+
+/*==============================================================================================
+    Visible and Shading
+==============================================================================================*/
+
+Component:AddFunction("shading", "h:b", "", [[
+if $IsValid( value %1 ) and value %1.Player == %context.Player then
+	value %1:SetShading(value %2)
+end]], "" )
+
+Component:AddFunction("visible", "h:b", "", [[
+if $IsValid( value %1 ) and value %1.Player == %context.Player then
+	value %1:SetVisible(value %2)
+end]], "" )
+
+Component:AddFunction("isVisible", "h:", "b", "($IsValid( value %1 ) and value %1.Info.VISIBLE or false )" )
+
+Component:AddFunction("hasShading", "h:", "b", "($IsValid( value %1 ) and value %1.Info.SHADING or false )" )
+
+/*==============================================================================================
+    Section: Clipping
+==============================================================================================*/
+Component:SetPerf( LEMON_PERF_NORMAL )
+
+Component:AddFunction("pushClip", "h:n,v,v", "", [[
+if $IsValid( value %1 ) and value %1.Player == %context.Player then
+	value %1:PushClip( value %2, value %3:Garry( ), value %4:Garry( ) )
+end]], "" )
+
+/*Component:AddFunction("removeClip", "h:n", "", [[
+if $IsValid( value %1 ) and value %1.Player == %context.Player and value %1:RemoveClip( value %2 ) then
+	%HoloLib.QueueHologram( value %1 )
+end]], "" ) Not supported yet*/
+
+Component:AddFunction("enableClip", "h:n,b", "", [[
+if $IsValid( value %1 ) and value %1.Player == %context.Player then
+	value %1:SetClipEnabled( value %2, value %3 )
+end]], "" )
+
+Component:AddFunction("setClipOrigin", "h:n,v", "", [[
+if $IsValid( value %1 ) and value %1.Player == %context.Player then
+	value %1:SetClipOrigin( value %2, value %3:Garry( ) )
+end]], "" )
+
+Component:AddFunction("setClipNormal", "h:n,v", "", [[
+if $IsValid( value %1 ) and value %1.Player == %context.Player then
+	value %1:SetClipNormal( value %2, value %3:Garry( ) )
+end]], "" )
 
 /*==============================================================================================
     Section: Color
@@ -486,108 +487,6 @@ if $IsValid( value %1 ) and value %1.Player == %context.Player then
 end]], "" )
 
 /*==============================================================================================
-    Section: Rendering
-==============================================================================================*/
-Component:SetPerf( LEMON_PERF_CHEAP )
-
-Component:AddFunction("shading", "h:b", "", [[
-if $IsValid( value %1 ) and value %1.Player == %context.Player then
-	if value %1:SetShading(value %2) then
-		%HoloLib.QueueHologram( value %1 )
-	end
-end]], "" )
-
-Component:AddFunction("visible", "h:b", "", [[
-if $IsValid( value %1 ) and value %1.Player == %context.Player then
-	if value %1:SetVisible(value %2) then
-		%HoloLib.QueueHologram( value %1 )
-	end
-end]], "" )
-
-Component:AddFunction("isVisible", "h:", "b", "($IsValid( value %1 ) and value %1.IsVisible or false )" )
-
-
-/*==============================================================================================
-    Section: Clipping
-==============================================================================================*/
-Component:SetPerf( LEMON_PERF_NORMAL )
-
-Component:AddFunction("pushClip", "h:n,v,v", "", [[
-if $IsValid( value %1 ) and value %1.Player == %context.Player then
-	if !value %1:ClipCount( value %2, %HoloLib._Clips:GetInt( ) ) then
-		%context:Throw( %trace, "hologram", "max clip count reached")
-	end
-
-	if value %1:PushClip( value %2, value %3:Garry( ), value %4:Garry( ) ) then
-		%HoloLib.QueueHologram( value %1 )
-	end
-end]], "" )
-
-Component:AddFunction("removeClip", "h:n", "", [[
-if $IsValid( value %1 ) and value %1.Player == %context.Player and value %1:RemoveClip( value %2 ) then
-	%HoloLib.QueueHologram( value %1 )
-end]], "" )
-
-Component:AddFunction("enableClip", "h:n,b", "", [[
-if $IsValid( value %1 ) and value %1.Player == %context.Player and value %1:EnableClip( value %2, value %3 ) then
-	%HoloLib.QueueHologram( value %1 )
-end]], "" )
-
-/*==============================================================================================
-    Section: Bones
-==============================================================================================*/
-Component:AddFunction("setBonePos", "h:n,v", "", [[
-if $IsValid( value %1 ) and value %1.Player == %context.Player then
-	if value %1:SetUpBonePos( value %2, value %3:Garry( ) ) then
-		%HoloLib.QueueHologram( value %1 )
-	end
-end]], "" )
-
-Component:AddFunction("setBoneAng", "h:n,a", "", [[
-if $IsValid( value %1 ) and value %1.Player == %context.Player then
-	if value %1:SetUpBoneAng( value %2, value %3 ) then
-		%HoloLib.QueueHologram( value %1 )
-	end
-end]], "" )
-
-Component:AddFunction("setBoneScale", "h:n,v", "", [[
-if $IsValid( value %1 ) and value %1.Player == %context.Player then
-	if value %1:SetUpBoneScale( value %2, value %3:Garry( ) ) then
-		%HoloLib.QueueHologram( value %1 )
-	end
-end]], "" )
-
-Component:AddFunction("jiggleBone", "h:n,b", "", [[
-if $IsValid( value %1 ) and value %1.Player == %context.Player then
-	if value %1:SetUpBoneJiggle( value %2, value %3 ) then
-		%HoloLib.QueueHologram( value %1 )
-	end
-end]], "" )
-
-Component:AddFunction("getBonePos", "h:n", "v", [[
-if $IsValid( value %1 ) then
-	local Bone = value %1:GetBone( value %2 )
-	%util = Vector3( Bone.Pos or Vector( 0, 0, 0 ) )
-end]], "( %util or Vector3( 0, 0, 0 ) )" )
-
-Component:AddFunction("getBoneAng", "h:n", "a", [[
-if $IsValid( value %1 ) then
-	local Bone = value %1:GetBone( value %2 )
-	%util = Bone.Ang or Angle( 0, 0, 0 )
-end]], "( %util or Angle( 0, 0, 0 ) )" )
-
-Component:AddFunction("getBoneScale", "h:n", "v", [[
-if $IsValid( value %1 ) then
-	local Bone = value %1:GetBone( value %2 )
-	%util = Vector3( Bone.Scale or Vector( 0, 0, 0 ) )
-end]], "( %util or Vector3( 0, 0, 0 ) )" )
-
-Component:AddFunction("boneCount", "h:", "n", [[
-if $IsValid( value %1 ) then
-	%util = value %1:GetBoneCount( )
-end]], "( %util or 0 )" )
-
-/*==============================================================================================
     Section: Parent
 ==============================================================================================*/
 Component:SetPerf( LEMON_PERF_CHEAP )
@@ -634,41 +533,78 @@ if $IsValid( value %1 ) then
 end]], "%Val" )
 
 /*==============================================================================================
-    Section: Sync
+    Section: Bones
 ==============================================================================================*/
-local net = net
-util.AddNetworkString( "lemon_hologram" )
-util.AddNetworkString( "lemon_hologram_remove_clips" )
+Component:SetPerf( LEMON_PERF_NORMAL )
 
-hook.Add("Tick", "Lemon_Holograms", function()
-    if NeedsSync then
-        net.Start("lemon_hologram")
+Component:AddFunction("setBonePos", "h:n,v", "", [[
+if $IsValid( value %1 ) and value %1.Player == %context.Player then
+	value %1:SetBonePos( value %2, value %3:Garry( ) )
+end]], "" )
 
-            for Holo, _ in pairs( Queue ) do
-                if Holo and Holo:IsValid() then
-                    Holo:Sync( false )
-                end
-            end
+Component:AddFunction("setBoneAngle", "h:n,a", "", [[
+if $IsValid( value %1 ) and value %1.Player == %context.Player then
+	value %1:SetBoneAng( value %2, value %3 )
+end]], "" )
 
-            net.WriteUInt( 0, 16 )
-        net.Broadcast()
-    end
+Component:AddFunction("setBoneScale", "h:n,v", "", [[
+if $IsValid( value %1 ) and value %1.Player == %context.Player then
+	value %1:SetBoneScale( value %2, value %3:Garry( ) )
+end]], "" )
 
-    Queue, NeedsSync = { }, false
-    Recent = {}
-end)
+Component:AddFunction("jiggleBone", "h:n,b", "", [[
+if $IsValid( value %1 ) and value %1.Player == %context.Player then
+	value %1:SetBoneJiggle( value %2, value %3 )
+end]], "" )
 
-hook.Add( "PlayerInitialSpawn", "Lemon_Holograms", function( Player )
-    net.Start("lemon_hologram")
+Component:AddFunction("getBonePos", "h:n", "v", [[
+if $IsValid( value %1 ) then
+	%util = value %1:GetBonePos( value %1 )
+end]], "Vector3( %util or Vector( 0, 0, 0 ) )" )
 
-        for Gate, Holos in pairs( Holograms ) do
-            for _, Holo in pairs( Holos ) do
-                if Holo and Holo:IsValid() and !Queue[Holo] then
-                    Holo:Sync( true ) -- We wont force sync whats in the queue!
-                end
-            end
-        end
+Component:AddFunction("getBoneAng", "h:n", "v", [[
+if $IsValid( value %1 ) then
+	%util = value %1:GetBoneAngle( value %1 )
+end]], "( %util or Angle( 0, 0, 0 ) )" )
 
-        net.WriteUInt( 0, 16 )
-    net.Send( Player )
-end)
+Component:AddFunction("getBoneScale", "h:n", "v", [[
+if $IsValid( value %1 ) then
+	%util = value %1:GetBoneScale( value %1 )
+end]], "Vector3( %util or Vector( 0, 0, 0 ) )" )
+
+Component:AddFunction("boneCount", "h:", "n", [[
+if $IsValid( value %1 ) then
+	%util = value %1:GetBoneCount( )
+end]], "( %util or 0 )" )
+
+/*==============================================================================================
+    Section: Animation
+==============================================================================================*/
+Component:SetPerf( LEMON_PERF_CHEAP )
+
+Component:AddFunction("setAnimation", "h:n,[n,n", "", [[
+if $IsValid( value %1 ) and value %1.Player == %context.Player and $IsValid( value %2 )then
+	value %1:SetAnimation(value %2, value %3, value %4)
+end]], "" )
+
+Component:AddFunction("setAnimation", "h:s,[n,n", "", [[
+if $IsValid( value %1 ) and value %1.Player == %context.Player and $IsValid( value %2 )then
+	value %1:SetAnimation(value %1:LookupSequence( value %2 ), value %3, value %4)
+end]], "" )
+
+Component:AddFunction("AnimationLength", "h:", "n", "( $IsValid( value %1 ) and value %1:SequenceDuration( ) or 0 )" )
+
+Component:AddFunction("setPose", "h:s,n", "", [[
+if $IsValid( value %1 ) and value %1.Player == %context.Player and $IsValid( value %2 )then
+	value %1:SetPoseParameter value %2, value %3 )
+end]], "" )
+
+Component:AddFunction("getPose", "h:s", "n", "( $IsValid( value %1 ) and value %1:GetPoseParameter( value %2 ) or 0 )" )
+
+/*==============================================================================================
+    Section: Remove
+==============================================================================================*/
+Component:AddFunction("remove", "h:", "", [[
+if $IsValid( value %1 ) and value %1.Player == %context.Player and $IsValid( value %2 )then
+	value %1:Remove( )
+end]], "" )

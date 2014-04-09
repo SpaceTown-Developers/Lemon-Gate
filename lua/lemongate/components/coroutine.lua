@@ -25,9 +25,9 @@ $coroutine.create( function( ... )
 end )
 ]] )
 
-Component:AddFunction( "resume", "cr:", "b", "$coroutine.resume( value %1 )" )
+Component:AddFunction( "resume", "cr:", "b", "%context.bench = $SysTime( )", "$coroutine.resume( value %1 )" )
 
-Component:AddFunction( "resume", "cr:...", "b", "$coroutine.resume( value %1, %... )" )
+Component:AddFunction( "resume", "cr:...", "b", "%context.bench = $SysTime( )", "$coroutine.resume( value %1, %... )" )
 
 Component:AddFunction( "status", "cr:", "s", "$coroutine.status( value %1 )" )
 
@@ -35,6 +35,7 @@ Component:AddFunction( "getCoroutine", "", "cr", [[( $coroutine.running( ) or %c
 
 Component:AddFunction( "yield", "", "", [[
 if !$coroutine.running( ) then %context:Throw( %trace, "coroutine", "Used yield( ) outside coroutine." ) end
+%context.Time = %context.Time + ($SysTime( ) - %context.bench)
 ]], "$coroutine.yield( )" )
 
 /*==============================================================================================
@@ -49,6 +50,8 @@ Component:AddExternal( "sleep", function( Context, N )
 
 		coroutine.resume( CoRoutine )
 	end )
+
+	Context.Time = Context.Time + (SysTime( ) - Context.bench)
 
 	coroutine.yield( )
 end )
@@ -93,6 +96,8 @@ Component:AddExternal( "wait", function( Context, Name )
 		end
 	end
 
+	Context.Time = Context.Time + (SysTime( ) - Context.bench)
+	
 	coroutine.yield( )
 end )
 

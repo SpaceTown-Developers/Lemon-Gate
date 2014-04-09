@@ -22,7 +22,7 @@ local function Timer( )
 	local Time, Sucess = CurTime( ), nil
 	
 	for _, Gate in pairs( API:GetEntitys( ) ) do
-		if Gate:IsRunning( ) then
+		if Gate.Context then
 			local Context, FailSafe = Gate.Context, 0
 			
 			for Key, Timer in pairs( Context.Data.Timers ) do

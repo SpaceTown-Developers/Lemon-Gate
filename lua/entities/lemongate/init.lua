@@ -147,7 +147,7 @@ end
 function ENT:LoadScript( Script, Files, ScriptName )
 	if self:IsRunning( ) then self:ShutDown( ) end
 	
-	local Context = LEMON:BuildContext( self )
+	local Context = LEMON:BuildContext( self, self.Player )
 	
 	self.Script = Script
 	self.Files = Files or { }

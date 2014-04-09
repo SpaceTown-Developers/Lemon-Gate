@@ -314,3 +314,8 @@ if $IsValid( value %1 ) and value %2:IsNotHuge( ) and %IsOwner( %context.Player,
 		end
 	end
 end]], "" ) -- TODO: Make this use isnothuge!
+
+Component:AddFunction("dealDamage", "e:n", "",[[
+if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) then
+	value %1:TakeDamage( value %2, %context.Player, %context.Entity )
+end]], "" )

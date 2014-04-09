@@ -53,8 +53,8 @@ end )
 	Home Screen
 ---------------------------------------------------------------------------*/
 local HomeScreen = [[/*====================================================================
-	Hey Check out our new community, Just click the home button above!
-		* Thanks - Muneris :D
+	WARNING:
+		* Holograms have changed your codes might break, check the helper for new function names.
 
 	Expression Advanced:
 		* Lowercased Variables
@@ -68,9 +68,11 @@ local HomeScreen = [[/*=========================================================
 		* Find in code (ctrl + f).
 		* Pastebin.com uploader.
 	
+	We have our own forums:
+	 - http://PoweredByLemons.com
+	 
 	Check Our Wiki For Help:
 	 - https://github.com/SpaceTown-Developers/Lemon-Gate/wiki
-		* New wiki, under Construction.
 		
 	Also Report Bugs:
 	 - https://github.com/SpaceTown-Developers/Lemon-Gate/issues

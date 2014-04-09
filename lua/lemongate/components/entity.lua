@@ -571,7 +571,7 @@ Core:AddFunction( "team", "e:", "n", "( ($IsValid(value %1) and value %1:IsPlaye
 
 Core:AddFunction( "teamName", "n", "s", "($team.GetName(value %1) or \"\")" )
 
-Core:AddFunction( "teamScroe", "n", "n", "($team.GetScore(value %1) or 0)" )
+Core:AddFunction( "teamScore", "n", "n", "($team.GetScore(value %1) or 0)" )
 
 Core:AddFunction( "playersInTeam", "n", "n", "($team.NumPlayers(value %1) or 0)" )
 
@@ -841,7 +841,7 @@ end]], "%Res" )
 
 Core:AddFunction( "playerByName", "s,b", "e", [[
 for _, Ply in pairs( $player.GetAll( ) ) do
-	if Ply:Name( ) == value %1 or ( !value %2 and Ply:Name( ):lower( ):find( value %1:lower( ) ) > 0 ) then
+	if Ply:Name( ) == value %1 or ( !value %2 and Ply:Name( ):lower( ):find( value %1:lower( ) ) ) then
 		%util = Ply
 		break
 	end
