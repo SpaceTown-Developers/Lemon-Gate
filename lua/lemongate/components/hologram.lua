@@ -305,6 +305,8 @@ Component:AddFunction( "hologram", "s,v,a", "h", "%hologram.NewHolo( %context, v
     Section: Can Hologram
 ==============================================================================================*/
 function Component.CanHolo( Context )
+	local UID = Context.Player:UniqueID( )
+	
 	if Context.Player:GetNWInt( "lemon.holograms", 0 ) >= Cvar_MaxHolograms:GetInt( ) then
 		return false
 	elseif ( DeltaPerPlayer[ UID ] or 0 ) >= Cvar_SpawnRate:GetInt( ) then
