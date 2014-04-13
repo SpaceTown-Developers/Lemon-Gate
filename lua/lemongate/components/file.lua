@@ -275,8 +275,6 @@ net.Receive( "lemon_list_file_done", function( Bytes, Player )
 	local Table = API:GetComponent( "table" ):GetMetaTable( )
 	
 	local ID = net.ReadUInt( 16 )
-	local Part = net.ReadUInt( 16 )
-	local Chunk = net.ReadString( 3 )
 	
 	// Files:
 		local Files = Table( )
