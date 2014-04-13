@@ -692,6 +692,8 @@ function PANEL:_OnKeyCodeTyped( code )
 			self.Bookmarks[Start.x]:DoClick( )
 		elseif code == KEY_F then
 			self.Search:FunctionKey( )
+		elseif code == KEY_B then
+			self:GetParent( ):GetParent( ):ToggleVoice( )
 		end
 	else
 		if code == KEY_ENTER then

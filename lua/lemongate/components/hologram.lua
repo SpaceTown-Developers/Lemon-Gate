@@ -41,11 +41,11 @@ function Component:ShutDown( Gate )
 
 		for _, Holo in pairs( HolosByEntity[ Gate ] or { } ) do
 			PlyTbl[ Holo ] = nil
-			Holo:Remove( )
+			if IsValid( Holo ) then Holo:Remove( ) end
 		end
 	else
 		for _, Holo in pairs( HolosByEntity[ Gate ] or { } ) do
-			Holo:Remove( )
+			if IsValid( Holo ) then Holo:Remove( ) end
 		end
 	end
 end
@@ -257,6 +257,8 @@ function Component.NewHolo( Context, Model, Position, Angle )
 	Entity:Spawn( )
 
 	Entity:Activate( )
+	
+	if CPPI then Entity:CPPISetOwner( Context.Player ) end
 
 	HolosByEntity[ Context.Entity ] = HolosByEntity[ Context.Entity ] or { }
 

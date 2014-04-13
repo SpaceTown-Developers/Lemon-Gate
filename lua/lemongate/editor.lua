@@ -57,16 +57,10 @@ local HomeScreen = [[/*=========================================================
 		* Holograms have changed your codes might break, check the helper for new function names.
 
 	Expression Advanced:
-		* Lowercased Variables
-		* Trig functions fixed!
-		* File functions are back!
-		* Ops rebalance in progress.
+		* int i = 5
 	
 	Editor Changes:
-		* New Open/Save menu.
-		* Script Name Changer (not file name).
-		* Find in code (ctrl + f).
-		* Pastebin.com uploader.
+		* CTR+B for voice chat.
 	
 	We have our own forums:
 	 - http://PoweredByLemons.com

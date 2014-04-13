@@ -611,6 +611,10 @@ function API:InstallComponents( )
 			self:NewFunction( Data.Component, Data.Name, Data.Signature, Data.Params, Data.Return, Data.Perf, Data.First, Data.Second, Data.Desc )
 		end
 	end
+
+	//Add an alias for number and boolean.
+	self.Classes.int = self.Classes.number
+	self.Classes.bool = self.Classes.boolean
 end
 
 /*==========================================================================
@@ -618,7 +622,7 @@ end
 ==========================================================================*/
 function API:GetClass( RawName, NoError )
 	Util.CheckParams( 1, RawName, "string", false, NoError, "boolean", true )
-	
+
 	local Name = string.lower( RawName )
 	local Class = self.Classes[ Name ]
 	

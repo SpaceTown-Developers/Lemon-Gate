@@ -398,8 +398,8 @@ for Key, Type, Value in value %1:Itorate( ) do
 		%Result:Set( Value, "s", Key )
 	elseif Type == "s" and IType[1] == "n" then
 		%Result:Set( Value, "n", Key )
-	else
-		%Result:Set( Key, Type, Value )
+	--else
+	--	%Result:Set( Key, Type, Value )
 	end
 end]], "%Result" )
 

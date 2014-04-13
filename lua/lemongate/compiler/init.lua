@@ -182,7 +182,9 @@ end
 function Compiler:GetClass( Trace, Name )
 	local Class = API:GetClass( Name, true )
 	
-	if !Class or Class.Name ~= Name then
+	if Class and (Name == "int" or Name == "bool") then
+		return Class
+	elseif !Class or Class.Name ~= Name then
 		self:TraceError( Trace, "No such class %s", Name )
 	end
 	

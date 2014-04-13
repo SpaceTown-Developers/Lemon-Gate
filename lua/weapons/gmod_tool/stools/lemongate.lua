@@ -170,7 +170,7 @@ if SERVER then
 			return false
 		end
 		
-		local Model = self:GetModel()
+		local Model = self:GetModel( )
 		local Pos = Trace.HitPos
 		local Ang = Trace.HitNormal:Angle()
 		Ang.pitch = Ang.pitch + 90

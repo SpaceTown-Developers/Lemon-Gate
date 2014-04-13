@@ -16,6 +16,7 @@ ENT.RenderGroup = RENDERGROUP_BOTH
 ==============================================================================================*/
 local function NewInfoTable( )
 	return {
+		FORCEFIRST = true,
 		VISIBLE = true,
 		SHADING = true,
 		SCALEX = 1,
@@ -89,7 +90,7 @@ end
 /*==============================================================================================
     Section: Create Entity
 ==============================================================================================*/
-local SyncQueue, ClipQueue, BoneQueue
+local SyncQueue, ClipQueue, BoneQueue, RemoveQueue
 
 function ENT:Initialize( )
 	LinkHoloInfo( self )
@@ -107,6 +108,7 @@ function ENT:OnRemove( )
 	if CLIENT then return end
 
 	INFOTABLE[ self:EntIndex( ) ] = nil
+	RemoveQueue[ self:EntIndex( ) ] = true
 
 	if IsValid( self.Player ) then
 		self.Player:SetNWInt( "lemon.holograms", self.Player:GetNWInt( "lemon.holograms", 0 ) - 1 )
@@ -117,6 +119,7 @@ end
 ==============================================================================================*/
 
 if SERVER then
+	RemoveQueue = { }
 	SyncQueue = { }
 
 	util.AddNetworkString( "lemon.hologram" )
@@ -169,7 +172,7 @@ if SERVER then
 		
 		if Forced then return self:SyncClipsForced( ) end
 
-		for ID, _ in pairs( SYNC_CLIPS ) do
+		for ID, _ in pairs( self.SYNC_CLIPS ) do
 
 			net.WriteUInt( ID, 16 )
 
@@ -258,7 +261,7 @@ if SERVER then
 		
 		if Forced then return self:SyncBonesForced( ) end
 
-		for ID, _ in pairs( SYNC_BONES ) do
+		for ID, _ in pairs( self.SYNC_BONES ) do
 
 			net.WriteUInt( ID, 16 )
 
@@ -369,6 +372,11 @@ if SERVER then
 		
 		net.WriteUInt( self:EntIndex( ), 16 )
 
+		if self.INFO.FORCEFIRST then
+			Force = true
+			self.INFO.FORCEFIRST = false
+		end
+
 		if SyncQueue[ self ] or Force then
 			net.WriteBit( true )
 			self:SyncInfo( Forced )
@@ -399,7 +407,9 @@ if SERVER then
 
 	hook.Add( "PlayerInitialSpawn", "lemon.hologram", function( Ply )
 		net.Start( "lemon.hologram" )
-			
+
+			net.WriteUInt( 0, 16 )
+
 			for _, ENT in pairs( ents.FindByClass( "lemon_hologram" ) ) do
 				ENT:SyncClient( true )
 			end
@@ -421,12 +431,20 @@ if SERVER then
 
 		net.Start( "lemon.hologram" )
 			
+			for ID, _ in pairs( RemoveQueue ) do
+				net.WriteUInt( ID, 16 )
+			end
+
+			net.WriteUInt( 0, 16 )
+
+			RemoveQueue = { }
+
 			for ENT, _ in pairs( Queue ) do
 				ENT:SyncClient( false )
 			end
 
 			net.WriteUInt( 0, 16 )
-
+			
 		net.Broadcast( )
 	end )
 
@@ -442,7 +460,6 @@ elseif CLIENT then -- End of <if SERVER>
 		if net.ReadBit( ) == 1 then Info.SCALEX = net.ReadFloat( ) end
 		if net.ReadBit( ) == 1 then Info.SCALEY = net.ReadFloat( ) end
 		if net.ReadBit( ) == 1 then Info.SCALEZ = net.ReadFloat( ) end
-
 	end
 
 	local function UpdateClips( Key )
@@ -502,6 +519,13 @@ elseif CLIENT then -- End of <if SERVER>
 
 	net.Receive( "lemon.hologram", function( Len )
 
+		local RemoveID = net.ReadUInt( 16 )
+		
+		while RemoveID ~= 0 do
+			INFOTABLE[ RemoveID ] = nil
+			RemoveID = net.ReadUInt( 16 )
+		end
+		
 		local Key = net.ReadUInt( 16 )
 
 		while Key ~= 0 do
@@ -880,7 +904,11 @@ function ENT:Draw( )
 	local Info = INFOTABLE[ self:EntIndex( ) ]
 
 	-- Don't render what doesn't exist.
-	if !Info or !Info.VISIBLE then return end
+	if !Info then
+		return 
+	elseif !Info.VISIBLE then
+		return
+	end
 
 
 	if self:GetColor( ).a ~= 255 then

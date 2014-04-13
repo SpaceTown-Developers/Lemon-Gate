@@ -38,7 +38,6 @@ function PANEL:Init( )
 	self:SetSize( cookie.GetNumber( "eaeditor_w", math.min( 1000, ScrW( ) * 0.8 ) ), cookie.GetNumber( "eaeditor_h", math.min( 800, ScrH( ) * 0.8 ) ) )
 	self:SetPos( cookie.GetNumber( "eaeditor_x", ScrW( ) / 2 - self:GetWide( ) / 2 ), cookie.GetNumber( "eaeditor_y", ScrH( ) / 2 - self:GetTall( ) / 2 ) )
 	
-	
 	self.TabHolder = self:Add( "DPropertySheet" )
 	self.TabHolder:Dock( FILL )
 	self.TabHolder:DockMargin( 5, 5, 5, 5 )
@@ -136,6 +135,10 @@ function PANEL:Init( )
 	end )
 	
 	file.CreateDir( "Lemongate" )
+
+	self.__bVoice = 0
+	self.__nMicAlpha = 0
+
 end
 
 local function ValidateSoftly( self, Goto, NoCompile, Code )
@@ -546,7 +549,12 @@ function PANEL:Close( )
 	
 	if ValidPanel( self.ToolBar.Options ) and self.ToolBar.Options:IsVisible( ) then 
 		self.ToolBar.Options:Close( ) 
-	end 
+	end
+
+	if self.__bVoice then
+		self:ToggleVoice( )
+		self.__nMicAlpha = 0
+	end
 end
 
 /*============================================================================================================================================
@@ -614,6 +622,39 @@ function PANEL:IncreaseFontSize( Inc )
 	if Size < 1 then Size = 1 end
 	
 	self:ChangeFont( Font, Size )
+end
+
+local MicMaterial = Material( "fugue/microphone.png" )
+
+local function DrawMic( self, Pnl, Delta )
+	self.__nMicAlpha = math.Clamp( self.__nMicAlpha + Delta, 0, 1 )
+	local Alpha = self.__nMicAlpha
+
+	if Alpha == 0 then return end
+	draw.RoundedBox( 4, Pnl:GetWide( ) - 55, 0, 55, 16, Color( 0, 0, 0, Alpha * 100 ) )
+			
+	surface.SetDrawColor( 255, 255, 255, Alpha * 255 )
+	surface.SetMaterial( MicMaterial )
+	surface.DrawTexturedRect( Pnl:GetWide( ) - 15, 0, 16, 16 )
+
+	draw.SimpleText( "Talking", "default", Pnl:GetWide( ) - 35, 8, Color( 0, 0, 0, Alpha * 255 ), 1, 1 )
+end
+
+function PANEL:ToggleVoice( )
+
+	self.__bVoice = !self.__bVoice
+
+	if self.__bVoice then
+		RunConsoleCommand( "+voicerecord" )
+		function self.TabHolder.tabScroller.Paint( Pnl )
+			DrawMic( self, Pnl, 0.01 )
+		end
+	else
+		RunConsoleCommand( "-voicerecord" )
+		function self.TabHolder.tabScroller.Paint( Pnl )
+			DrawMic( self, Pnl, -0.01 )
+		end
+	end
 end
 
 vgui.Register( "EA_EditorPanel", PANEL, "EA_Frame" )

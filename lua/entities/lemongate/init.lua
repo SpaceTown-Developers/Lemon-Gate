@@ -75,6 +75,8 @@ hook.Add( "Tick", "LemonGate.Update", function( )
 end )
 
 function ENT:Update( )
+	if !self.Context then return end
+
 	self:TriggerOutputs( )
 	self.Context:Update( )
 	self:GarbageCollect( )
