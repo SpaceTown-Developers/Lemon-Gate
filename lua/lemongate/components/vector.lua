@@ -39,7 +39,6 @@ local %Current = %memory[value %1] or Vector3.Zero:Clone()
 %delta[ value %1] = %Current
 if !%trigger[value %1] then 
 	%trigger[value %1] = %Current.x ~= value %2.x or %Current.y ~= value %2.y or %Current.z ~= value %2.z
-	print( "Checker:", value %1, %trigger[value %1] )
 end
 ]], "value %2" )
 
