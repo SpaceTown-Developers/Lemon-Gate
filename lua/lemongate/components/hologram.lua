@@ -12,7 +12,7 @@ Component:AddExternal( "hologram", Component )
     Section: Convars
 ==============================================================================================*/
 local Cvar_MaxHolograms = CreateConVar( "lemon_holograms_max", "250" )
-local Cvar_SpawnRate = CreateConVar( "lemon_holograms_rate", "20" )
+local Cvar_SpawnRate = CreateConVar( "lemon_holograms_rate", "50" )
 local Cvar_MaxClips = CreateConVar( "lemon_holograms_clips", "5" )
 local Cvar_MaxScale = CreateConVar( "lemon_holograms_Size", "50" )
 local Cvar_ModelAll = CreateConVar( "lemon_holograms_model_any", "1" )
@@ -404,9 +404,9 @@ if $IsValid( value %1 ) and value %1.Player == %context.Player then
 	value %1:SetVisible(value %2)
 end]], "" )
 
-Component:AddFunction("isVisible", "h:", "b", "($IsValid( value %1 ) and value %1.Info.VISIBLE or false )" )
+Component:AddFunction("isVisible", "h:", "b", "($IsValid( value %1 ) and value %1.INFO.VISIBLE or false )" )
 
-Component:AddFunction("hasShading", "h:", "b", "($IsValid( value %1 ) and value %1.Info.SHADING or false )" )
+Component:AddFunction("hasShading", "h:", "b", "($IsValid( value %1 ) and value %1.INFO.SHADING or false )" )
 
 /*==============================================================================================
     Section: Clipping

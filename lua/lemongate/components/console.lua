@@ -58,6 +58,10 @@ if CLIENT then
 	return Update( ) -- Client stuff is done!
 
 else
+/*==============================================================================================
+	Blocked Chars
+==============================================================================================*/
+	//local BlockedChars = { "\58", "\32", "\13", "\10", "\84", "\n", "\t", "\r" }
 
 /*==============================================================================================
 	Component and API
@@ -75,8 +79,15 @@ else
 	
 	Component:AddExternal( "RunConCmd", function( Player, Command )
 		if Player:GetInfoNum( "lemon_console_allow", 0 ) == 1 then
-			local Blocked = BlockedList[Player]
 			
+			/*for _, Char in pairs( BlockedChars ) do
+				if string.find( Command, Char ) then
+					return false
+				end
+			end*/
+
+			local Blocked = BlockedList[Player]
+
 			if Blocked then
 				for Cmd in Command:gmatch( "[^;]+" ) do
 					if Blocked[ Cmd:match( "[^%s]+" ) ] then
@@ -85,7 +96,8 @@ else
 				end
 			end
 			
-			Player:ConCommand( Command:gsub( "%%", "%%%%" ) )
+			Player:ConCommand( Command:gsub( "%%", "%%%%" ):gsub( "[^ \t%w%p]", "" ) )
+
 			
 			return true
 		end

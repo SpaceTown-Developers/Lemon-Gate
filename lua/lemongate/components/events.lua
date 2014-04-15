@@ -67,6 +67,7 @@ hook.Add( "PlayerSay", "LemonGate", function( Player, Text )
 	local Ret
 
 	for _, Gate in pairs( API:GetEntitys( ) ) do
+		if !IsValid( Gate ) or !Gate.CallEvent then continue end
 		local Result = Gate:CallEvent( "playerChat", Player, Text )
 		
 		if !Ret and Result and Player == Gate.Player then
@@ -85,6 +86,8 @@ hook.Add( "PlayerCanHearPlayersVoice", "LemonGate", function( Player, Speaker )
 	local Ret
 
 	for _, Gate in pairs( API:GetEntitys(  ) ) do
+		if !IsValid( Gate ) or !Gate.CallEvent then continue end
+
 		if Player == Gate.Player then
 			local Result, Gate = Gate:CallEvent( "playerSpeak", Speaker )
 			if !Ret and Result then Ret = Result end
@@ -105,7 +108,8 @@ Core:AddEvent( "dupeFinished", "", "" )
 
 hook.Add( "AdvDupe_FinishPasting", "LemonGate", function( Data, Current )
 	for _, Gate in pairs( Data[Current].CreatedEntities ) do
-		if IsValid( Gate ) and Gate.IsLemonGate and Gate:IsRunning( ) then
+		if !IsValid( Gate ) or !Gate.CallEvent then continue end
+		if Gate.IsLemonGate and Gate:IsRunning( ) then
 			Gate:CallEvent( "dupeFinished" )
 		end
 	end
@@ -196,6 +200,8 @@ if Wire_Keyboard_Remap then
 		
 		if Key and !State then 
 			for _, Gate in pairs( API:GetEntitys( ) ) do
+				if !IsValid( Gate ) or !Gate.CallEvent then continue end
+
 				local Players = PlayerKeys[ Gate ]
 				if (Players and Players[ Ply ]) or Ply == Gate.Player then
 					Gate:CallEvent( "keypress", Key, Ply )
@@ -209,6 +215,8 @@ if Wire_Keyboard_Remap then
 		
 		if Key and State then 
 			for _, Gate in pairs( API:GetEntitys( ) ) do
+				if !IsValid( Gate ) or !Gate.CallEvent then continue end
+
 				local Players = PlayerKeys[ Gate ]
 				if (Players and Players[ Ply ]) or Ply == Gate.Player then
 					Gate:CallEvent( "keyrelease", Key, Ply )

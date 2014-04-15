@@ -440,7 +440,9 @@ if SERVER then
 			RemoveQueue = { }
 
 			for ENT, _ in pairs( Queue ) do
-				ENT:SyncClient( false )
+				if IsValid( ENT ) and ENT.SyncClient then
+					ENT:SyncClient( false )
+				end
 			end
 
 			net.WriteUInt( 0, 16 )
@@ -965,17 +967,16 @@ function ENT:ApplyHoloInfo( )
 
 	if !Info then return end
 
+	local Bones = self:GetBoneCount( )
 	local Scale = Vector( Info.SCALEX, Info.SCALEY, Info.SCALEZ )
 
-	if Info.BONES and self:GetBoneCount( ) > 1 then
+	if string.Left( self:GetModel( ), 17 ) == "models/holograms/" then
 		
-		/*for ID = 0, self:GetBoneCount( ) - 1 do
-			local BoneMatrix = self:GetBoneMatrix( ID )
+		local Scale = Vector( Info.SCALEY, Info.SCALEX, Info.SCALEZ )
+			
+		for ID = Bones, 0, -1 do self:ManipulateBoneScale( ID, Scale ) end
 
-			BoneMatrix:Scale( Scale )
-
-			self:SetBoneMatrix( ID, BoneMatrix )
-		end*/
+	elseif Bones > 1 and Info.BONES then 
 
 		for ID, Bone in pairs( self.BONES ) do
 			
@@ -985,7 +986,7 @@ function ENT:ApplyHoloInfo( )
 
 			self:ManipulateBonePosition( ID, Vector( Bone.POSX, Bone.POSY, Bone.POSZ ) )
 
-			self:ManipulateBoneScale( ID, Vector( Bone.SCALEX, Bone.SCALEY, Bone.SCALEZ ) )
+			self:ManipulateBoneScale( ID, Vector( Bone.SCALEY, Bone.SCALEX, Bone.SCALEZ ) )
 
 			self:ManipulateBoneAngles( ID, Angle( Bone.ANGLEP, Bone.ANGLEY, Bone.ANGLEY ) )
 		end

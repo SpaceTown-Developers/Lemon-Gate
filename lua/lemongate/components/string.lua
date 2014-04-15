@@ -176,3 +176,17 @@ Core:AddFunction( "matchFirst", "s:s[,n]", "s",[[
 local %Ok, %Result = pcall(string.match, value %1, value %2, value %3 or 0)
 if !%Ok then %context:Throw("string", "Invalid string pattern (" .. value %2 ..").") end
 ]], "(%Result or \"\")")
+
+/*==============================================================================================
+	Section: Format
+==============================================================================================*/
+Core:AddFunction( "format", "s:...", "s", [[
+	local %Values = { }
+
+	for I, Variant in pairs( { %... } ) do
+		%Values[I] = $istable( Variant[1] ) and tostring( Variant[1] ) or Variant[1]
+	end
+
+	local %Ok, %Result = pcall(string.format, value %1, $unpack(%Values) )
+	if !%Ok then %context:Throw(%trace,"string", "Invalid use of format.") end
+]], "(%Result or \"\")" )
