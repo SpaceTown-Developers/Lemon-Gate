@@ -127,13 +127,13 @@ Component:AddFunction( "ignoreWorld", "rd:b", "", "value %1.Ignore_World = value
 Component:AddFunction( "hitWater", "rd:b", "", "value %1.Hit_Water = value %2", LEMON_PREPARE_ONLY )
 
 -- Get
-Component:AddFunction( "ignoreEntities", "rd:", "", "value %1.Ignore_Entities", LEMON_INLINE_ONLY )
+Component:AddFunction( "ignoreEntities", "rd:", "b", "value %1.Ignore_Entities", LEMON_INLINE_ONLY )
 
-Component:AddFunction( "defaultZero", "rd:", "", "value %1.Default_Zero", LEMON_INLINE_ONLY )
+Component:AddFunction( "defaultZero", "rd:", "b", "value %1.Default_Zero", LEMON_INLINE_ONLY )
 
-Component:AddFunction( "ignoreWorld", "rd:", "", "value %1.Ignore_World", LEMON_INLINE_ONLY )
+Component:AddFunction( "ignoreWorld", "rd:", "b", "value %1.Ignore_World", LEMON_INLINE_ONLY )
 
-Component:AddFunction( "hitWater", "rd:", "", "value %1.Hit_Water", LEMON_INLINE_ONLY )
+Component:AddFunction( "hitWater", "rd:", "b", "value %1.Hit_Water", LEMON_INLINE_ONLY )
 
 
 -- Hull Trace
@@ -147,9 +147,9 @@ Component:AddFunction( "noHull", "rd:", "", [[
 	value %1.Maxs = false
 ]], LEMON_PREPARE_ONLY )
 
-Component:AddFunction( "mins", "rd:", "", "( value %1.Mins or Vector3( 0, 0, 0 ) )", LEMON_INLINE_ONLY )
+Component:AddFunction( "mins", "rd:", "v", "( value %1.Mins or Vector3( 0, 0, 0 ) )", LEMON_INLINE_ONLY )
 
-Component:AddFunction( "maxs", "rd:", "", "( value %1.Maxs or Vector3( 0, 0, 0 ) )", LEMON_INLINE_ONLY )
+Component:AddFunction( "maxs", "rd:", "v", "( value %1.Maxs or Vector3( 0, 0, 0 ) )", LEMON_INLINE_ONLY )
 
 -- Do Trace
 
