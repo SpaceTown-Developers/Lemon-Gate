@@ -60,18 +60,15 @@ function PANEL:Init( )
 	self.Undo = { }
 	self.Redo = { }
 	self.PaintRows = { }
-	self.FoldButtons = { }
-	self.FoldData = { } 
-	self.FoldedRows = { } 
 	self.Bookmarks = { } 
 	self.ActiveBookmarks = { } 
+	self.SyncedCursors = { }
 	self.Insert = false 
 	
 	self.Blink = RealTime( )
 	self.BookmarkWidth = 16
 	self.LineNumberWidth = 2
 	self.FoldingWidth = 16 
-	self.CaretRow = 0 
 	self.LongestRow = 0 
 	self.FontHeight = 0 
 	self.FontWidth = 0
@@ -140,6 +137,7 @@ function PANEL:HighlightFoundWord( caretstart, start, stop )
 		self.Start = self:MovePosition( caretstart, start )
 	end
 	
+
 	if istable( stop ) then
 		self.Caret = Vector2( stop.y, stop.x + 1 )
 	elseif isnumber( stop ) then
@@ -153,21 +151,6 @@ end
 Cursor functions
 ---------------------------------------------------------------------------*/
 
-local function GetFoldingOffset( self, Row ) do return 0 end 
-	local offset = 0 
-	local pos = 1
-	
-	while pos < Row or self.FoldedRows[pos] do 
-		if self.FoldedRows[pos] then 
-			offset = offset + 1 
-			Row = Row + 1
-		end 
-		pos = pos + 1
-	end 
-	
-	return offset 
-end 
-
 function PANEL:CursorToCaret( ) 
 	local x, y = self:CursorPos( ) 
 
@@ -176,7 +159,6 @@ function PANEL:CursorToCaret( )
 	if y < 0 then y = 0 end 
 
 	local line = math_floor( y / self.FontHeight ) 
-	line = line + GetFoldingOffset( self, line + self.Scroll.x ) 
 	local char = math_floor( x / self.FontWidth + 0.5 ) 
 
 	line = line + self.Scroll.x 
@@ -315,7 +297,7 @@ function PANEL:GetArea( selection )
 	end
 end
 
-function PANEL:SetArea( selection, text, isundo, isredo, before, after ) 
+function PANEL:SetArea( selection, text, isundo, isredo, before, after )
 	local buffer = self:GetArea( selection )
 	local start, stop = self:MakeSelection( selection )
 		
@@ -329,10 +311,10 @@ function PANEL:SetArea( selection, text, isundo, isredo, before, after )
 	end
 	
 	if !text or text == "" then
-		self.ScrollBar:SetUp( self.Size.x, #self.Rows + ( math_floor( self:GetTall( ) / self.FontHeight ) - 2 ) - table_Count( table_KeysFromValue( self.FoldedRows, true ) ))
+		self.ScrollBar:SetUp( self.Size.x, #self.Rows + ( math_floor( self:GetTall( ) / self.FontHeight ) - 2 ) )
 		self:CalculateHScroll( )
 		self.PaintRows = { }
-		self:OnTextChanged( )
+		self:OnTextChanged( selection, text )
 		
 		if isredo then
 			self.Undo[#self.Undo + 1] = { { self:CopyPosition( start ), self:CopyPosition( start ) }, 
@@ -364,10 +346,10 @@ function PANEL:SetArea( selection, text, isundo, isredo, before, after )
 	
 	self.Rows[stop.x] = self.Rows[stop.x] .. remainder
 	
-	self.ScrollBar:SetUp( self.Size.x, #self.Rows + ( math_floor( self:GetTall( ) / self.FontHeight ) - 2 ) - table_Count( table_KeysFromValue( self.FoldedRows, true ) ))
+	self.ScrollBar:SetUp( self.Size.x, #self.Rows + ( math_floor( self:GetTall( ) / self.FontHeight ) - 2 ))
 	self:CalculateHScroll( )
 	self.PaintRows = { }
-	self:OnTextChanged( )
+	self:OnTextChanged( selection, text )
 	
 	if isredo then
 		self.Undo[#self.Undo + 1] = { { self:CopyPosition( start ), self:CopyPosition( stop ) }, 
@@ -555,7 +537,7 @@ function PANEL:_OnKeyCodeTyped( code )
 				local clipboard = self:GetSelection( )
 				clipboard = string_gsub( clipboard, "\n", "\r\n" )
 				SetClipboardText( clipboard )
-				self:SetSelection( )
+				self:SetSelection( "" )
 			end
 		elseif code == KEY_C then
 			if self:HasSelection( ) then
@@ -726,10 +708,6 @@ function PANEL:_OnKeyCodeTyped( code )
 			if self.Caret.x > 1 then
 				self.Caret.x = self.Caret.x - 1
 				
-				while self.FoldedRows[self.Caret.x] do 
-					self.Caret.x = self.Caret.x - 1
-				end 
-				
 				local length = #( self.Rows[self.Caret.x] )
 				if self.Caret.y > length + 1 then
 					self.Caret.y = length + 1
@@ -743,10 +721,6 @@ function PANEL:_OnKeyCodeTyped( code )
 		elseif code == KEY_DOWN then
 			if self.Caret.x < #self.Rows then
 				self.Caret.x = self.Caret.x + 1
-				
-				while self.FoldedRows[self.Caret.x] do 
-					self.Caret.x = self.Caret.x + 1
-				end 
 				
 				local length = #( self.Rows[self.Caret.x] )
 				if self.Caret.y > length + 1 then
@@ -772,27 +746,27 @@ function PANEL:_OnKeyCodeTyped( code )
 			end
 		elseif code == KEY_BACKSPACE then
 			if self:HasSelection( ) then
-				self:SetSelection( )
+				self:SetSelection( "" )
 			else
 				local buffer = self:GetArea( { self.Caret, Vector2( self.Caret.x, 1 ) } ) 
 				if self.Caret.y % 4 == 1 and #buffer > 0 and string_rep( " ", #buffer ) == buffer then
-					self:SetCaret( self:SetArea( { self.Caret, self:MovePosition( self.Caret, -4 ) } ) )
+					self:SetCaret( self:SetArea( { self.Caret, self:MovePosition( self.Caret, -4 ) }, "" ) )
 				elseif #buffer > 0 and AutoParam[self.Rows[self.Caret.x][self.Caret.y-1]] and AutoParam[self.Rows[self.Caret.x][self.Caret.y-1]] == self.Rows[self.Caret.x][self.Caret.y] then 
 					self.Caret.y = self.Caret.y + 1
-					self:SetCaret( self:SetArea( { self.Caret, self:MovePosition( self.Caret, -2 ) } ) )
+					self:SetCaret( self:SetArea( { self.Caret, self:MovePosition( self.Caret, -2 ) }, "" ) )
 				else 
-					self:SetCaret( self:SetArea( { self.Caret, self:MovePosition( self.Caret, -1 ) } ) )
+					self:SetCaret( self:SetArea( { self.Caret, self:MovePosition( self.Caret, -1 ) }, "" ) )
 				end
 			end
 		elseif code == KEY_DELETE then
 			if self:HasSelection( ) then
-				self:SetSelection( )
+				self:SetSelection( "" )
 			else
 				local buffer = self:GetArea( { Vector2( self.Caret.x, self.Caret.y + 4 ), Vector2( self.Caret.x, 1 ) } )
 				if self.Caret.y % 4 == 1 and string_rep( " ", #( buffer ) ) == buffer and #( self.Rows[self.Caret.x] ) >= self.Caret.y + 4 - 1 then
-					self:SetCaret( self:SetArea( { self.Caret, self:MovePosition( self.Caret, 4 ) } ) )
+					self:SetCaret( self:SetArea( { self.Caret, self:MovePosition( self.Caret, 4 ) }, "" ) )
 				else
-					self:SetCaret( self:SetArea( { self.Caret, self:MovePosition( self.Caret, 1 ) } ) )
+					self:SetCaret( self:SetArea( { self.Caret, self:MovePosition( self.Caret, 1 ) }, "" ) )
 				end
 			end
 		elseif code == KEY_PAGEUP then --
@@ -1040,7 +1014,7 @@ function PANEL:OnMouseReleased( code )
 					local clipboard = self:GetSelection( ) 
 					clipboard = string_gsub( clipboard, "\n", "\r\n" ) 
 					SetClipboardText( clipboard ) 
-					self:SetSelection( ) 
+					self:SetSelection( "" ) 
 				end ) 
 			end 
 			
@@ -1198,29 +1172,6 @@ local function FindMatchingParam( Rows, Row, Char )
 	return false 
 end 
 
-// TODO: Make the codefolding work! 
-local function ParseIndents( Rows, exit ) 
-	local ValidLines = FindValidLines( Rows ) 
-	local foldData = { }
-	local level = 0
-	
-	for line = 1, #Rows do
-		if line == exit then break end 
-		local text = Rows[line] 
-		foldData[line] = 0 
-		-- foldData[line] = level 
-		
-		if not ValidLines[line] then continue end 
-		
-		for nStart, sType, nEnd in string.gmatch( text, "()([{}])()") do 
-			if type( ValidLines[line] ) == "table" and ValidLines[line][1] <= nStart and ValidLines[line][2] >= nEnd then continue end 
-			level = level + ( sType == "{" and 1 or -1 ) 
-		end 
-	end
-	
-	return foldData 
-end 
-
 function PANEL:Paint( w, h )
 	if not self.Font then return end 
 	
@@ -1235,18 +1186,6 @@ function PANEL:Paint( w, h )
 	if self.MouseDown and self.MouseDown == MOUSE_LEFT then
 		self.Caret = self:CursorToCaret( )
 	end
-	
-	local offset = table_Count( table_KeysFromValue( self.FoldedRows, true ) )
-	
-	local n = #self.Rows + ( math_floor( self:GetTall( ) / self.FontHeight ) - 2 ) - offset
-	
-	// Disabled
-	/*if self.CanvasSize ~= n and false then 
-		self.ScrollBar:SetUp( self.Size.x, n ) 
-		self:CalculateHScroll( )
-		-- self.ScrollBar:InvalidateLayout( true ) 
-		self.CanvasSize = n 
-	end */
 	
 	self.Scroll.x = math_floor( self.ScrollBar:GetScroll( ) + 1 )
 	self.Scroll.y = math_floor( self.hScrollBar:GetScroll( ) + 1 )
@@ -1264,18 +1203,7 @@ function PANEL:Paint( w, h )
 end
 
 function PANEL:PaintTextOverlay( )
-	if self.TextEntry:HasFocus( ) and self.Caret.x - self.Scroll.x >= 0 and self.Caret.x < self.Scroll.x + self.Size.x + 1 then
-		local width, height = self.FontWidth, self.FontHeight
-
-		if ( RealTime( ) - self.Blink ) % 0.8 < 0.4 then
-			surface_SetDrawColor( 240, 240, 240, 255 )
-			if self.Insert then 
-				surface_DrawRect( ( self.Caret.y - self.Scroll.y ) * width + self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth, ( self.CaretRow + 1 ) * height, width, 1 )
-			else 
-				surface_DrawRect( ( self.Caret.y - self.Scroll.y ) * width + self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth, self.CaretRow * height, 1, height )
-			end 
-		end
-	end
+	self:PaintCursor( self.Caret ) 
 end
 
 local C_white = Color( 255, 255, 255 ) 
@@ -1293,68 +1221,131 @@ function PANEL:DrawText( w, h )
 	surface_DrawRect( self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth, 0, self:GetWide( ) - ( self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth ), self:GetTall( ) )
 	
 	self.Params = FindMatchingParam( self.Rows, self.Caret.x, self.Caret.y ) 
-	self.FoldData = ParseIndents( self.Rows )
-	
-	for i = 1, #self.Rows do
-		if self.FoldButtons[i] and ValidPanel( self.FoldButtons[i] ) then 
-			self.FoldButtons[i]:SetVisible( false )
-		end 
-	end
 	
 	for i = 1, #self.Rows do
 		if self.Bookmarks[i] and ValidPanel( self.Bookmarks[i] ) then 
 			self.Bookmarks[i]:SetVisible( false )
 		end 
 	end
+
+	if self.TextEntry:HasFocus( ) and self:PositionIsVisible( self.Caret ) then
+		surface_SetDrawColor( 48, 48, 48, 255 )
+		surface_DrawRect( self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth, (self.Caret.x - self.Scroll.x) * self.FontHeight, self:GetWide( ) - ( self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth ) , self.FontHeight )
+	end
 	
-	local line = self.Scroll.x - 1 
-	line = line + GetFoldingOffset( self, line + self.Scroll.x - 1 ) 
+	self:PaintSelection( self:Selection( ) )
+	self:PaintSyncedCursorsAndSelections( )
 	
-	while self.FoldedRows[line+1] do 
-		line = line + 1 
-	end 
-	
+	-- [[
 	local painted = 0
-	local hideLevel = 0
-	while painted < self.Size.x + 2 do 
-		line = line + 1
-		if hideLevel == 0 then 
-			if self.FoldButtons[line] then 
-				local btn = self.FoldButtons[line] 
-				if !btn.Expanded then 
-					hideLevel = self.FoldData[line + 1] 
-				end 
+	for i = self.Scroll.x, self.Scroll.x + self.Size.x + 1 do
+		self:PaintRowUnderlay( i, painted )
+		self:PaintRow( i, painted )
+		painted = painted + 1
+	end
+	-- ]]
+end
+
+function PANEL:UpdateSyncedCursor( ID, selection )
+	self.SyncedCursors[ID] = selection
+end
+
+function PANEL:RemoveSyncedCursor( ID )
+	self.SyncedCursors[ID] = nil
+end
+
+function PANEL:PaintSyncedCursorsAndSelections( )
+	for ID, selection in pairs( self.SyncedCursors ) do
+		local visible = self:PositionIsVisible( selection[1] )
+		
+		if visible then
+			self:PaintCursor( selection[1] )
+		else
+			visible = self:PositionIsVisible( selection[2] )
+		end
+		
+		if visible then
+			self:PaintSelection( selection )
+		end
+	end
+end
+
+function PANEL:PositionIsVisible( pos )
+	return 	pos.x - self.Scroll.x >= 0 and pos.x < self.Scroll.x + self.Size.x + 1 and
+			pos.y - self.Scroll.y >= 0 and pos.y < self.Scroll.y + self.Size.y + 1
+end
+
+
+function PANEL:PaintCursor( Caret ) 
+	if self.TextEntry:HasFocus( ) and self:PositionIsVisible( Caret ) then
+		local width, height = self.FontWidth, self.FontHeight
+		
+		if ( RealTime( ) - self.Blink ) % 0.8 < 0.4 then
+			surface_SetDrawColor( 240, 240, 240, 255 )
+			if self.Insert then 
+				surface_DrawRect( ( Caret.y - self.Scroll.y ) * width + self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth, ( Caret.x - self.Scroll.x + 1 ) * height, width, 1 )
+			else 
+				surface_DrawRect( ( Caret.y - self.Scroll.y ) * width + self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth, ( Caret.x - self.Scroll.x) * height, 1, height )
 			end 
-			self:PaintRowUnderlay( line, painted )
-			self:PaintRow( line, painted )
-			painted = painted + 1
-			self.FoldedRows[line] = false 
-		elseif !self.FoldData[line] or self.FoldData[line] < hideLevel then 
-			hideLevel = 0 
-			line = line - 1
-			self.FoldedRows[line] = true 
-		else 
-			self.FoldedRows[line] = true 
-		end 
-	end 
+		end
+	end
+end 
+
+function PANEL:PaintSelection( selection )
+	local start, stop = self:MakeSelection( selection )
+	local line, char = start.x, start.y 
+	local endline, endchar = stop.x, stop.y 
 	
-	-- for i = self.Scroll.x, self.Scroll.x + self.Size.x + 1 do
-	-- 	self:PaintRow( i )
-	-- end
+	char = char - self.Scroll.y
+	endchar = endchar - self.Scroll.y
+	
+	if char < 0 then char = 0 end
+	if endchar < 0 then endchar = 0 end
+	
+
+	for Row = line, endline do 
+		if Row > #self.Rows then break end
+		local length = #self.Rows[Row] - self.Scroll.y + 1
+		local LinePos = Row - self.Scroll.x
+		
+		surface_SetDrawColor( 0, 0, 160, 255 )
+		if Row == line and line == endline then 
+			surface_DrawRect( 
+				char * self.FontWidth + self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth, 
+				( LinePos ) * self.FontHeight, 
+				self.FontWidth * ( endchar - char ), 
+				self.FontHeight 
+			 )
+		elseif Row == line then 
+			surface_DrawRect( 
+				char * self.FontWidth + self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth, 
+				( LinePos ) * self.FontHeight, 
+				self.FontWidth * math_min( self.Size.y - char + 2, length - char + 1 ), 
+				self.FontHeight 
+			 )
+		elseif Row == endline then 
+			surface_DrawRect( 
+				self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth, 
+				( LinePos ) * self.FontHeight, 
+				self.FontWidth * endchar,  
+				self.FontHeight 
+			 ) 
+		elseif Row > line and Row < endline then 
+			surface_DrawRect( 
+				self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth, 
+				( LinePos ) * self.FontHeight, 
+				self.FontWidth * math_min( self.Size.y + 2, length + 1 ),  
+				self.FontHeight 
+			 )
+		end
+	end
 end
 
 function PANEL:PaintRowUnderlay( Row, LinePos )
 	if Row > #self.Rows then return end
 	
-	if Row == self.Caret.x and self.TextEntry:HasFocus( ) then
-		surface_SetDrawColor( 48, 48, 48, 255 )
-		surface_DrawRect( self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth, ( LinePos ) * self.FontHeight, self:GetWide( ) - ( self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth ) , self.FontHeight )
-		self.CaretRow = LinePos
-	end
-	
-	-- Search Box, Hilight.
+	-- Search Box Highlighting.
 	local FindQuery = self.Search:ValidQuery( )
-
 	if FindQuery then
 		local Row = self.Rows[ Row ]
 		
@@ -1362,7 +1353,7 @@ function PANEL:PaintRowUnderlay( Row, LinePos )
 			FindQuery = FindQuery:lower( )
 			Row = Row:lower( )
 		end
-
+		
 		surface_SetDrawColor( 128, 255, 0, 50 )
 		
 		pcall( function( ) -- For now untill we fix the invalid pattern bug.
@@ -1378,14 +1369,7 @@ function PANEL:PaintRowUnderlay( Row, LinePos )
 	end
 		
 	if self:HasSelection( ) then 
-		local start, stop = self:MakeSelection( self:Selection( ) )
-		local line, char = start.x, start.y 
-		local endline, endchar = stop.x, stop.y 
-		
-		char = char - self.Scroll.y
-		endchar = endchar - self.Scroll.y
-		
-		-- Section Refresnce Hilgihting
+		-- Section Reference Highlighting
 		local overHighlight = self:HiglightedWord( )
 		
 		if overHighlight then
@@ -1400,7 +1384,14 @@ function PANEL:PaintRowUnderlay( Row, LinePos )
 				)
 			end
 		end
+		--[[
+		local start, stop = self:MakeSelection( self:Selection( ) )
+		local line, char = start.x, start.y 
+		local endline, endchar = stop.x, stop.y 
 		
+		char = char - self.Scroll.y
+		endchar = endchar - self.Scroll.y
+
 		if char < 0 then char = 0 end
 		if endchar < 0 then endchar = 0 end
 		
@@ -1436,6 +1427,7 @@ function PANEL:PaintRowUnderlay( Row, LinePos )
 				self.FontHeight 
 			 )
 		end
+		]]
 	elseif self.Params then 
 		if self.Params[1].x == Row then 
 			surface_SetDrawColor( 160, 160, 160, 255 )
@@ -1451,70 +1443,33 @@ end
 function PANEL:PaintRow( Row, LinePos )
 	if Row > #self.Rows then return end
 	
-	if Row < #self.Rows and self.FoldData[Row] < self.FoldData[Row+1] then 
-		if !self.FoldButtons[Row] or !ValidPanel( self.FoldButtons[Row] ) then 
-			local btn = self:Add( "EA_ImageButton" ) 
-			btn:SetPos( self.BookmarkWidth + self.LineNumberWidth, ( LinePos ) * self.FontHeight ) 
-			btn:SetIconCentered( true )
-			btn:SetIconFading( false ) 
-			btn.Expanded = true 
-			btn:SetMaterial( Material( "oskar/minus.png" ) ) 
-			
-			local paint = btn.Paint 
-			btn.Paint = function( _, w, h ) 
-				surface.SetDrawColor = function() 
-					surface_SetDrawColor( 150, 150, 150, 255 )
-					if btn.Hovered then surface_SetDrawColor( 200, 200, 200, 255 ) end 
-				end 
-				paint( btn, w, h )
-				surface.SetDrawColor = surface_SetDrawColor
-			end 
-			
-			btn.DoClick = function( )
-				if btn.Expanded then 
-					btn:SetMaterial( Material( "oskar/plus.png" ) )
-					btn.Expanded = false 
-				else 
-					btn:SetMaterial( Material( "oskar/minus.png" ) )
-					btn.Expanded = true 
-				end 
-			end
-			
-			self.FoldButtons[Row] = btn 
-		else 
-			self.FoldButtons[Row]:SetVisible( true )
-			self.FoldButtons[Row]:SetPos( self.BookmarkWidth + self.LineNumberWidth, ( LinePos ) * self.FontHeight ) 
+	if not self.Bookmarks[Row] or not ValidPanel( self.Bookmarks[Row] ) then 
+		local btn = self:Add( "EA_ImageButton" ) 
+		btn:SetIconCentered( true )
+		btn:SetIconFading( false ) 
+		btn.bActive = false 
+		btn:SetMaterial( BookmarkMaterial ) 
+		
+		local paint = btn.Paint 
+		btn.Paint = function( _, w, h ) 
+			if not btn.bActive then return end 
+			paint( btn, w, h )
 		end 
-	end 
-	
-	if Row <= #self.Rows then 
-		if not self.Bookmarks[Row] or not ValidPanel( self.Bookmarks[Row] ) then 
-			local btn = self:Add( "EA_ImageButton" ) 
-			btn:SetIconCentered( true )
-			btn:SetIconFading( false ) 
-			btn.bActive = false 
-			btn:SetMaterial( BookmarkMaterial ) 
-			
-			local paint = btn.Paint 
-			btn.Paint = function( _, w, h ) 
-				if not btn.bActive then return end 
-				paint( btn, w, h )
+		
+		btn.DoClick = function( )
+			btn.bActive = not btn.bActive 
+			if btn.bActive then 
+				self.ActiveBookmarks[Row] = { self:MakeSelection( self:Selection( ) ) } 
+			else 
+				self.ActiveBookmarks[Row] = nil 
 			end 
-			
-			btn.DoClick = function( )
-				btn.bActive = not btn.bActive 
-				if btn.bActive then 
-					self.ActiveBookmarks[Row] = { self:MakeSelection( self:Selection( ) ) } 
-				else 
-					self.ActiveBookmarks[Row] = nil 
-				end 
-			end
-			
-			self.Bookmarks[Row] = btn 
-		end 
-		self.Bookmarks[Row]:SetVisible( true )
-		self.Bookmarks[Row]:SetPos( 2, ( LinePos ) * self.FontHeight ) 
+		end
+		
+		self.Bookmarks[Row] = btn 
 	end 
+	self.Bookmarks[Row]:SetVisible( true )
+	self.Bookmarks[Row]:SetPos( 2, ( LinePos ) * self.FontHeight ) 
+
 	
 	draw_SimpleText( tostring( Row ), self.Font, self.BookmarkWidth + self.LineNumberWidth - 3, self.FontHeight * ( LinePos ), C_white, TEXT_ALIGN_RIGHT ) 
 	
@@ -1568,16 +1523,13 @@ function PANEL:SetCode( Text )
 	
 	-- Fold: Generate Overall Offset.
 	
-	self.ScrollBar:SetUp( self.Size.x, #self.Rows + ( math_floor( self:GetTall( ) / self.FontHeight ) - 2 ) - table_Count( table_KeysFromValue( self.FoldedRows, true ) )) 
+	self.ScrollBar:SetUp( self.Size.x, #self.Rows + ( math_floor( self:GetTall( ) / self.FontHeight ) - 2 ) ) 
 	self:CalculateHScroll( ) 
 end 
 
-function PANEL:GetCode( )
-	
-	-- Fold: Generate from folds.
-	
-	local code = string_gsub( table_concat( self.Rows, "\n" ), "\r", "" )
-	return code
+function PANEL:GetCode( ) 
+	local code = string_gsub( table_concat( self.Rows, "\n" ), "\r", "" )  
+	return code 
 end
 
 function PANEL:OnTextChanged( )
@@ -1593,8 +1545,6 @@ function PANEL:CalculateHScroll( )
 	for i = 1, #self.Rows do
 		self.LongestRow = math.max( self.LongestRow, #self.Rows[i] )
 	end
-	
-	-- Fold: Skip folded rows.
 	
 	self.hScrollBar:SetUp( self.Size.y, self.LongestRow ) 
 end 
@@ -1617,4 +1567,4 @@ function PANEL:PerformLayout( )
 	self.Search:SetPos( self:GetWide( ) - self.ScrollBar:GetWide( ) - 285, self.Search.Y )
 end
 
-vgui.Register( "EA_Editor", PANEL, "EditablePanel" )
+vgui.Register( "EA_Editor", PANEL, "EditablePanel" ) 

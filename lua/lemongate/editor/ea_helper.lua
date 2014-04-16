@@ -5,7 +5,7 @@
 	Author: Oskar
 ============================================================================================================================================*/
 
-local LEMON, API, HelperData = LEMON, LEMON.API, LEMON.API.HelperData
+local LEMON, API = LEMON, LEMON.API
 
 local string_match = string.match 
 local string_find = string.find 
@@ -13,6 +13,7 @@ local string_reverse = string.reverse
 local string_sub = string.sub 
 local string_lower = string.lower 
 local string_format = string.format 
+local string_Split = string.Split 
 
 local table_concat = table.concat 
 local table_Copy = table.Copy 
@@ -63,6 +64,8 @@ end
 local function GetType( word )
 	local Class = API:GetClass( word, true ) 
 	if Class then 
+		if Class.Name == "int" then return "number" end 
+		if Class.Name == "bool" then return "boolean" end 
 		return Class.Name or "" 
 	end 
 	if word == "..." then 
@@ -73,15 +76,18 @@ end
 
 local function NodeClick( self ) 
 	local Syntax = { }
-	local meta = ""
+	local meta, smeta = "", ""
 	local Data = self.Data[3]
 	
-	local FuncName = string_format( "%s(%s%s)", string_match( self.Data[1], "^[^%(]+" ), string_match( self.Data[1], "%(([^%)]*)%)" ), #Data.Return > 0 and " " .. Data.Return or "" )
-	
 	for i = 1, #Data.Params do Syntax[#Syntax + 1] = GetType( Data.Params[i] ) or "" end
-	if string_match( self.Data[1], ":" ) then meta = table.remove( Syntax, 1 ) .. ":" end 
+	if string_match( self.Data[1], ":" ) then 
+		meta = table.remove( Syntax, 1 ) .. ":" 
+		smeta = table.remove( Data.Params, 1 ) .. ":"
+	end 
 	
-	self.Description:SetText( #HelperData[FuncName] > 0 and HelperData[FuncName] or "No description." ) 
+	local FuncName = string_format( "%s(%s%s)", string_match( self.Data[1], "^[^%(]+" ), smeta .. table_concat( Data.Params, "," ) , #Data.Return > 0 and "=" .. Data.Return or "" )
+	
+	self.Description:SetText( #LEMON.API.HelperData[FuncName] > 0 and LEMON.API.HelperData[FuncName] or "No description." ) 
 	self.Syntax:SetText( (#Data.Return > 0 and GetType( Data.Return ) .. " = " or "") .. meta .. string_match( self.Data[1], "^[^%(]+." ) .. table_concat( Syntax, ", " ) .. ")" )
 end
 
@@ -100,7 +106,7 @@ function PANEL:SetupHelperFunctions( filter )
 	
 	local cList = { } 
 	for Name, Data in pairs( API.Classes ) do
-		if Name == "..." then continue end 
+		if Name == "..." or Name == "bool" or Name == "int" then continue end 
 		cList[#cList + 1] = Name 
 	end 
 	
@@ -172,11 +178,11 @@ function PANEL:SetupHelperFunctions( filter )
 		end 
 	end 
 	
-	for Class, Data in pairs( self.Classes ) do
+	for Class, Data in pairs( self.Classes ) do 
 		if not self.cFunctions[Class] then 
-			Data[2]:Remove( ) 
+			-- Data[2]:Remove( ) 
 		end 
-	end
+	end 
 	
 	table.sort( self.Functions, function(a, b) 
 		-- return string_lower( a[2] ) < string_lower( b[2] ) 
@@ -201,3 +207,178 @@ function PANEL:Close( )
 end
 
 vgui.Register( "EA_Helper", PANEL, "EA_Frame" )
+
+
+/*============================================================================================================================================
+	Helper Generator
+============================================================================================================================================*/
+
+local function DumpHelperData( ) 
+	local HelperData = LEMON.API.HelperData 
+	local FuncData, EventData = { }, { } 
+	local DocumentedFunctions, DocumentedEvents = 0, 0
+	
+	for name, data in pairs( API.Functions ) do 
+		if string_find( name, "***", nil, true ) then print( name ) continue end 
+		local params = table.Copy( data.Params )
+		local meta = ""
+		
+		if string_match( name, ":" ) then meta = table.remove( params, 1 ) .. ":" end 
+		
+		local _name = string_match( name, "^[^%(]+" )  .. "(" .. meta .. table_concat( params, "" )  .. (#data.Return > 0 and " " .. data.Return .. ")" or ")") 
+		name = string_match( name, "^[^%(]+" )  .. "(" .. meta .. table_concat(params, "," )  .. (#data.Return > 0 and "=" .. data.Return .. ")" or ")") 
+		local data = data.Desc or ( #HelperData[name]>0 and HelperData[name] or HelperData[_name] )
+		
+		DocumentedFunctions = DocumentedFunctions + (#data > 0 and 1 or 0)
+		FuncData[#FuncData + 1] = string_format( "\nData[%q] = %q", name, data )
+	end 
+	
+	for name, data in pairs( API.Events ) do 
+		local _name = name .. "<" .. table_concat( data.Params, "" ) .. (#data.Return > 0 and " " .. data.Return .. ">" or ">")
+		name = name .. "<" .. table_concat( data.Params, "," ) .. (#data.Return > 0 and "=" .. data.Return .. ">" or ">")
+		local data = #HelperData[name]>0 and HelperData[name] or HelperData[_name] 
+				
+		DocumentedEvents = DocumentedEvents + (#data > 0 and 1 or 0)
+		EventData[#EventData + 1] = string_format( "\nData[%q] = %q", name, data )
+	end 
+	
+	table.sort( FuncData ) 
+	table.sort( EventData ) 
+	
+	print( "Total functions: " .. #FuncData ) 
+	print( "Total events: " .. #EventData ) 
+	print( )
+	print( "Documented functions: " .. DocumentedFunctions ) 
+	print( "Documented events: " .. DocumentedEvents ) 
+	print( )
+	print( "Undocumented functions: " .. #FuncData - DocumentedFunctions ) 
+	print( "Undocumented events: " .. #EventData - DocumentedEvents ) 
+	print( )
+	print( "Generated at: " .. os.date( ) )
+	
+	local f = file.Open( "ea_dump_helper.txt", "w", "DATA" ) 
+	
+	f:Write "local Data = LEMON.API.HelperData"
+	
+	f:Write( "\n" )
+	f:Write( "\n/*---------------------------------------------------------------------------" )
+	f:Write( "\n\tTotal functions: " .. #FuncData ) 
+	f:Write( "\n\tTotal events: " .. #EventData ) 
+	f:Write( "\n\t" )
+	f:Write( "\n\tDocumented functions: " .. DocumentedFunctions ) 
+	f:Write( "\n\tDocumented events: " .. DocumentedEvents ) 
+	f:Write( "\n\t" )
+	f:Write( "\n\tUndocumented functions: " .. #FuncData - DocumentedFunctions ) 
+	f:Write( "\n\tUndocumented events: " .. #EventData - DocumentedEvents ) 
+	f:Write( "\n\t" )
+	f:Write( "\n\tGenerated at: " .. os.date( ) )
+	f:Write( "\n---------------------------------------------------------------------------*/" )
+	f:Write( "\n" )
+	
+	f:Write( "\n/*---------------------------------------------------------------------------\n\tEvents\n---------------------------------------------------------------------------*/" ) 
+	local last = ""
+	for i = 1, #EventData do
+		if EventData[i][8] > last then 
+			f:Write( "\n\n// " .. EventData[i][8]:upper( ) )
+			last = EventData[i][8]
+		end 
+		f:Write( EventData[i] )
+	end
+	
+	f:Write( "\n\n/*---------------------------------------------------------------------------\n\tFunctions\n---------------------------------------------------------------------------*/" ) 
+	local last = ""
+	for i = 1, #FuncData do
+		if FuncData[i][8] > last then 
+			f:Write( "\n\n// " .. FuncData[i][8]:upper( ) )
+			last = FuncData[i][8]
+		end 
+		f:Write( FuncData[i] )
+	end
+	
+	f:Close( ) 
+	
+	print( ) 
+	print( "Data dumped to ea_dump_helper.txt" )
+end 
+
+concommand.Add( "lemon_dump_helper", DumpHelperData )
+
+
+/*============================================================================================================================================
+	Wiki Generator
+============================================================================================================================================*/
+
+local function convert( name, desc ) 
+	local meta, args, ret
+	local nicename = string_match( name, "[^%(]+" ) 
+		
+	if string_match( name, ":" ) then 
+		meta = GetType( string_match( name, "%(([^:]+):" ) )
+		meta = meta[1]:upper( ) .. meta:sub( 2 ) 
+		args = string_Split( string_match( name, ":([^%()=]*)" ) or "", "," ) 
+	else 
+		args = string_Split( string_match( name, "%(([^%()=]*)" ) or "", "," ) 
+	end 
+	
+	if #args <= 1 then 
+		if #args[1] < 1 then args = {} end 
+	end 
+	
+	if string_match( name, "=" ) then 
+		ret = GetType( string_match( name, "=([^%)]+)") )
+		ret = ret[1]:upper( ) .. ret:sub( 2 ) 
+	end 
+	
+	local params = {}
+	for i = 1, #args do 
+		local name = GetType( args[i] ) 
+		name = name[1]:upper( ) .. name:sub( 2 ) 
+		params[#params+1] = name
+	end 
+	
+	local func = string_format( "%s(%s%s)", nicename, meta and meta .. ":" or "", table.concat( params, ", " ) )
+	
+	
+	return string_format( "| %s || %s || %s" , func, ret or "Void", desc ) 
+end 
+
+local function DumpWikiData( ) 
+	local WikiData = { } 
+	for k, v in pairs( LEMON.API.HelperData ) do 
+		if string_match( k, "[<>]" ) then continue end 
+		WikiData[#WikiData+1] = k 
+	end 
+	
+	table.sort( WikiData ) 
+	
+	local f = file.Open( "ea_dump_wiki.txt", "w", "DATA" ) 
+	
+	f:Write( "=Stock functions=" )
+	f:Write( "\n\n== A ==" )
+	f:Write( "\n{|class=\"wikitable\" style=\"text-align: left;\"" )
+	f:Write( "\n!|Function" )
+	f:Write( "\n!|Return" )
+	f:Write( "\n!|Description" )
+	
+	local last = "a"
+	for i = 1, #WikiData do
+		if WikiData[i][1] > last then 
+			last = WikiData[i][1]
+			f:Write( "\n|}" ) 
+			f:Write( "\n\n== " .. WikiData[i][1]:upper( ) .. " ==" )
+			f:Write( "\n{|class=\"wikitable\" style=\"text-align: left;\"" )
+			f:Write( "\n!|Function" )
+			f:Write( "\n!|Return" )
+			f:Write( "\n!|Description" )
+		end
+		f:Write( "\n|-" )
+		f:Write( "\n" .. convert( WikiData[i], LEMON.API.HelperData[WikiData[i]] ) ) 
+	end
+	
+	f:Write( "\n|}" )
+	f:Close( ) 
+	
+	print( "Data dumped to ea_dump_wiki.txt" )
+end 
+
+concommand.Add( "lemon_dump_wiki", DumpWikiData )

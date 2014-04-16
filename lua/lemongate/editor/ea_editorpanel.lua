@@ -38,13 +38,14 @@ function PANEL:Init( )
 	self:SetSize( cookie.GetNumber( "eaeditor_w", math.min( 1000, ScrW( ) * 0.8 ) ), cookie.GetNumber( "eaeditor_h", math.min( 800, ScrH( ) * 0.8 ) ) )
 	self:SetPos( cookie.GetNumber( "eaeditor_x", ScrW( ) / 2 - self:GetWide( ) / 2 ), cookie.GetNumber( "eaeditor_y", ScrH( ) / 2 - self:GetTall( ) / 2 ) )
 	
+	
 	self.TabHolder = self:Add( "DPropertySheet" )
 	self.TabHolder:Dock( FILL )
 	self.TabHolder:DockMargin( 5, 5, 5, 5 )
 	self.TabHolder:SetFadeTime( 0 )
 	timer.Simple( 0.1, function( )
 		if self:OpenOldTabs( ) then return end 
-		self:NewTab( ) 
+		-- self:NewTab( ) 
 	end )
 	
 	function self.TabHolder:CloseTab( tab, bRemovePanelToo )
@@ -138,7 +139,6 @@ function PANEL:Init( )
 
 	self.__bVoice = 0
 	self.__nMicAlpha = 0
-
 end
 
 local function ValidateSoftly( self, Goto, NoCompile, Code )
@@ -416,10 +416,11 @@ function PANEL:CloseTab( bSave, Tab )
 		self.TabHolder:GetActiveTab( ):GetPanel( ):RequestFocus( )
 	end
 	
-	-- Oskar I added this to fix the no active tab bug =D
-	if #self.TabHolder.Items == 0 then
-		self:NewTab( )
-	end
+	-- Oskar I added this to fix the no active tab bug =D 
+	-- Seems to work again for no reason, lets test it for a while then
+	-- if #self.TabHolder.Items == 0 then
+	-- 	self:NewTab( )
+	-- end
 end
 
 function PANEL:CloseAll( )
@@ -442,7 +443,8 @@ end
 
 function PANEL:SaveTabs( )
 	local strtabs = ""
-	for i = 1, #self.TabHolder.Items do
+	for i = 1, #self.TabHolder.Items do 
+		if self.TabHolder.Items[i].Tab.Panel.Global then continue end 
 		local FilePath = self.TabHolder.Items[i].Tab.FilePath
 		if FilePath and FilePath != "" then
 			strtabs = strtabs .. FilePath .. ";"
@@ -462,7 +464,7 @@ function PANEL:AutoSave( Tab )
 end
 
 function PANEL:OpenOldTabs( )
-	if !file.Exists( "lemongate/_tabs_.txt", "DATA" ) then return end
+	if !file.Exists( "lemongate/_tabs_.txt", "DATA" ) then return end 
 	
 	local tabs = file.Read( "lemongate/_tabs_.txt" )
 	if !tabs or tabs == "" then return end
@@ -549,8 +551,8 @@ function PANEL:Close( )
 	
 	if ValidPanel( self.ToolBar.Options ) and self.ToolBar.Options:IsVisible( ) then 
 		self.ToolBar.Options:Close( ) 
-	end
-
+	end 
+	
 	if self.__bVoice then
 		self:ToggleVoice( )
 		self.__nMicAlpha = 0
@@ -623,6 +625,10 @@ function PANEL:IncreaseFontSize( Inc )
 	
 	self:ChangeFont( Font, Size )
 end
+
+/*============================================================================================================================================
+	Voice stuff
+============================================================================================================================================*/
 
 local MicMaterial = Material( "fugue/microphone.png" )
 

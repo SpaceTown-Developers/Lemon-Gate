@@ -246,12 +246,12 @@ local colors = {
 	["keyword"]      = Color(    0,  120,  240 ), 
 	["notfound"]     = Color(  240,  160,    0 ), 
 	["number"]       = Color(    0,  200,    0 ), 
-	["operator"]     = Color(  240,    0,    0 ),  
+	["operator"]     = Color(  240,    0,    0 ), 
 	["string"]       = Color(  188,  188,  188 ), 
 	["typename"]     = Color(  140,  200,   50 ), 
 	["userfunction"] = Color(  102,  122,  102 ), 
 	["variable"]     = Color(    0,  180,   80 ), 
-	["annotation"]   = Color( 0xe3, 0xb5, 0x2d ), 
+	["prediction"]   = Color( 0xe3, 0xb5, 0x2d ), 
 	["metamethod"]   = Color( 0x00, 0xc8, 0xff ), 
 }
 
@@ -382,7 +382,7 @@ function Syntaxer:Parse( Row )
 	self:NextCharacter( )
 	
 	if self:NextPattern( "^@return" ) then 
-		addToken( "annotation", self.tokendata ) 
+		addToken( "prediction", self.tokendata ) 
 		self.tokendata = "" 
 	end 
 
@@ -401,8 +401,8 @@ function Syntaxer:Parse( Row )
 				self:NextCharacter()
 				break
 			end
-			if self.char == "\\" then self:NextCharacter() end
-			self:NextCharacter()
+			if self.char == "\\" then self:NextCharacter( ) end
+			self:NextCharacter( )
 		end
 		
 		addToken( "string", self.tokendata )
