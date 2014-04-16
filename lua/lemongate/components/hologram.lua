@@ -596,7 +596,7 @@ if $IsValid( value %1 ) and value %1.Player == %context.Player then
 	value %1:SetAnimation(value %1:LookupSequence( value %2 ), value %3, value %4)
 end]], "" )
 
-Component:AddFunction("AnimationLength", "h:", "n", "( $IsValid( value %1 ) and value %1:SequenceDuration( ) or 0 )" )
+Component:AddFunction("animationLength", "h:", "n", "( $IsValid( value %1 ) and value %1:SequenceDuration( ) or 0 )" )
 
 Component:AddFunction("setPose", "h:s,n", "", [[
 if $IsValid( value %1 ) and value %1.Player == %context.Player then
