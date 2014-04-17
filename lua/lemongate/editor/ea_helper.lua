@@ -336,8 +336,7 @@ local function convert( name, desc )
 		params[#params+1] = name
 	end 
 	
-	local func = string_format( "%s(%s%s)", nicename, meta and meta .. ":" or "", table.concat( params, ", " ) )
-	
+	local func = string_format( "%s%s(%s)", meta and meta .. ":" or "" ,nicename, table.concat( params, ", " ) )
 	
 	return string_format( "| %s || %s || %s" , func, ret or "Void", desc ) 
 end 
