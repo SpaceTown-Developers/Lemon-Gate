@@ -341,37 +341,55 @@ local function convert( name, desc )
 	return string_format( "| %s || %s || %s" , func, ret or "Void", desc ) 
 end 
 
+local function getComponent( sName ) 
+	local name = string.match( sName, "([^=%)]+)" ) .. ")" 
+	name = string.Replace( name, ",", "" ) 
+	if not API.Functions[name] then 
+		-- print( sName, name ) 
+		return -1
+	end 
+	return API.Functions[name].Component 
+end 
+
+local function wikiSort( a, b ) 
+	if a[2] == b[2] then 
+		return a[1] < b[1] 
+	else 
+		return a[2] < b[2] 
+	end 
+end 
+
 local function DumpWikiData( ) 
 	local WikiData = { } 
 	for k, v in pairs( LEMON.API.HelperData ) do 
 		if string_match( k, "[<>]" ) then continue end 
-		WikiData[#WikiData+1] = k 
+		WikiData[#WikiData+1] = { k, getComponent( k ) }
 	end 
 	
-	table.sort( WikiData ) 
+	table.sort( WikiData, wikiSort ) 
 	
 	local f = file.Open( "ea_dump_wiki.txt", "w", "DATA" ) 
 	
 	f:Write( "=Stock functions=" )
-	f:Write( "\n\n== A ==" )
+	f:Write( "\n\n== " .. (API.Components[WikiData[1][2]] or "Invalid Component") .. " ==" )
 	f:Write( "\n{|class=\"wikitable\" style=\"text-align: left;\"" )
 	f:Write( "\n!|Function" )
 	f:Write( "\n!|Return" )
 	f:Write( "\n!|Description" )
 	
-	local last = "a"
+	local last = WikiData[1][2]
 	for i = 1, #WikiData do
-		if WikiData[i][1] > last then 
-			last = WikiData[i][1]
+		if WikiData[i][2] > last then 
+			last = WikiData[i][2]
 			f:Write( "\n|}" ) 
-			f:Write( "\n\n== " .. WikiData[i][1]:upper( ) .. " ==" )
+			f:Write( "\n\n== " .. (API.Components[WikiData[i][2]] or "Invalid Component") .. " ==" )
 			f:Write( "\n{|class=\"wikitable\" style=\"text-align: left;\"" )
 			f:Write( "\n!|Function" )
 			f:Write( "\n!|Return" )
 			f:Write( "\n!|Description" )
 		end
 		f:Write( "\n|-" )
-		f:Write( "\n" .. convert( WikiData[i], LEMON.API.HelperData[WikiData[i]] ) ) 
+		f:Write( "\n" .. convert( WikiData[i][1], LEMON.API.HelperData[WikiData[i][1]] ) ) 
 	end
 	
 	f:Write( "\n|}" )
