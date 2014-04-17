@@ -690,7 +690,7 @@ Component:AddFunction( "setMetaTable", "t,t", "t", [[
 	value %1.MetaTable = value %2
 ]], "value %1" )
 
-Component:AddFunction( "removeMetaTable", "t,t", "", "value %1.MetaTable = false", "" )
+Component:AddFunction( "removeMetaTable", "t", "", "value %1.MetaTable = false", "" )
 
 
 Component:AddOperator( "setmethod", "t,s,f", "", [[
