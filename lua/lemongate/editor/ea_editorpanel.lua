@@ -141,17 +141,18 @@ function PANEL:Init( )
 	self.__nMicAlpha = 0
 end
 
-local function ValidateSoftly( self, Goto, NoCompile, Code )
+function PANEL:DoValidate( Goto, NoCompile, Code )
+	self.ValidateButton:SetColor( Color( 0, 0, 255 ) )
+	self.ValidateButton:SetText( "Validating..." )
+	
 	if not LEMON.API.Initialized then
 		return self.ValidateButton:SetText( "Downloading Validation Files, Please wait..." )
 	end
 	
 	local Error = self:Validate( Code or self:GetCode( ), NoCompile )
+	print( Error )
 	
 	if Error then
-		self.ValidateButton:SetColor( Color( 255, 0, 0 ) )
-		self.ValidateButton:SetText( Error )
-		
 		if Goto then
 			local Row, Col = Error:match("at line ([0-9]+), char ([0-9]+)$")
 			
@@ -159,21 +160,22 @@ local function ValidateSoftly( self, Goto, NoCompile, Code )
 				Row, Col = Error:match("at line ([0-9]+)$"), 1
 			end
 			
-			if Row then
-				self:SetCaret( Vector2( tonumber( Row ), tonumber( Col ) ) )
+			if Row then 
+				Row = tonumber( Row )
+				if Row < 1 or Col < 1 then 
+					Error = string.match( Error, "^(.-)at line [0-9]+" ) .. "| Invalid trace"
+				else 
+					self:SetCaret( Vector2( tonumber( Row ), tonumber( Col ) ) )
+				end 	
 			end
 		end
+		
+		self.ValidateButton:SetColor( Color( 255, 0, 0 ) )
+		self.ValidateButton:SetText( Error )
 	else
 		self.ValidateButton:SetColor( Color( 0, 255, 0 ) )
 		self.ValidateButton:SetText( "Validation Successful!" )
 	end
-end
-
-function PANEL:DoValidate( Goto, NoCompile, Code )
-	self.ValidateButton:SetColor( Color( 0, 0, 255 ) )
-	self.ValidateButton:SetText( "Validating..." )
-		
-	coroutine.resume( coroutine.create( ValidateSoftly ), self, Goto, NoCompile, Code )
 end
 
 function PANEL:Validate( Script, NoCompile )
