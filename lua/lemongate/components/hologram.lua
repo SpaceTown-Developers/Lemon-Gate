@@ -390,6 +390,12 @@ if $IsValid( value %1 ) and value %1.GetScale then
 	%util = value %1:GetScale( )
 end]], "Vector3( %util or Vector( 0, 0, 0 ) )" )
 
+Component:AddFunction("getScaleUnits", "h:", "v",[[
+if $IsValid( value %1 ) and value %1.GetScale then
+	%util = value %1:GetScaleUnits( )
+end]], "Vector3( %util or Vector( 0, 0, 0 ) )" )
+
+
 /*==============================================================================================
     Visible and Shading
 ==============================================================================================*/
@@ -588,22 +594,36 @@ Component:SetPerf( LEMON_PERF_CHEAP )
 
 Component:AddFunction("setAnimation", "h:n,[n,n", "", [[
 if $IsValid( value %1 ) and value %1.Player == %context.Player then
-	value %1:SetAnimation(value %2, value %3, value %4)
+	value %1:SetHoloAnimation(value %2, value %3, value %4)
 end]], "" )
 
 Component:AddFunction("setAnimation", "h:s,[n,n", "", [[
 if $IsValid( value %1 ) and value %1.Player == %context.Player then
-	value %1:SetAnimation(value %1:LookupSequence( value %2 ), value %3, value %4)
+	value %1:SetHoloAnimation(value %1:LookupSequence( value %2 ), value %3, value %4)
 end]], "" )
 
 Component:AddFunction("animationLength", "h:", "n", "( $IsValid( value %1 ) and value %1:SequenceDuration( ) or 0 )" )
 
 Component:AddFunction("setPose", "h:s,n", "", [[
 if $IsValid( value %1 ) and value %1.Player == %context.Player then
-	value %1:SetPoseParameter value %2, value %3 )
+	value %1:SetPoseParameter(value %2, value %3 )
 end]], "" )
 
 Component:AddFunction("getPose", "h:s", "n", "( $IsValid( value %1 ) and value %1:GetPoseParameter( value %2 ) or 0 )" )
+
+Component:AddFunction("animation", "h:s", "n", [[
+if $IsValid( value %1 ) then
+	%util = value %1:LookupSequence(value %2)
+end]], "(%util or 0)" )
+
+Component:AddFunction( "getAnimation", "h:", "n", "( $IsValid( value %1 ) and value %1:GetSequence( ) or 0 )" )
+
+Component:AddFunction( "getAnimationName", "h:n", "s", "( $IsValid( value %1 ) and value %1:GetSequenceName( value %2 ) or \"\" )" )
+
+Component:AddFunction( "setAnimationRate", "h:n", "", [[
+if $IsValid( value %1 ) and value %1.Player == %context.Player then
+	value %1:SetPlaybackRate(value %2)
+end]], "" )
 
 /*==============================================================================================
     Section: Remove

@@ -8,6 +8,7 @@ AddCSLuaFile( )
 ENT.Type = "anim"
 ENT.Base = "base_anim"
 ENT.IsHologram = true
+ENT.Animated = true
 ENT.AutomaticFrameAdvance  = true
 ENT.RenderGroup = RENDERGROUP_BOTH
 
@@ -606,11 +607,21 @@ if SERVER then
 	function ENT:SetScaleUnits( Vector )
 		local  OBBSize = self:OBBMaxs( ) - self:OBBMins( )
 
-		Vector.x = Vector.x * OBBSize.x
-		Vector.y = Vector.y * OBBSize.y
-		Vector.z = Vector.z * OBBSize.z
+		Vector.x = Vector.x / OBBSize.x
+		Vector.y = Vector.y / OBBSize.y
+		Vector.z = Vector.z / OBBSize.z
 
 		self:SetScale( Vector )
+	end
+
+	function ENT:GetScaleUnits( )
+		local  OBBSize = self:OBBMaxs( ) - self:OBBMins( )
+
+		local X = self.INFO.SCALEX * OBBSize.x
+		local Y = self.INFO.SCALEY * OBBSize.y
+		local Z = self.INFO.SCALEZ * OBBSize.z
+
+		return Vector( X, Y, Z )
 	end
 
 	function ENT:GetScale( )
@@ -814,7 +825,7 @@ if SERVER then
 /*==============================================================================================
     Animation
 ==============================================================================================*/
-	function ENT:SetAnimation( Animation, Frame, Rate )
+	function ENT:SetHoloAnimation( Animation, Frame, Rate )
 		self:ResetSequence( Animation )
 		self:SetCycle( Frame or 0 )
 		self:SetPlaybackRate( Rate or 1 )
