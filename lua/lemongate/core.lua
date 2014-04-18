@@ -408,13 +408,10 @@ if SERVER then
 		
 		MsgN( Format( "Datapack compressed %d bytes.", #self.DataPack  ) )
 		
+		-- Send datapack to new players
 		hook.Add( "PlayerInitialSpawn", "Lemon_DataPack", function( Player )
 			self:SendDataPack( Player )
-		end ) -- Its better here!
-		
-		net.Start( "lemon_datapack" )
-			net.WriteData( self.DataPack, #self.DataPack )
-		net.Broadcast( ) -- Sync Clients ( again =D )
+		end ) 
 	end
 	
 	util.AddNetworkString( "lemon_datapack" )
