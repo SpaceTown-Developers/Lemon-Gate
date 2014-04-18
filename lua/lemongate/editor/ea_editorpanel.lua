@@ -162,6 +162,7 @@ function PANEL:DoValidate( Goto, NoCompile, Code )
 			
 			if Row then 
 				Row = tonumber( Row )
+				Col = tonumber( Col )
 				if Row < 1 or Col < 1 then 
 					Error = string.match( Error, "^(.-)at line [0-9]+" ) .. "| Invalid trace"
 				else 
