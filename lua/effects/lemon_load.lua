@@ -35,10 +35,11 @@ end
 
 function EFFECT:Render( )
 	local Alpha = self.Alpha or 255
+	local Size = self.Size or 5
 	
 	if Alpha >= 1 then
 		render.SetMaterial( Mat )
-		render.DrawQuadEasy( self:GetPos( ), self:GetAngles( ):Up( ), self.Size, self.Size, Color( 255, 255, 255, Alpha ) )
+		render.DrawQuadEasy( self:GetPos( ), self:GetAngles( ):Up( ), Size, Size, Color( 255, 255, 255, Alpha ) )
 	end
 
 end
