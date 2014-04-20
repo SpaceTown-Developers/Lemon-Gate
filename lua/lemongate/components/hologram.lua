@@ -592,12 +592,12 @@ end]], "( %util or 0 )" )
 ==============================================================================================*/
 Component:SetPerf( LEMON_PERF_CHEAP )
 
-Component:AddFunction("setAnimation", "h:n,[n,n", "", [[
+Component:AddFunction("setAnimation", "h:n[,n,n]", "", [[
 if $IsValid( value %1 ) and value %1.Player == %context.Player then
 	value %1:SetHoloAnimation(value %2, value %3, value %4)
-end]], "" )
+end]], "" ) 
 
-Component:AddFunction("setAnimation", "h:s,[n,n", "", [[
+Component:AddFunction("setAnimation", "h:s[,n,n]", "", [[
 if $IsValid( value %1 ) and value %1.Player == %context.Player then
 	value %1:SetHoloAnimation(value %1:LookupSequence( value %2 ), value %3, value %4)
 end]], "" )

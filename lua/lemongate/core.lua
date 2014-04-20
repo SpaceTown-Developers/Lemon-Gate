@@ -226,7 +226,7 @@ function API:LoadCoreComponents( )
 		
 		include( "lemongate/components/lambda.lua" )
 		include( "lemongate/components/table.lua" )
-		include( "lemongate/components/hologram.lua" )
+		include( "lemongate/components/hologram.lua" ) 
 		include( "lemongate/components/sound.lua" )
 		include( "lemongate/components/communicate.lua" )
 		include( "lemongate/components/timer.lua" )
@@ -422,7 +422,6 @@ if SERVER then
 			net.WriteData( self.DataPack, #self.DataPack )
 		net.Send( Player )
 	end
-
 else
 	net.Receive( "lemon_datapack", function( Bytes )
 		MsgN( Format( "Recived LemonGate DataPack (%d bytes)", Bytes / 8 ) )
@@ -869,7 +868,7 @@ if SERVER then
 						Optional = true
 					end 
 					
-					if Optional then
+					if Optional then 
 						API:NewFunction( self.ID, Data.Name, Signature, table.Copy( Params ), Data.Return, Data.Perf, Data.First, Data.Second, Data.Desc )
 					end
 				end
