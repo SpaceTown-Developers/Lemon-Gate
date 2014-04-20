@@ -520,7 +520,7 @@ function Compiler:NextIndex( RootTrace )
 			self:RequireToken( "fun", "variable type expected after comma (,) in indexing operator [Index, type]" )
 		end
 		
-		local Class = self:GetClass( Trace, self.TokenData )
+		local Class = self:GetClass( Trace, self:ParseClass( ) )
 		self:RequireToken( "rsb", "Right square bracket (]) missing, to close indexing operator [Index, type]" )
 		return { Expression, Class.Short, Trace }, self:NextIndex( RootTrace )
 	end
@@ -562,7 +562,7 @@ function Compiler:NextValueOperator( Value, RootTrace )
 			self:TraceError( Trace, "variable type expected after comma (,) in indexing operator [Index, type]" )
 		
 		else
-			local Class = self:GetClass( Trace, self.TokenData )
+			local Class = self:GetClass( Trace, self:ParseClass( ) )
 		
 			self:RequireToken( "rsb", "Right square bracket (]) missing, to close indexing operator [Index]" )
 			
@@ -605,6 +605,26 @@ end
 /*==============================================================================================
 	Section: Useful and inportant!
 ==============================================================================================*/
+function Compiler:ParseClass( )
+	local Class = self.TokenData
+
+	if self:AcceptToken( "lsb" ) then
+		if self:AcceptToken( "rsb" ) then
+			return Class .. "[]"
+		else
+			self:PrevToken( )
+		end
+	end
+
+	--print( "Parsed: " .. Class)
+
+	if Class == nil then
+		debug.Trace( )
+	end
+
+	return Class
+end
+
 function Compiler:GetListedVariables( RootTrace )
 	local Variables, Count = { { self:TokenTrace( ), self.TokenData } }, 1
 		
@@ -810,7 +830,7 @@ function Compiler:Statment_GLO( RootTrace, Static )
 	
 	self:RequireToken( "fun", "Variable type expected after Global" )
 	
-	local Class = self:GetClass( Trace, self.TokenData )
+	local Class = self:GetClass( Trace, self:ParseClass( ) )
 	
 	self:RequireToken2( "var", "fun", "Variable expected for in port." )
 	
@@ -822,7 +842,7 @@ function Compiler:Statment_OUT( RootTrace )
 	
 	self:RequireToken( "fun", "Variable type expected after Output" )
 	
-	local Class = self:GetClass( Trace, self.TokenData )
+	local Class = self:GetClass( Trace, self:ParseClass( ) )
 	
 	self:RequireToken( "var", "Upper-cased variable expected for out port." )
 	
@@ -835,7 +855,7 @@ function Compiler:Statment_IN( RootTrace )
 	
 	self:RequireToken( "fun", "Variable type expected after Input" )
 	
-	local Class = self:GetClass( Trace, self.TokenData )
+	local Class = self:GetClass( Trace, self:ParseClass( ) )
 	
 	self:RequireToken( "var", "Upper-cased variable expected after variable type." )
 	
@@ -844,8 +864,8 @@ function Compiler:Statment_IN( RootTrace )
 end
 
 function Compiler:Statment_FUN( RootTrace, Static )
-	local Trace = self:TokenTrace( RootTrace )
-	local ClassName = self.TokenData
+	local Trace, Data = self:TokenTrace( RootTrace ), self.TokenData
+	local ClassName = self:ParseClass( )
 	
 	if self:CheckToken( "var", "fun" ) then
 		local Class = self:GetClass( Trace, ClassName, true )
@@ -861,6 +881,9 @@ function Compiler:Statment_FUN( RootTrace, Static )
 		local Ref = self:Assign( Trace, ClassName, "f", "Local" )
 		
 		return self:Compile_ASSIGN( Trace, ClassName, self:GetExpression( RootTrace ) )
+	
+	elseif self:GetVariable( Trace, self.TokenData ) then
+		return self:Statment_VAR( )
 	end
 		
 	self:PrevToken( )
@@ -1019,7 +1042,7 @@ function Compiler:BuildPerams( Trace )
 			
 			self:RequireToken2( "fun", "func", "Variable type expected for function parameter." )
 			
-			local Class = self:GetClass( Trace, self.TokenData )
+			local Class = self:GetClass( Trace, self:ParseClass( ) )
 			
 			self:RequireToken2( "var", "fun", "Variable expected for function parameter." )
 			
@@ -1083,11 +1106,11 @@ function Compiler:Statment_METH( Trace, RootTrace )
 	local Trace = Trace or self:TokenTrace( RootTrace )
 		
 		/*if self:AcceptToken( "fun", "func" ) then
-			local Class, Return = self:GetClass( Trace, self.TokenData, true )
+			local Class, Return = self:GetClass( Trace, self:ParseClass( ), true )
 
 			if Class and self:AcceptToken( "fun", "func" ) then
 				Return = Class
-				Class = self:GetClass( Trace, self.TokenData )
+				Class = self:GetClass( Trace, self:ParseClass( ) )
 			end
 
 			if !Class then
@@ -1246,7 +1269,7 @@ function Compiler:Statment_FOR( RootTrace )
 		self:RequireToken( "func", "variable type expected for loop deceleration" )
 	end
 	
-	local Class = self:GetClass( Trace, self.TokenData ).Short
+	local Class = self:GetClass( Trace, self:ParseClass( ) ).Short
 	
 	self:RequireToken2( "var", "fun", "variable expected for loop deceleration" )
 	
@@ -1315,7 +1338,7 @@ function Compiler:Statment_EACH( RootTrace )
 		self:TraceError( Trace, "type expected for Variable, in foreach loop" )
 	end
 	
-	local TypeA, TypeB = self:GetClass( Trace, self.TokenData ).Short
+	local TypeA, TypeB = self:GetClass( Trace, self:ParseClass( ) ).Short
 	
 	self:RequireToken2( "var", "fun", "Variable expected after type, in foreach loop" )
 	
@@ -1329,7 +1352,7 @@ function Compiler:Statment_EACH( RootTrace )
 			self:TraceError( Trace, "type expected for Variable, in foreach loop" )
 		end
 		
-		TypeB = self:GetClass( Trace, self.TokenData ).Short
+		TypeB = self:GetClass( Trace, self:ParseClass( ) ).Short
 		
 		self:RequireToken2( "var", "fun", "Variable expected after type, in foreach loop" )
 		

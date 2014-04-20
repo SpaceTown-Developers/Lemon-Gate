@@ -165,12 +165,12 @@ Core:AddFunction( "replacePattern", "s:s,s", "s", [[
 ==============================================================================================*/
 Core:SetPerf( LEMON_PERF_EXPENSIVE)
 
-Core:AddFunction( "explode", "s:s", "t", "%Table.Results(string.Explode(value %2, value %1), \"s\")" )
+Core:AddFunction( "explode", "s:s", "t*", "string.Explode(value %2, value %1)" )
 
-Core:AddFunction( "matchPattern", "s:s[,n]", "t",[[
+Core:AddFunction( "matchPattern", "s:s[,n]", "t*",[[
 local %Results = { pcall(string.match, value %1, value %2, value %3 or 0) }
 if !table.remove(%Results,1) then %context:Throw("string", "Invalid string pattern (" .. value %2 ..").") end
-]], "%Table.Results(%Results, \"s\")")
+]], "%Results")
 
 Core:AddFunction( "matchFirst", "s:s[,n]", "s",[[
 local %Ok, %Result = pcall(string.match, value %1, value %2, value %3 or 0)

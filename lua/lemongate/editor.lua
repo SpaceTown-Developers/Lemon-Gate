@@ -53,21 +53,23 @@ end )
 	Home Screen
 ---------------------------------------------------------------------------*/
 local HomeScreen = [[/*====================================================================
-	WARNING:
-		* Holograms have changed your codes might break, check the helper for new function names.
-
+	Update:
+		* Arrays have been added, Happy Easter!
+		* Arrays are very basic for now and will be improved.
+		
 	Expression Advanced:
 		* int i = 5
-	
+		* number[] i = numberArray( )
+
 	Editor Changes:
 		* CTR+B for voice chat.
 	
+	Check it out, We have a new Wiki:
+	 - https://github.com/SpaceTown-Developers/Lemon-Gate/wiki
+	
 	We have our own forums:
 	 - http://PoweredByLemons.com
-	 
-	Check Our Wiki For Help:
-	 - https://github.com/SpaceTown-Developers/Lemon-Gate/wiki
-		
+	 	
 	Also Report Bugs:
 	 - https://github.com/SpaceTown-Developers/Lemon-Gate/issues
 	

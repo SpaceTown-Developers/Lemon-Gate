@@ -239,6 +239,7 @@ function API:LoadCoreComponents( )
 		include( "lemongate/components/file.lua" )
 		include( "lemongate/components/console.lua" )
 		include( "lemongate/components/coroutine.lua" )
+		include( "lemongate/components/arrays.lua" )
 	end
 end
 
@@ -629,6 +630,7 @@ function API:GetClass( RawName, NoError )
 		Name = "x" .. Name
 	end
 	
+	--print( "Class: '" .. RawName .. "', '" .. Name .. "'" )
 	--if #Name > 1 and Name[1] ~= "x" then Name = "x" .. Name end
 	
 	local Class = self.ClassLU[ Name ]
@@ -751,7 +753,7 @@ if SERVER then
 					Data.Return = ( Return and Return.Short or "" )
 				end
 				
-				for _, Param in string.gmatch( Data.Params, "()([%w%?!]+)%s*([%[%]]?)()" ) do
+				for _, Param in string.gmatch( Data.Params, "()([%w%?!%*]+)%s*([%[%]]?)()" ) do
 					local Class = API:GetClass( Param, true )
 					
 					if !Class then
@@ -851,7 +853,7 @@ if SERVER then
 					end
 				end
 				
-				for Char, Param, Bracket in string.gmatch( Data.Params, "()([%w%?!]+)%s*([%[%]]?)()" ) do
+				for Char, Param, Bracket in string.gmatch( Data.Params, "()([%w%?!%*]+)%s*([%[%]]?)()" ) do
 					
 					local Class = API:GetClass( Param, true )
 					
