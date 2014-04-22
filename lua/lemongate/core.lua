@@ -629,7 +629,6 @@ function API:GetClass( RawName, NoError )
 		Name = "x" .. Name
 	end
 	
-	--print( "Class: '" .. RawName .. "', '" .. Name .. "'" )
 	--if #Name > 1 and Name[1] ~= "x" then Name = "x" .. Name end
 	
 	local Class = self.ClassLU[ Name ]

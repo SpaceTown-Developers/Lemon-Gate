@@ -139,7 +139,6 @@ end
 local Expand
 
 function Expand( Node, Bool )
-	MsgN( "Expand: ", Node, ", ", Bool )
 	Node:SetExpanded( Bool )
 	
 	if IsValid( Node.ChildNodes ) then
@@ -432,8 +431,6 @@ function PANEL:DoSearch( Query, Path )
 end
 
 function PANEL:SearchDir( Query, Path )
-	MsgN( "Searching for : '", Query, "' in '" .. Path .. "'." )
-	
 	local Files, Folders = file.Find( Path .. "/*" .. Query .. "*", "DATA", "nameasc" )
 	
 	for _, File in pairs( Files ) do

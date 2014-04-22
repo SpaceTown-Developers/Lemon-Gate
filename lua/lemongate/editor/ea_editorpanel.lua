@@ -150,7 +150,6 @@ function PANEL:DoValidate( Goto, NoCompile, Code )
 	end
 	
 	local Error = self:Validate( Code or self:GetCode( ), NoCompile )
-	print( Error )
 	
 	if Error then
 		if Goto then

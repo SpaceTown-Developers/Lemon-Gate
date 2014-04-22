@@ -195,7 +195,6 @@ end
 	Section: Operators
 ==============================================================================================*/
 function Compiler:GetOperator( Name, Param1, Param2, ... )
-	print( Format( "%s(%s)", Name, table.concat( { Param1 or "", Param2, ... } , "" ) ) )
 	local Op = API.Operators[ Format( "%s(%s)", Name, table.concat( { Param1 or "", Param2, ... } , "" ) ) ]
 	
 	if Op or !Param1 then

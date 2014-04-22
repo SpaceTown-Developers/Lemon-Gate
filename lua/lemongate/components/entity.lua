@@ -731,7 +731,7 @@ Core:AddFunction( "findByClass", "s", "e*", [[
 local %Ents = { }
 for _, Ent in pairs( $ents.FindByClass( value %1 ) ) do
 	if Ent:IsValid() and !%FindFilter[Ent:GetClass( )] then
-		%Ents[#%Ents + 1] = %Ent
+		%Ents[#%Ents + 1] = Ent
 	end
 end]], "%Ents" )
 
@@ -739,7 +739,7 @@ Core:AddFunction( "findByModel", "s", "e*", [[
 local %Ents = { }
 for _, Ent in pairs( $ents.FindByModel( value %1 ) ) do
 	if Ent:IsValid() and !%FindFilter[Ent:GetClass( )] then
-		%Ents[#%Ents + 1] = %Ent
+		%Ents[#%Ents + 1] = Ent
 	end
 end]], "%Ents" )
 
@@ -747,7 +747,7 @@ Core:AddFunction( "findInSphere", "v,n", "e*", [[
 local %Ents = { }
 for _, Ent in pairs( $ents.FindInSphere( value %1:Garry( ), value %2 ) ) do
 	if Ent:IsValid() and !%FindFilter[Ent:GetClass( )] then
-		%Ents[#%Ents + 1] = %Ent
+		%Ents[#%Ents + 1] = Ent
 	end
 end]], "%Ents" )
 
@@ -755,7 +755,7 @@ Core:AddFunction( "findInBox", "v,v", "e*", [[
 local %Ents = { }
 for _, Ent in pairs( $ents.FindInBox( value %1:Garry( ), value %2:Garry( ) ) ) do
 	if Ent:IsValid() and !%FindFilter[Ent:GetClass( )] then
-		%Ents[#%Ents + 1] = %Ent
+		%Ents[#%Ents + 1] = Ent
 	end
 end]], "%Ents" )
 
@@ -763,7 +763,7 @@ Core:AddFunction( "findInCone", "v,v,n,a", "e*", [[
 local %Ents = { }
 for _, Ent in pairs( $ents.FindInCone( value %1:Garry( ), value %2:Garry( ), value %3, value %4)) do
 	if Ent:IsValid() and !%FindFilter[Ent:GetClass( )] then
-		%Ents[#%Ents + 1] = %Ent
+		%Ents[#%Ents + 1] = Ent
 	end
 end]], "%Ents" )
 
@@ -774,7 +774,7 @@ local %Ents = { }
 for _, Ent in pairs( $ents.FindByModel( value %1 ) ) do
 	local Class = Ent:GetClass( )
 	if Ent:IsValid() and !%FindFilter[Class] and Class == value %2 then
-		%Ents[#%Ents + 1] = %Ent
+		%Ents[#%Ents + 1] = Ent
 	end
 end]], "%Ents" )
 
@@ -783,7 +783,7 @@ local %Ents = { }
 for _, Ent in pairs( $ents.FindInSphere( value %2:Garry( ), value %3 ) ) do
 	local Class = Ent:GetClass( )
 	if Ent:IsValid() and !%FindFilter[Class] and Class == value %1 then
-		%Ents[#%Ents + 1] = %Ent
+		%Ents[#%Ents + 1] = Ent
 	end
 end]], "%Ents" )
 
@@ -792,7 +792,7 @@ local %Ents = { }
 for _, Ent in pairs( $ents.FindInSphere( value %2:Garry( ), value %3 ) ) do
 	local Class = Ent:GetClass( )
 	if Ent:IsValid() and !%FindFilter[Class] and Class == value %1 then
-		%Ents[#%Ents + 1] = %Ent
+		%Ents[#%Ents + 1] = Ent
 	end
 end]], "%Ents" )
 
@@ -801,7 +801,7 @@ local %Ents = { }
 for _, Ent in pairs( $ents.FindInBox( value %2:Garry( ), value %3:Garry()) ) do
 	local Class = Ent:GetClass( )
 	if Ent:IsValid() and !%FindFilter[Class] and Class == value %1 then
-		%Ents[#%Ents + 1] = %Ent
+		%Ents[#%Ents + 1] = Ent
 	end
 end]], "%Ents" )
 
@@ -810,7 +810,7 @@ local %Ents = { }
 for _, Ent in pairs( $ents.FindInCone( value %2:Garry( ), value %3:Garry( ), value %4, value %5)) do
 	local Class = Ent:GetClass( )
 	if Ent:IsValid() and !%FindFilter[Class] and Class == value %1 then
-		%Ents[#%Ents + 1] = %Ent
+		%Ents[#%Ents + 1] = Ent
 	end
 end]], "%Ents" )
 
@@ -828,7 +828,7 @@ end )
 
 for _, Ent in pairs( %Ents ) do
 	if Ent:IsValid() and !%FindFilter[Ent:GetClass( )] then
-		%Array[#%Array + 1] = %Ent
+		%Array[#%Array + 1] = Ent
 	end
 end]], "%Res" )
 
