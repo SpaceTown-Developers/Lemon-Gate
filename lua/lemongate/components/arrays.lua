@@ -52,6 +52,8 @@ function Component:BuildClasses( )
 
 		self:AddFunction( "insert", ArrayShort .. ":" .. Class.Short, "", "table.insert( value %1, value %2 )", "" )
 
-		self:AddFunction( "insert", ArrayShort .. ":n," .. Class.Short, "", "table.insert( value %1, value %2, value %3 )", "" )
-	end
+		self:AddFunction( "insert", ArrayShort .. ":n," .. Class.Short, "", "table.insert( value %1, value %2, value %3 )", "" ) 
+		
+		self:AddFunction( "toTable", ArrayShort .. ":", "t", "", [[%Table.Results( value %1, "]] .. Class.Short ..[[" )]] )
+	end 
 end
