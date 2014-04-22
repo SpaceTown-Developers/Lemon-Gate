@@ -830,7 +830,7 @@ for _, Ent in pairs( %Ents ) do
 	if Ent:IsValid() and !%FindFilter[Ent:GetClass( )] then
 		%Array[#%Array + 1] = Ent
 	end
-end]], "%Res" )
+end]], "%Array" )
 
 /***********************************************************************************************/
 
