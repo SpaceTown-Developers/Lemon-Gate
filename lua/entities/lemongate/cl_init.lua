@@ -45,7 +45,7 @@ timer.Create( "Lemon_Editor_Animation", 1, 0, function( )
 			local BonePos, BoneAng = Ply:GetBonePosition( BoneIndx )
 			
 			for I = 1, math.random( 0, 2 ) do
-				local Particle = Emitter:Add("omicron/lembunny", BonePos + Vector(0, 0, 10) )
+				local Particle = Emitter:Add("omicron/gear", BonePos + Vector(0, 0, 10) )
 			
 				if Particle then
 					Particle:SetColor( 255, 255, 255 )
