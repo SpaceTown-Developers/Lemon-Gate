@@ -574,17 +574,17 @@ end]], "" )
 
 Component:AddFunction("getBonePos", "h:n", "v", [[
 if $IsValid( value %1 ) then
-	%util = value %1:GetBonePos( value %1 )
+	%util = value %1:GetBonePos( value %2 )
 end]], "Vector3( %util or Vector( 0, 0, 0 ) )" )
 
 Component:AddFunction("getBoneAng", "h:n", "v", [[
 if $IsValid( value %1 ) then
-	%util = value %1:GetBoneAngle( value %1 )
+	%util = value %1:GetBoneAngle( value %2 )
 end]], "( %util or Angle( 0, 0, 0 ) )" )
 
 Component:AddFunction("getBoneScale", "h:n", "v", [[
 if $IsValid( value %1 ) then
-	%util = value %1:GetBoneScale( value %1 )
+	%util = value %1:GetBoneScale( value %2 )
 end]], "Vector3( %util or Vector( 0, 0, 0 ) )" )
 
 Component:AddFunction("boneCount", "h:", "n", [[
