@@ -41,7 +41,6 @@ end
 /*==============================================================================================
 	Section: Frames
 ==============================================================================================*/
-
 Component:SetPerf( LEMON_PERF_NORMAL )
 
 Component:AddFunction( "egpSaveFrame", "wl:s", "", [[
@@ -71,7 +70,6 @@ end]], LEMON_NO_INLINE )
 /*==============================================================================================
 	Section: Order
 ==============================================================================================*/
-
 Component:AddFunction( "egpOrder", "wl:n,n", "", [[
 if $EGP:ValidEGP( value %1 ) then //and %IsOwner( %context.Player, value %1 ) then
 	if value %2 ~= value %3 then
@@ -314,7 +312,7 @@ end]], LEMON_NO_INLINE )
 	Section: Poly
 ==============================================================================================*/
 Component:AddFunction( "egpPoly", "wl:n,...", "", [[
-if $EGP:ValidEGP( value %1 ) then //and %IsOwner( %context.Player, value %1 ) then
+if $EGP:ValidEGP( value %1 ) and #{%...} >= 3 then //and %IsOwner( %context.Player, value %1 ) then
 	local Vertices, I = { }, 0
 	local Max = EGP.ConVars.MaxVertices:GetInt( )
 	
@@ -337,8 +335,30 @@ if $EGP:ValidEGP( value %1 ) then //and %IsOwner( %context.Player, value %1 ) th
 	end
 end]], LEMON_NO_INLINE )
 
+Component:AddFunction( "egpPoly", "wl:n,xxv2*", "", [[
+if $EGP:ValidEGP( value %1 ) and #value %3 >= 3 then //and %IsOwner( %context.Player, value %1 ) then
+	local Vertices, I = { }, 0
+	local Max = EGP.ConVars.MaxVertices:GetInt( )
+	
+	for _, Data in pairs( value %3 ) do
+		if I > Max then
+			break
+		else
+			I = I + 1
+			Vertices[ I ] = { x = Data.x, y= Data.y }
+		end
+	end
+	
+	local %Bool, %Obj = EGP:CreateObject( value %1, EGP.Objects.Names["Poly"], { index = value %2, vertices = Vertices }, %context.Player )
+	
+	if %Bool then
+		API.EGPAction( value %1, %context, "SendObject", %Obj )
+		%data.EGP[value %1] = true
+	end
+end]], LEMON_NO_INLINE )
+
 Component:AddFunction( "egpPolyOutline", "wl:n,...", "", [[
-if $EGP:ValidEGP( value %1 ) then //and %IsOwner( %context.Player, value %1 ) then
+if $EGP:ValidEGP( value %1 ) and #{%...} >= 3 then //and %IsOwner( %context.Player, value %1 ) then
 	local Vertices, I = { }, 0
 	local Max = EGP.ConVars.MaxVertices:GetInt( )
 	
@@ -360,6 +380,146 @@ if $EGP:ValidEGP( value %1 ) then //and %IsOwner( %context.Player, value %1 ) th
 		%data.EGP[value %1] = true
 	end
 end]], LEMON_NO_INLINE )
+
+Component:AddFunction( "egpPolyOutline", "wl:n,xxv2*", "", [[
+if $EGP:ValidEGP( value %1 ) and #value %3 >= 3 then //and %IsOwner( %context.Player, value %1 ) then
+	local Vertices, I = { }, 0
+	local Max = EGP.ConVars.MaxVertices:GetInt( )
+	
+	for _, Data in pairs( value %3 ) do
+		if I > Max then
+			break
+		else
+			I = I + 1
+			Vertices[ I ] = { x = Data.x, y= Data.y }
+		end
+	end
+	
+	local %Bool, %Obj = EGP:CreateObject( value %1, EGP.Objects.Names["PolyOutline"], { index = value %2, vertices = Vertices }, %context.Player )
+	
+    if %Bool then
+		API.EGPAction( value %1, %context, "SendObject", %Obj )
+		%data.EGP[value %1] = true
+	end
+end]], LEMON_NO_INLINE )
+
+Component:AddFunction( "egpPolyUV", "wl:n,...", "", [[
+if $EGP:ValidEGP( value %1 ) then 
+	local %bool, _, %object = EGP:HasObject( value %1, value %2 )
+	if %bool and #{%...} >= 3 then 
+		
+		local Vertices = { } //%object.vertices or { }
+		for i, v in ipairs( {%...} ) do
+			if i > #%object.vertices then break end 
+			Vertices[i] = { }
+			Vertices[i].x = %object.vertices[i].x
+			Vertices[i].y = %object.vertices[i].y
+			Vertices[i].u = v[1].x
+			Vertices[i].v = v[1].y
+		end
+		
+		if EGP:EditObject( %object, { vertices = Vertices } ) then
+			EGP:InsertQueue( value %1, Context.Player, EGP._SetVertex, "SetVertex", value %2, Vertices, true )
+			%data.EGP[value %1] = true
+		end
+	end 
+end]], LEMON_NO_INLINE )
+
+Component:AddFunction( "egpPolyUV", "wl:n,xxv2*", "", [[
+if $EGP:ValidEGP( value %1 ) then 
+	local %bool, _, %object = EGP:HasObject( value %1, value %2 )
+	if %bool and #value %3 >= 3 then 
+		
+		local Vertices = { } //%object.vertices or { }
+		for i, v in ipairs( value %3 ) do
+			if i > #%object.vertices then break end 
+			Vertices[i] = { }
+			Vertices[i].x = %object.vertices[i].x
+			Vertices[i].y = %object.vertices[i].y
+			Vertices[i].u = v.x
+			Vertices[i].v = v.y
+		end
+		
+		if EGP:EditObject( %object, { vertices = Vertices } ) then
+			EGP:InsertQueue( value %1, Context.Player, EGP._SetVertex, "SetVertex", value %2, Vertices, true )
+			%data.EGP[value %1] = true
+		end
+	end 
+end]], LEMON_NO_INLINE )
+
+/*============================================================================================================================================
+	Section: Vertices
+============================================================================================================================================*/
+Component:AddFunction( "egpSetVertices", "wl:n,xxv2*", "", [[
+if $EGP:ValidEGP( value %1 ) then 
+	local %bool, _, %object = EGP:HasObject( value %1, value %2 )
+	if %bool and #value %3 >= 3 then 
+		local Max = EGP.ConVars.MaxVertices:GetInt( )
+		
+		local Vertices, I = { }, 0
+		for _, Data in pairs( value %3 ) do
+			if I > Max then
+				break
+			else
+				I = I + 1
+				Vertices[ I ] = { x = Data.x, y = Data.y }
+			end
+		end
+		
+		if EGP:EditObject( %object, { vertices = Vertices } ) then
+			EGP:InsertQueue( value %1, Context.Player, EGP._SetVertex, "SetVertex", value %2, Vertices, true )
+			%data.EGP[value %1] = true
+		end
+	end 
+end]], LEMON_NO_INLINE )
+
+Component:AddFunction( "egpVertices", "wl:n", "xxv2*", [[
+if $EGP:ValidEGP( value %1 ) then 
+	local %bool, _, %object = EGP:HasObject( value %1, value %2 )
+	if %bool then
+		if %object.vertices then 
+			%util = { } 
+			for i, v in ipairs( %object.vertices ) do
+				%util[i] = Vector2( v.x, v.y ) 
+			end
+		elseif %object.x and %object.y and %object.x2 and %object.y2 and %object.x3 and %object.y3 then 
+			%util = { Vector2( %object.x, %object.y ), Vector2( %object.x2, %object.y2 ), Vector2( %object.x3, %object.y3 ) }
+		elseif %object.x and %object.y and %object.x2 and %object.y2 then 
+			%util = { Vector2( %object.x, %object.y ), Vector2( %object.x2, %object.y2 ) }
+		end 
+	end
+end]], "(%util or {})" )
+
+Component:AddFunction( "egpGlobalPos", "wl:n", "v", [[
+if $EGP:ValidEGP( value %1 ) then 
+	local %bool, _, %object = EGP:HasObject( value %1, value %2 )
+	if %bool then
+		local %hasvertices, %posang = EGP:GetGlobalPos( value %1, value %2 )
+		if %hasvertices then 
+			%util = Vector3( %posang.x, %posang.y, %posang.angle )
+		end
+	end 
+end]], "(%util or Vector3())" )
+
+Component:AddFunction( "egpGlobalVertices", "wl:n", "xxv2*", [[
+if $EGP:ValidEGP( value %1 ) then 
+	local %bool, _, %object = EGP:HasObject( value %1, value %2 )
+	if %bool then
+		local %hasvertices, %posang = EGP:GetGlobalPos( value %1, value %2 )
+		if %hasvertices then 
+			if %object.vertices then 
+				%util = { } 
+				for i, v in ipairs( %object.vertices ) do
+					%util[i] = Vector2( v.x, v.y ) 
+				end
+			elseif %object.x and %object.y and %object.x2 and %object.y2 and %object.x3 and %object.y3 then 
+				%util = { Vector2( %object.x, %object.y ), Vector2( %object.x2, %object.y2 ), Vector2( %object.x3, %object.y3 ) }
+			elseif %object.x and %object.y and %object.x2 and %object.y2 then 
+				%util = { Vector2( %object.x, %object.y ), Vector2( %object.x2, %object.y2 ) }
+			end 
+		end
+	end 
+end]], "(%util or {})" )
 
 /*==============================================================================================
 	Section: 3D Tracker
