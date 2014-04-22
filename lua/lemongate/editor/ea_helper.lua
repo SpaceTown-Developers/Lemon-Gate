@@ -106,7 +106,7 @@ function PANEL:SetupHelperFunctions( filter )
 	
 	local cList = { } 
 	for Name, Data in pairs( API.Classes ) do
-		if Name == "..." or Name == "bool" or Name == "int" then continue end 
+		if Name == "..." or Name == "bool" or Name == "int" or string.EndsWith( Name, "[]" ) then continue end 
 		cList[#cList + 1] = Name 
 	end 
 	
@@ -115,7 +115,7 @@ function PANEL:SetupHelperFunctions( filter )
 	end ) 
 	
 	for I = 1, #cList do
-		local Name, Data = cList[I], API.Classes[cList[I]]
+		local Name, Data = cList[I], API.Classes[cList[I]] 
 		local node = self.Browser:AddNode( Name, "fugue/block.png" ) 
 		self.Classes[Data.Short] = { Name, node } 
 	end
