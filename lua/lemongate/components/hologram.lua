@@ -198,7 +198,7 @@ function Component.SetModel( Context, Entity, Model )
 
 	if ValidModel then
 		if Entity.IsHologram and Entity.Player == Context.Player then
-			Entity:SetModel( "models/Holograms/" .. ValidModel .. ".mdl" )
+			Entity:SetModel( "models/holograms/" .. ValidModel .. ".mdl" )
 		end
 
 	elseif !Cvar_ModelAll:GetBool( ) or !util.IsValidModel( Model ) then
