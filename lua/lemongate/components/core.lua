@@ -215,7 +215,7 @@ end
 /*==============================================================================================
 	Section: Statments
 ==============================================================================================*/
-Core:SetPerf( LEMON_PERF_CHEAP )
+Core:SetPerf( 0 )
 
 Core:AddOperator( "static", "", "", [[
 if %memory[value %1] == nil then
@@ -230,6 +230,8 @@ Core:AddOperator( "exit", "", "", "error( 'Exit', 0 )" )
 /*==============================================================================================
 	Section: Connect Operators
 ==============================================================================================*/
+Core:SetPerf( LEMON_PERF_CHEAP )
+
 Core:AddOperator( "->i", "", "b", [[(%context.Entity.Inputs["value %1"].Src ~= nil)]] )
 
 Core:AddOperator( "->o", "", "b", [[(#%context.Entity.Outputs["value %1"].Connected > 0)]] )
@@ -241,73 +243,32 @@ Core:SetPerf( LEMON_PERF_NORMAL )
 
 -- 1:Ass, 2:Cnd, 3:Step, 4:Statment
 Core:AddOperator( "for", "n", "", [[
-do -- For Loop
-	
 	%prepare
 	
-	local Statments = function( )
-		prepare %4
-		return value %4
-	end
-	
-	ExitDeph = ExitDeph or 0
-	
+	local %First = true
+
 	while ( value %2 ) do
 		%perf
-	
-		local Ok, Exit = pcall( Statments )
-		
-		if Ok and !Exit then
+
+		if !%First then
 			value %3
-		elseif Ok then
-			return Exit
-		elseif ExitDeph > 0 then
-			ExitDeph = ExitDeph - 1
-			error( Exit, 0 )
-		elseif Exit == "Continue" then
-			value %3
-		elseif Exit == "Break" then
-			break
 		else
-			error( Exit, 0 )
+			%First = false
 		end
+
+		prepare %4
 	end
-end
 ]], "" )
 
 Core:SetPerf( LEMON_PERF_NORMAL * 0.5 )
 
 Core:AddOperator( "while", "", "", [[
-do -- While Loop
-	
-	local Statments	= function( )
-		prepare %2
-		return value %2
-	end
-	
-	ExitDeph = ExitDeph or 0
 	
 	while ( value %1 ) do
 		%perf
 		
-		local Ok, Exit = pcall( Statments )
-		
-		if !Ok then
-			if ExitDeph > 0 then 
-				ExitDeph = ExitDeph - 1
-				error( Exit, 0 )
-			elseif Exit == "Continue" then
-				continue
-			elseif Exit == "Break" then
-				break
-			else
-				error( Exit, 0 )
-			end
-		elseif Exit ~= nil then
-			return Exit
-		end
+		prepare %2
 	end
-end
 ]], "" )
 
 /*==============================================================================================
@@ -315,15 +276,9 @@ end
 ==============================================================================================*/
 Core:SetPerf( LEMON_PERF_CHEAP )
 
-Core:AddOperator( "break", "", "", [[
-ExitDeph = value %1
-error( "Break", 0 )
-]], "" )
+Core:AddOperator( "break", "", "", "break;" )
 
-Core:AddOperator( "continue", "", "", [[
-ExitDeph = value %1
-error( "Continue", 0 )
-]], "" )
+Core:AddOperator( "continue", "", "", "continue;" )
 
 /*==============================================================================================
 	Section: Variable Args

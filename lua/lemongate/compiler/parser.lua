@@ -943,36 +943,30 @@ end
 
 function Compiler:Statment_BRK( RootTrace )
 	local Trace = self:TokenTrace( RootTrace )
-	local Depth = self:AcceptToken( "num" ) and self.TokenData or 0
 	
 	if self:GetFlag( "LoopDepth", 0 ) < 1 then
 		self:TraceError( Trace, "Break can not be used outside of a loop" )
-	elseif Depth > self:GetFlag( "LoopDepth", 0 ) then
-		self:TraceError( Trace, "Can not break at specified level" )
 	end
 	
 	self:AcceptSeperator( )
 	
 	self.StatmentExit = "break"
 	
-	return self:Compile_BREAK( Trace, Depth )
+	return self:Compile_BREAK( Trace )
 end
 
 function Compiler:Statment_CNT( RootTrace )
 	local Trace = self:TokenTrace( RootTrace )
-	local Depth = self:AcceptToken( "num" ) and self.TokenData or 0
 	
 	if self:GetFlag( "LoopDepth", 0 ) < 1 then
 		self:TraceError( Trace, "Continue can not be used outside of a loop or case" )
-	elseif Depth > self:GetFlag( "LoopDepth", 0 ) then
-		self:TraceError( Trace, "Can not continue at specified level" )
 	end
 	
 	self:AcceptSeperator( )
 	
 	self.StatmentExit = "continue"
 	
-	return self:Compile_CONTINUE( Trace, Depth )
+	return self:Compile_CONTINUE( Trace )
 end
 
 function Compiler:Statment_RET( RootTrace )

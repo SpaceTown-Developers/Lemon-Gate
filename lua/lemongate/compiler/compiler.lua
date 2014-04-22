@@ -252,7 +252,6 @@ function Compiler:CompileCode( Code, Files, NoCompile )
 			local tostring, tonumber, unpack, pairs, ipairs, print = tostring, tonumber, unpack, pairs, ipairs, print
 		
 		-- Required Locals
-			local ExitDeph
 			local UTIL = { }
 		-- Imports
 			local Strings = LEMON_STRINGS
@@ -435,9 +434,7 @@ function Compiler:Compile_SEQUENCE( Trace, Statements )
 	end
 	
 	if #Lines > 1 then
-		Lua = Lua .. [[do
-			]] .. string.Implode( "\n", Lines ) .. [[
-		end]]
+		Lua = Lua .. "\n" .. string.Implode( "\n", Lines ) .. "\n"
 	elseif Lines[1] then
 		Lua = Lua .. Lines[1]
 	end
@@ -1044,8 +1041,8 @@ end
 	Section: Loops!
 ==============================================================================================*/
 function Compiler:Compile_FOR( Trace, Class, Assigment, Condition, Step, Statements )
-	local Condition = self:Evaluate( Trace, Condition )
-	local Step = self:Evaluate( Trace, Step )
+	//local Condition = self:Evaluate( Trace, Condition )
+	//local Step = self:Evaluate( Trace, Step )
 	local Op = self:GetOperator( "for", Class )
 	
 	if !Op then
@@ -1091,11 +1088,11 @@ end
 	Section: Break and Continue
 ==============================================================================================*/
 function Compiler:Compile_BREAK( Trace, Depth )
-	return self:GetOperator( "break" ).Compile( self, Trace, Depth )
+	return self:GetOperator( "break" ).Compile( self, Trace )
 end
 
 function Compiler:Compile_CONTINUE( Trace, Depth )
-	return self:GetOperator( "continue" ).Compile( self, Trace, Depth )
+	return self:GetOperator( "continue" ).Compile( self, Trace )
 end
 
 /*==============================================================================================

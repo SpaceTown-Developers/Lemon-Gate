@@ -55,5 +55,30 @@ function Component:BuildClasses( )
 		self:AddFunction( "insert", ArrayShort .. ":n," .. Class.Short, "", "table.insert( value %1, value %2, value %3 )", "" ) 
 		
 		self:AddFunction( "toTable", ArrayShort .. ":", "t", "", [[%Table.Results( value %1, "]] .. Class.Short ..[[" )]] )
+		
+		self:AddOperator( "foreach", ArrayShort, "", [[
+
+				%prepare
+				
+				local VType, KType = value %2, value %3
+
+				if VType ~= "]] .. Class.Short .. [[" then
+					%context:Throw( %trace, "array", "Invalid foreach loop, value type missmatches array type.")
+				elseif KType and KType ~= "n" then
+					%context:Throw( %trace, "array", "Invalid foreach loop, index type must be number.")
+				end
+
+				for Key = 1, #value %1 do
+					local Value = value %1[Key]
+
+					%perf
+					
+					prepare %5
+					
+					prepare %4
+					
+					prepare %6
+				end
+		]] , "" )
 	end 
 end

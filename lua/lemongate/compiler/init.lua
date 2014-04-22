@@ -270,6 +270,8 @@ end
 ==========================================================================*/
 local Valid_Words = {
 	["return"] = true,
+	["continue"] = true,
+	["break"] = true,
 	["local"] = true,
 	["while"] = true,
 	["for"] = true,

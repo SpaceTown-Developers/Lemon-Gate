@@ -517,15 +517,9 @@ end
 Component:SetPerf( LEMON_PERF_NORMAL )
 
 Component:AddOperator( "foreach", "t", "", [[
-do
 	%prepare
 	
-	local ExitDeph = ExitDeph or 0
 	local VType, KType = value %2, value %3
-	
-	local Statments = function( )
-		prepare %6
-	end
 	
 	for Key, Type, Value in value %1:Itorate( ) do
 		local KeyType = $type( Key )[1]
@@ -549,60 +543,9 @@ do
 		
 		prepare %4
 		
-		local Ok, Exit = pcall( Statments )
-		
-		if !Ok then
-			if ExitDeph > 0 then
-				ExitDeph = ExitDeph - 1
-				error( Exit, 0 )
-			elseif Exit == "Break" then
-				break
-			elseif Exit ~= "Continue" then
-				error( Exit, 0 )
-			end
-		elseif Exit ~= nil then
-			return Exit
-		end
+		prepare %6
 	end
-end]] , "" )
-
-/*==============================================================================================
-	ForEach Loop
-==============================================================================================*/
-Component:SetPerf( LEMON_PERF_EXPENSIVE )
-
-/* OLD SORT FUNCTION, REMOVED CUS ITS AWFUL!
-Component:AddFunction( "sort", "t:f", "t", [[
-local %New, %Count = { }, 0
-
-for Key, Type, Value in value %1:Itorate( ) do
-	Context.Perf = Context.Perf + 0.5
-	
-	%Count = %Count + 1
-	%New[%Count] = { Key, Type, Value }
-end
-
-table.sort( %New, function( A, B )
-	%context:PushPerf( %trace, ]] .. LEMON_PERF_LOOPED .. [[ )
-	
-	local ValA = (A[2] ~= "?" and { A[3], A[2] } or A[3])
-	local ValB = (B[2] ~= "?" and { B[3], B[2] } or B[3])
-	
-	local Ret = value %2( ValA, ValB )
-	
-	if Ret and Ret[2] ~= "b" then
-		%context:Throw( %trace, "table", "sort function returned " .. LongType( Ret[2] ) .. " boolean expected." )
-	elseif Ret then
-		return Ret[1]
-	end
-end )
-
-local %Sorted = %Table( )
-for Key, Val in pairs( %New ) do
-	Context.Perf = Context.Perf + 0.5
-	
-	%Sorted:Insert( Key, Val[2], Val[3] )
-end]], "%Sorted" ) */
+]] , "" )
 
 Component:AddFunction( "sort", "t:f", "t", [[
 local %Sorted = %Table( )
@@ -743,6 +686,45 @@ end
 Component:AddFunction( "setSTable", "s,t", "", "%STable[ value %1 ] = value %2" )
 
 Component:AddFunction( "removeSTable", "s", "", "%STable[ value %1 ] = nil" )
+
+/*==============================================================================================
+	Player Tables
+==============================================================================================*/
+local PlayerTables = { }
+
+Component:AddExternal( "PSTables", PlayerTables )
+
+Component:AddFunction( "getPrivateTable", "s", "t", [[
+local %PTable = %PSTables[%context.Player]
+if !%PTable then
+	%PTable = { }
+	%PSTables[%context.Player] = %PTable
+end
+
+local %Shared = %PTable[ value %1 ]
+if ( !%Shared ) then
+	%Shared = %Table( )
+	%STable[ value %1 ] = %Shared
+end
+]], "%Shared" )
+
+Component:AddFunction( "setPrivateTable", "s,t", "", [[
+local %PTable = %PSTables[%context.Player]
+if !%PTable then
+	%PTable = { }
+	%PSTables[%context.Player] = %PTable
+end
+
+%PTable[ value %1 ] = value %2
+]], "" )
+
+
+Component:AddFunction( "removeSTable", "s", "", [[
+local %PTable = %PSTables[%context.Player]
+if %PTable then
+	%PTable[ value %1 ] = nil
+end
+]], "" )
 
 /*==============================================================================================
 	Existing Meta Tables
