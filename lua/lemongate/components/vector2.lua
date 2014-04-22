@@ -108,9 +108,11 @@ Core:AddFunction("x", "v2:", "n", "value %1.x", nil )
 Core:AddFunction("y", "v2:", "n", "value %1.y", nil )
 
 
-Core:AddFunction("setX", "v2:n", "v2", "Vector2(value %2, value %1.y)", nil )
+Core:AddFunction( "set", "v2:n,n", "", "value %1:Set(value %2, value %3)", nil )
 
-Core:AddFunction("setY", "v2:n", "v2", "Vector2(value %1.x, value %2)", nil )
+Core:AddFunction( "setX", "v2:n", "", "value %1:Set(value %2, value %1.y)", nil )
+
+Core:AddFunction( "setY", "v2:n", "", "value %1:Set(value %1.x, value %2)", nil )
 
 Core:SetPerf( LEMON_PERF_ABNORMAL )
 

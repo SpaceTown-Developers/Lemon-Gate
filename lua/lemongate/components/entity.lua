@@ -179,38 +179,38 @@ Core:AddFunction( "mass", "e:", "n", [[
 	if $IsValid(value %1) then
 		%util = value %1:GetPhysicsObject( )
 	end
-]], "(IsValid(%util) and %util:GetMass( ) or 0)" )
+]], "($IsValid(%util) and %util:GetMass( ) or 0)" )
 
 Core:AddFunction( "volume", "e:", "n", [[
 	if $IsValid(value %1) then
 		%util = value %1:GetPhysicsObject( )
 	end
-]], "(IsValid(%util) and %util:GetVolume( ) or 0)" )
+]], "($IsValid(%util) and %util:GetVolume( ) or 0)" )
 
 Core:AddFunction( "massCenterWorld", "e:", "v", [[
 	if $IsValid(value %1) then
 		%util = value %1:GetPhysicsObject( )
 	end
-]], "(IsValid(%util) and Vector3( value %1:LocalToWorld( %util:GetMassCenter( ) ) ) or Vector3.Zero:Clone( ) )")
+]], "($IsValid(%util) and Vector3( value %1:LocalToWorld( %util:GetMassCenter( ) ) ) or Vector3.Zero:Clone( ) )")
 
 Core:AddFunction( "massCenter", "e:", "v", [[
 	if $IsValid(value %1) then
 		%util = value %1:GetPhysicsObject( )
 	end
-]], "(IsValid(%util) and Vector3( %util:GetMassCenter( ) ) or Vector3.Zero:Clone( ) )")
+]], "($IsValid(%util) and Vector3( %util:GetMassCenter( ) ) or Vector3.Zero:Clone( ) )")
 
 /*==============================================================================================
 	Section: OBB Box
 ==============================================================================================*/
 Core:SetPerf( LEMON_PERF_CHEAP )
 
-Core:AddFunction( "boxSize", "e:", "v", "(IsValid( value %1) and Vector3( value %1:OBBMaxs( ) - value %1:OBBMins( ) ) or Vector3(0,0,0) )" )
+Core:AddFunction( "boxSize", "e:", "v", "($IsValid( value %1) and Vector3( value %1:OBBMaxs( ) - value %1:OBBMins( ) ) or Vector3(0,0,0) )" )
 
-Core:AddFunction( "boxCenter", "e:", "v", "(IsValid( value %1) and  Vector3( value %1:OBBCenter( ) ) or Vector3(0,0,0) )" )
+Core:AddFunction( "boxCenter", "e:", "v", "($IsValid( value %1) and  Vector3( value %1:OBBCenter( ) ) or Vector3(0,0,0) )" )
 
-Core:AddFunction( "boxMax", "e:", "v", "(IsValid( value %1) and  Vector3( value %1:OBBMaxs( ) ) or Vector3(0,0,0) )" )
+Core:AddFunction( "boxMax", "e:", "v", "($IsValid( value %1) and  Vector3( value %1:OBBMaxs( ) ) or Vector3(0,0,0) )" )
 
-Core:AddFunction( "boxMin", "e:", "v", "(IsValid( value %1) and  Vector3( value %1:OBBMins( ) ) or Vector3(0,0,0) )" )
+Core:AddFunction( "boxMin", "e:", "v", "($IsValid( value %1) and  Vector3( value %1:OBBMins( ) ) or Vector3(0,0,0) )" )
 
 /******************************************************************************/
 
@@ -821,8 +821,8 @@ local %Array, %Vec = { }, value %2:Garry( )
 local %Ents = $ents.FindByClass( value %1 )
 
 table.sort( %Ents, function( A, B )
-	if !IsValid( A ) then return false end
-	if !IsValid( B ) then return true end
+	if !$IsValid( A ) then return false end
+	if !$IsValid( B ) then return true end
 	return %Vec:Distance( A:GetPos( ) ) < %Vec:Distance( B:GetPos( ) )
 end )
 

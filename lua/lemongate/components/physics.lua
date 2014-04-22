@@ -149,17 +149,17 @@ if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1:GetEntity( ) )
 	value %1:SetMass( math.Clamp( value %2, 0.001, 50000 ) )
 end]], LEMON_NO_INLINE )
 
-Core:AddFunction( "mass", "p:", "n", "(IsValid(value %1) and value %1:GetMass( ) or 0)" )
+Core:AddFunction( "mass", "p:", "n", "($IsValid(value %1) and value %1:GetMass( ) or 0)" )
 
-Core:AddFunction( "massCenter", "p:", "v", "(IsValid(value %1) and Vector3( value %1:LocalToWorld( value %1:GetMassCenter( ) ) ) or Vector3.Zero:Clone( ) )")
+Core:AddFunction( "massCenter", "p:", "v", "($IsValid(value %1) and Vector3( value %1:LocalToWorld( value %1:GetMassCenter( ) ) ) or Vector3.Zero:Clone( ) )")
 
-Core:AddFunction( "massCenterL", "p:", "v", "(IsValid(value %1) and Vector3( value %1:GetMassCenter( ) ) or Vector3.Zero:Clone( ) )")
+Core:AddFunction( "massCenterL", "p:", "v", "($IsValid(value %1) and Vector3( value %1:GetMassCenter( ) ) or Vector3.Zero:Clone( ) )")
 
-Core:AddFunction( "mass", "p:", "n", "(IsValid(value %1) and value %1:GetMass( ) or 0)" )
+Core:AddFunction( "mass", "p:", "n", "($IsValid(value %1) and value %1:GetMass( ) or 0)" )
 
-Core:AddFunction( "massCenterWorld", "p:", "v", "(IsValid(value %1) and Vector3( value %1:LocalToWorld( value %1:GetMassCenter( ) ) ) or Vector3.Zero:Clone( ) )")
+Core:AddFunction( "massCenterWorld", "p:", "v", "($IsValid(value %1) and Vector3( value %1:LocalToWorld( value %1:GetMassCenter( ) ) ) or Vector3.Zero:Clone( ) )")
 
-Core:AddFunction( "massCenter", "p:", "v", "(IsValid(value %1) and Vector3( value %1:GetMassCenter( ) ) or Vector3.Zero:Clone( ) )")
+Core:AddFunction( "massCenter", "p:", "v", "($IsValid(value %1) and Vector3( value %1:GetMassCenter( ) ) or Vector3.Zero:Clone( ) )")
 
 /*==============================================================================================
 	Section: AABB

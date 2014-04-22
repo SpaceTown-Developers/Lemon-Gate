@@ -123,11 +123,13 @@ Core:AddFunction( "y", "v:", "n", "value %1.y", nil )
 Core:AddFunction( "z", "v:", "n", "value %1.z", nil )
 
 
-Core:AddFunction( "setX", "v:n", "v", "Vector3(value %2, value %1.y, value %1.z)", nil )
+Core:AddFunction( "set", "v:n,n,n", "", "value %1:Set(value %2, value %3, value %4)", nil )
 
-Core:AddFunction( "setY", "v:n", "v", "Vector3(value %1.x, value %2, value %1.z)", nil )
+Core:AddFunction( "setX", "v:n", "", "value %1:Set(value %2, value %1.y, value %1.z)", nil )
 
-Core:AddFunction( "setZ", "v:n", "v", "Vector3(value %1.x, value %1.y, value %2)", nil )
+Core:AddFunction( "setY", "v:n", "", "value %1:Set(value %1.x, value %2, value %1.z)", nil )
+
+Core:AddFunction( "setZ", "v:n", "", "value %1:Set(value %1.x, value %1.y, value %2)", nil )
 
 Core:SetPerf( LEMON_PERF_ABNORMAL )
 
