@@ -405,6 +405,11 @@ if $IsValid( value %1 ) and value %1.Player == %context.Player then
 	value %1:SetShading(value %2)
 end]], "" )
 
+Component:AddFunction("shadow", "h:b", "", [[
+if $IsValid( value %1 ) and value %1.Player == %context.Player then
+	value %1:DrawShadow(value %2)
+end]], "" )
+
 Component:AddFunction("visible", "h:b", "", [[
 if $IsValid( value %1 ) and value %1.Player == %context.Player then
 	value %1:SetVisible(value %2)
