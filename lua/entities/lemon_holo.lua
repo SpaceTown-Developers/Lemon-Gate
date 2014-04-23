@@ -74,6 +74,9 @@ local function LinkHoloInfo( self )
 
 	self.SYNC_CLIPS = { }
 	self.SYNC_BONES = { }
+
+	self.NO_SEND = { } -- Who not to send to.
+	self.KNOW_TO = { } -- Who has been sent this.
 end
 
 if CLIENT then
@@ -98,6 +101,8 @@ function ENT:Initialize( )
 
 	if CLIENT then return self:ApplyHoloInfo( ) end
 	
+	self.PlyID = IsValid( self.Player ) and self.Player:UniqueID( ) or ""
+	
 	self:SetSolid( SOLID_NONE )
 	self:SetMoveType( MOVETYPE_NONE )
 	self:DrawShadow( false )
@@ -120,6 +125,7 @@ end
 ==============================================================================================*/
 
 if SERVER then
+	ForgetByPlayer = { }
 	RemoveQueue = { }
 	SyncQueue = { }
 
@@ -378,6 +384,11 @@ if SERVER then
 			self.INFO.FORCEFIRST = false
 		end
 
+		net.WriteBit( Force or false )
+		if Force then
+			net.WriteString( self.PlyID )
+		end
+
 		if SyncQueue[ self ] or Force then
 			net.WriteBit( true )
 			self:SyncInfo( Forced )
@@ -406,18 +417,23 @@ if SERVER then
 		end
 	end
 
-	hook.Add( "PlayerInitialSpawn", "lemon.hologram", function( Ply )
+	hook.Add( "PlayerInitialSpawn", "lemon.hologram", function( Player )
+		local PlyID = Player:UniqueID( )
+
 		net.Start( "lemon.hologram" )
 
 			net.WriteUInt( 0, 16 )
 
 			for _, ENT in pairs( ents.FindByClass( "lemon_hologram" ) ) do
-				ENT:SyncClient( true )
+				if !ENT.NO_SEND[ PlyID ] then
+					ENT:SyncClient( true )
+					ENT.KNOW_TO[ PlyID ] = true
+				end
 			end
 
 			net.WriteUInt( 0, 16 )
 
-		net.Send( Ply )
+		net.Send( Player )
 	end )
 
 	hook.Add( "Tick", "lemon.hologram", function( )
@@ -430,10 +446,22 @@ if SERVER then
 
 		if !NeedsUpdate then return end
 
-		net.Start( "lemon.hologram" )
+		for _, Player in pairs( player.GetAll( ) ) do
+			local PlyID = Player:UniqueID( )
+
+			net.Start( "lemon.hologram" )
 			
 			for ID, _ in pairs( RemoveQueue ) do
 				net.WriteUInt( ID, 16 )
+			end
+			
+			if ForgetByPlayer[ PlyID ] then
+				for ID, ENT in pairs( ForgetByPlayer[ PlyID ] ) do
+					if IsValid( ENT ) and ENT.KNOW_TO then
+						net.WriteUInt( ID, 16 )
+						ENT.KNOW_TO[ PlyID ] = nil
+					end
+				end
 			end
 
 			net.WriteUInt( 0, 16 )
@@ -442,13 +470,19 @@ if SERVER then
 
 			for ENT, _ in pairs( Queue ) do
 				if IsValid( ENT ) and ENT.SyncClient then
-					ENT:SyncClient( false )
+					if !ENT.NO_SEND[ PlyID ] then
+						ENT:SyncClient( false )
+						ENT.KNOW_TO[ PlyID ] = true
+					end
 				end
 			end
 
 			net.WriteUInt( 0, 16 )
 			
-		net.Broadcast( )
+			net.Send( Player )
+		end
+
+		ForgetByPlayer = { }
 	end )
 
 elseif CLIENT then -- End of <if SERVER>
@@ -533,7 +567,12 @@ elseif CLIENT then -- End of <if SERVER>
 
 		while Key ~= 0 do
 
-			INFOTABLE[ Key ] = INFOTABLE[ Key ] or NewInfoTable( )
+			local Info = INFOTABLE[ Key ] or NewInfoTable( )
+			INFOTABLE[ Key ] = Info
+
+			if net.ReadBit( ) == 1 then 
+				Info.PlyID = net.ReadString( )
+			end
 
 			if net.ReadBit( ) == 1 then  UpdateInfo( Key ) end
 			if net.ReadBit( ) == 1 then  UpdateClips( Key ) end
@@ -571,8 +610,6 @@ if SERVER then
 		self.INFO.SHADING = bShade
 		SyncQueue[ self ] = true
 	end
-
-	-- ENT:DrawShadow( b )
 
 /*==============================================================================================
     Scale
@@ -906,12 +943,47 @@ if SERVER then
 		return true
 	end
 
+/*==============================================================================================
+   Player Blocking, Currently not working.
+==============================================================================================*/
+	
+	function ENT:BlockPlayer( Player )
+		local PlyID = Player:UniqueID( )
+
+		self.NO_SEND[ PlyID ] = true
+
+		if self.KNOW_TO[ PlyID ] then
+			self.KNOW_TO[ PlyID ] = nil
+
+			ForgetByPlayer[ PlyID ] = ForgetByPlayer[ PlyID ] or { }
+			ForgetByPlayer[ PlyID ][ self:EntIndex( ) ] = self
+
+			NeedsUpdate = true
+		end
+	end
+
+	function ENT:UnblockPlayer( Player )
+		local PlyID = Player:UniqueID( )
+
+		if self.NO_SEND[ PlyID ] then
+			self.NO_SEND[ PlyID ] = nil
+
+			NeedsUpdate = true
+		end
+	end
+
+	function ENT:IsBlocked( Player )
+		return self.NO_SEND[ Player:UniqueID( ) ] or false
+	end
+
 	return -- Exit Server Side Code
 end -- end of <if SERVER>
 
 /*==============================================================================================
     Render
 ==============================================================================================*/
+local LabeledPlayers, BlockedPlayers = { }, { }
+
 function ENT:Draw( )
 
 	local Info = INFOTABLE[ self:EntIndex( ) ]
@@ -923,6 +995,9 @@ function ENT:Draw( )
 		return
 	end
 
+	local PlyID = Info.PlyID
+	
+	if BlockedPlayers[PlyID] then return end
 
 	if self:GetColor( ).a ~= 255 then
 		self.RenderGroup = RENDERGROUP_BOTH
@@ -967,7 +1042,31 @@ function ENT:Draw( )
 			
 		render.EnableClipping( State )
 	end
+
 end
+
+hook.Add("HUDPaint", "lemon.hologram", function( )
+	
+	for ID, Info in pairs( INFOTABLE ) do
+		local ENT = Entity( ID )
+		
+		if IsValid( ENT ) then
+			local PlyID = Info.PlyID
+			local Owner = player.GetByUniqueID( PlyID )
+
+			if LabeledPlayers[PlyID] and !BlockedPlayers[PlyID] then
+				
+				local ScreenData = ENT:GetPos( ):ToScreen( )
+
+				if !ScreenData.visible then return end
+
+				local Name = IsValid( Owner ) and Owner:Name( ) or ( "Player: " .. PlyID )
+
+				draw.SimpleTextOutlined( Name , "defaultsmall", ScreenData.x, ScreenData.y, Color( 0, 0, 0, 255 ), 1, 1, 2, Color( 255, 255, 255, 255 ) )
+			end
+		end
+	end
+end )
 
 /*==============================================================================================
     Scale Info
@@ -1017,3 +1116,63 @@ function ENT:ApplyHoloInfo( )
 	self:SetRenderBounds( Scale * self:OBBMaxs( ), Scale * self:OBBMins( ) )
 
 end
+
+/*==============================================================================================
+    Client Commands
+==============================================================================================*/
+local function ChangeOption( Table, Player, Value )
+	MsgN( "Done: ", Player:Name( ), ", ", Value or false )
+	Table[ Player:UniqueID( ) ] = Value
+end
+
+local function SetOption( Table, Name, Value )
+	if !Name or Name == "" then
+		return MsgN( "Player not found.")
+	end
+
+	Name = Name:lower( )
+
+	local Player = player.GetByUniqueID( Name )
+
+	if IsValid( Player ) then
+		return ChangeOption( Table, Player, Value ) 
+	end
+
+	for _, Checking in pairs( player.GetAll( ) ) do
+		if Name == "all" or string.find( Checking:Name():lower( ), Name ) then
+			Player = true
+			ChangeOption( Table, Checking, Value )
+		end
+	end
+
+	if !Player then
+		return MsgN( "Player not found.")
+	end
+end
+
+local Options = { "lemon_hologram block <player>", "lemon_hologram unblock <player>", "lemon_hologram label <player>", "lemon_hologram unlabel <player>" }
+
+concommand.Add( "lemon_hologram", function( Player, Cmd, Input )
+	local Option = Input[1]
+
+	if !Option or Option == "" then
+		return MsgN( "No command given." )
+	end
+
+	Option = Option:lower( )
+
+	if Option == "block" then
+		SetOption( BlockedPlayers, Input[2], true )
+	elseif Option == "unblock" then
+		SetOption( BlockedPlayers, Input[2], nil )
+	elseif Option == "label" then
+		SetOption( LabeledPlayers, Input[2], true )
+	elseif Option == "unlabel" then
+		SetOption( LabeledPlayers, Input[2], nil )
+	else
+		MsgN( "Command not recognised.")
+	end
+
+end, function( Cmd, Input ) 
+	return Options
+end )

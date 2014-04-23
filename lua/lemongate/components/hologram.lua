@@ -637,3 +637,27 @@ Component:AddFunction("remove", "h:", "", [[
 if $IsValid( value %1 ) and value %1.Player == %context.Player then
 	value %1:Remove( )
 end]], "" )
+
+/*==============================================================================================
+    Section: Player Blocking, Does not work on the entity.
+==============================================================================================*/
+/*Component:AddFunction("blockPlayer", "h:e", "", [[
+if $IsValid( value %1 ) and value %1.Player == %context.Player then
+	if IsValid( value %2 ) and value %2:IsPlayer( ) then
+		value %1:BlockPlayer( value %2 )
+	end
+end]], "" )
+
+Component:AddFunction("unblockPlayer", "h:e", "", [[
+if $IsValid( value %1 ) and value %1.Player == %context.Player then
+	if IsValid( value %2 ) and value %2:IsPlayer( ) then
+		value %1:UnblockPlayer( value %2 )
+	end
+end]], "" )
+
+Component:AddFunction("isBlocked", "h:e", "b", [[
+if $IsValid( value %1 ) and value %1.Player == %context.Player then
+	if IsValid( value %2 ) and value %2:IsPlayer( ) then
+		%util = value %1:IsBlocked( value %2 )
+	end
+end]], "(%util or false)" )*/
