@@ -18,7 +18,7 @@ ENT.RenderGroup = RENDERGROUP_BOTH
 local function NewInfoTable( )
 	return {
 		FORCEFIRST = true,
-		VISIBLE = true,
+		VISIBLE = SERVER and true or false,
 		SHADING = true,
 		SCALEX = 1,
 		SCALEY = 1,
@@ -76,7 +76,7 @@ local function LinkHoloInfo( self )
 	self.SYNC_BONES = { }
 
 	self.NO_SEND = { } -- Who not to send to.
-	self.KNOW_TO = { } -- Who has been sent this.
+	self.KNOWN_TO = { } -- Who has been sent this.
 end
 
 if CLIENT then
@@ -94,7 +94,7 @@ end
 /*==============================================================================================
     Section: Create Entity
 ==============================================================================================*/
-local SyncQueue, ClipQueue, BoneQueue, RemoveQueue
+local SyncQueue, ClipQueue, BoneQueue, RemoveQueue, BlockQueue, UnblockQueue
 
 function ENT:Initialize( )
 	LinkHoloInfo( self )
@@ -125,7 +125,8 @@ end
 ==============================================================================================*/
 
 if SERVER then
-	ForgetByPlayer = { }
+	UnblockQueue = { }
+	BlockQueue = { }
 	RemoveQueue = { }
 	SyncQueue = { }
 
@@ -427,7 +428,6 @@ if SERVER then
 			for _, ENT in pairs( ents.FindByClass( "lemon_hologram" ) ) do
 				if !ENT.NO_SEND[ PlyID ] then
 					ENT:SyncClient( true )
-					ENT.KNOW_TO[ PlyID ] = true
 				end
 			end
 
@@ -444,45 +444,77 @@ if SERVER then
 		for ENT, _ in pairs( ClipQueue ) do Queue[ENT] = true; NeedsUpdate = true end
 		for ENT, _ in pairs( BoneQueue ) do Queue[ENT] = true; NeedsUpdate = true end
 
-		if !NeedsUpdate then return end
+		if NeedsUpdate then
+			for _, Player in pairs( player.GetAll( ) ) do
+				local PlyID = Player:UniqueID( )
 
-		for _, Player in pairs( player.GetAll( ) ) do
-			local PlyID = Player:UniqueID( )
+				net.Start( "lemon.hologram" )
+				
+				for ID, _ in pairs( RemoveQueue ) do
+					net.WriteUInt( ID, 16 )
+				end
+				
+				net.WriteUInt( 0, 16 )
 
-			net.Start( "lemon.hologram" )
-			
-			for ID, _ in pairs( RemoveQueue ) do
-				net.WriteUInt( ID, 16 )
-			end
-			
-			if ForgetByPlayer[ PlyID ] then
-				for ID, ENT in pairs( ForgetByPlayer[ PlyID ] ) do
-					if IsValid( ENT ) and ENT.KNOW_TO then
-						net.WriteUInt( ID, 16 )
-						ENT.KNOW_TO[ PlyID ] = nil
+				RemoveQueue = { }
+
+				for ENT, _ in pairs( Queue ) do
+					if IsValid( ENT ) and ENT.SyncClient then
+						if !ENT.NO_SEND[ PlyID ] then
+							ENT:SyncClient( false )
+						end
 					end
 				end
+
+				net.WriteUInt( 0, 16 )
+				
+				net.Send( Player )
 			end
-
-			net.WriteUInt( 0, 16 )
-
-			RemoveQueue = { }
-
-			for ENT, _ in pairs( Queue ) do
-				if IsValid( ENT ) and ENT.SyncClient then
-					if !ENT.NO_SEND[ PlyID ] then
-						ENT:SyncClient( false )
-						ENT.KNOW_TO[ PlyID ] = true
-					end
-				end
-			end
-
-			net.WriteUInt( 0, 16 )
-			
-			net.Send( Player )
 		end
 
-		ForgetByPlayer = { }
+		-- Now handel player blocking.
+
+		local Players = { }
+		local NeedsUpdate = false
+
+		for PlyID, _ in pairs( BlockQueue ) do Players[PlyID] = true; NeedsUpdate = true end
+		for PlyID, _ in pairs( UnblockQueue ) do Players[PlyID] = true; NeedsUpdate = true end
+
+		if NeedsUpdate then
+
+			for PlyID, _ in pairs( Players ) do
+				local Player = player.GetByUniqueID( PlyID )
+				if !IsValid( Player ) then continue end
+
+				net.Start( "lemon.hologram" )
+				
+				if BlockQueue[PlyID] then
+					for ENT, _ in pairs( BlockQueue[PlyID] ) do
+						if IsValid( ENT ) then
+							net.WriteUInt( ENT:EntIndex( ) , 16 )
+						end
+					end
+				end
+
+				net.WriteUInt( 0, 16 )
+
+				if UnblockQueue[PlyID] then
+					for ENT, _ in pairs( UnblockQueue[PlyID] ) do
+						if IsValid( ENT ) and ENT.SyncClient then
+							if !ENT.NO_SEND[ PlyID ] then
+								ENT:SyncClient( false )
+							end
+						end
+					end
+				end
+				net.WriteUInt( 0, 16 )
+				
+				net.Send( Player )
+			end
+		end
+
+		BlockQueue = { }
+		UnblockQueue = { }
 	end )
 
 elseif CLIENT then -- End of <if SERVER>
@@ -950,26 +982,29 @@ if SERVER then
 	function ENT:BlockPlayer( Player )
 		local PlyID = Player:UniqueID( )
 
+		if self.NO_SEND[ PlyID ] then return end
+
 		self.NO_SEND[ PlyID ] = true
 
-		if self.KNOW_TO[ PlyID ] then
-			self.KNOW_TO[ PlyID ] = nil
-
-			ForgetByPlayer[ PlyID ] = ForgetByPlayer[ PlyID ] or { }
-			ForgetByPlayer[ PlyID ][ self:EntIndex( ) ] = self
-
-			NeedsUpdate = true
-		end
+		local Queue = BlockQueue[ PlyID ] or { }
+		
+		BlockQueue[ PlyID ] = Queue
+		
+		Queue[ self ] = true
 	end
 
 	function ENT:UnblockPlayer( Player )
 		local PlyID = Player:UniqueID( )
 
-		if self.NO_SEND[ PlyID ] then
-			self.NO_SEND[ PlyID ] = nil
+		if !self.NO_SEND[ PlyID ] then return end
+		
+		self.NO_SEND[ PlyID ] = nil
 
-			NeedsUpdate = true
-		end
+		local Queue = UnblockQueue[ PlyID ] or { }
+		
+		UnblockQueue[ PlyID ] = Queue
+		
+		Queue[ self ] = true
 	end
 
 	function ENT:IsBlocked( Player )

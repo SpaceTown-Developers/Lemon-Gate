@@ -119,6 +119,7 @@ Data["boxMax(e:=v)"] = "Returns the highest corner of an entity's bounding box."
 Data["boxMin(e:=v)"] = "Returns the lowest corner of an entity's bounding box."
 Data["boxSize(e:=v)"] = "Returns the size of an entity's bounding box."
 Data["buffer(=xbf)"] = "Creates a new buffer object."
+Data["blockPlayer(h:e)"] = "Blocks a player from seeing the hologram."
 
 // C
 Data["canMakeHologram(=b)"] = "Returns true if a hologram can be created."
@@ -517,6 +518,7 @@ Data["isVisible(h:=b)"] = "Returns true of the hologram is visible."
 Data["isWeapon(e:=b)"] = "Returns true if entity is a weapon."
 Data["isWeldedTo(e:=e)"] = "Returns the entity (entity) is welded to."
 Data["isWorld(e:=b)"] = "Returns true if entity is the world."
+Data["isBlocked(h:e=b)"] = "Returns true is a player is blocked from seeing the hologram."
 
 // J
 Data["j(q:=n)"] = "Returns the J component of a quaternion."
@@ -996,6 +998,7 @@ Data["up(q:=v)"] = "Returns the up vector of a quaternion."
 Data["update(xtr:)"] = "Gets updated trace results from a trace."
 Data["upper(s:=s)"] = "Returns an uppercased string."
 Data["useLineOfSight(xtr:b)"] = "Trace Mask: "
+Data["unblockPlayer(h:e)"] = "unblocks a player from seeing the hologram, allow them to see it again."
 
 // V
 Data["values(t:=t)"] = ""

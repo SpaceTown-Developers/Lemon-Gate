@@ -641,7 +641,7 @@ end]], "" )
 /*==============================================================================================
     Section: Player Blocking, Does not work on the entity.
 ==============================================================================================*/
-/*Component:AddFunction("blockPlayer", "h:e", "", [[
+Component:AddFunction("blockPlayer", "h:e", "", [[
 if $IsValid( value %1 ) and value %1.Player == %context.Player then
 	if IsValid( value %2 ) and value %2:IsPlayer( ) then
 		value %1:BlockPlayer( value %2 )
@@ -660,4 +660,4 @@ if $IsValid( value %1 ) and value %1.Player == %context.Player then
 	if IsValid( value %2 ) and value %2:IsPlayer( ) then
 		%util = value %1:IsBlocked( value %2 )
 	end
-end]], "(%util or false)" )*/
+end]], "(%util or false)" )
