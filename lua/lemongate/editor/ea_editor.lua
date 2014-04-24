@@ -924,7 +924,7 @@ function PANEL:_OnTextChanged( )
 		else 
 			self:SetSelection( text )
 		end 
-	elseif #text == 1 and AutoParam[text] then 
+	/*elseif #text == 1 and AutoParam[text] then 
 		if 
 			self.Rows[self.Caret.x][self.Caret.y] == " " or 
 			self.Rows[self.Caret.x][self.Caret.y] == "" or 
@@ -938,7 +938,7 @@ function PANEL:_OnTextChanged( )
 			self:SetSelection( text )
 		end
 	elseif #text == 1 and SpecialCase[text] and self.Rows[self.Caret.x][self.Caret.y] == text then 
-		self:SetCaret( self:MovePosition( self.Caret, 1 ) ) 
+		self:SetCaret( self:MovePosition( self.Caret, 1 ) ) */
 	else
 		self:SetSelection( text )
 	end 
