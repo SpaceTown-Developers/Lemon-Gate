@@ -286,7 +286,7 @@ function Compiler:CompileCode( Code, Files, NoCompile )
 			self:Error( 0, "Failed to compile native lua (%s)", Compiled )
 		end
 		
-		file.Write( "LemonTest.txt", self.Native )
+		//file.Write( "LemonTest.txt", self.Native )
 
 		self.Execute = Compiled( )
 	end

@@ -245,18 +245,12 @@ Core:SetPerf( LEMON_PERF_NORMAL )
 Core:AddOperator( "for", "n", "", [[
 	%prepare
 	
-	local %First = true
-
 	while ( value %2 ) do
 		%perf
 
-		if !%First then
-			value %3
-		else
-			%First = false
-		end
-
 		prepare %4
+
+		value %3
 	end
 ]], "" )
 

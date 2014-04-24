@@ -455,7 +455,9 @@ function ENT:GetOverLayText( )
 end
 
 function ENT:UpdateOverlay( Clear )
-	if Clear or !self.Context then
+	if !self.SetOverlayData then
+		return -- Wire is outdated.
+	elseif Clear or !self.Context then
 		self:SetOverlayData( { name = "Lemon Gate", txt = "Offline", opcount = 0, cpubench = 0 } )
 	else
 		self:SetOverlayData( { name = self.GateName, txt = self:GetOverLayText( ), opcount = self.OpCount, cpubench = self.Context.CPUTime * 1000000 } )

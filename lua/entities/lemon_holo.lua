@@ -18,8 +18,9 @@ ENT.RenderGroup = RENDERGROUP_BOTH
 local function NewInfoTable( )
 	return {
 		FORCEFIRST = true,
-		VISIBLE = SERVER and true or false,
+		VISIBLE = true,
 		SHADING = true,
+		BLOCKED = false,
 		SCALEX = 1,
 		SCALEY = 1,
 		SCALEZ = 1,
@@ -75,8 +76,7 @@ local function LinkHoloInfo( self )
 	self.SYNC_CLIPS = { }
 	self.SYNC_BONES = { }
 
-	self.NO_SEND = { } -- Who not to send to.
-	self.KNOWN_TO = { } -- Who has been sent this.
+	self.BLOCKED_IDS = { }
 end
 
 if CLIENT then
@@ -125,8 +125,6 @@ end
 ==============================================================================================*/
 
 if SERVER then
-	UnblockQueue = { }
-	BlockQueue = { }
 	RemoveQueue = { }
 	SyncQueue = { }
 
@@ -135,7 +133,6 @@ if SERVER then
 	function ENT:SyncInfo( Forced )
 		if Forced then return self:SyncInfoForced( ) end
 
-		-- Its faster to constantly update these:
 			net.WriteBit( self.INFO.VISIBLE )
 			net.WriteBit( self.INFO.SHADING )
 
@@ -418,22 +415,60 @@ if SERVER then
 		end
 	end
 
-	hook.Add( "PlayerInitialSpawn", "lemon.hologram", function( Player )
+	BlockQueue, UnblockQueue = { }, { }
+
+	util.AddNetworkString( "lemon.hologram.block" )
+
+	local function SyncBlockedHolograms( Player )
 		local PlyID = Player:UniqueID( )
 
-		net.Start( "lemon.hologram" )
+		local Block = BlockQueue[ PlyID ]
+		local UnBlock = UnblockQueue[ PlyID ]
+			
+		if !Block and !UnBlock then return end
+			
+		net.Start( "lemon.hologram.block" )
+
+			if Block then
+				for ENT, _ in pairs( Block ) do
+					if IsValid( ENT ) then
+						net.WriteUInt( ENT:EntIndex( ), 16 )
+					end
+				end
+			end
 
 			net.WriteUInt( 0, 16 )
 
-			for _, ENT in pairs( ents.FindByClass( "lemon_hologram" ) ) do
-				if !ENT.NO_SEND[ PlyID ] then
-					ENT:SyncClient( true )
+			if UnBlock then
+				for ENT, _ in pairs( UnBlock ) do
+					if IsValid( ENT ) then
+						net.WriteUInt( ENT:EntIndex( ), 16 )
+					end
 				end
 			end
 
 			net.WriteUInt( 0, 16 )
 
 		net.Send( Player )
+
+		BlockQueue[ PlyID ] = nil
+		UnblockQueue[ PlyID ] = nil
+	end
+
+	hook.Add( "PlayerInitialSpawn", "lemon.hologram", function( Player )
+		net.Start( "lemon.hologram" )
+
+			net.WriteUInt( 0, 16 )
+
+			for _, ENT in pairs( ents.FindByClass( "lemon_hologram" ) ) do
+				ENT:SyncClient( true )
+			end
+
+			net.WriteUInt( 0, 16 )
+
+		net.Send( Player )
+
+		SyncBlockedHolograms( Player )
 	end )
 
 	hook.Add( "Tick", "lemon.hologram", function( )
@@ -445,76 +480,31 @@ if SERVER then
 		for ENT, _ in pairs( BoneQueue ) do Queue[ENT] = true; NeedsUpdate = true end
 
 		if NeedsUpdate then
-			for _, Player in pairs( player.GetAll( ) ) do
-				local PlyID = Player:UniqueID( )
-
-				net.Start( "lemon.hologram" )
-				
-				for ID, _ in pairs( RemoveQueue ) do
-					net.WriteUInt( ID, 16 )
-				end
-				
-				net.WriteUInt( 0, 16 )
-
-				RemoveQueue = { }
-
-				for ENT, _ in pairs( Queue ) do
-					if IsValid( ENT ) and ENT.SyncClient then
-						if !ENT.NO_SEND[ PlyID ] then
-							ENT:SyncClient( false )
-						end
-					end
-				end
-
-				net.WriteUInt( 0, 16 )
-				
-				net.Send( Player )
+			
+			net.Start( "lemon.hologram" )
+			
+			for ID, _ in pairs( RemoveQueue ) do
+				net.WriteUInt( ID, 16 )
 			end
-		end
+			
+			net.WriteUInt( 0, 16 )
 
-		-- Now handel player blocking.
+			RemoveQueue = { }
 
-		local Players = { }
-		local NeedsUpdate = false
-
-		for PlyID, _ in pairs( BlockQueue ) do Players[PlyID] = true; NeedsUpdate = true end
-		for PlyID, _ in pairs( UnblockQueue ) do Players[PlyID] = true; NeedsUpdate = true end
-
-		if NeedsUpdate then
-
-			for PlyID, _ in pairs( Players ) do
-				local Player = player.GetByUniqueID( PlyID )
-				if !IsValid( Player ) then continue end
-
-				net.Start( "lemon.hologram" )
-				
-				if BlockQueue[PlyID] then
-					for ENT, _ in pairs( BlockQueue[PlyID] ) do
-						if IsValid( ENT ) then
-							net.WriteUInt( ENT:EntIndex( ) , 16 )
-						end
-					end
+			for ENT, _ in pairs( Queue ) do
+				if IsValid( ENT ) and ENT.SyncClient then
+					ENT:SyncClient( false )
 				end
-
-				net.WriteUInt( 0, 16 )
-
-				if UnblockQueue[PlyID] then
-					for ENT, _ in pairs( UnblockQueue[PlyID] ) do
-						if IsValid( ENT ) and ENT.SyncClient then
-							if !ENT.NO_SEND[ PlyID ] then
-								ENT:SyncClient( false )
-							end
-						end
-					end
-				end
-				net.WriteUInt( 0, 16 )
-				
-				net.Send( Player )
 			end
-		end
 
-		BlockQueue = { }
-		UnblockQueue = { }
+			net.WriteUInt( 0, 16 )
+			
+			net.Broadcast( )
+		end
+		
+		for _, Player in pairs( player.GetAll( ) ) do
+			SyncBlockedHolograms( Player )
+		end
 	end )
 
 elseif CLIENT then -- End of <if SERVER>
@@ -617,6 +607,26 @@ elseif CLIENT then -- End of <if SERVER>
 
 		end
 
+	end )
+
+	net.Receive( "lemon.hologram.block", function( Len )
+		local BlockID = net.ReadUInt( 16 )
+		
+		while BlockID ~= 0 do
+			local Info = INFOTABLE[ BlockID ]
+			if Info then Info.BLOCKED = true end
+
+			BlockID = net.ReadUInt( 16 )
+		end
+
+		local UnblockID = net.ReadUInt( 16 )
+		
+		while UnblockID ~= 0 do
+			local Info = INFOTABLE[ UnblockID ]
+			if Info then Info.BLOCKED = false end
+
+			UnblockID = net.ReadUInt( 16 )
+		end
 	end )
 
 end -- End Of <if CLIENT>
@@ -982,33 +992,29 @@ if SERVER then
 	function ENT:BlockPlayer( Player )
 		local PlyID = Player:UniqueID( )
 
-		if self.NO_SEND[ PlyID ] then return end
+		if self.BLOCKED_IDS[ PlyID ] then return end
 
-		self.NO_SEND[ PlyID ] = true
+		self.BLOCKED_IDS[ PlyID ] = true
 
-		local Queue = BlockQueue[ PlyID ] or { }
-		
-		BlockQueue[ PlyID ] = Queue
-		
-		Queue[ self ] = true
+		BlockQueue[ PlyID ] = BlockQueue[ PlyID ] or { }
+
+		BlockQueue[ PlyID ][self] = true
 	end
 
 	function ENT:UnblockPlayer( Player )
 		local PlyID = Player:UniqueID( )
 
-		if !self.NO_SEND[ PlyID ] then return end
+		if !self.BLOCKED_IDS[ PlyID ] then return end
 		
-		self.NO_SEND[ PlyID ] = nil
+		self.BLOCKED_IDS[ PlyID ] = nil
 
-		local Queue = UnblockQueue[ PlyID ] or { }
-		
-		UnblockQueue[ PlyID ] = Queue
-		
-		Queue[ self ] = true
+		UnblockQueue[ PlyID ] = UnblockQueue[ PlyID ] or { }
+
+		UnblockQueue[ PlyID ][self] = true
 	end
 
 	function ENT:IsBlocked( Player )
-		return self.NO_SEND[ Player:UniqueID( ) ] or false
+		return self.BLOCKED_IDS[ Player:UniqueID( ) ] or false
 	end
 
 	return -- Exit Server Side Code
@@ -1024,11 +1030,7 @@ function ENT:Draw( )
 	local Info = INFOTABLE[ self:EntIndex( ) ]
 
 	-- Don't render what doesn't exist.
-	if !Info then
-		return 
-	elseif !Info.VISIBLE then
-		return
-	end
+	if !Info or !Info.VISIBLE or Info.BLOCKED then return end
 
 	local PlyID = Info.PlyID
 	
