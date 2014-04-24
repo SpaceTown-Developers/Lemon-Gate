@@ -24,7 +24,7 @@ Component:AddFunction( "hologramLimit", "", "n", "$GetConVarNumber(\"lemon_holog
 Component:AddFunction( "hologramSpawnRate", "", "n", "$GetConVarNumber(\"lemon_holograms_per_tick\", 0)" )
 Component:AddFunction( "hologramClipLimit", "", "n", "$GetConVarNumber(\"lemon_holograms_clips\", 0)" )
 Component:AddFunction( "hologramMaxScale", "", "n", "$GetConVarNumber(\"lemon_holograms_Size\", 0)" )
-Component:AddFunction( "hologramAnyModel", "", "n", "$tobool( $GetConVarNumber(\"lemon_holograms_model_any\", 0) )" )
+Component:AddFunction( "hologramAnyModel", "", "b", "$tobool( $GetConVarNumber(\"lemon_holograms_model_any\", 0) )" )
 
 /*==============================================================================================
     Section: Hologram Handeling
