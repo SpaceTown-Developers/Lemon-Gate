@@ -390,7 +390,7 @@ end]], "%Val" )
 Core:SetPerf( LEMON_PERF_EXPENSIVE )
 
 Core:AddFunction( "getConstraints", "e:", "e*", [[
-local %Cons = { }
+local %Cons, #Entity = { }, value %1
 
 if %Ent and %Ent:IsValid( ) and $constraint.HasConstraints( %Ent ) then
 	for _, Con in pairs( $constraint.GetAllConstrainedEntities( %Ent ) ) do
@@ -398,7 +398,7 @@ if %Ent and %Ent:IsValid( ) and $constraint.HasConstraints( %Ent ) then
 			%Cons[#%Cons + 1] = Con
 		end
 	end
-end]], "%Ret" )
+end]], "%Cons" )
 
 /*==============================================================================================
 	Section: Bearing & Elevation
