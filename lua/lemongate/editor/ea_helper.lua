@@ -77,7 +77,7 @@ end
 local function NodeClick( self ) 
 	local Syntax = { }
 	local meta, smeta = "", ""
-	local Data = self.Data[3]
+	local Data = table_Copy( self.Data[3] )
 	
 	for i = 1, #Data.Params do Syntax[#Syntax + 1] = GetType( Data.Params[i] ) or "" end
 	if string_match( self.Data[1], ":" ) then 
