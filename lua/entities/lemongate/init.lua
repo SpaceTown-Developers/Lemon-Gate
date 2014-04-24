@@ -411,7 +411,8 @@ function ENT:Initialize( )
 	
 	self.Overlay = "Offline"
 	self.GateName = "LemonGate"
-	
+	self:UpdateOverlay( true )
+
 	LEMON.API:CallHook("Create", self )
 end
 
@@ -420,20 +421,45 @@ function ENT:Think( )
 	local Context = self.Context
 	
 	if Context then
+		self.OpCount = Context.Perf
 		Context.CPUTime = Context.CPUTime * 0.95 + Context.Time * 0.05
-		self:SetNWInt( "GateTime", Context.CPUTime * 1000000 )
-		
-		self:SetNWFloat( "GatePerf", Context.Perf )
-		self:SetNWString( "GateName", self.GateName )
 		
 		Context.Time = 0
 		Context.Perf = 0
 	end
 	
+	self:UpdateOverlay( )
+
 	self.BaseClass.Think( self )
 	self:NextThink( Time )
 	
 	return true
+end
+
+function ENT:GetOverLayText( )
+	local Status = "Offline: 0 ops, 0%"
+	local Perf = self.OpCount or 0
+	local Max = GetConVarNumber( "lemongate_perf" )
+
+	if self:GetNWBool( "Crashed", false ) then
+		Status = "Script Error"
+	elseif Perf >= Max then
+		Status = "Warning: " .. Perf .." ops, 100%"
+	elseif Perf >= (Max * 0.9 ) then
+		Status = "Warning: " .. string.format( "%s ops, %s%%", Perf, math.ceil((Perf / Max) * 100) )
+	elseif Perf > 0 then
+		Status = self.Overlay .. ": " .. string.format( "%s ops, %s%%", Perf, math.ceil((Perf / Max) * 100) ) 
+	end
+	
+	return string.format( "%s\n%s\ncpu time: %ius", self.GateName, Status, math.Round( self.Context.CPUTime * 1000000, 4 ) )
+end
+
+function ENT:UpdateOverlay( Clear )
+	if Clear or !self.Context then
+		self:SetOverlayData( { name = "Lemon Gate", txt = "Offline", opcount = 0, cpubench = 0 } )
+	else
+		self:SetOverlayData( { name = self.GateName, txt = self:GetOverLayText( ), opcount = self.OpCount, cpubench = self.Context.CPUTime * 1000000 } )
+	end	
 end
 
 local ExplodeOnRemove = CreateConVar( "combustible_lemon", "0" )

@@ -24,13 +24,28 @@ function Component:BuildClasses( )
 		ArrayClass.NoTableUse = true
 	end
 
-	self:SetPerf( LEMON_PERF_CHEAP )
-
 	for Class, ArrayClass in pairs( self.ArrayClasses ) do
 
 		local ArrayShort = ArrayClass.Short
 
+		self:SetPerf( LEMON_PERF_CHEAP )
+
 		self:AddFunction( Class.Name:lower( ) .. "Array", "", ArrayShort, "{ }" )
+
+		self:SetPerf( LEMON_PERF_ABNORMAL )
+
+		self:AddFunction( Class.Name:lower( ) .. "Array", "...", ArrayShort, [[
+			local %Array = { }
+
+			for _, Obj in pairs( { %... } ) do
+				if Obj[2] ~= "]] .. Class.Short ..[[" then
+					%context:Throw( %trace, "array", "Attempted into insert " .. %LongType(Obj[2]) .. " to ]] .. Class.Name .. [[ array.")
+				end; table.insert( %Array, Obj[1] )
+			end
+		]], "%Array" )  -- TODO: DOCUMENT!
+
+
+		self:SetPerf( LEMON_PERF_CHEAP )
 
 		self:AddOperator( "#", ArrayShort, "n", "#value %1" )
 
@@ -53,9 +68,26 @@ function Component:BuildClasses( )
 		self:AddFunction( "insert", ArrayShort .. ":" .. Class.Short, "", "table.insert( value %1, value %2 )", "" )
 
 		self:AddFunction( "insert", ArrayShort .. ":n," .. Class.Short, "", "table.insert( value %1, value %2, value %3 )", "" ) 
+
+		self:AddFunction( "exists", ArrayShort .. ":n", "b", "(value %1[value %2] ~= nil)" ) -- TODO: DOCUMENT!
+
+		self:SetPerf( LEMON_PERF_NORMAL )
+
+		self:AddFunction( "count", ArrayShort, "n", "table.Count(value %1)" ) -- TODO: DOCUMENT!
 		
+		self:AddFunction( "clear", ArrayShort, "", "table.Empty(value %1)", "" ) -- TODO: DOCUMENT!
+
+		-- Casting
+
+		self:SetPerf( LEMON_PERF_ABNORMAL )
+
 		self:AddFunction( "toTable", ArrayShort .. ":", "t", "", [[%Table.Results( value %1, "]] .. Class.Short ..[[" )]] )
 		
+		self:AddOperator( "table", ArrayShort, "t", "", [[%Table.Results( value %1, "]] .. Class.Short ..[[" )]] )
+
+		self:SetPerf( LEMON_PERF_CHEAP )
+
+		--Loops
 		self:AddOperator( "foreach", ArrayShort, "", [[
 
 				%prepare

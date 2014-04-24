@@ -10,22 +10,7 @@ ENT.RenderGroup = RENDERGROUP_OPAQUE
 	Section: OverLay
 ==========================================================================*/
 function ENT:GetOverlayText( )
-	local Status = "Offline: 0 ops, 0%"
-	local Perf = self:GetNWFloat( "GatePerf", 0 )
-	local Max = GetConVarNumber( "lemongate_perf" )
-	
-	if self:GetNWBool( "Crashed", false ) then
-		Status = "Script Error"
-	elseif Perf >= Max then
-		Status = "Warning: " .. Perf .." ops, 100%"
-	elseif Perf >= (Max * 0.9 ) then
-		Status = "Warning: " .. string.format( "%s ops, %s%%", Perf, math.ceil((Perf / Max) * 100) )
-	elseif Perf > 0 then
-		Status = "Online: " .. string.format( "%s ops, %s%%", Perf, math.ceil((Perf / Max) * 100) ) 
-	end
-	
-	return string.format( "-Expression Advanced-\n%s\n%s\ncpu time: %ius\n(%s)", self:GetNWString( "GateName", "LemonGate" ), Status, math.Round( self:GetNWInt( "GateTime", 0 ), 4 ), self:GetPlayerName( ) )
-	
+	return "LemonGate: Status Uknown\nWiremod on workshop is outdated."
 end
 
 /*==========================================================================
