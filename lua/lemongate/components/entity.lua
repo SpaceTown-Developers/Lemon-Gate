@@ -390,11 +390,11 @@ end]], "%Val" )
 Core:SetPerf( LEMON_PERF_EXPENSIVE )
 
 Core:AddFunction( "getConstraints", "e:", "e*", [[
-local %Cons, #Entity = { }, value %1
+local %Cons, %Entity = { }, value %1
 
-if %Ent and %Ent:IsValid( ) and $constraint.HasConstraints( %Ent ) then
-	for _, Con in pairs( $constraint.GetAllConstrainedEntities( %Ent ) ) do
-		if Con and Con:IsValid() and Con ~= %Ent then
+if %Entity and %Entity:IsValid( ) and $constraint.HasConstraints( %Entity ) then
+	for _, Con in pairs( $constraint.GetAllConstrainedEntities( %Entity ) ) do
+		if Con and Con:IsValid() and Con ~= %Entity then
 			%Cons[#%Cons + 1] = Con
 		end
 	end
