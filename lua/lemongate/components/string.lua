@@ -168,9 +168,14 @@ Core:SetPerf( LEMON_PERF_EXPENSIVE)
 Core:AddFunction( "explode", "s:s", "s*", "string.Explode(value %2, value %1)" )
 
 Core:AddFunction( "matchPattern", "s:s[,n]", "s*",[[
-local %Results = { pcall(string.match, value %1, value %2, value %3 or 0) }
-if !table.remove(%Results,1) then %context:Throw("string", "Invalid string pattern (" .. value %2 ..").") end
-]], "%Results")
+	local %Results = {}
+	local %Count = 0
+	
+	for S in string.gmatch( value %1, value %2 ) do
+		%Count = %Count + 1
+		if %Count >= ( value %3 or 1 ) then table.insert( %Results, S ) end
+	end
+]], "%Results" )
 
 Core:AddFunction( "matchFirst", "s:s[,n]", "s",[[
 local %Ok, %Result = pcall(string.match, value %1, value %2, value %3 or 0)
