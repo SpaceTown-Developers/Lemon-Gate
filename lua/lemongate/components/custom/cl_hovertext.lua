@@ -46,21 +46,16 @@ end
 
 net.Receive( "lemon_hovertext_setText", function( Bytes )
 	for _, Data in pairs(net.ReadTable()) do
-		local Ent = Entity(Data.EntityID)
-		if IsValid(Ent) then
-			Data.Entity = Ent
-			Hovertext.Data[Ent] = Data
-		end
+		local EntID = Data.EntityID
+		Hovertext.Data[EntID] = Data
 	end
 end)
 
 --Strip text from the entity
 net.Receive( "lemon_hovertext_removeText", function( Bytes )
 	for _, Data in pairs(net.ReadTable()) do
-		local Ent = Entity(Data.EntityID)
-		if IsValid(Ent) then
-			Hovertext.Data[Ent] = nil
-		end
+		local EntID = Data.EntityID
+		Hovertext.Data[EntID] = nil
 	end
 end)
 
@@ -83,8 +78,10 @@ hook.Add("HUDPaint", "Lemon_Hovertext_Draw", function()
 						local Alpha =  math.Clamp(2 - (Dist / (Range/2)), 0, 1) --Fade out
 						draw.DrawText(Data.Text, Data.Font, Scrn.x, Scrn.y, Color(Data.Color[1], Data.Color[2], Data.Color[3], Data.Color[4] * Alpha), 1)
 					end
-				else
-					Hovertext.Data[Data.Entity] = nil
+				elseif Data.Entity then
+					Hovertext.Data[Data.EntityID] = nil
+				elseif IsValid(Entity(Data.EnitityID)) then
+					Data.Entity = Entity(Data.EnitityID)
 				end
 			end
 		end
