@@ -380,6 +380,11 @@ if $IsValid( value %1 ) and value %1.Player == %context.Player then
 	value %1:ScaleTo( value %2:Garry( ), value %3 )
 end]], "" )
 
+Component:AddFunction("scaleToUnits", "h:v,n", "",[[
+if $IsValid( value %1 ) and value %1.Player == %context.Player then
+	value %1:ScaleToUnits( value %2:Garry( ), value %3 )
+end]], "" )
+
 Component:AddFunction("stopScale", "h:", "",[[
 if $IsValid( value %1 ) and value %1.Player == %context.Player then
 	value %1:StopScale( )

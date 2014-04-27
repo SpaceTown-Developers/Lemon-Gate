@@ -1,16 +1,16 @@
 local Data = LEMON.API.HelperData
 
 /*---------------------------------------------------------------------------
-	Total functions: 1129
+	Total functions: 1136
 	Total events: 19
 	
 	Documented functions: 1058
-	Documented events: 17
+	Documented events: 19
 	
-	Undocumented functions: 71
-	Undocumented events: 2
+	Undocumented functions: 78
+	Undocumented events: 0
 	
-	Generated at: 04/26/14 02:34:51
+	Generated at: 04/27/14 18:52:34
 ---------------------------------------------------------------------------*/
 
 /*---------------------------------------------------------------------------
@@ -25,7 +25,7 @@ Data["keypress<n,e>"] = "Called when the owner of the gate presses down a key (k
 Data["keyrelease<n,e>"] = "Called when the owner of the gate releases a key (key is given as ascii)."
 
 // L
-Data["loadFromDupe<xbf>"] = ""
+Data["loadFromDupe<xbf>"] = "Loads a buffer of data from the advanced duplicator file."
 
 // O
 Data["onDamage<e,e,n,v>"] = "Called when an entity takes damage (Entity, Attacker, Damage, Damage Pos). "
@@ -43,7 +43,7 @@ Data["propBreak<e,e>"] = "Called when an entity breaks (Entity, Attacker). "
 Data["receiveBuffer<s,e,xbf>"] = "Called when the LemonGate receives a buffer. String is message and Entity is sender."
 
 // S
-Data["saveToDupe<=xbf>"] = ""
+Data["saveToDupe<=xbf>"] = "Saves a buffer of data to the advanced duplicators file."
 Data["shutdown<>"] = "Called before the lemongate shuts down."
 
 // T
@@ -137,6 +137,9 @@ Data["ceil(n,n=n)"] = "Rounds (number 1) up to (number 2)'s decimal precision."
 Data["ceil(n=n)"] = "Rounds (number) up to nearest integer."
 Data["ceil(v,n=v)"] = "Rounds the components of (vector XYZ) up to (number)'s decimal precision."
 Data["ceil(v=v)"] = "Rounds the components of (vector XYZ) up to nearest integer."
+Data["changePitch(a:n)"] = "Changes the pitch on the angle with out returning a new angle."
+Data["changeRoll(a:n)"] = "Changes the roll on the angle with out returning a new angle."
+Data["changeYaw(a:n)"] = "Changes the yaw on the angle with out returning a new angle."
 Data["clamp(a,a,a=a)"] = "Clamps (angle value) between (angle min) and (angle max)."
 Data["clamp(n,n,n=n)"] = "Clamps (number value) between (number min) and (number max)."
 Data["clamp(v,v,v=v)"] = "Clamps (vector value) between (vector  min) and (vector  max)."
@@ -416,9 +419,11 @@ Data["getParentHolo(h:=h)"] = "Returns the parent hologram of a hologram."
 Data["getPhysics(e:=p)"] = "Returns the physics object of an entity."
 Data["getPhysicsCount(e:=n)"] = "Returns the number of physics objects of an entity."
 Data["getPhysicsIndex(e:n=p)"] = "Returns a specific physics object, indicated by the number argument."
+Data["getPitch(a:=n)"] = "Returns the pitch of the angle."
 Data["getPlayers(=xe*)"] = "Returns a array of every player on the server."
 Data["getPose(h:s=n)"] = "Gets the pose of a hologram."
 Data["getPrivateTable(s=t)"] = "Returns the privatly shared table named S."
+Data["getRoll(a:=n)"] = "Returns the roll of the angle"
 Data["getSTable(s=t)"] = "Returns the shared table named S."
 Data["getScale(h:=v)"] = "Returns the scale of a hologram."
 Data["getScaleUnits(h:=v)"] = "Returns the scale of a hologram in units."
@@ -427,6 +432,7 @@ Data["getSkin(h:=n)"] = "Returns the current skin number of hologram."
 Data["getSkinCount(e:=n)"] = "Returns the amount of skins an entity has."
 Data["getSkinCount(h:=n)"] = "Returns the amount of skins a hologram has."
 Data["getTable(!:=t)"] = "Returns information table of exception."
+Data["getYaw(a:=n)"] = "Returns the yaw of the angle"
 Data["gravity(=n)"] = "Returns the gravity setting of the server."
 Data["green(c:=n)"] = "Returns the green value of a color."
 
@@ -759,7 +765,7 @@ Data["owner(=e)"] = "Returns the owner of the executing lemongate."
 Data["owner(e:=e)"] = "Returns the owner of an entity."
 
 // P
-Data["p(a:=n)"] = "Returns the pitch component of an angle."
+Data["p(a:=n)"] = "Returns the pitch component of an angle (replaced with getPitch)."
 Data["parent(e:e)"] = "Sets the parent entity of E."
 Data["parent(e:p)"] = "Sets the parent physics object of E."
 Data["parent(h:e)"] = "Sets the parent entity of a hologram."
@@ -830,7 +836,7 @@ Data["quaternionArray(...=xq*)"] = "Creates an array."
 Data["quaternionArray(=xq*)"] = "Creates an array."
 
 // R
-Data["r(a:=n)"] = "Returns the roll component of an angle."
+Data["r(a:=n)"] = "Returns the roll component of an angle (replaced with getRoll)."
 Data["radius(e:=n)"] = "Returns the radius of an entity."
 Data["random(=n)"] = "Returns a random floating point number between 0 and 1."
 Data["random(n,n=n)"] = "Returns a random floating-point number between the specified interval."
@@ -910,6 +916,7 @@ Data["round(v=v)"] = "Round vector XYZ components to nearest integer."
 
 // S
 Data["scaleTo(h:v,n)"] = "Animates a hologram to rescale to size V, N is speed."
+Data["scaleToUnits(h:v,n)"] = "Animates a hologram to rescale to size V in units, N is speed."
 Data["sec(n=n)"] = "Returns the secant of (number degrees)."
 Data["sech(n=n)"] = "Returns the hyperbolic secant of (number degrees)."
 Data["sechr(n=n)"] = "Returns the secant of (number radians."
@@ -1231,7 +1238,7 @@ Data["x(v:=n)"] = "Returns the X component of a vector."
 Data["x(xv2:=n)"] = "Returns the X component of a vector."
 
 // Y
-Data["y(a:=n)"] = "Returns the yaw component of an angle."
+Data["y(a:=n)"] = "Returns the yaw component of an angle (replaced with getYaw)."
 Data["y(v:=n)"] = "Returns the Y component of a vector."
 Data["y(xv2:=n)"] = "Returns the Y component of a vector."
 Data["yield()"] = "Yields the current coroutine to be resumed later."

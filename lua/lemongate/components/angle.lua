@@ -104,18 +104,32 @@ Core:AddFunction( "ang", "", "a", "Angle(0, 0, 0)", LEMON_INLINE_ONLY )
 
 -- Co-ords:
 
+-- These are to be removed.
 Core:AddFunction( "p", "a:", "n", "value %1.p", LEMON_INLINE_ONLY )
 
 Core:AddFunction( "y", "a:", "n", "value %1.y", LEMON_INLINE_ONLY )
 
 Core:AddFunction( "r", "a:", "n", "value %1.r", LEMON_INLINE_ONLY )
 
+-- and replaced with.
+Core:AddFunction( "getPitch", "a:", "n", "value %1.p", LEMON_INLINE_ONLY )
+
+Core:AddFunction( "getYaw", "a:", "n", "value %1.y", LEMON_INLINE_ONLY )
+
+Core:AddFunction( "getRoll", "a:", "n", "value %1.r", LEMON_INLINE_ONLY )
 
 Core:AddFunction( "setPitch", "a:n", "a", "Angle(value %2, value %1.y, value %1.r)", LEMON_INLINE_ONLY )
 
 Core:AddFunction( "setYaw", "a:n", "a", "Angle(value %1.p, value %2, value %1.r)", LEMON_INLINE_ONLY )
 
 Core:AddFunction( "setRoll", "a:n", "a", "Angle(value %1.p, value %1.y, value %2)", LEMON_INLINE_ONLY )
+
+Core:AddFunction( "changePitch", "a:n", "", "value %1.p = value %2", "" )
+
+Core:AddFunction( "changeYaw", "a:n", "", "value %1.y = value %2", "" )
+
+Core:AddFunction( "changeRoll", "a:n", "", "value %1.r = value %2", "" )
+
 
 Core:SetPerf( LEMON_PERF_ABNORMAL )
 

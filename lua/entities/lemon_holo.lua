@@ -916,7 +916,7 @@ if SERVER then
 	
 	function ENT:MoveTo( Vector, Speed )
 		self.MOVETO = Vector
-		self.MOVESPEED = Speed
+		self.MOVESPEED = Speed * 0.01
 	end
 
 	function ENT:StopMove( )
@@ -926,7 +926,7 @@ if SERVER then
 
 	function ENT:RotateTo( Angle, Speed )
 		self.ROTATETO = Angle
-		self.ROTATESPEED = Speed
+		self.ROTATESPEED = Speed * 0.01
 	end
 
 	function ENT:StopRotate( )
@@ -936,7 +936,18 @@ if SERVER then
 
 	function ENT:ScaleTo( Vector, Speed )
 		self.SCALETO = Vector
-		self.SCALESPEED = Speed
+		self.SCALESPEED = Speed * 0.01
+	end
+
+	function ENT:ScaleToUnits( Vector, Speed )
+		local  OBBSize = self:OBBMaxs( ) - self:OBBMins( )
+
+		Vector.x = Vector.x / OBBSize.x
+		Vector.y = Vector.y / OBBSize.y
+		Vector.z = Vector.z / OBBSize.z
+		
+		self.SCALETO = Vector
+		self.SCALESPEED = Speed * 0.01
 	end
 
 	function ENT:StopScale( )
@@ -970,13 +981,13 @@ if SERVER then
 		end
 
 		if self.SCALETO and self.SCALESPEED then
-			local Pos = self:GetPos( )
+			local Scale = self:GetScale( )
 
-			Pos.x = Pos.x + math.Clamp( self.SCALETO.x - Pos.x, -self.SCALESPEED, self.SCALESPEED )
-			Pos.y = Pos.y + math.Clamp( self.SCALETO.y - Pos.y, -self.SCALESPEED, self.SCALESPEED )
-			Pos.z = Pos.z + math.Clamp( self.SCALETO.z - Pos.z, -self.SCALESPEED, self.SCALESPEED )
+			Scale.x = Scale.x + math.Clamp( self.SCALETO.x - Scale.x, -self.SCALESPEED, self.SCALESPEED )
+			Scale.y = Scale.y + math.Clamp( self.SCALETO.y - Scale.y, -self.SCALESPEED, self.SCALESPEED )
+			Scale.z = Scale.z + math.Clamp( self.SCALETO.z - Scale.z, -self.SCALESPEED, self.SCALESPEED )
 
-			self:SetScale( Pos )
+			self:SetScale( Scale )
 
 			if Pos == self.SCALETO then self:StopScale( ) end
 		end
