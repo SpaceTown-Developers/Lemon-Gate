@@ -183,7 +183,7 @@ Component:AddFunction( "hovertextFonts", "", "t", "%Table.Results(%HoverText.Get
 --Component:AddFunction("hovertextFonts", "", "t", LEMON_INLINE_ONLY, "{HOVERTEXT_SMALL,HOVERTEXT_SMALL_SHADOW,HOVERTEXT_NORMAL,HOVERTEXT_NORMAL_SHADOW,HOVERTEXT_LARGE,HOVERTEXT_LARGE_SHADOW}", 0, "hovertextFonts()" )
 
 Component:AddConstant( "HOVERTEXT_TINY", "s", "hovertext_tiny" )
-Component:AddConstant( "HOVERTEXT_TINY", "s", "hovertext_tiny_shadow" )
+Component:AddConstant( "HOVERTEXT_TINY_SHADOW", "s", "hovertext_tiny_shadow" )
 
 Component:AddConstant( "HOVERTEXT_SMALL", "s", "hovertext_small" )
 Component:AddConstant( "HOVERTEXT_SMALL_SHADOW", "s", "hovertext_small_shadow" )
