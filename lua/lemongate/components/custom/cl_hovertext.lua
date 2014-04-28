@@ -80,7 +80,7 @@ hook.Add("HUDPaint", "Lemon_Hovertext_Draw", function()
 					end
 				elseif Data.Entity then
 					Hovertext.Data[Data.EntityID] = nil
-				elseif IsValid(Entity(Data.EnitityID)) then
+				elseif IsValid(Entity(Data.EntityID)) then
 					Data.Entity = Entity(Data.EntityID)
 				end
 			end
