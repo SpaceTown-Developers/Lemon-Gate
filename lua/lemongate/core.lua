@@ -453,8 +453,11 @@ if SERVER then
 	hook.Add( "PlayerInitialSpawn", "LemonGate.AutoShutDown", function( Player )
 		timer.Simple( 5, function( )
 			for _, Entity in pairs( API:GetEntitys( ) ) do
-				if Entity.AutoShutDown and Util.IsOwner( Player, Entity ) then
+				if Entity.AutoShutDown and Entity.PlyID == Player:EntIndex( ) then
+					Entity:SetNWEntity( "player", Player )
+					Entity:SetPlayer( Player )
 					Entity.Player = Player
+				
 					Entity:Reset( )
 					Entity.AutoShutDown = false
 				end

@@ -102,6 +102,10 @@ Core:AddFunction( "ang", "n", "a", "Angle(value %1, value %1, value %1)", LEMON_
 
 Core:AddFunction( "ang", "", "a", "Angle(0, 0, 0)", LEMON_INLINE_ONLY )
 
+-- Rand Constructors:
+
+Core:AddFunction( "randAng", "n,n", "a", "Angle( value %1 + math.random( ) * (value %2 - value %1), value %1 + math.random( ) * (value %2 - value %1), value %1 + math.random( ) * (value %2 - value %1) )" )
+
 -- Co-ords:
 
 -- These are to be removed.

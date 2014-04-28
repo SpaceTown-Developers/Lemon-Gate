@@ -104,6 +104,8 @@ if SERVER then
 				Entity:SetPlayer( Player )
 				Entity.Player = Player
 				
+				Entity.PlyID = Player:EntIndex( )
+				
 				Player:AddCount( "lemongates", Entity )
 				
 				return Entity

@@ -12,19 +12,30 @@ local Component = API:NewComponent( "arrays", true )
 
 Component:AddException( "array" )
 
+local Types = { n = "number", s = "string", e = "entity", h = "hologram", v = "vector", xv2 = "vector2", a = "angle", q = "quaternion", c = "color", t = "table", wl = "wirelink" }
+
+API:CallHook( "AddArrayClasses", Types ) -- Insert your class short and name here!
+
 Component.ArrayClasses = { }
 
-function Component:BuildClasses( )
+for Short, Name in pairs( Types ) do
+	local ArrayClass = Component:NewClass( Short .. "*", Name .. "[]", "{ }", true )
+	Component.ArrayClasses[ Name ] = ArrayClass
+	ArrayClass.NoTableUse = true
+end
+
+function Component:BuildOperators( )
 
 	self:SetPerf( LEMON_PERF_CHEAP )
 
-	for Name, Class in pairs( API.ClassLU ) do
-		local ArrayClass = self:NewClass( Class.Short .. "*", Class.Name .. "[]", "{ }", true )
-		self.ArrayClasses[ Class ] = ArrayClass
-		ArrayClass.NoTableUse = true
-	end
+	for ClassName, ArrayClass in pairs( self.ArrayClasses ) do
 
-	for Class, ArrayClass in pairs( self.ArrayClasses ) do
+		local Class = API:GetClass( ClassName, true )
+		
+		if !Class then 
+			MsgN( "Can't properly produce array " .. ClassName .. " the class does not exist." )
+			continue
+		end
 
 		local ArrayShort = ArrayClass.Short
 

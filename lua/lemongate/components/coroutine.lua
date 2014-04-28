@@ -35,7 +35,6 @@ Component:AddFunction( "getCoroutine", "", "cr", [[( $coroutine.running( ) or %c
 
 Component:AddFunction( "yield", "", "", [[
 if !$coroutine.running( ) then %context:Throw( %trace, "coroutine", "Used yield( ) outside coroutine." ) end
-%context.Time = %context.Time + ($SysTime( ) - %context.bench)
 ]], "$coroutine.yield( )" )
 
 /*==============================================================================================
@@ -48,10 +47,12 @@ Component:AddExternal( "sleep", function( Context, N )
 	timer.Simple( N, function( )
 		if !IsValid( Context.Entity ) or !Context.Entity:IsRunning( ) then return end
 
-		coroutine.resume( CoRoutine )
-	end )
+		local Bench = SysTime( )
 
-	Context.Time = Context.Time + (SysTime( ) - Context.bench)
+		coroutine.resume( CoRoutine )
+
+		Context.Time = Context.Time + (SysTime( ) - Bench)
+	end )
 
 	coroutine.yield( )
 end )
@@ -91,13 +92,16 @@ Component:AddExternal( "wait", function( Context, Name )
 
 	Que[ #Que + 1 ] = function( )
 		local Context, CoRoutine = Context, CoRoutine -- Cus of GC
+		
 		if IsValid( Context.Entity ) and Context.Entity:IsRunning( ) then
+			local Bench = SysTime( )
+
 			coroutine.resume( CoRoutine )
+
+			Context.Time = Context.Time + (SysTime( ) - Bench)
 		end
 	end
 
-	Context.Time = Context.Time + (SysTime( ) - Context.bench)
-	
 	coroutine.yield( )
 end )
 

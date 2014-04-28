@@ -26,7 +26,7 @@ local CrashColor = Color( 255, 0, 0 )
 function ENT:Crash( )
 	self.Context = nil
 	self:SetColor( CrashColor )
-	self:SetNWBool( "Crashed", true )
+	self.IsCrashed = true
 end
 
 function ENT:ScriptError( Trace, ErrorMsg, First, ... )
@@ -139,6 +139,7 @@ function ENT:GarbageCollect( )
 		else
 			Memory[Reference] = nil
 			Delta[Reference] = nil
+			--TODO: Garbage counter =D
 		end
 	end
 end
@@ -173,7 +174,7 @@ function ENT:CompileScript( Script, Files )
 		self:Error( "Reload Required" )
 	else
 		self:SetColor( NormalColor )
-		self:SetNWBool( "Crashed", false )
+		self.IsCrashed = false
 		self:BuildScript( Instance )
 	end
 	
@@ -374,6 +375,7 @@ end
 
 function ENT:ApplyDupeInfo( Player, Entity, DupeTable, FromID )
 	self.Player = Player
+	self.PlyID = Player:EntIndex( )
 	
 	self:LoadScript( DupeTable.Script, DupeTable.Files, DupeTable.ScriptName )
 		
@@ -397,6 +399,31 @@ function ENT:ApplyDupePorts( InPorts, OutPorts )
 end
 
 /*==============================================================================================
+	Syncing
+==============================================================================================*/
+/*util.AddNetworkString( "lemon.status" )
+
+function ENT:SyncWith( Player )
+	net.Start( "lemon.status" )
+
+		net.WriteUInt( self:EntIndex( ) )
+
+		net.WriteString( self.GateName )
+
+		net.WriteBit( self.IsCrashed )
+
+		if !self.IsCrashed then
+
+			net.WriteFloat( self.OpCount )
+
+			net.WriteFloat( self.Context.CPUTime )
+
+		end
+
+	net.Send( Player )
+end/*
+
+/*==============================================================================================
 	Entity
 ==============================================================================================*/
 function ENT:Initialize( )
@@ -409,7 +436,6 @@ function ENT:Initialize( )
 	self.Inputs = WireLib.CreateInputs( self, { } )
 	self.Outputs = WireLib.CreateOutputs( self, { } )
 	
-	self.Overlay = "Offline"
 	self.GateName = "LemonGate"
 	self:UpdateOverlay( true )
 
@@ -448,7 +474,9 @@ function ENT:GetOverLayText( )
 	elseif Perf >= (Max * 0.9 ) then
 		Status = "Warning: " .. string.format( "%s ops, %s%%", Perf, math.ceil((Perf / Max) * 100) )
 	elseif Perf > 0 then
-		Status = self.Overlay .. ": " .. string.format( "%s ops, %s%%", Perf, math.ceil((Perf / Max) * 100) ) 
+		Status = "Online: " .. string.format( "%s ops, %s%%", Perf, math.ceil((Perf / Max) * 100) ) 
+	else
+		Status = "Offline: 0 ops, 0%"
 	end
 	
 	return string.format( "%s\n%s\ncpu time: %ius", self.GateName, Status, math.Round( self.Context.CPUTime * 1000000, 4 ) )

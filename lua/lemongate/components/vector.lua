@@ -114,6 +114,10 @@ Core:AddFunction( "vec", "n", "v", "Vector3( value %1, value %1, value %1 )" )
 
 Core:AddFunction( "vec", "n,n,n", "v", "Vector3( value %1, value %2, value %3 )" )
 
+-- Rand Constructors:
+
+Core:AddFunction( "randVec", "n,n", "v", "Vector3( value %1 + math.random( ) * (value %2 - value %1), value %1 + math.random( ) * (value %2 - value %1), value %1 + math.random( ) * (value %2 - value %1) )" )
+
 -- Co-ords:
 
 Core:AddFunction( "x", "v:", "n", "value %1.x", nil )

@@ -224,6 +224,8 @@ Component:AddFunction( "entity", "rd:", "e", "( value %1.Result.Entity or %NULL_
 	
 	Component:AddFunction( "materialType", "rd:", "n", "( value %1.Result.MatType or 0 )", LEMON_INLINE_ONLY )
 	
+	Component:AddFunction( "distance", "rd:", "n", "value %1.Start:Distance( value %1.Result.HitPos or value %1.Start )" )
+	
 -- String
 	
 	Component:AddFunction( "hitTexture", "rd:", "s", "( value %1.Result.HitTexture or \"\" )", LEMON_INLINE_ONLY )
