@@ -240,6 +240,9 @@ function API:LoadCoreComponents( )
 		include( "lemongate/components/console.lua" )
 		include( "lemongate/components/coroutine.lua" )
 		include( "lemongate/components/arrays.lua" )
+		
+		-- Shared Editor
+		include( "lemongate/editor/shared.lua" )
 	end
 end
 
@@ -306,6 +309,8 @@ function API:LoadEditor( )
 		include( "lemongate/editor/repo.lua" )
 		include( "lemongate/editor/ea_search.lua" )
 		include( "lemongate/editor.lua" )
+
+		include( "lemongate/editor/shared.lua" )
 		
 		include( "lemongate/components/kinect.lua" )
 		include( "lemongate/components/cl_files.lua" )

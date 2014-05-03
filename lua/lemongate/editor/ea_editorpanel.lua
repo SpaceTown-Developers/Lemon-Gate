@@ -37,8 +37,7 @@ function PANEL:Init( )
 	self:SetText( "Expression Advanced Editor" )
 	self:SetSize( cookie.GetNumber( "eaeditor_w", math.min( 1000, ScrW( ) * 0.8 ) ), cookie.GetNumber( "eaeditor_h", math.min( 800, ScrH( ) * 0.8 ) ) )
 	self:SetPos( cookie.GetNumber( "eaeditor_x", ScrW( ) / 2 - self:GetWide( ) / 2 ), cookie.GetNumber( "eaeditor_y", ScrH( ) / 2 - self:GetTall( ) / 2 ) )
-	
-	
+
 	self.TabHolder = self:Add( "DPropertySheet" )
 	self.TabHolder:Dock( FILL )
 	self.TabHolder:DockMargin( 5, 5, 5, 5 )
@@ -98,7 +97,6 @@ function PANEL:Init( )
 	self.ToolBar:Dock( TOP )
 	self.ToolBar:DockMargin( 5, 5, 5, 0 )
 	self.ToolBar:SetTall( 30 )
-	
 	
 	self.ValidateButton = self:Add( "EA_Button" )
 	self.ValidateButton:Dock( BOTTOM )
@@ -349,7 +347,7 @@ local function OnTextChanged( )
 end
 
 function PANEL:NewTab( Code, Path, Name )
-	if ValidPanel( self.FileTabs[Path] ) then
+	if Path and ValidPanel( self.FileTabs[Path] ) then
 		self.TabHolder:SetActiveTab( self.FileTabs[Path] )
 		self.FileTabs[Path]:GetPanel( ):RequestFocus( )
 		return
@@ -360,7 +358,8 @@ function PANEL:NewTab( Code, Path, Name )
 		TabName = string.sub( Path, 0, #Path - 4 )
 	end
 	
-	local Sheet = self.TabHolder:AddSheet( TabName or "generic", vgui.Create( "EA_Editor" ), "fugue/script-text.png" )
+	local Editor = vgui.Create( "EA_Editor" )
+	local Sheet = self.TabHolder:AddSheet( TabName or "generic", Editor, "fugue/script-text.png" )
 	self.TabHolder:SetActiveTab( Sheet.Tab )
 	Sheet.Panel:RequestFocus( )
 	
@@ -378,8 +377,16 @@ function PANEL:NewTab( Code, Path, Name )
 		Sheet.Tab.FilePath = Path
 		self.FileTabs[Path] = Sheet.Tab
 	end
-	if not Name and self:OnTabCreated( Sheet.Tab, Code, Path ) then return end
-	if Code and Code ~= "" then self:SetCode( Code ) end
+
+	if not Name and self:OnTabCreated( Sheet.Tab, Code, Path ) then
+		return Editor, Sheet.Tab, Sheet
+	end
+
+	if Code and Code ~= "" then
+		self:SetCode( Code )
+	end
+
+	return Editor, Sheet.Tab, Sheet
 end
 
 function PANEL:CloseTab( bSave, Tab )
@@ -420,9 +427,14 @@ function PANEL:CloseTab( bSave, Tab )
 	
 	-- Oskar I added this to fix the no active tab bug =D 
 	-- Seems to work again for no reason, lets test it for a while then
-	-- if #self.TabHolder.Items == 0 then
-	-- 	self:NewTab( )
-	-- end
+	-- It broke again =(
+	if #self.TabHolder.Items == 0 then
+	 	self:NewTab( )
+	end
+
+	if Editor.OnTabClose then
+		Editor:OnTabClose( bSave, Tab )
+	end
 end
 
 function PANEL:CloseAll( )
@@ -663,6 +675,57 @@ function PANEL:ToggleVoice( )
 			DrawMic( self, Pnl, -0.01 )
 		end
 	end
+end
+
+/*============================================================================================================================================
+	Tab Sharing, this is not the code you are looking for!
+============================================================================================================================================*/
+function PANEL:AddSharedInvite( ID, Host, Name )
+	self.SharedInviteCount = (self.SharedInviteCount or 0) + 1
+	local List = self.ToolBar.pnlSharedList
+
+	local Pnl = vgui.Create( "DPanel" )
+	Pnl:SetTall( 20 )
+
+	local Avt = Pnl:Add( "AvatarImage" )
+	Avt:SetSize( 16, 16 )
+	Avt:SetPos( 3, 3 )
+	Avt:SetPlayer( Host, 16 )
+
+	local Lbl = Pnl:Add( "DLabel" )
+	Lbl:SetPos( 25, 3 )
+	Lbl:SetText( Name )
+	Lbl:SetTextColor( Color( 0, 0, 0, 255 ) )
+	Lbl:SizeToContents( )
+
+	local Accept = Pnl:Add( "EA_ImageButton" )
+	Accept:SetPos( 160, 3 )
+	Accept:DrawButton( false )
+	Accept:SetTooltip( "Join Session" ) 
+	Accept:SetMaterial( Material( "fugue/hand-shake.png") )
+
+	local Reject = Pnl:Add( "EA_ImageButton" )
+	Reject:SetPos( 180, 3 )
+	Reject:DrawButton( false )
+	Reject:SetTooltip( "Decline Session" ) 
+	Reject:SetMaterial( Material( "fugue/cross-button.png") )
+	
+	function Accept.DoClick( Btn )
+		List:RemoveItem( Pnl )
+		self.ToolBar.pnlSharedView:PerformLayout( )
+		self.ToolBar.pnlSharedView:SetVisible( false )
+		self.SharedInviteCount = self.SharedInviteCount - 1
+
+		RunConsoleCommand( "lemon_editor_join", ID )
+	end
+
+	function Reject.DoClick( Btn )
+		List:RemoveItem( Pnl )
+		self.ToolBar.pnlSharedView:PerformLayout( )
+		self.SharedInviteCount = self.SharedInviteCount - 1
+	end
+
+	List:InsertAtTop( Pnl, "ownline" )
 end
 
 vgui.Register( "EA_EditorPanel", PANEL, "EA_Frame" )

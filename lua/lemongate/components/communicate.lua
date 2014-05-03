@@ -142,10 +142,19 @@ else
 	%Val = %Buffer.Cells[ %Buffer.R ]
 end]], "%Val" )
 
+Component:AddFunction( "read", "bf:", "?", [[
+local %Buffer = value %1
+%Buffer.R = %Buffer.R + 1
+if %Buffer.Cells[ %Buffer.R ] == nil then
+	%context:Throw( %trace, "buffer", "Reached end of buffer" )
+end]], "{%Buffer.Cells[ %Buffer.R ], %Buffer.Types[ %Buffer.R ]}" )
+
 
 Component:SetPerf( LEMON_PERF_CHEAP )
 
 Component:AddFunction( "readPos", "bf:", "n", "(value %1.R)" )
+
+Component:AddFunction( "canRead", "bf:", "b", "(value %1.Cells[ value %1.R + 1 ] ~= nil)" )
 
 -- Misc:
 

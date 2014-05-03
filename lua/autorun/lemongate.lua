@@ -37,6 +37,8 @@ if SERVER then
 	AddCSLuaFile( "ea_version.lua" )
 	
 	AddCSLuaFile( "lemongate/editor.lua" )
+	AddCSLuaFile( "lemongate/editor/shared.lua" )
+	
 	AddCSLuaFile( "lemongate/components/cl_files.lua" )
 end
 

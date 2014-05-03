@@ -139,7 +139,7 @@ Core:SetPerf( LEMON_PERF_ABNORMAL )
 
 -- Casting:
 
-Core:AddOperator( "string", "a", "s", "tostring(value %1)", LEMON_INLINE_ONLY )
+Core:AddOperator( "string", "a", "s", [[string.format( "<Angle: %i %i %i>", value %1.p, value %1.y, value %1.r )]], LEMON_INLINE_ONLY )
 
 /*==============================================================================================
 	Section: General

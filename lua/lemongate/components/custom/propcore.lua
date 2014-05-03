@@ -223,12 +223,16 @@ Component:SetPerf( LEMON_PERF_CHEAP )
 
 Component:AddFunction("parent", "e:e", "", [[
 if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) and $IsValid( value %2 ) then
-	value %1:SetParent(value %2)
+	if !value %1:IsVehicle( ) and !value %2IsVehicle( ) then
+		value %1:SetParent(value %2)
+	end
 end]], "" )
 
 Component:AddFunction("parent", "e:p", "", [[
 if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) and $IsValid( value %2 ) then
-	value %1:SetParent(value %2)
+	if !value %1:IsVehicle( ) then
+		value %1:SetParent(value %2)
+	end
 end]], "" )
 
 Component:AddFunction("unparent", "e:", "", [[

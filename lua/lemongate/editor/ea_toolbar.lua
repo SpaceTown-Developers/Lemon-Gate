@@ -48,16 +48,18 @@ function PANEL:Init( )
 	self.btnFind = self:SetupButton( "Find in code", Material( "fugue/binocular.png" ), LEFT )
 	
 	self:AddTabNamer( )
-	
+
 	self.btnOptions = self:SetupButton( "Options", Material( "fugue/gear.png" ), RIGHT )
 	self.btnHelp = self:SetupButton( "Open helper", Material( "fugue/question.png" ), RIGHT )
-	self.btnWiki = self:SetupButton( "Visit the community", Material( "fugue/home.png" ), RIGHT )
+	self.btnWiki = self:SetupButton( "Visit the wiki", Material( "fugue/home.png" ), RIGHT )
 	
 	self.btnRepoLink = self:SetupButton( "Open repository", Material( "github.png" ), RIGHT )
 	
+	self:AddInviteMenu( )
+
 	self.btnFontPlus = self:SetupButton( "Increase font size.", Material( "fugue/edit-size-up.png" ), RIGHT )
 	self.btnFontMinus = self:SetupButton( "Decrease font size.", Material( "fugue/edit-size-down.png" ), RIGHT )
-	
+
 	local function AddDebugIcon( )
 		if GCompute and !self.btnOpenGCompute then 
 			self.btnOpenGCompute = self:SetupButton( "Open native code in GCompute", Material( "fugue/bug.png" ), RIGHT, function( self )
@@ -122,7 +124,7 @@ function PANEL:Init( )
 	end 
 	
 	function self.btnWiki:DoClick( )
-		gui.OpenURL( "http://poweredbylemons.com/index.php" )
+		gui.OpenURL( "https://github.com/SpaceTown-Developers/Lemon-Gate/wiki" )
 	end
 	
 	function self.btnRepoLink:DoClick( )
@@ -350,6 +352,106 @@ local function CreateOptions( )
 	
 	return Panel 
 end
+
+function PANEL:AddInviteMenu( )
+	self.pnlSharedView = vgui.Create( "DPanelList", self:GetParent( ) )
+	self.pnlSharedView:SetVisible( false )
+	self.pnlSharedView:SetAutoSize( true )
+	self.pnlSharedView:SetWide( 200 )
+
+	self.pnlSharedList = vgui.Create( "DPanelList" )
+	self.pnlSharedList:SetAutoSize( true )
+	self.pnlSharedList:Dock( TOP )
+	self.pnlSharedList:DockPadding( 5, 5, 5, 5 )
+	self.pnlSharedView:AddItem( self.pnlSharedList, "ownline" )
+
+	local subPnl = vgui.Create( "DPanel" )
+	subPnl:SetTall( 30 )
+	subPnl:Dock( BOTTOM )
+	subPnl:DockPadding( 5, 5, 5, 5 )
+	self.pnlSharedView:AddItem( subPnl, "ownline" )
+
+	local btnSub = self.SetupButton( subPnl, "Create", Material( "fugue/share.png" ), RIGHT )
+	btnSub:DrawButton( false )
+	
+	local txtName = subPnl:Add( "DTextEntry" )
+	txtName:Dock( FILL )
+	
+	function btnSub.DoClick( Btn )
+		RunConsoleCommand( "lemon_editor_host", txtName:GetValue( ) )
+
+		txtName:SetValue( "" )
+		self.pnlSharedView:SetVisible( false )
+	end
+
+	-- Add to toolbar!
+	self.btnShared = self:SetupButton( "Start Session", Material( "fugue/share.png" ), RIGHT )
+
+	local OldPaint = self.btnShared.Paint
+	function self.btnShared.Paint( Btn, W, H )
+		OldPaint( Btn, W, H )
+
+		local Invites = self:GetParent( ).SharedInviteCount
+		if !Invites or Invites == 0 then return end
+
+		draw.SimpleText( tostring( Invites ), "defaultsmall", W - 5, H - 5, Color( 255, 255, 255, 255 ), TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP )
+	end -- This draws the invite count, ontop of the icon.
+
+	function self.btnShared.DoClick( Btn )
+		local Visible = !self.pnlSharedView:IsVisible( )
+		
+		self.pnlSharedView:SetVisible( Visible )
+
+		if IsValid( self.Edit ) then
+			self.Edit:Remove( )
+			subPnl:Dock( FILL )
+			subPnl:PerformLayout( )
+		end
+
+		if !Visible then return end
+
+		local btnX, btnY = Btn:GetPos( )
+		local tlbX, tlbY = self:GetPos( )
+
+		self.pnlSharedView:SetPos( btnX + tlbX - ((self.pnlSharedView:GetWide( ) - Btn:GetWide( )) / 2 ), btnY + tlbY + Btn:GetTall( ) )
+
+		local Tab = self:GetParent( ).TabHolder:GetActiveTab( )
+		if !IsValid( Tab ) then return end
+		
+		local Session = Tab:GetPanel( ).SharedSession 
+		if !Session or Session.Host ~= LocalPlayer( ) then return end
+
+		self.Edit = self.SetupButton( subPnl, "Current Session", Material( "fugue/globe-network.png" ), LEFT )
+		self.Edit:DrawButton( false )
+		subPnl:PerformLayout( )
+
+		function self.Edit.DoClick( )
+			local Menu = DermaMenu( )
+			
+			Menu:AddOption( "End Session", function( ) RunConsoleCommand( "lemon_editor_leave", Session.ID ) end )
+
+			Menu:AddSpacer()
+
+			local Invite, Kick
+
+			for _, Ply in pairs( player.GetAll( ) ) do
+				if Ply == LocalPlayer( ) then continue end
+
+				if !Session.Users[ Ply ] then
+					if !Invite then Invite = Menu:AddSubMenu( "Invite" ) end
+					Invite:AddOption( Ply:Name( ), function( ) RunConsoleCommand( "lemon_editor_invite", Session.ID, Ply:UniqueID( ) ) end )
+				else
+					if !Kick then Kick = Menu:AddSubMenu( "Kick" ) end
+					Kick:AddOption( Ply:Name( ), function( ) RunConsoleCommand( "lemon_editor_kick", Session.ID, Ply:UniqueID( ) ) end )
+				end
+			end
+
+			Menu:Open()
+		end
+
+	end -- Toggle the invites window.
+end
+
 
 function PANEL:OpenHelper( ) 
 	if !ValidPanel( LEMON.Helper ) then LEMON.Helper = vgui.Create( "EA_Helper" ) end 

@@ -53,17 +53,14 @@ end )
 	Home Screen
 ---------------------------------------------------------------------------*/
 local HomeScreen = [[/*====================================================================
-	Update:
-		* Arrays have been added, Happy Easter!
-		* Arrays are very basic for now and will be improved.
-		
 	Expression Advanced:
 		* int i = 5
 		* number[] i = numberArray( )
 
 	Editor Changes:
 		* CTR+B for voice chat.
-	
+		* 596f752063616e206e6f7720736861726520796f757220746162732077697468206f7468657220706c61796572733f
+
 	Check it out, We have a new Wiki:
 	 - https://github.com/SpaceTown-Developers/Lemon-Gate/wiki
 	
