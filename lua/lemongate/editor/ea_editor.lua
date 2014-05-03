@@ -1207,7 +1207,7 @@ function PANEL:PaintStatus( )
 
 	if self.SharedSession then
 		local Count = self.SharedSession.Connected or 1
-		Line = Line .. " Session: " .. Count .. ( Count > 1 and " users" or " user" )
+		Line = Line .. " Session: " .. Count .. ( Count > 1 and " users " or " user " ) .. "id " .. Session.ID
 	end
 	
 	surface_SetFont( "Trebuchet18" )

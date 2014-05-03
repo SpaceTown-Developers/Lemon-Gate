@@ -728,6 +728,7 @@ function PANEL:AddSharedInvite( ID, Host, Name )
 	end
 
 	List:InsertAtTop( Pnl, "ownline" )
+	self.ToolBar.pnlSharedView:InvalidateLayout()
 end
 
 vgui.Register( "EA_EditorPanel", PANEL, "EA_Frame" )
