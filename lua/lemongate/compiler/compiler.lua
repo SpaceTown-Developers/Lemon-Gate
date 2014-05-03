@@ -276,7 +276,11 @@ function Compiler:CompileCode( Code, Files, NoCompile )
 			-- Main Body:
 				]] .. Lua .. [[
 		end]], " modulus ", "%%" ) )
-		
+	
+	if CLIENT and self.Directive_Model then
+		RunConsoleCommand( "lemongate_model", self.Directive_Model )
+	end
+
 	if !NoCompile then
 		LEMON_STRINGS = self.Strings
 		local Compiled = CompileString( self.Native, "LemonCompiler", false )

@@ -1128,10 +1128,11 @@ function ENT:ApplyHoloInfo( )
 	local Bones = self:GetBoneCount( )
 	local Scale = Vector( Info.SCALEX, Info.SCALEY, Info.SCALEZ )
 
-	if string.Left( self:GetModel( ), 17 ) == "models/holograms/" then
+	if Bones == 1 then
+		if string.Left( self:GetModel( ), 17 ) == "models/holograms/" then
+			Scale = Vector( Info.SCALEY, Info.SCALEX, Info.SCALEZ )
+		end
 		
-		local Scale = Vector( Info.SCALEY, Info.SCALEX, Info.SCALEZ )
-			
 		for ID = Bones, 0, -1 do self:ManipulateBoneScale( ID, Scale ) end
 
 	elseif Bones > 1 and Info.BONES then 

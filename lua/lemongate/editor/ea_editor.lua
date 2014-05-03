@@ -63,6 +63,7 @@ function PANEL:Init( )
 	self.Bookmarks = { } 
 	self.ActiveBookmarks = { } 
 	self.SyncedCursors = { }
+	self.HiddenSyncedCursors = { }
 	self.Insert = false 
 	
 	self.Blink = RealTime( )
@@ -460,7 +461,7 @@ function PANEL:wordRight( caret )
 end
 
 function PANEL:wordStart( caret )
-	local line = self.Rows[caret.x] 
+	local line = self.Rows[caret.x] or ""
 	
 	for startpos, endpos in string_gmatch( line, "()[a-zA-Z0-9_]+()" ) do 
 		if startpos <= caret.y and endpos >= caret.y then 
@@ -472,7 +473,7 @@ function PANEL:wordStart( caret )
 end
 
 function PANEL:wordEnd( caret )
-	local line = self.Rows[caret.x] 
+	local line = self.Rows[caret.x] or ""
 	
 	for startpos, endpos in string_gmatch( line, "()[a-zA-Z0-9_]+()" ) do 
 		if startpos <= caret.y and endpos >= caret.y then 
@@ -1193,13 +1194,30 @@ function PANEL:Paint( w, h )
 	self:DrawText( w, h )
 	
 	self:PaintTextOverlay( )
+
+	self:PaintStatus( )
+end
+
+function PANEL:PaintStatus( )
+	local Line = "Length: " .. #self:GetCode( ) .. " Lines: " .. #self.Rows .. " Row: " .. self.Caret.x .. " Col: " .. self.Caret.y
 	
-	/*local str = "Length: " .. #self:GetCode( ) .. " Lines: " .. #self.Rows .. " Row: " .. self.Caret.x .. " Col: " .. self.Caret.y
-	if ( self:HasSelection( ) ) then str = str .. " Sel: " .. #self:GetSelection( ) end
+	if self:HasSelection( ) then
+		Line = Line .. " Sel: " .. #self:GetSelection( )
+	end
+
+	if self.SharedSession then
+		local Count = self.SharedSession.Connected or 1
+		Line = Line .. " Session: " .. Count .. ( Count > 1 and " users" or " user" )
+	end
+	
 	surface_SetFont( "Trebuchet18" )
-	local w,h = surface_GetTextSize( str )
-	local _w, _h = self:GetSize( )
-	draw_WordBox( 4, _w - w - 10 - ( self.ScrollBar.Enabled and 16 or 0 ), _h - h - 10, str, "Trebuchet18", Color( 0,0,0,100 ), Color( 255,255,255,255 ) )*/
+
+	local Width, Height = surface_GetTextSize( Line )
+
+	local Wide, Tall = self:GetSize( )
+
+	draw_WordBox( 4, Wide - Width - 20 - ( self.ScrollBar.Enabled and 16 or 0 ), Tall - Height - 20, Line, "Trebuchet18", Color( 0,0,0,100 ), Color( 255,255,255,255 ) )
+
 end
 
 function PANEL:PaintTextOverlay( )
@@ -1256,6 +1274,8 @@ end
 
 function PANEL:PaintSyncedCursorsAndSelections( )
 	for ID, selection in pairs( self.SyncedCursors ) do
+		if self.HiddenSyncedCursors[ID] then continue end
+		
 		local visible = self:PositionIsVisible( selection[1] )
 		
 		if visible then

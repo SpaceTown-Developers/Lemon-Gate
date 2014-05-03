@@ -27,6 +27,7 @@ if SERVER then
 		Session.Host = Host
 		Session.HostID = Host:UniqueID( )
 
+		Session.Connected = 1
 		Session.Users = { [Host] = Host }
 		Session.Invitees = { }
 
@@ -93,10 +94,22 @@ if SERVER then
 		end
 
 		Session.Users[ Player ] = Player
+		Session.Connected = Session.Connected + 1
 	end
 
 	concommand.Add( "lemon_editor_join", function( Player, Cmd, Args )
 		JoinSession( Player, Args[1] )
+	end ) -- Add a user to this session.
+
+	local function DeclineSession( Player, ID )
+		local Session = GetSession( ID )
+		if !Session or !Session.Invitees[ Player ] then return end
+
+		Session.Invitees[ Player ] = nil
+	end
+
+	concommand.Add( "lemon_editor_decline", function( Player, Cmd, Args )
+		DeclineSession( Player, Args[1] )
 	end ) -- Add a user to this session.
 
 	local function LeaveSession( Player, ID )
@@ -115,6 +128,7 @@ if SERVER then
 		end
 
 		Session.Users[ Player ] = nil
+		Session.Connected = Session.Connected - 1
 	end
 
 	concommand.Add( "lemon_editor_leave", function( Player, Cmd, Args )
@@ -390,6 +404,7 @@ local function NewSession( ID, Host, Name )
 	Session.Host = Host
 	Session.HostID = Host:UniqueID( )
 
+	Session.Connected = 1
 	Session.Users = { [Host] = Host }
 
 	SharedSessions[ Session.ID ] = Session
@@ -432,8 +447,7 @@ net.Receive( "lemon.shared.joined", function( )
 	if !Session or !IsValid( Player ) then return end
 
 	Session.Users[ Player ] = Player
-
-	-- TODO: Add player to shared Menu.
+	Session.Connected = Session.Connected + 1
 
 	if !Session.Host == LocalPlayer( ) then return end
 
@@ -452,6 +466,7 @@ net.Receive( "lemon.shared.left", function( )
 	if !Session or !IsValid( Player ) then return end
 
 	Session.Users[ Player ] = nil
+	Session.Connected = Session.Connected - 1
 
 	local Editor = Session.Editor
 	if !IsValid( Editor ) then return end

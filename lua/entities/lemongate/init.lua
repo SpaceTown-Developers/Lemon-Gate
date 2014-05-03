@@ -178,10 +178,10 @@ function ENT:CompileScript( Script, Files )
 		self:BuildScript( Instance )
 	end
 	
-	if Instance.Directive_Model then
+	/*if Instance.Directive_Model then
 		self:SetModel( Instance.Directive_Model )
 		self:PhysicsInit( SOLID_VPHYSICS )
-	end
+	end*/
 
 	self:LoadEffect( )
 	

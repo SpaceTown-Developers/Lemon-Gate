@@ -384,6 +384,9 @@ function Syntaxer:Parse( Row )
 	if self:NextPattern( "^@return" ) then 
 		addToken( "prediction", self.tokendata ) 
 		self.tokendata = "" 
+	elseif self:NextPattern( "^@model" ) then 
+		addToken( "prediction", self.tokendata ) 
+		self.tokendata = "" 
 	end 
 
 	if self.blockcomment then

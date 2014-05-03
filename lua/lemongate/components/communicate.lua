@@ -182,6 +182,24 @@ if %Ent and %Ent:IsValid( ) and %Ent.IsLemonGate then
 	table.insert( %data.BufferQue, {%Ent, value %2, { Cells = table.Copy( %Buffer.Cells ), Types = table.Copy( %Buffer.Types ), R = %Buffer.R, W = %Buffer.W} } )
 end]], "" )
 
+Component:AddFunction( "sendAll", "bf:s", "", [[
+local %Buffer = value %1
+for _, Ent in pairs( API:GetEntitys( ) ) do
+	if Ent and Ent:IsValid( ) and Ent.IsLemonGate then
+		table.insert( %data.BufferQue, {Ent, value %2, { Cells = table.Copy( %Buffer.Cells ), Types = table.Copy( %Buffer.Types ), R = %Buffer.R, W = %Buffer.W} } )
+	end
+end]], "" )
+
+Component:AddFunction( "sendAllPrivate", "bf:s", "", [[
+local %Buffer = value %1
+for _, Ent in pairs( API:GetEntitys( ) ) do
+	if Ent and Ent:IsValid( ) and Ent.IsLemonGate then
+		if Ent.Player and Ent.Player == %context.Player then
+			table.insert( %data.BufferQue, {Ent, value %2, { Cells = table.Copy( %Buffer.Cells ), Types = table.Copy( %Buffer.Types ), R = %Buffer.R, W = %Buffer.W} } )
+		end
+	end
+end]], "" )
+
 /*==============================================================================================
 	Section: Saving and Loading
 ==============================================================================================*/

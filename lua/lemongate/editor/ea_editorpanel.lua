@@ -723,6 +723,8 @@ function PANEL:AddSharedInvite( ID, Host, Name )
 		List:RemoveItem( Pnl )
 		self.ToolBar.pnlSharedView:PerformLayout( )
 		self.SharedInviteCount = self.SharedInviteCount - 1
+
+		RunConsoleCommand( "lemon_editor_decline", ID )
 	end
 
 	List:InsertAtTop( Pnl, "ownline" )

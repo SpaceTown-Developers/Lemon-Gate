@@ -419,7 +419,9 @@ function PANEL:AddInviteMenu( )
 		if !IsValid( Tab ) then return end
 		
 		local Session = Tab:GetPanel( ).SharedSession 
-		if !Session or Session.Host ~= LocalPlayer( ) then return end
+		if !Session then return end
+
+		local IsHost = Session.Host == LocalPlayer( ) 
 
 		self.Edit = self.SetupButton( subPnl, "Current Session", Material( "fugue/globe-network.png" ), LEFT )
 		self.Edit:DrawButton( false )
@@ -428,22 +430,38 @@ function PANEL:AddInviteMenu( )
 		function self.Edit.DoClick( )
 			local Menu = DermaMenu( )
 			
-			Menu:AddOption( "End Session", function( ) RunConsoleCommand( "lemon_editor_leave", Session.ID ) end )
+			Menu:AddOption( IsHost and "End Session" or "Leave Session", function( ) RunConsoleCommand( "lemon_editor_leave", Session.ID ) end )
 
-			Menu:AddSpacer()
+			if IsHost then
+					Menu:AddSpacer( )
 
-			local Invite, Kick
+					local Invite, Kick
 
-			for _, Ply in pairs( player.GetAll( ) ) do
+					for _, Ply in pairs( player.GetAll( ) ) do
+						if Ply == LocalPlayer( ) then continue end
+
+						if !Session.Users[ Ply ] then
+							if !Invite then Invite = Menu:AddSubMenu( "Invite" ) end
+							Invite:AddOption( Ply:Name( ), function( ) RunConsoleCommand( "lemon_editor_invite", Session.ID, Ply:UniqueID( ) ) end )
+						else
+							if !Kick then Kick = Menu:AddSubMenu( "Kick" ) end
+							Kick:AddOption( Ply:Name( ), function( ) RunConsoleCommand( "lemon_editor_kick", Session.ID, Ply:UniqueID( ) ) end )
+						end
+					end
+			end
+
+			for _, Ply in pairs( Session.Users ) do
 				if Ply == LocalPlayer( ) then continue end
 
-				if !Session.Users[ Ply ] then
-					if !Invite then Invite = Menu:AddSubMenu( "Invite" ) end
-					Invite:AddOption( Ply:Name( ), function( ) RunConsoleCommand( "lemon_editor_invite", Session.ID, Ply:UniqueID( ) ) end )
+				local Option = Menu:AddSubMenu( Ply:Name( ) )
+				
+				if Session.Editor.HiddenSyncedCursors[ Ply:UniqueID( ) ] then
+					Option:AddOption( "Show Cursor", function( ) Session.Editor.HiddenSyncedCursors[ Ply:UniqueID( ) ] = nil end )
 				else
-					if !Kick then Kick = Menu:AddSubMenu( "Kick" ) end
-					Kick:AddOption( Ply:Name( ), function( ) RunConsoleCommand( "lemon_editor_kick", Session.ID, Ply:UniqueID( ) ) end )
+					Option:AddOption( "Hide Cursor", function( ) Session.Editor.HiddenSyncedCursors[ Ply:UniqueID( ) ] = true end )
 				end
+
+				--TODO: Add more options!
 			end
 
 			Menu:Open()
