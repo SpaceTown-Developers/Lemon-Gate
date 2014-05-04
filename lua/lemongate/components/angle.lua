@@ -122,11 +122,11 @@ Core:AddFunction( "getYaw", "a:", "n", "value %1.y", LEMON_INLINE_ONLY )
 
 Core:AddFunction( "getRoll", "a:", "n", "value %1.r", LEMON_INLINE_ONLY )
 
-Core:AddFunction( "setPitch", "a:n", "a", "Angle(value %2, value %1.y, value %1.r)", LEMON_INLINE_ONLY )
+Core:AddFunction( "setPitch", "a:n", "", "value %1:Set( Angle(value %2, value %1.y, value %1.r) )", LEMON_INLINE_ONLY )
 
-Core:AddFunction( "setYaw", "a:n", "a", "Angle(value %1.p, value %2, value %1.r)", LEMON_INLINE_ONLY )
+Core:AddFunction( "setYaw", "a:n", "", "value %1:Set( Angle(value %1.p, value %2, value %1.r) )", LEMON_INLINE_ONLY )
 
-Core:AddFunction( "setRoll", "a:n", "a", "Angle(value %1.p, value %1.y, value %2)", LEMON_INLINE_ONLY )
+Core:AddFunction( "setRoll", "a:n", "", "value %1:Set( Angle(value %1.p, value %1.y, value %2) )", LEMON_INLINE_ONLY )
 
 Core:AddFunction( "changePitch", "a:n", "", "value %1.p = value %2", "" )
 
