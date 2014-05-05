@@ -177,6 +177,23 @@ local %Ok, %Result = pcall(string.match, value %1, value %2, value %3 or 0)
 if !%Ok then %context:Throw("string", "Invalid string pattern (" .. value %2 ..").") end
 ]], "(%Result or \"\")")
 
+Core:AddFunction( "gmatch", "s:s[,n]", "t*",[[
+	local %Results, %Iter, %Values, %I = {}, string.gmatch( value %1, value %2 ), {}, 1
+	
+	while true do
+		%perf
+		
+		%Values = {%Iter()}
+		if #%Values == 0 then
+			break
+		elseif %I >= ( value %3 or 1 ) then
+			%Results[#%Results+1] = %Values
+		end
+		
+		%I = %I + 1
+	end
+]], "%Results")
+
 /*==============================================================================================
 	Section: Format
 ==============================================================================================*/
