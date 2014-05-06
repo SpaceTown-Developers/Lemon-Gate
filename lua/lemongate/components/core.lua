@@ -235,6 +235,8 @@ Core:AddOperator( "for", "n", "", [[
 	prepare %3
 
 	while ( value %2 ) do
+		%cpu
+
 		prepare %4
 
 		value %3
@@ -244,6 +246,8 @@ Core:AddOperator( "for", "n", "", [[
 Core:AddOperator( "while", "", "", [[
 	
 	while ( value %1 ) do
+		%cpu
+		
 		prepare %2
 	end
 ]], "" )
