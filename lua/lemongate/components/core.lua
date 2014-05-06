@@ -12,7 +12,7 @@ local LEMON, API = LEMON, LEMON.API
 		3)  type %N		-> The short type of N (as string).
 		
 		4)  %prepare	-> The preperation for anything not effected by 1.
-		5)  %perf		-> A line that does the perf calculation and exceed.
+		5)  %cpu		-> A line that cpu usage.
 		6)  %trace		-> The trace of this function as a table.
 		7)  %...		-> A list of variants from a vararg.
 		
@@ -39,8 +39,6 @@ local LEMON, API = LEMON, LEMON.API
 				Class:Wire_Name( Name )
 				Class.Wire_Out = function( Context, Cell )
 				Class.Wire_In = function( Context, Cell, Value )
-		
-			Component:SetPerf( Perfomance Coast )
 			
 			Component:AddOperator( Operator, Params, Return, Inline )
 			Component:AddOperator( Operator, Params, Return, Prepare, Inline )
@@ -67,7 +65,6 @@ end )
 /*==============================================================================================
 	Section: Base Operators
 ==============================================================================================*/
-Core:SetPerf( LEMON_PERF_CHEAP )
 
 Core:AddOperator( "=", "", "", [[
 %memory[value %1] = value %2
@@ -86,9 +83,6 @@ Core:AddOperator( "&&", "", "b", "( value %2 and value %2 )" )
 	Section: Booleans
 ==============================================================================================*/
 Core:NewClass( "b", "boolean", false )
-
-Core:SetPerf( LEMON_PERF_CHEAP )
-
 
 -- Assign:
 
@@ -131,8 +125,6 @@ Core:AddFunction( "type", "!:", "s", "(value %1.Type)", nil )
 
 Core:AddFunction( "message", "!:", "s", "(value %1.Message)", nil )
 
-Core:SetPerf( LEMON_PERF_EXPENSIVE )
-
 Core:AddFunction( "trace", "!:n", "t", [[
 local %Result = %Table()
 local %Trace, %Index = value %1.Trace, value %2
@@ -171,8 +163,6 @@ Core:AddFunction( "getTable", "!:", "t", "(value %1.Table or %Table())", nil )
 
 -- User Exceptions
 
-Core:SetPerf( LEMON_PERF_CHEAP )
-
 Core:AddException( "user" )
 
 Core:AddFunction( "throw", "s", "", "%context:Throw( %trace, \"user\", value %1 )", nil )
@@ -193,7 +183,6 @@ Core:AddFunction( "tostring", "?", "s", "( tostring(value %1[1]) .. \" -> \" .. 
 ==============================================================================================*/
 
 function Core:BuildOperators( )
-	self:SetPerf( LEMON_PERF_CHEAP )
 	
 	for Name, Class in pairs( API.Classes ) do
 		
@@ -215,7 +204,6 @@ end
 /*==============================================================================================
 	Section: Statments
 ==============================================================================================*/
-Core:SetPerf( 0 )
 
 Core:AddOperator( "static", "", "", [[
 if %memory[value %1] == nil then
@@ -223,14 +211,13 @@ if %memory[value %1] == nil then
 end
 ]], "" )
 
-Core:AddOperator( "return", "", "", "return value %1" )
+Core:AddOperator( "return", "", "", "if true then return value %1 end" ) -- Yes, its hacky!
 
 Core:AddOperator( "exit", "", "", "error( 'Exit', 0 )" )
 
 /*==============================================================================================
 	Section: Connect Operators
 ==============================================================================================*/
-Core:SetPerf( LEMON_PERF_CHEAP )
 
 Core:AddOperator( "->i", "", "b", [[(%context.Entity.Inputs["value %1"].Src ~= nil)]] )
 
@@ -239,28 +226,24 @@ Core:AddOperator( "->o", "", "b", [[(#%context.Entity.Outputs["value %1"].Connec
 /*==============================================================================================
 	Section: Loops
 ==============================================================================================*/
-Core:SetPerf( LEMON_PERF_NORMAL )
-
 -- 1:Ass, 2:Cnd, 3:Step, 4:Statment
 Core:AddOperator( "for", "n", "", [[
-	%prepare
-	
-	while ( value %2 ) do
-		%perf
+	prepare %1
 
+	prepare %2
+
+	prepare %3
+
+	while ( value %2 ) do
 		prepare %4
 
 		value %3
 	end
 ]], "" )
 
-Core:SetPerf( LEMON_PERF_NORMAL * 0.5 )
-
 Core:AddOperator( "while", "", "", [[
 	
 	while ( value %1 ) do
-		%perf
-		
 		prepare %2
 	end
 ]], "" )
@@ -268,11 +251,10 @@ Core:AddOperator( "while", "", "", [[
 /*==============================================================================================
 	Section: Exiters
 ==============================================================================================*/
-Core:SetPerf( LEMON_PERF_CHEAP )
 
-Core:AddOperator( "break", "", "", "break;" )
+Core:AddOperator( "break", "", "", "if true then break end" )
 
-Core:AddOperator( "continue", "", "", "continue;" )
+Core:AddOperator( "continue", "", "", "if true then continue end" )
 
 /*==============================================================================================
 	Section: Variable Args
@@ -298,15 +280,23 @@ Core:AddFunction( "gateName", "", "s", "%context.Entity.GateName" )
 Core:AddFunction( "gateName", "s", "", "%context.Entity:SetGateName( value %1 )" )
 
 /*==============================================================================================
-	Section: Perf
+	Section: CPU time usage!
 ==============================================================================================*/
-Core:AddFunction( "perf", "", "n", "%context.Perf" )
 
-Core:AddFunction( "maxPerf", "", "n", "%context.MaxPerf" )
+-- Returns the amount of cpu time used so far in the current execution in microseconds
+Core:AddFunction( "cpuTime", "", "n", "( $SysTime( ) - %context.cpu_tick ) * 1000000" )
 
-Core:AddFunction( "hardPerf", "", "n", "(%context.MaxPerf - %context.Perf)" )
+-- Returns the amount of cpu time used on average in microseconds
+Core:AddFunction( "cpuAverage", "", "n", "%context.cpu_average * 1000000" )
 
-Core:AddFunction( "softPerf", "", "n", "((%context.MaxPerf * 0.90) - %context.Perf)" )
+-- Returns the size of the tick quota in microseconds
+Core:AddFunction( "tickQuota", "", "n", "$GetConVarNumber(\"lemongate_tick_cpu\", 0)" )
+
+-- Returns the size of the soft quota in microseconds
+Core:AddFunction( "softQuota", "", "n", "$GetConVarNumber(\"lemongate_soft_cpu\", 0)" )
+
+-- Returns the size of the hard quota in microseconds
+Core:AddFunction( "hardQuota", "", "n", "$GetConVarNumber(\"lemongate_hard_cpu\", 0)" )
 
 /*==============================================================================================
 	Section: Engine

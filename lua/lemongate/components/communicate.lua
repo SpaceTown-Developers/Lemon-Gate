@@ -14,8 +14,6 @@ Component:AddException( "buffer" )
 ==============================================================================================*/
 local Buffer = Component:NewClass( "bf", "buffer", { Cells = { }, Types = { }, R = 0, W = 0 } )
 
-Component:SetPerf( LEMON_PERF_CHEAP )
-
 Component:AddFunction( "buffer", "", "bf", "{ Cells = { }, Types = { }, R = 0, W = 0 }" )
 
 -- Operators:
@@ -23,8 +21,6 @@ Component:AddFunction( "buffer", "", "bf", "{ Cells = { }, Types = { }, R = 0, W
 Component:AddOperator( "#", "bf", "n", "(#value %1.Cells)" )
 
 -- Write Functions:
-
-Component:SetPerf( LEMON_PERF_NORMAL )
 
 Component:AddFunction( "writeBool", "bf:b", "", [[
 local %Buffer = value %1
@@ -68,13 +64,9 @@ local %Buffer = value %1
 %Buffer.Cells[ %Buffer.W ] = value %2
 ]], "" )
 
-Component:SetPerf( LEMON_PERF_CHEAP )
-
 Component:AddFunction( "writePos", "bf:", "n", "(value %1.W)" )
 
 -- Read Functions:
-
-Component:SetPerf( LEMON_PERF_ABNORMAL )
 
 Component:AddFunction( "readBool", "bf:", "b", [[
 local %Buffer, %Val = value %1
@@ -149,9 +141,6 @@ if %Buffer.Cells[ %Buffer.R ] == nil then
 	%context:Throw( %trace, "buffer", "Reached end of buffer" )
 end]], "{%Buffer.Cells[ %Buffer.R ], %Buffer.Types[ %Buffer.R ]}" )
 
-
-Component:SetPerf( LEMON_PERF_CHEAP )
-
 Component:AddFunction( "readPos", "bf:", "n", "(value %1.R)" )
 
 Component:AddFunction( "canRead", "bf:", "b", "(value %1.Cells[ value %1.R + 1 ] ~= nil)" )
@@ -170,11 +159,8 @@ local %Buffer = value %1
 /*==============================================================================================
 	Section: Buffer Sending/Reciving
 ==============================================================================================*/
-Component:SetPerf( LEMON_PERF_NORMAL )
 
 Component:AddEvent( "receiveBuffer", "s,e,bf", "" )
-
-Component:SetPerf( LEMON_PERF_EXPENSIVE )
 
 Component:AddFunction( "send", "bf:s,e", "", [[
 local %Buffer, %Ent = value %1, value %3
@@ -203,8 +189,6 @@ end]], "" )
 /*==============================================================================================
 	Section: Saving and Loading
 ==============================================================================================*/
-Component:SetPerf( LEMON_PERF_NORMAL )
-
 Component:AddEvent( "saveToDupe", "", "bf" )
 
 Component:AddEvent( "loadFromDupe", "bf", "" )

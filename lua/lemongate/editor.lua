@@ -56,15 +56,18 @@ local HomeScreen = [[/*=========================================================
 	Expression Advanced:
 		* int i = 5
 		* number[] i = numberArray( )
+		* Removed Ops, Quota is now cpu time :D
+		* Big thanks to Jcity & Techbot for the new model =D
+			- & Tanks to Ripmax for the effects.
 
 	Editor Changes:
 		* CTR+B for voice chat.
-		* 596f752063616e206e6f7720736861726520796f757220746162732077697468206f7468657220706c61796572733f
+		* Share tabs between your friends and edit together.
 
-	Check it out, We have a new Wiki:
+	Check out our Wiki:
 	 - https://github.com/SpaceTown-Developers/Lemon-Gate/wiki
 	
-	We have our own forums:
+	Forum is currently down:
 	 - http://PoweredByLemons.com
 	 	
 	Also Report Bugs:
@@ -72,6 +75,17 @@ local HomeScreen = [[/*=========================================================
 	
 	Credits: Rusketh, Oskar94, Divran, Syranide.
 ====================================================================*/
+
+
+
+
+
+
+
+
+
+
+//Hi Tek!
 ]]
 
 /*---------------------------------------------------------------------------

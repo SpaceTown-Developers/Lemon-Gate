@@ -14,8 +14,6 @@ function API.EGPAction( Entity, Context, ... )
 	local EMU = { player = Context.Player, entity = Context.Entity, prf = 0 }
 	
 	EGP:DoAction( Entity, EMU, ... )
-	
-	if EMU.prf > 0 then Context.Perf = Context.Perf + EMU.prf end
 end
 
 /*==============================================================================================
@@ -41,7 +39,6 @@ end
 /*==============================================================================================
 	Section: Frames
 ==============================================================================================*/
-Component:SetPerf( LEMON_PERF_NORMAL )
 
 Component:AddFunction( "egpSaveFrame", "wl:s", "", [[
 if $EGP:ValidEGP( value %1 ) then //and %IsOwner( %context.Player, value %1 ) then

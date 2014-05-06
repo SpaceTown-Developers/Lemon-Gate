@@ -25,8 +25,6 @@ function Class.Wire_In( Context, Cell, Value )
 	Context.Memory[ Cell ] = Value
 end
 
-Core:SetPerf( LEMON_PERF_CHEAP )
-
 -- Assign:
 
 Core:AddOperator( "=", "a", "a", [[
@@ -133,9 +131,6 @@ Core:AddFunction( "changePitch", "a:n", "", "value %1.p = value %2", "" )
 Core:AddFunction( "changeYaw", "a:n", "", "value %1.y = value %2", "" )
 
 Core:AddFunction( "changeRoll", "a:n", "", "value %1.r = value %2", "" )
-
-
-Core:SetPerf( LEMON_PERF_ABNORMAL )
 
 -- Casting:
 

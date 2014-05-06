@@ -751,8 +751,7 @@ function Compiler:Statment_VAR( RootTrace )
 		if #Indexs > 1 then
 			local Var = self:NextLocal( )
 			local Statements = { "local " ..  Var .. " = " .. Variable.Inline }
-			local Prepare = { Variable.Prepare }	
-			local Perf = Variable.Perf
+			local Prepare = { Variable.Prepare }
 			
 			local Fake = self:FakeInstr( Variable.Trace, Variable.Return, Var )
 			for I = 1, #Indexs - 1 do
@@ -761,11 +760,10 @@ function Compiler:Statment_VAR( RootTrace )
 				
 				Prepare[ #Prepare + 1 ] = Get.Prepare
 				Statements[ #Statements + 1 ] = Var .. " = " .. Get.Inline
-				Perf = Perf + Get.Perf
 			end
 			
 			local Data = Indexs[#Indexs - 1]
-			Variable = self:Instruction( Data[3], Perf, Data[2], Var, string.Implode( "\n", Prepare ) .. string.Implode( "\n", Statements ) )
+			Variable = self:Instruction( Data[3], Data[2], Var, string.Implode( "\n", Prepare ) .. string.Implode( "\n", Statements ) )
 		end
 		
 		local Instruction = self:Compile_GET( Data[3], Variable, Data[1], Data[2] )
@@ -878,7 +876,7 @@ function Compiler:Statment_FUN( RootTrace, Static )
 		self:TraceError( RootTrace, "Modifier 'static' must not appear here." )
 		
 	elseif self:AcceptToken( "ass" ) then
-		local Ref = self:Assign( Trace, ClassName, "f", "Local" )
+		local Ref = self:Assign( Trace, ClassName, ClassName, "Local" )
 		
 		return self:Compile_ASSIGN( Trace, ClassName, self:GetExpression( RootTrace ) )
 	

@@ -160,7 +160,6 @@ end)
 Component:AddExternal( "HoverText", Component )
 Component:AddExternal( "HoverTextDefaultFont", "hovertext_normal_shadow" )
 
-Component:SetPerf( LEMON_PERF_NORMAL )
 Component:AddFunction("setText", "e:s", "", "%HoverText.SetText(%context, value %1, value %2)", LEMON_PREPARE_ONLY, 0, "e:setText(Text)" )
 Component:AddFunction("setText", "e:s,s", "", "%HoverText.SetText(%context, value %1, value %2, value %3)", LEMON_PREPARE_ONLY, 0, "e:setText(Text, Font)" )
 Component:AddFunction("setText", "e:s,s,c", "", "%HoverText.SetText(%context, value %1, value %2, value %3, value %4)", LEMON_PREPARE_ONLY, 0, "e:setText(Text, Font, Color)" )

@@ -26,8 +26,6 @@ end
 
 function Component:BuildOperators( )
 
-	self:SetPerf( LEMON_PERF_CHEAP )
-
 	for ClassName, ArrayClass in pairs( self.ArrayClasses ) do
 
 		local Class = API:GetClass( ClassName, true )
@@ -39,11 +37,7 @@ function Component:BuildOperators( )
 
 		local ArrayShort = ArrayClass.Short
 
-		self:SetPerf( LEMON_PERF_CHEAP )
-
 		self:AddFunction( Class.Name:lower( ) .. "Array", "", ArrayShort, "{ }" )
-
-		self:SetPerf( LEMON_PERF_ABNORMAL )
 
 		self:AddFunction( Class.Name:lower( ) .. "Array", "...", ArrayShort, [[
 			local %Array = { }
@@ -54,9 +48,6 @@ function Component:BuildOperators( )
 				end; table.insert( %Array, Obj[1] )
 			end
 		]], "%Array" )  -- TODO: DOCUMENT!
-
-
-		self:SetPerf( LEMON_PERF_CHEAP )
 
 		self:AddOperator( "#", ArrayShort, "n", "#value %1" )
 
@@ -82,25 +73,18 @@ function Component:BuildOperators( )
 
 		self:AddFunction( "exists", ArrayShort .. ":n", "b", "(value %1[value %2] ~= nil)" ) -- TODO: DOCUMENT!
 
-		self:SetPerf( LEMON_PERF_NORMAL )
-
 		self:AddFunction( "count", ArrayShort, "n", "table.Count(value %1)" ) -- TODO: DOCUMENT!
 		
 		self:AddFunction( "clear", ArrayShort, "", "table.Empty(value %1)", "" ) -- TODO: DOCUMENT!
 
 		-- Casting
-
-		self:SetPerf( LEMON_PERF_ABNORMAL )
-
 		self:AddFunction( "toTable", ArrayShort .. ":", "t", "", [[%Table.Results( value %1, "]] .. Class.Short ..[[" )]] )
 		
 		self:AddOperator( "table", ArrayShort, "t", "", [[%Table.Results( value %1, "]] .. Class.Short ..[[" )]] )
 
-		self:SetPerf( LEMON_PERF_CHEAP )
-
 		--Loops
 		self:AddOperator( "foreach", ArrayShort, "", [[
-
+				
 				%prepare
 				
 				local VType, KType = value %2, value %3
@@ -114,13 +98,13 @@ function Component:BuildOperators( )
 				for Key = 1, #value %1 do
 					local Value = value %1[Key]
 
-					%perf
-					
 					prepare %5
 					
 					prepare %4
 					
 					prepare %6
+
+					%cpu
 				end
 		]] , "" )
 	end 

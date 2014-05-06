@@ -30,7 +30,6 @@ end
 /*==============================================================================================
 	Section: Remove Constraints
 ==============================================================================================*/
-Component:SetPerf( LEMON_PERF_CHEAP )
 
 Component:AddFunction("removeAllConstraints", "e:", "", [[
 if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) then

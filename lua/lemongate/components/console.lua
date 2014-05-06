@@ -104,8 +104,6 @@ else
 		
 		return false
 	end )
-	
-	Component:SetPerf( LEMON_PERF_EXPENSIVE )
 
 	Component:AddFunction( "concmd", "s", "b", "%RunConCmd( %context.Player, value %1 )", LEMON_INLINE_ONLY )
 

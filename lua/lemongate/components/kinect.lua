@@ -48,13 +48,10 @@ end )
 /*==============================================================================================
 	Section: Detection
 ==============================================================================================*/
-Component:SetPerf( LEMON_PERF_NORMAL )
 
 Component:AddFunction( "hasKinect", "e:", "b", "%HasKinect(value %1)" )
 
 Component:AddFunction( "kinectActive", "e:", "b", "%KinectActive(value %1)" )
-
-Component:SetPerf( LEMON_PERF_EXPENSIVE )
 
 Component:AddFunction( "startKinect", "e:", "", [[
 if %HasKinect(value %1) and (value %1:GetInfoNum('lemon_kinect_status', 0) == 1) then

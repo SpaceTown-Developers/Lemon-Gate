@@ -609,11 +609,11 @@ function API:InstallComponents( )
 		end
 		
 		for Signature, Data in pairs( DataPack.Operators ) do
-			self:NewOperator( Data.Component, Data.Name, Data.Signature, Data.Params, Data.Return, Data.Perf, Data.First, Data.Second )
+			self:NewOperator( Data.Component, Data.Name, Data.Signature, Data.Params, Data.Return, Data.First, Data.Second )
 		end
 		
 		for Signature, Data in pairs( DataPack.Functions ) do
-			self:NewFunction( Data.Component, Data.Name, Data.Signature, Data.Params, Data.Return, Data.Perf, Data.First, Data.Second, Data.Desc )
+			self:NewFunction( Data.Component, Data.Name, Data.Signature, Data.Params, Data.Return, Data.First, Data.Second, Data.Desc )
 		end
 	end
 
@@ -700,27 +700,10 @@ if SERVER then
 	end
 end
 
-
-/*==========================================================================
-	Section: Perf Pricing
-==========================================================================*/
-LEMON_PERF_CHEAP = 1
-LEMON_PERF_LOOPED = 2.5
-LEMON_PERF_NORMAL = 5
-LEMON_PERF_ABNORMAL = 10
-LEMON_PERF_EXPENSIVE = 20
-
-if SERVER then
-	Component.Perf = LEMON_PERF_NORMAL
-
-	function Component:SetPerf( Value )
-		Util.CheckParams( 1, Value, "number", false )
-		self.Perf = Value
-	end
-
 /*==========================================================================
 	Section: Neat yet usless enums
 ==========================================================================*/
+if SERVER then
 	LEMON_INLINE_ONLY = nil
 	LEMON_PREPARE_ONLY = ""
 	
@@ -734,7 +717,6 @@ if SERVER then
 			Name = Name,
 			Params = Params,
 			Return = Return,
-			Perf = self.Perf,
 			First = First,
 			Second = Second,
 		}
@@ -776,17 +758,17 @@ if SERVER then
 					Signature = Signature .. "..."
 				end
 				
-				API:NewOperator( self.ID, Data.Name, Signature, Params, Data.Return, Data.Perf, Data.First, Data.Second )
+				API:NewOperator( self.ID, Data.Name, Signature, Params, Data.Return, Data.First, Data.Second )
 			end
 		end
 	end
 end
 
-function API:NewOperator( Component, Name, Signature, Params, Return, Perf, First, Second )
+function API:NewOperator( Component, Name, Signature, Params, Return, First, Second )
 	local TrueSignature = Format( "%s(%s)",Name, Signature )
 	
 	self.Operators[ TrueSignature ] = {
-		Compile = self:BuildFunction( TrueSignature, Perf, Params, Return, First, Second ),
+		Compile = self:BuildFunction( TrueSignature, Params, Return, First, Second ),
 		Component = Component,
 		Params = Params,
 		Return = Return,
@@ -798,7 +780,6 @@ function API:NewOperator( Component, Name, Signature, Params, Return, Perf, Firs
 			Signature = Signature,
 			Params = Params,
 			Return = Return,
-			Perf = Perf,
 			First = First,
 			Second = Second
 		} or nil,
@@ -816,7 +797,6 @@ if SERVER then
 			Name = Name,
 			Params = Params,
 			Return = Return,
-			Perf = self.Perf,
 			First = First,
 			Second = Second,
 			Desc = Desc
@@ -831,7 +811,7 @@ if SERVER then
 			
 			for I = 1, #Functions do
 				local Data = Functions[I]
-				-- local Name, ParamTypes, ReturnType, Perf, First, Second, Desc = Data[1], Data[2], Data[3], Data[4], Data[5], Data[6], Data[7], Data[8], Data[9]
+				-- local Name, ParamTypes, ReturnType, First, Second, Desc = Data[1], Data[2], Data[3], Data[4], Data[5], Data[6], Data[7], Data[8], Data[9]
 				
 				local Signature, Params, Optional, Locked = "", { }, false, false
 				local Return = API:GetClass( Data.Return, true )
@@ -876,7 +856,7 @@ if SERVER then
 					end 
 					
 					if Optional then 
-						API:NewFunction( self.ID, Data.Name, Signature, table.Copy( Params ), Data.Return, Data.Perf, Data.First, Data.Second, Data.Desc )
+						API:NewFunction( self.ID, Data.Name, Signature, table.Copy( Params ), Data.Return, Data.First, Data.Second, Data.Desc )
 					end
 				end
 				
@@ -885,23 +865,24 @@ if SERVER then
 					Signature = Signature .. "..."
 					
 					if Optional then
-						API:NewFunction( self.ID, Data.Name, Signature, table.Copy( Params ), Data.Return, Data.Perf, Data.First, Data.Second, Data.Desc )
+						API:NewFunction( self.ID, Data.Name, Signature, table.Copy( Params ), Data.Return, Data.First, Data.Second, Data.Desc )
 					end
 				end
 				
 				if !Optional then
-					API:NewFunction( self.ID, Data.Name, Signature, Params, Data.Return, Data.Perf, Data.First, Data.Second, Data.Desc )
+					API:NewFunction( self.ID, Data.Name, Signature, Params, Data.Return, Data.First, Data.Second, Data.Desc )
 				end -- If optional is true then its already registered!
 			end
 		end
 	end
 end
 
-function API:NewFunction( Component, Name, Signature, Params, Return, Perf, First, Second, Desc )
+function API:NewFunction( Component, Name, Signature, Params, Return, First, Second, Desc )
 	local TrueSignature	= Format( "%s(%s)", Name, Signature )
 	
 	self.Functions[ TrueSignature ] = {
-		Compile = self:BuildFunction( TrueSignature, Perf, Params, Return, First, Second ),
+		Compile = self:BuildFunction( TrueSignature, 
+		Params, Return, First, Second ),
 		Component = Component,
 		Params = Params,
 		Return = Return,
@@ -914,7 +895,6 @@ function API:NewFunction( Component, Name, Signature, Params, Return, Perf, Firs
 			Signature = Signature,
 			Params = Params,
 			Return = Return,
-			Perf = Perf,
 			First = First,
 			Second = Second,
 			Desc = Desc } or nil,
@@ -927,7 +907,7 @@ end
 if SERVER then
 	function Component:AddEvent( Name, Params, Return )
 		Util.CheckParams( 1, Name, "string", false, Params, "string", false, Return, "string", false )
-		self.Events[ #self.Events + 1 ] = { Name, Params, Return, self.Perf }
+		self.Events[ #self.Events + 1 ] = { Name, Params, Return }
 	end
 	
 	function Component:LoadEvents( )
@@ -937,7 +917,7 @@ if SERVER then
 			local Events = self.Events
 			
 			for I = 1, #Events do
-				local Name, ParamTypes, ReturnType, Perf = unpack( Events[I] )
+				local Name, ParamTypes, ReturnType = unpack( Events[I] )
 				local Params, Return = { }, nil
 				
 				Return = API:GetClass( ReturnType, true )
@@ -960,18 +940,17 @@ if SERVER then
 					end
 				end
 				
-				API:NewEvent( self.ID, Name, Params, ReturnType, Perf )
+				API:NewEvent( self.ID, Name, Params, ReturnType )
 			end
 		end
 	end
 	
-	function API:NewEvent( Component, Name, Params, Return, Perf )
+	function API:NewEvent( Component, Name, Params, Return )
 		self.Events[ Name ] = {
 			Component = Component,
 			Name = Name,
 			Params = Params,
 			Return = Return,
-			Perf = Perf,
 		}
 	end
 	
@@ -1071,7 +1050,7 @@ end
 		3)  type %N		-> The short type of N (as string).
 		
 		4)  %prepare	-> The preperation for anything not effected by 1.
-		5)  %perf		-> A line that does the perf calculation and exceed.
+		5)  %cpu		-> A line that does cpu benchmarks.
 		6)  %trace		-> The trace of this function as a table.
 		7)  %...		-> A list of variants from a vararg.
 		
@@ -1105,19 +1084,19 @@ local function Replace_Context( Line )
 	
 end
 
-local function Replace_Internals( Line, Perf, Trace )
-	local PopPerf = string.find( Line, "%%perf" )
+local function Replace_Internals( Line, Trace )
+	local DoCPU = string.find( Line, "%%cpu" )
 	
-	if PopPerf or string.find( Line, "%%trace" ) then
+	if DoCPU or string.find( Line, "%%trace" ) then
 		Trace = Trace and Util.ValueToLua( Trace ) or [[{Location = "Uknown", 0, 0}]]
 		Line = string.gsub( Line, "%%trace", Trace )
 		
-		if PopPerf then
-			Line = string.gsub( Line, "%%perf", "Context:PushPerf( " .. Trace .. ", " ..( Perf or 0 ) .. ")" )
+		if DoCPU then
+			Line = string.gsub( Line, "%%cpu", "Context:UpdateBenchMark( " .. Trace .. " )" )
 		end
 	end
 	
-	return Line, PopPerf
+	return Line, DoCPU
 end
 
 function Replace_Externals( Line, Internals )
@@ -1129,7 +1108,7 @@ end
 /*==========================================================================
 	Section: API Builder
 ==========================================================================*/
-function API:BuildFunction( Sig, Perf, Types, Ret, Second, First )
+function API:BuildFunction( Sig, Types, Ret, Second, First )
 	
 	if !First then
 		First = Second
@@ -1141,7 +1120,7 @@ function API:BuildFunction( Sig, Perf, Types, Ret, Second, First )
 		if !Trace then deubg.Trace( ) end
 		
 		local Local_Values = { }
-		local PopPerf = false
+		local DoCPU = false
 		Trace.Location = Sig
 		
 		if Second then
@@ -1152,7 +1131,7 @@ function API:BuildFunction( Sig, Perf, Types, Ret, Second, First )
 			end
 			
 			Second = Replace_Context( Second )
-			Second, PopPerf = Replace_Internals( Second, Perf, Trace )
+			Second, DoCPU = Replace_Internals( Second, Trace )
 			
 			if string.find( Second, "%%util" ) then
 				local Util = "UTIL." .. Compiler:NextUtil( )
@@ -1162,15 +1141,14 @@ function API:BuildFunction( Sig, Perf, Types, Ret, Second, First )
 		end
 		
 		First = Replace_Context( First )
-		First = Replace_Internals( First, Perf, Trace )
+		First = Replace_Internals( First, Trace )
 		
-		local First, Second, Perf = Compiler:ConstructOperator( Perf, Types, Second, First, ... )
+		local First, Second = Compiler:ConstructOperator( Types, Second, First, ... )
 		
 		First = Replace_Externals( First, Local_Values )
 		if Second then Second = Replace_Externals( Second, Local_Values ) end
-		
-		if PopPerf then Perf = 0 end
-		return Compiler:Instruction( Trace, Perf, Ret, First, Second )
+
+		return Compiler:Instruction( Trace, Ret, First, Second )
 	end
 end
 

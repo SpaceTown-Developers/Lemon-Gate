@@ -22,7 +22,6 @@ function String.Wire_In( Context, Cell, Value ) Context.Memory[ Cell ] = Value e
 /*==============================================================================================
 	Section: Operators
 ==============================================================================================*/
-Core:SetPerf( LEMON_PERF_CHEAP )
 
 -- Assign:
 
@@ -76,7 +75,6 @@ Core:AddOperator( "number", "n", "s", "$tonumber(value %1)" )
 /*==============================================================================================
 	Section: General String Functions
 ==============================================================================================*/
-Core:SetPerf( LEMON_PERF_CHEAP )
 
 Core:AddFunction( "length", "s:", "n", "(#value %1)", nil )
 
@@ -95,13 +93,10 @@ Core:AddFunction( "right", "s:n", "s", "string.Right(value %1, value %2)" )
 /*==============================================================================================
 	Section: General String Functions
 ==============================================================================================*/
-Core:SetPerf( LEMON_PERF_NORMAL )
 
 Core:AddFunction( "repeat", "s:n", "s", "string.rep(value %1, value %2)" )
 
 Core:AddFunction( "trim", "s:", "s", "string.Trim(value %1)" )
-
-Core:SetPerf( LEMON_PERF_ABNORMAL )
 
 Core:AddFunction( "trim", "s:s", "s", "string.Trim(value %1, string.gsub(value %2, \"[%-%^%$%(%)%%%.%[%]%*%+%?]\", \"%%%1\"))" )
 
@@ -112,7 +107,6 @@ Core:AddFunction( "trimRight", "s:s", "s", "string.gsub(value %1, \"^(.-)\" .. s
 /*==============================================================================================
 	Section: Char / Byte Functions
 ==============================================================================================*/
-Core:SetPerf( LEMON_PERF_ABNORMAL )
 
 local CharStr = string.char
 
@@ -136,7 +130,6 @@ Core:AddFunction( "toByte", "s", "n", "%ToByte(value %1)" )
 /*==============================================================================================
 	Section: Finding and Replacing
 ==============================================================================================*/
-Core:SetPerf( LEMON_PERF_NORMAL )
 
 Core:AddFunction( "find", "s:s", "n", "(string.find(value %1, value %2, 1, true) or 0)" )
 
@@ -144,11 +137,18 @@ Core:AddFunction( "find", "s:s,n", "n", "(string.find(value %1, value %2, value 
 
 Core:AddFunction( "replace", "s:s,s", "s", "(string.Replace(value %1, value %2, value %3) or \"\")" )
 
+Core:AddFunction( "gmatch", "s:s[,n", "s*", [[
+local %Array, %Itor = { }, string.gmatch( value %1, value %2 )
+
+for I = 1, math.Clamp( value %3 or 50, 0, 50) do
+	local %Value = %Itor( )
+	if !%Value then break end
+	%Array[I] = %Value
+end]], "%Array" )
+
 /*==============================================================================================
 	Section: Finding and Replacing with REGEX
 ==============================================================================================*/
-
-Core:SetPerf( LEMON_PERF_EXPENSIVE)
 
 Core:AddFunction( "findPattern", "s:s[,n]", "n", [[
 	local %Ok, %Result = pcall(string.find, value %1, value %2, value %3)
@@ -163,7 +163,6 @@ Core:AddFunction( "replacePattern", "s:s,s", "s", [[
 /*==============================================================================================
 	Section: Explode / Matches
 ==============================================================================================*/
-Core:SetPerf( LEMON_PERF_EXPENSIVE)
 
 Core:AddFunction( "explode", "s:s", "s*", "string.Explode(value %2, value %1)" )
 

@@ -170,7 +170,6 @@ end
 	Section: Class
 ==============================================================================================*/
 function Compiler:NType( Type )
-	if Type == "..." then self:TokenError( "Invalid use of vararg (...) or unpack(T)." ) end
 	return API:GetClass( Type ).Name
 end
 
@@ -290,7 +289,7 @@ end
 	Section: CompileMode
 ==========================================================================*/
 
-function Compiler:ConstructOperator( Perf, Types, Second, First, ... )
+function Compiler:ConstructOperator( Types, Second, First, ... )
 	if !First then
 		self:Error( 0, "Unpredicable error: No inline was given!" )
 	end
@@ -333,7 +332,6 @@ function Compiler:ConstructOperator( Perf, Types, Second, First, ... )
 			if type( Input ) == "table" then
 				Prep = Input.Prepare
 				Value = Input.Inline
-				Perf = Perf + ( Input.Perf or 0 )
 				IType = Input.Return
 			elseif Input then
 				Value = Input
@@ -433,7 +431,7 @@ function Compiler:ConstructOperator( Perf, Types, Second, First, ... )
 			end
 		end
 		
-	return First, Second, Perf
+	return First, Second
 end
 
 

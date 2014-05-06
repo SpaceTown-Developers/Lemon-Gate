@@ -9,7 +9,6 @@ local Core = API:GetComponent( "core" )
 /*==============================================================================================
 	Section: Entity events.
 ==============================================================================================*/
-Core:SetPerf( LEMON_PERF_NORMAL )
 Core:AddEvent( "shutdown", "", "" )
 
 Core:AddEvent( "trigger", "s,s", "" )
@@ -19,14 +18,12 @@ Core:AddEvent( "use", "e", "" )
 /*==============================================================================================
 	Section: Tick and Think Event
 ==============================================================================================*/
-Core:SetPerf( LEMON_PERF_ABNORMAL )
 Core:AddEvent( "think", "", "" )
 
 hook.Add( "Think", "LemonGate", function( )
 	API:CallEvent( "think" )
 end )
 
-Core:SetPerf( LEMON_PERF_EXPENSIVE )
 Core:AddEvent( "tick", "", "" )
 
 hook.Add( "Tick", "LemonGate", function( )
@@ -36,8 +33,6 @@ end )
 /*==============================================================================================
 	Section: Player Join/Leave Event
 ==============================================================================================*/
-Core:SetPerf( LEMON_PERF_CHEAP )
-
 Core:AddEvent( "playerJoin", "e", "" )
 
 hook.Add("PlayerInitialSpawn", "LemonGate", function( Player )
@@ -59,8 +54,6 @@ end)
 /*==============================================================================================
 	Section: Player Chat event.
 ==============================================================================================*/
-Core:SetPerf( LEMON_PERF_CHEAP )
-
 Core:AddEvent( "playerChat", "e,s", "s" )
 
 hook.Add( "PlayerSay", "LemonGate", function( Player, Text )
@@ -102,8 +95,6 @@ end)
 /*==============================================================================================
 	Section: Dupe Pasted.
 ==============================================================================================*/
-Core:SetPerf( LEMON_PERF_CHEAP )
-
 Core:AddEvent( "dupeFinished", "", "" )
 
 hook.Add( "AdvDupe_FinishPasting", "LemonGate", function( Data, Current )
@@ -225,8 +216,6 @@ if Wire_Keyboard_Remap then
 		end
 	end )
 	
-	Core:SetPerf( LEMON_PERF_NORMAL )
-	
 	Core:AddEvent( "keypress", "n,e", "" )
 	Core:AddEvent( "keyrelease", "n,e", "" )
 	
@@ -246,8 +235,6 @@ if Wire_Keyboard_Remap then
 		
 		return Value or false
 	end )
-
-	Core:SetPerf( LEMON_PERF_NORMAL )
 
 	Core:AddFunction( "requestKeys", "e:b", "b", "%AddToKeys(%context, value %1, value %2)" )
 	
