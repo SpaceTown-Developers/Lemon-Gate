@@ -110,14 +110,14 @@ end
 
 function Compiler:GetExpression( RootTrace, IgnoreAss )
 	
-	if !self:HasTokens( ) then
-		return -- No tokens!
-	end
-	
 	local Trace = self:TokenTrace( RootTrace )
 	
 	self:PushFlag( "ExprTrace", Trace )
 	
+	if !self:HasTokens( ) then
+		self:ExpressionError( )
+	end
+
 	-- Operators
 	
 	local Expression = self:GetTokenOperator(
@@ -616,10 +616,6 @@ function Compiler:ParseClass( )
 		end
 	end
 
-	--print( "Parsed: " .. Class)
-
-	if Class == nil then debug.Trace( ) end
-
 	return Class
 end
 
@@ -862,14 +858,17 @@ end
 function Compiler:Statment_FUN( RootTrace, Static )
 	local Trace = self:TokenTrace( RootTrace )
 
+	local ClassName = self:ParseClass( )
+	
 	if self:CheckToken( "var", "fun" ) then
-		local Class = self:GetClass( Trace, self:ParseClass( ), true )
+		local Class = self:GetClass( Trace, ClassName, true )
 		
 		self:RequireToken2( "var", "fun", "Variable expected for variable deceleration." )
 		
 		return self:Declair_Variables( Trace, Class.Short, "Local", Static )
-	
-	elseif Static then
+	end
+
+	if Static then
 		self:TraceError( RootTrace, "Modifier 'static' must not appear here." )
 	
 	elseif self:CheckToken( "ass" ) then
