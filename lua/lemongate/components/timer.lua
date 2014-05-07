@@ -19,22 +19,18 @@ end
 local CurTime, pcall, unpack = CurTime, pcall, unpack
 
 local function Timer( )
+	local Time = CurTime( )
+	
 	for _, Gate in pairs( API:GetEntitys( ) ) do
 		if Gate.Context then
 
 			local Context, FailSafe = Gate.Context, 0
-			
-			local Time = CurTime( )
-			
-			Context.cpu_time_start = SysTime()
 
 			for Key, Timer in pairs( Context.Data.Timers ) do
-				FailSafe = FailSafe + 1;
+				FailSafe = FailSafe + 1
 				
-				Context:UpdateBenchMark( {0, 0} )
-				
-				if FailSafe > 500 then
-					Gate:ScriptError( nil, "Too many timers (max 500)!" )
+				if FailSafe > 300 then
+					Gate:ScriptError( nil, "Timer count exceeded maxamum of 300." )
 					break
 				elseif Timer.Status == -1 then
 					Timer.Last = Time - Timer.Diff

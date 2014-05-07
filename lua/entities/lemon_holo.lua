@@ -656,13 +656,19 @@ if SERVER then
 /*==============================================================================================
     Scale
 ==============================================================================================*/
-
-	function ENT:SetScale( Vector )
+	
+	function ENT:ClampScale( Vector )
 		local ScaleLimit = GetConVarNumber( "lemon_holograms_Size", 50 )
 
 		Vector.x = math.Clamp( Vector.x, -ScaleLimit, ScaleLimit )
 		Vector.y = math.Clamp( Vector.y, -ScaleLimit, ScaleLimit )
 		Vector.z = math.Clamp( Vector.z, -ScaleLimit, ScaleLimit )
+
+		return Vector
+	end
+
+	function ENT:SetScale( Vector )
+		self:ClampScale( Vector )
 
 		if self.INFO.SCALEX ~= Vector.x then
 			self.INFO.SCALEX = Vector.x
@@ -945,7 +951,9 @@ if SERVER then
 		Vector.x = Vector.x / OBBSize.x
 		Vector.y = Vector.y / OBBSize.y
 		Vector.z = Vector.z / OBBSize.z
-		
+
+		self:ClampScale( Vector )
+
 		self.SCALETO = Vector
 		self.SCALESPEED = Speed * 0.01
 	end

@@ -60,7 +60,7 @@ function ENT:Think( )
 	local Status = self:GetStatus( )
 	local Spinner = self:GetSpinner( )
 	
-	if self.EffectStatus ~= Status then
+	if Spinner and self.EffectStatus ~= Status then
 		self.EffectStatus = nil
 		self:StopParticles( )
 		

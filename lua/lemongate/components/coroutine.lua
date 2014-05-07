@@ -25,18 +25,9 @@ $coroutine.create( function( ... )
 end )
 ]] )
 
-Component:AddFunction( "resume", "cr:", "b", [[
-%context.cpu_time_start = $SysTime()
-%util = $coroutine.resume( value %1 )
-%context.cpu_tick = %context.cpu_tick + ($SysTime() - %context.cpu_time_start)
-]], "%util" )
+Component:AddFunction( "resume", "cr:", "b", "$coroutine.resume( value %1 )" )
 
-Component:AddFunction( "resume", "cr:...", "b", [[
-%context.cpu_time_start = $SysTime()
-%util = $coroutine.resume( value %1, %... )
-%context.cpu_tick = %context.cpu_tick + ($SysTime() - %context.cpu_time_start)
-]], "%util" )
-
+Component:AddFunction( "resume", "cr:...", "b", "$coroutine.resume( value %1, %... )" )
 
 Component:AddFunction( "status", "cr:", "s", "$coroutine.status( value %1 )" )
 
@@ -56,11 +47,11 @@ Component:AddExternal( "sleep", function( Context, N )
 	timer.Simple( N, function( )
 		if !IsValid( Context.Entity ) or !Context.Entity:IsRunning( ) then return end
 
-		Context.cpu_time_start = SysTime()
+		Context.cpu_timemark = SysTime()
+		
 		coroutine.resume( CoRoutine )
 
 		Context:UpdateBenchMark( { 0, 0 } )
-		Context.cpu_tick = Context.cpu_tick + (SysTime() - Context.cpu_time_start)
 	end )
 
 	coroutine.yield( )
@@ -103,11 +94,11 @@ Component:AddExternal( "wait", function( Context, Name )
 		local Context, CoRoutine = Context, CoRoutine -- Cus of GC
 		
 		if IsValid( Context.Entity ) and Context.Entity:IsRunning( ) then
-			Context.cpu_time_start = SysTime()
+			Context.cpu_timemark = SysTime()
+		
 			coroutine.resume( CoRoutine )
 
 			Context:UpdateBenchMark( { 0, 0 } )
-			Context.cpu_tick = Context.cpu_tick + (SysTime() - Context.cpu_time_start)
 		end
 	end
 
