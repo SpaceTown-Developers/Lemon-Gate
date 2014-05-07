@@ -62,6 +62,7 @@ function Context:UpdateBenchMark( Trace ) -- this checks tick quota
 	self.cpu_timemark = stime
 
 	if self.cpu_tickquota * 1000000 > LEMON.Tick_CPU:GetInt() then
+		self.Entity:SetStatus( 2 ) -- Set on fire :D
 		self:Error( Trace or FakeTrace, "Tick quota exceeded." )
 	end
 end
