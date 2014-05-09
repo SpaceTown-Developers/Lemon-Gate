@@ -149,12 +149,16 @@ function ENT:Pcall( Location, Function, ... )
 	elseif self.PreCall then
 		self:PreCall( )
 	end
+	
+	collectgarbage( "stop" )
 
 	Context.cpu_timemark = SysTime( )
 
 	local Ok, Status = pcall( Function, ... )
 
 	Context.cpu_tickquota = Context.cpu_tickquota + ( SysTime( ) - Context.cpu_timemark )
+	
+	collectgarbage( "restart" )
 
 	if Ok or Status == "Exit" then
 		
@@ -508,10 +512,10 @@ function ENT:UpdateOverlay( )
 	local cpu_average = Context.cpu_average * 1000000
 	
 	local tickquota = LEMON.Tick_CPU:GetInt()
-	local softquota = LEMON.Soft_CPU:GetInt()
+	local softquota = LEMON.Soft_CPU:GetInt() * ( engine.TickInterval( ) / 0.0303030303 )
 	local hardquota = LEMON.Hard_CPU:GetInt()
 
-	local Warning = cpu_average > hardquota * 0.3
+	local Warning = cpu_soft > hardquota * 0.3
 	local Str = Str_Format( "%s\nOnline: %ius cpu, %i%%\nAverage: %ius cpu, %i%%", self.GateName, cpu_tick, cpu_tick / tickquota * 100, cpu_average, cpu_average / softquota * 100 )
 
 	if Warning then Str = Str .. "\nWARNING: +" .. tostring(math.Round(cpu_soft / hardquota * 100) ) .. "%" end
