@@ -47,13 +47,11 @@ Component:AddExternal( "sleep", function( Context, N )
 	timer.Simple( N, function( )
 		if !IsValid( Context.Entity ) or !Context.Entity:IsRunning( ) then return end
 
-		collectgarbage( "stop" )
 		Context.cpu_timemark = SysTime()
 		
 		coroutine.resume( CoRoutine )
 
 		Context:UpdateBenchMark( { 0, 0 } )
-		collectgarbage( "restart" )
 	end )
 
 	coroutine.yield( )
@@ -96,13 +94,11 @@ Component:AddExternal( "wait", function( Context, Name )
 		local Context, CoRoutine = Context, CoRoutine -- Cus of GC
 		
 		if IsValid( Context.Entity ) and Context.Entity:IsRunning( ) then
-			collectgarbage( "stop" )
 			Context.cpu_timemark = SysTime()
 		
 			coroutine.resume( CoRoutine )
 
 			Context:UpdateBenchMark( { 0, 0 } )
-			collectgarbage( "restart" )
 		end
 	end
 

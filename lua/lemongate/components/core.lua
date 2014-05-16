@@ -297,7 +297,7 @@ Core:AddFunction( "cpuAverage", "", "n", "%context.cpu_average * 1000000" )
 Core:AddFunction( "tickQuota", "", "n", "$GetConVarNumber(\"lemongate_tick_cpu\", 0)" )
 
 -- Returns the size of the soft quota in microseconds
-Core:AddFunction( "softQuota", "", "n", "$GetConVarNumber(\"lemongate_soft_cpu\", 0) * ( $engine.TickInterval( ) / 0.0303030303 )" )
+Core:AddFunction( "softQuota", "", "n", "$GetConVarNumber(\"lemongate_soft_cpu\", 0)" )
 
 -- Returns the size of the hard quota in microseconds
 Core:AddFunction( "hardQuota", "", "n", "$GetConVarNumber(\"lemongate_hard_cpu\", 0)" )
