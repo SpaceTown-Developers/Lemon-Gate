@@ -428,9 +428,9 @@ function Compiler:Compile_SEQUENCE( Trace, Statements )
 		end
 	end
 	
-	local Lua = Lines[1] or ""
+	local Lua = Lines[1]
 
-	if #Lines > 1 then Lua = string.Implode( "\n", Lines ) or "" end
+	if #Lines > 1 then Lua = string.Implode( "\n", Lines ) end
 
 	Lua = Lua .. "\nContext:UpdateBenchMark( " .. self:CompileTrace( Trace ) .. " )\n"
 
