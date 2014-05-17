@@ -130,7 +130,7 @@ function ENT:UpdateCPUQuota( )
 	if Context.cpu_softquota * 1000000 > LEMON.Hard_CPU:GetInt( ) then
 		self:ScriptError( nil, "Hard quota exceeded." )
 		self:SetStatus( 2 ) -- Set gate on fire!
-	elseif Context.cpu_softquota * 1000000 > LEMON.Hard_CPU:GetInt( )  * 0.3 then
+	elseif Context.cpu_softquota * 1000000 > LEMON.Hard_CPU:GetInt( )  * 0.8 then
 		self:SetStatus( 1 ) -- Make the gate spark!
 
 	elseif self:GetStatus( ) ~= 0 then

@@ -69,9 +69,7 @@ function ENT:Think( )
 			self.EffectStatus =  1
 		elseif self:GetStatus() == 2 then -- Exceeded quota.
 			self.EffectStatus = 2
-			for I = 1, 10 do
-				ParticleEffectAttach( "fire_verysmall_01", PATTACH_POINT_FOLLOW, self, Spinner )
-			end
+			ParticleEffectAttach( "fire_verysmall_01", PATTACH_POINT_FOLLOW, self, Spinner )
 		end
 	end
 	
