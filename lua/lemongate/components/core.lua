@@ -288,7 +288,7 @@ Core:AddFunction( "gateName", "s", "", "%context.Entity:SetGateName( value %1 )"
 ==============================================================================================*/
 
 -- Returns the amount of cpu time used so far in the current execution in microseconds
-Core:AddFunction( "cpuTime", "", "n", "( %context.cpu_tickquota * 1000000 )" )
+Core:AddFunction( "cpuTime", "", "n", "( $SysTime( ) - %context.cpu_tick ) * 1000000" )
 
 -- Returns the amount of cpu time used on average in microseconds
 Core:AddFunction( "cpuAverage", "", "n", "%context.cpu_average * 1000000" )

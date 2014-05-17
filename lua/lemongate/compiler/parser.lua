@@ -618,7 +618,9 @@ function Compiler:ParseClass( )
 
 	--print( "Parsed: " .. Class)
 
-	if Class == nil then debug.Trace( ) end
+	if Class == nil then
+		debug.Trace( )
+	end
 
 	return Class
 end
@@ -860,10 +862,11 @@ function Compiler:Statment_IN( RootTrace )
 end
 
 function Compiler:Statment_FUN( RootTrace, Static )
-	local Trace = self:TokenTrace( RootTrace )
-
+	local Trace, Data = self:TokenTrace( RootTrace ), self.TokenData
+	local ClassName = self:ParseClass( )
+	
 	if self:CheckToken( "var", "fun" ) then
-		local Class = self:GetClass( Trace, self:ParseClass( ), true )
+		local Class = self:GetClass( Trace, ClassName, true )
 		
 		self:RequireToken2( "var", "fun", "Variable expected for variable deceleration." )
 		
@@ -871,17 +874,14 @@ function Compiler:Statment_FUN( RootTrace, Static )
 	
 	elseif Static then
 		self:TraceError( RootTrace, "Modifier 'static' must not appear here." )
-	
-	elseif self:CheckToken( "ass" ) then
-		local Variable = self.TokenData
-
-		self:NextToken( )
-
-		return self:Compile_ASSIGN( Trace, Variable, self:GetExpression( RootTrace ) )
+		
+	elseif self:AcceptToken( "ass" ) then
+		local Ref = self:Assign( Trace, ClassName, ClassName, "Local" )
+		
+		return self:Compile_ASSIGN( Trace, ClassName, self:GetExpression( RootTrace ) )
 	
 	elseif self:GetVariable( Trace, self.TokenData ) then
 		return self:Statment_VAR( )
-	
 	end
 		
 	self:PrevToken( )

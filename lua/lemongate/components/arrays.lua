@@ -107,21 +107,5 @@ function Component:BuildOperators( )
 					%cpu
 				end
 		]] , "" )
-
-		--Sort
-		Component:AddFunction( "sort", ArrayShort .. ":f", "", [[
-			if #value %1 > 300 then %context:Throw( %trace, "array", "Can not sort arrays larger then 300 objects." ) end
-
-			table.sort( value %1, function( A, B )
-				local Return = value %2( { A, "]] .. Class.Short .. [[" }, { B, "]] .. Class.Short .. [[" } )
-				
-				if !Return then return false end
-				if Return[2] == "b" then return Return[1] end
-				
-				%context:Throw( %trace, "array", "sort function returned " .. LongType( Return[2] ) .. " boolean expected." )
-			end )
-
-			%cpu
-		]], "" )
 	end 
 end

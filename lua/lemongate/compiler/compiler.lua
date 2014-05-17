@@ -228,16 +228,10 @@ function Compiler:CompileCode( Code, Files, NoCompile )
 	self.UtilID = 0
 	self.Files = Files or { }
 	self.FilesLK = { }
-
 	self.Imports = { }
 	self.ImportsLK = { }
-
 	self.PrepCode = { }
 	self.PrepCodeLK = { }
-
-	self.Evaluations = { }
-	self.EvaluationsLK = { }
-
 	self.Strings = { }
 	
 	local Lua = self:GetStatements( { 0, 0, Location = "Root" } ).Prepare
@@ -271,21 +265,16 @@ function Compiler:CompileCode( Code, Files, NoCompile )
 				
 		return function( Context )
 			
-			-- Get memory tables
+			-- Prep Code
 				local Memory = Context.Memory
 				local Delta = Context.Delta
 				local Click = Context.Click
 				local Trigger = Context.Trigger
-			
-			-- Prepared code for later
+				
 				]] .. string.Implode( "\n", self.PrepCode ) .. [[
-			
-			-- Evaluated Statements
-				]] .. string.Implode( "\n", self.Evaluations ) .. [[
-
-			-- Main Body
+		
+			-- Main Body:
 				]] .. Lua .. [[
-
 		end]], " modulus ", "%%" ) )
 	
 	if CLIENT and self.Directive_Model then
@@ -320,55 +309,22 @@ function Compiler:FakeInstr( Trace, Return, Inline, A, ... )
 	return self:Instruction( Trace, Return, Inline )
 end -- Makes hacky stuff look less hacky!
 
-/*==============================================================================================
-	Section: Evaluation
-==============================================================================================*/
-
-function Compiler:Evaluate( Trace, Instr, Forced )
-	if !istable( Instr ) or Instr.Evaluated then return Instr end
+function Compiler:Evaluate( Trace, Instr )
+	if type( Instr ) != "table" or !Instr.Prepare or Instr.Evaluated then
+		return Instr
+	end -- No need to evaluate here!
 	
-	if !Forced and !(Instr.Prepare and Instr.Prepare ~= "" ) then return Instr end
-
-	local Lua = string.format( "%s\nreturn %s", Instr.Prepare or "", Instr.Inline or "" )
-
-	local Inline = self.EvaluationsLK[ Lua ]
+	local ID = self:NextLocal( )
+	local Lua = "local " .. ID .. " = function( Context, Memory, Delta, Click )\n"
 	
-	if !Inline then -- Insert this evaluation =D
-		local ID = #self.Evaluations + 1
-
-		self.Evaluations[ID] = string.format("local eval_%i = function( Context, Memory, Delta, Click )\n%s\nend", ID, Lua )
-		
-		Inline = string.format("eval_%i( Context, Memory, Delta, Click )", ID )
-		
-		self.EvaluationsLK[ Lua ] = Inline
-	end
-
-	local Instr = self:FakeInstr( Trace, Instr.Return or "", Inline )
+	Lua = Lua ..( Instr.Prepare or "" ) .. "\nreturn " .. Instr.Inline .. "\nend\n"
 	
+	self:Prepare( ID, Lua )
+
+	local Instr = self:FakeInstr( Trace, Instr.Return or "", ID .. "( Context, Memory, Delta, Click )" )
 	Instr.Evaluated = true -- Prevents revaluation.
-
 	return Instr
 end
-
--- Only use this in places, where operaotrs will spam evaluation.
--- If used incorectly it WILL cause locals to colide!
-function Compiler:GetEvaluated( Function, Trace, ... )
-	local LocalID = self.LocID
-
-	self.LocID = 0
-
-	local Instr = Function( self, Trace, ... )
-
-	self.LocID = self.LocID
-
-	if Instr then
-		return self:Evaluate( Trace, Instr, true  )
-	end
-end
-
-/*==============================================================================================
-	Section: Enviroment pushing
-==============================================================================================*/
 
 function Compiler:PushEnviroment( )
 	local Cells = self:GetFlag( "NewCells" )
@@ -569,7 +525,7 @@ function Compiler:Compile_INCREMENT( Trace, Variable, Second )
 	local Op = Second and self:GetOperator( "i++", Class ) or self:GetOperator( "++i", Class )
 	if !Op then self:TraceError( Trace, "Increment operator (++) does not support %s", self:NType( Class ) ) end
 	
-	return self:GetEvaluated( Op.Compile, Trace, Ref )
+	return self:Evaluate( Trace, Op.Compile( self, Trace, Ref ) )
 end
 
 function Compiler:Compile_DECREMENT( Trace, Variable, First )
@@ -586,7 +542,7 @@ function Compiler:Compile_DECREMENT( Trace, Variable, First )
 	local Op = Second and self:GetOperator( "i--", Class ) or self:GetOperator( "--i", Class )
 	if !Op then self:TraceError( Trace, "Decrement operator (--) does not support %s", self:NType( Class ) ) end
 	
-	return self:GetEvaluated( Op.Compile, Trace, Ref )
+	return self:Evaluate( Trace, Op.Compile( self, Trace, Ref ) )
 end
 
 function Compiler:Compile_DELTA( Trace, Variable )
@@ -1077,6 +1033,8 @@ end
 	Section: Loops!
 ==============================================================================================*/
 function Compiler:Compile_FOR( Trace, Class, Assigment, Condition, Step, Statements )
+	//local Condition = self:Evaluate( Trace, Condition )
+	//local Step = self:Evaluate( Trace, Step )
 	local Op = self:GetOperator( "for", Class )
 	
 	if !Op then

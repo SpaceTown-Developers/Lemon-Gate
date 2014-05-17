@@ -16,10 +16,9 @@ Context.__index = Context
 
 function LEMON:BuildContext( Entity, Player )
 	local New = {
-		cpu_timemark = 0,
-		cpu_tickquota = 0,
-		cpu_prevtick = 0,
-		cpu_softquota = 0,
+		cpu_time_start = 0,
+		cpu_tick = 0,
+		cpu_soft = 0,
 		cpu_average = 0,
 
 		Entity = Entity,
@@ -57,11 +56,9 @@ end
 local FakeTrace = { 0, 0 }
 
 function Context:UpdateBenchMark( Trace ) -- this checks tick quota
-	local stime = SysTime( )
-	self.cpu_tickquota = self.cpu_tickquota + ( stime - self.cpu_timemark )
-	self.cpu_timemark = stime
-
-	if self.cpu_tickquota * 1000000 > LEMON.Tick_CPU:GetInt() then
+	local current_cpu_tick = (SysTime() - self.cpu_time_start) -- Get current cpu usage
+	
+	if (self.cpu_tick + current_cpu_tick) * 1000000 > LEMON.Tick_CPU:GetInt() then
 		self:Error( Trace or FakeTrace, "Tick quota exceeded." )
 	end
 end

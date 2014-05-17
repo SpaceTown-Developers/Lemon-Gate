@@ -91,79 +91,34 @@ end
 local Updates = { }
 
 hook.Add( "Tick", "LemonGate.Update", function( )
-	for _, Gate in pairs( LEMON.API:GetEntitys( ) ) do
-		if !IsValid( Gate ) or !Gate.IsLemonGate then continue end
-		if Updates[ Gate ] then Gate:Update( ) end
-		
-		Gate:UpdateCPUQuota( )
-		Gate:UpdateAnimation( )
-		Gate:UpdateOverlay( )
-
-	end
-
-	Updates = { }
+	for Gate, _ in pairs( Updates ) do
+		if IsValid( Gate ) then Gate:Update( ) end
+	end; Updates = { }
 end )
 
 function ENT:Update( )
-	local Context = self.Context
-	if !Context then return end
+	if !self.Context then return end
 
-	Context:Update( )
 	self:TriggerOutputs( )
+	self.Context:Update( )
 	self:GarbageCollect( )
-
 	LEMON.API:CallHook( "UpdateEntity", self )
-end
-
-function ENT:UpdateCPUQuota( )
-	local Context = self.Context
-	if !Context then return end
-
-	Context.cpu_prevtick = Context.cpu_tickquota
-
-	local softTime = ( LEMON.Soft_CPU:GetInt( ) * ( engine.TickInterval( ) / 0.0303030303 ) / 1000000 )
-	Context.cpu_softquota = Context.cpu_softquota + ( Context.cpu_tickquota - softTime )
-	Context.cpu_average = Context.cpu_average * 0.95 + Context.cpu_tickquota * 0.05
-
-	if Context.cpu_softquota < 0 then Context.cpu_softquota = 0 end
-
-	if Context.cpu_softquota * 1000000 > LEMON.Hard_CPU:GetInt( ) then
-		self:ScriptError( nil, "Hard quota exceeded." )
-		self:SetStatus( 2 ) -- Set gate on fire!
-	elseif Context.cpu_softquota * 1000000 > LEMON.Hard_CPU:GetInt( )  * 0.8 then
-		self:SetStatus( 1 ) -- Make the gate spark!
-
-	elseif self:GetStatus( ) ~= 0 then
-		self:SetStatus( 0 ) -- Stop the gate from sparking.
-	end
-
-	Context.cpu_tickquota = 0
-	Context.cpu_timemark = nil
 end
 
 function ENT:Pcall( Location, Function, ... )
 	local Context = self.Context
-	
-	if !Context then
-		return self:Error( "Context lost." )
-	elseif self.PreCall then
-		self:PreCall( )
-	end
+	if !Context then return self:Error( "Context lost." ) end
 
-	Context.cpu_timemark = SysTime( )
+	if self.PreCall then self:PreCall( ) end
 
+	self.Context.cpu_time_start = SysTime()
 	local Ok, Status = pcall( Function, ... )
+	self.Context.cpu_tick = self.Context.cpu_tick + (SysTime() - self.Context.cpu_time_start) -- Add the difference
 
-	Context.cpu_tickquota = Context.cpu_tickquota + ( SysTime( ) - Context.cpu_timemark )
-
-	if Ok or Status == "Exit" then
-		
-		if Context.cpu_tickquota * 1000000 > LEMON.Tick_CPU:GetInt( ) then
-			self:ScriptError( nil, "Tick quota exceeded." )
-			self:SetStatus( 2 )
-			return false, nil
-		end
-
+	if self.Context.cpu_tick * 1000000 > LEMON.Tick_CPU:GetInt() then
+		self:ScriptError( nil, "Tick quota exceeded." )
+		self:SetStatus( 2 )
+	elseif Ok or Status == "Exit" then
 		Updates[self] = true
 		return true, Status
 	elseif Status == "Script" then
@@ -177,6 +132,22 @@ function ENT:Pcall( Location, Function, ... )
 	end
 	
 	return false, nil
+end
+
+function ENT:UpdateBenchMark() -- this checks soft quota and calculates average cpu time (for displaying on overlay)
+	self.Context.cpu_soft = self.Context.cpu_soft + self.Context.cpu_tick - LEMON.Soft_CPU:GetInt() * (engine.TickInterval()/0.0303030303) / 1000000
+	if self.Context.cpu_soft < 0 then self.Context.cpu_soft = 0 end
+	self.Context.cpu_average = self.Context.cpu_average * 0.95 + self.Context.cpu_tick * 0.05
+	
+	self.Context.cpu_tick = 0
+	self.Context.cpu_time_start = 0
+	
+	if self.Context.cpu_soft * 1000000 > LEMON.Hard_CPU:GetInt() then
+		self:ScriptError( nil, "Hard quota exceeded." )
+		self:SetStatus( 2 )
+	elseif self.Context.cpu_average * 1000000 > LEMON.Hard_CPU:GetInt( )  * 0.90 then
+		self:SetStatus( 1 )
+	end
 end
 
 function ENT:CallEvent( Name, ... )
@@ -486,8 +457,11 @@ end
 
 function ENT:Think( )
 	if self.Context then
-		self:CallEvent( "think" )
+		self:UpdateOverlay()
+		self:UpdateBenchMark()
 	end
+	
+	self:UpdateAnimation()
 
 	self.BaseClass.Think( self )
 	self:NextThink( CurTime() )
@@ -495,7 +469,7 @@ function ENT:Think( )
 	return true
 end
 
-function ENT:UpdateOverlay( )
+function ENT:UpdateOverlay( Clear )
 	
 	local Context = self.Context
 
@@ -503,9 +477,9 @@ function ENT:UpdateOverlay( )
 		return self:SetOverlayText( self.GateName .. "\nOffline: 0us cpu, 0%" )
 	end
 
-	local cpu_tick = Context.cpu_prevtick * 1000000
-	local cpu_soft = Context.cpu_softquota * 1000000
-	local cpu_average = Context.cpu_average * 1000000
+	local cpu_tick = self.Context.cpu_tick * 1000000
+	local cpu_average = self.Context.cpu_average * 1000000
+	local cpu_soft = self.Context.cpu_soft * 1000000
 	
 	local tickquota = LEMON.Tick_CPU:GetInt()
 	local softquota = LEMON.Soft_CPU:GetInt()
