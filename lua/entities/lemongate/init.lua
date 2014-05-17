@@ -12,30 +12,11 @@ else
 end
 
 /*==============================================================================================
-	CPU Limits
-==============================================================================================*/
-LEMON.Tick_CPU = CreateConVar( "lemongate_tick_cpu", "16000", {FCVAR_REPLICATED} )
-LEMON.Soft_CPU = CreateConVar( "lemongate_soft_cpu", "4000", {FCVAR_REPLICATED} )
-LEMON.Hard_CPU = CreateConVar( "lemongate_hard_cpu", "50000", {FCVAR_REPLICATED} )
-
-/*==============================================================================================
 	NameSpaces
 ==============================================================================================*/
 local string = string
 local Str_Upper, Str_Format = string.upper, string.format
 local CurTime, SysTime, pairs ,pcall = CurTime, SysTime, pairs ,pcall
-
-/*==============================================================================================
-	Section: Status!
-==============================================================================================*/
--- 0 = Normal
--- 1 = Overload
--- 2 = TickExceed
--- 3 = Crashed
-
-function ENT:SetStatus( Status )
-	self:SetNWInt( "status", Status )
-end
 
 /*==============================================================================================
 	Section: Erroring!
@@ -44,11 +25,8 @@ local CrashColor = Color( 255, 0, 0 )
 
 function ENT:Crash( )
 	self.Context = nil
-	self:SetStatus( 3 )
-
-	if self:GetModel( ) == "models/lemongate/lemongate.mdl" then return end
-	
 	self:SetColor( CrashColor )
+	self.IsCrashed = true
 end
 
 function ENT:ScriptError( Trace, ErrorMsg, First, ... )
@@ -91,83 +69,32 @@ end
 local Updates = { }
 
 hook.Add( "Tick", "LemonGate.Update", function( )
-	for _, Gate in pairs( LEMON.API:GetEntitys( ) ) do
-		if !IsValid( Gate ) or !Gate.IsLemonGate then continue end
-		if Updates[ Gate ] then Gate:Update( ) end
-		
-		Gate:UpdateCPUQuota( )
-		Gate:UpdateAnimation( )
-		Gate:UpdateOverlay( )
-
-	end
-
-	Updates = { }
+	for Gate, _ in pairs( Updates ) do
+		if IsValid( Gate ) then Gate:Update( ) end
+	end; Updates = { }
 end )
 
 function ENT:Update( )
-	local Context = self.Context
-	if !Context then return end
+	if !self.Context then return end
 
-	Context:Update( )
 	self:TriggerOutputs( )
+	self.Context:Update( )
 	self:GarbageCollect( )
-
 	LEMON.API:CallHook( "UpdateEntity", self )
 end
 
-function ENT:UpdateCPUQuota( )
-	local Context = self.Context
-	if !Context then return end
-
-	Context.cpu_prevtick = Context.cpu_tickquota
-
-	local softTime = ( LEMON.Soft_CPU:GetInt( ) * ( engine.TickInterval( ) / 0.0303030303 ) / 1000000 )
-	Context.cpu_softquota = Context.cpu_softquota + ( Context.cpu_tickquota - softTime )
-	Context.cpu_average = Context.cpu_average * 0.95 + Context.cpu_tickquota * 0.05
-
-	if Context.cpu_softquota < 0 then Context.cpu_softquota = 0 end
-
-	if Context.cpu_softquota * 1000000 > LEMON.Hard_CPU:GetInt( ) then
-		self:ScriptError( nil, "Hard quota exceeded." )
-		self:SetStatus( 2 ) -- Set gate on fire!
-	elseif Context.cpu_softquota * 1000000 > LEMON.Hard_CPU:GetInt( )  * 0.3 then
-		self:SetStatus( 1 ) -- Make the gate spark!
-
-	elseif self:GetStatus( ) ~= 0 then
-		self:SetStatus( 0 ) -- Stop the gate from sparking.
-	end
-
-	Context.cpu_tickquota = 0
-	Context.cpu_timemark = nil
-end
-
 function ENT:Pcall( Location, Function, ... )
-	local Context = self.Context
+	if self.PreCall then self:PreCall( ) end
 	
-	if !Context then
-		return self:Error( "Context lost." )
-	elseif self.PreCall then
-		self:PreCall( )
-	end
-	
-	collectgarbage( "stop" )
-
-	Context.cpu_timemark = SysTime( )
-
+	local BenchMark = SysTime( )
 	local Ok, Status = pcall( Function, ... )
-
-	Context.cpu_tickquota = Context.cpu_tickquota + ( SysTime( ) - Context.cpu_timemark )
 	
-	collectgarbage( "restart" )
+	local Context = self.Context
+	if !Context then return self:Error( "Context lost." ) end
 
+	Context.Time = Context.Time + (SysTime( ) - BenchMark)
+	
 	if Ok or Status == "Exit" then
-		
-		if Context.cpu_tickquota * 1000000 > LEMON.Tick_CPU:GetInt( ) then
-			self:ScriptError( nil, "Tick quota exceeded." )
-			self:SetStatus( 2 )
-			return false, nil
-		end
-
 		Updates[self] = true
 		return true, Status
 	elseif Status == "Script" then
@@ -247,15 +174,17 @@ function ENT:CompileScript( Script, Files )
 		self:Error( "Reload Required" )
 	else
 		self:SetColor( NormalColor )
-		self:SetStatus( 0 )
+		self.IsCrashed = false
 		self:BuildScript( Instance )
 	end
+	
+	/*if Instance.Directive_Model then
+		self:SetModel( Instance.Directive_Model )
+		self:PhysicsInit( SOLID_VPHYSICS )
+	end*/
 
 	self:LoadEffect( )
-
-	self:SetStatus( 0 )
-	self:UpdateOverlay( )
-
+	
 	self:Pcall( "main thread", Instance.Execute, self.Context )
 end
 
@@ -470,6 +399,31 @@ function ENT:ApplyDupePorts( InPorts, OutPorts )
 end
 
 /*==============================================================================================
+	Syncing
+==============================================================================================*/
+/*util.AddNetworkString( "lemon.status" )
+
+function ENT:SyncWith( Player )
+	net.Start( "lemon.status" )
+
+		net.WriteUInt( self:EntIndex( ) )
+
+		net.WriteString( self.GateName )
+
+		net.WriteBit( self.IsCrashed )
+
+		if !self.IsCrashed then
+
+			net.WriteFloat( self.OpCount )
+
+			net.WriteFloat( self.Context.CPUTime )
+
+		end
+
+	net.Send( Player )
+end/*
+
+/*==============================================================================================
 	Entity
 ==============================================================================================*/
 function ENT:Initialize( )
@@ -483,57 +437,59 @@ function ENT:Initialize( )
 	self.Outputs = WireLib.CreateOutputs( self, { } )
 	
 	self.GateName = "LemonGate"
-	self:UpdateOverlay( )
+	self:UpdateOverlay( true )
 
 	LEMON.API:CallHook("Create", self )
 end
 
 function ENT:Think( )
-	if self.Context then
-		self:CallEvent( "think" )
+	local Time = CurTime( )
+	local Context = self.Context
+	
+	if Context then
+		self.OpCount = Context.Perf
+		Context.CPUTime = Context.CPUTime * 0.95 + Context.Time * 0.05
+		
+		Context.Time = 0
+		Context.Perf = 0
 	end
+	
+	self:UpdateOverlay( )
 
 	self.BaseClass.Think( self )
-	self:NextThink( CurTime() )
+	self:NextThink( Time )
 	
 	return true
 end
 
-function ENT:UpdateOverlay( )
-	
-	local Context = self.Context
+function ENT:GetOverLayText( )
+	local Status = "Offline: 0 ops, 0%"
+	local Perf = self.OpCount or 0
+	local Max = GetConVarNumber( "lemongate_perf" )
 
-	if !Context or Context.cpu_tick == 0 then
-		return self:SetOverlayText( self.GateName .. "\nOffline: 0us cpu, 0%" )
+	if self:GetNWBool( "Crashed", false ) then
+		Status = "Script Error"
+	elseif Perf >= Max then
+		Status = "Warning: " .. Perf .." ops, 100%"
+	elseif Perf >= (Max * 0.9 ) then
+		Status = "Warning: " .. string.format( "%s ops, %s%%", Perf, math.ceil((Perf / Max) * 100) )
+	elseif Perf > 0 then
+		Status = "Online: " .. string.format( "%s ops, %s%%", Perf, math.ceil((Perf / Max) * 100) ) 
+	else
+		Status = "Offline: 0 ops, 0%"
 	end
-
-	local cpu_tick = Context.cpu_prevtick * 1000000
-	local cpu_soft = Context.cpu_softquota * 1000000
-	local cpu_average = Context.cpu_average * 1000000
 	
-	local tickquota = LEMON.Tick_CPU:GetInt()
-	local softquota = LEMON.Soft_CPU:GetInt() * ( engine.TickInterval( ) / 0.0303030303 )
-	local hardquota = LEMON.Hard_CPU:GetInt()
-
-	local Warning = cpu_soft > hardquota * 0.3
-	local Str = Str_Format( "%s\nOnline: %ius cpu, %i%%\nAverage: %ius cpu, %i%%", self.GateName, cpu_tick, cpu_tick / tickquota * 100, cpu_average, cpu_average / softquota * 100 )
-
-	if Warning then Str = Str .. "\nWARNING: +" .. tostring(math.Round(cpu_soft / hardquota * 100) ) .. "%" end
-	
-	self:SetOverlayText( Str )
+	return string.format( "%s\n%s\ncpu time: %ius", self.GateName, Status, math.Round( self.Context.CPUTime * 1000000, 4 ) )
 end
 
-function ENT:UpdateAnimation( )
-	if self:GetModel( ) ~= "models/lemongate/lemongate.mdl" then return end
-	
-	if self.Context and self.Context.cpu_average ~= 0 then
-		self.SpinSpeed = math.Clamp((self.Context.cpu_average * 1000000) / LEMON.Soft_CPU:GetInt() * 9 + 1,1,10)
+function ENT:UpdateOverlay( Clear )
+	if !self.SetOverlayData then
+		return -- Wire is outdated.
+	elseif Clear or !self.Context then
+		self:SetOverlayData( { name = "Lemon Gate", txt = "Offline", opcount = 0, cpubench = 0 } )
 	else
-		self.SpinSpeed = math.Clamp((self.SpinSpeed or 0) - 0.05,0,10)
-	end
-	
-	self:SetPlaybackRate( self.SpinSpeed )
-	self:ResetSequence( self:LookupSequence( self.SpinSpeed <= 0 and "idle" or "spin" ) )
+		self:SetOverlayData( { name = self.GateName, txt = self:GetOverLayText( ), opcount = self.OpCount, cpubench = self.Context.CPUTime * 1000000 } )
+	end	
 end
 
 local ExplodeOnRemove = CreateConVar( "combustible_lemon", "0" )
@@ -546,8 +502,6 @@ function ENT:OnRemove( )
 		local ED = EffectData( )
 		ED:SetOrigin( self:GetPos( ) )
 		util.Effect( "Explosion", ED )
-
-		self:Fire("break")
 	end
 end
 

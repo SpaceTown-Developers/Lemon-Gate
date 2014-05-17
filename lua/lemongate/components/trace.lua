@@ -20,6 +20,8 @@ Component:AddOperator( "default", "tr", "tr", DEFAULT_TRACE, LEMON_INLINE_ONLY )
 	Section: Constructors
 ==============================================================================================*/
 
+Component:SetPerf( LEMON_PERF_ABNORMAL )
+
 Component:AddFunction( "trace", "", "tr", "{ start = Vector(0, 0, 0), endpos = Vector(0, 0, 0), filter = { } }", LEMON_INLINE_ONLY )
 
 Component:AddFunction( "trace", "v,v", "tr", "{ start = value %1:Garry(), endpos = value %2:Garry(), filter = { } }", LEMON_INLINE_ONLY )
@@ -34,6 +36,8 @@ Component:AddFunction( "eyeTrace", "e:", "tr", "($IsValid(value %1) and $util.Ge
 /*==============================================================================================
 	Section: Start / End
 ==============================================================================================*/
+
+Component:SetPerf( LEMON_PERF_CHEAP )
 
 Component:AddFunction( "startPos", "tr:v", "", "value %1.start = value %2:Garry()", LEMON_PREPARE_ONLY )
 
@@ -51,8 +55,11 @@ Component:AddFunction( "filter", "tr:e", "", "table.insert(value %1.filter, valu
 	Section: Usage
 ==============================================================================================*/
 
+Component:SetPerf( LEMON_PERF_EXPENSIVE )
+
 Component:AddFunction( "update", "tr:", "", "value %1.result = $util.TraceLine(value %1)", LEMON_PREPARE_ONLY )
 
+Component:SetPerf( LEMON_PERF_NORMAL )
 Component:AddFunction( "entity", "tr:", "e", "value %1.result = value %1.result or $util.TraceLine(value %1)", "value %1.result.Entity or %NULL_ENTITY" )
 Component:AddFunction( "fraction", "tr:", "n", "value %1.result = value %1.result or $util.TraceLine(value %1)", "value %1.result.Fraction or 0" )
 Component:AddFunction( "fractionLeftSolid", "tr:", "n", "value %1.result = value %1.result or $util.TraceLine(value %1)", "value %1.result.FractionLeftSolid or 0" )

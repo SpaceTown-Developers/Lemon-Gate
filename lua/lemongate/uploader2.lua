@@ -183,13 +183,6 @@ if CLIENT then
 			return
 		end
 		
-		local Error = LEMON.Editor.Instance:Validate( Script, NoCompile )
-
-		if Error then
-			LocalPlayer( ):PrintMessage( HUD_PRINTTALK, "Them lemons appear to be leaking (Script Error)." )
-			return
-		end
-		
 		local Editor = LEMON.Editor.GetInstance( )
 		local Data = table.Copy( Editor.Data.Files )
 		Data["<code>"] = Script 

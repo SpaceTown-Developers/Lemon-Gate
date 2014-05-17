@@ -217,7 +217,6 @@ if CLIENT then
 	
 	list.Set( "LemonGateModels", "models/bull/gates/processor.mdl", {} )
 	list.Set( "LemonGateModels", "models/shadowscion/lemongate/gate.mdl", { } )
-	list.Set( "LemonGateModels", "models/lemongate/lemongate.mdl", {} )
 	list.Set( "LemonGateModels", "models/mandrac/wire/e3.mdl", {} )
 	
 	function CITRIS.BuildCPanel( CPanel )

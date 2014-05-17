@@ -6,6 +6,11 @@ local LEMON, API = LEMON, LEMON.API
 
 /**********************************************************************************************/
 
+local PerfMax = CreateConVar( "lemongate_perf", "25000", {FCVAR_REPLICATED} )
+LEMON.PerfMax = PerfMax
+
+/**********************************************************************************************/
+
 local Context = { }
 LEMON.Context = Context
 Context.__index = Context
@@ -16,12 +21,10 @@ Context.__index = Context
 
 function LEMON:BuildContext( Entity, Player )
 	local New = {
-		cpu_timemark = 0,
-		cpu_tickquota = 0,
-		cpu_prevtick = 0,
-		cpu_softquota = 0,
-		cpu_average = 0,
-
+		Time = 0,
+		CPUTime = 0,
+		Perf = 0,
+		MaxPerf = PerfMax:GetInt( ),
 		Entity = Entity,
 		Player = Player or Entity.Player,
 		Data = { },
@@ -30,13 +33,12 @@ function LEMON:BuildContext( Entity, Player )
 		Click = { },
 		Trigger = { },
 	}
-
-	setmetatable( New, Context )
+	
 	Entity.Context = New
 	
 	API:CallHook( "CreateContext", New )
 	
-	return New
+	return setmetatable( New, Context )
 end
 
 /*==============================================================================================
@@ -56,19 +58,15 @@ end
 
 local FakeTrace = { 0, 0 }
 
-function Context:UpdateBenchMark( Trace ) -- this checks tick quota
-	local stime = SysTime( )
-	self.cpu_tickquota = self.cpu_tickquota + ( stime - self.cpu_timemark )
-	self.cpu_timemark = stime
+function Context:PushPerf( Trace, Ammount )
+	self.Perf = self.Perf + Ammount
 
-	if self.cpu_tickquota * 1000000 > LEMON.Tick_CPU:GetInt() then
-		self.Entity:SetStatus( 2 ) -- Set on fire :D
-		self:Error( Trace or FakeTrace, "Tick quota exceeded." )
+	if self.Perf > self.MaxPerf then
+		self:Error( Trace or FakeTrace, "Maximum operations count exceeded." )
 	end
 end
 
 local Empty = table.Empty
-
 function Context:Update( )
 	Empty( self.Trigger )
 	API:CallHook( "UpdateContext", self )

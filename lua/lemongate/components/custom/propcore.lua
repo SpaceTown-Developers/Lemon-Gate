@@ -152,6 +152,7 @@ end
 /*==============================================================================================
 	Section: PropCore Info
 ==============================================================================================*/
+Component:SetPerf( LEMON_PERF_NORMAL )
 
 Component:AddFunction("propcore", "", "t", [[local %Results = %Table( )
 %Results:Set( "MaxProps", "n", %PropCore.Prop_Max:GetInt( ) )
@@ -161,6 +162,8 @@ local %Props, %Rate = %PropCore.Player( %context.Player )
 %Results:Set("CurProps", "n", %Props)
 %Results:Set("CurRate", "n", %Rate)
 ]], "%Results" )
+
+Component:SetPerf( LEMON_PERF_EXPENSIVE )
 
 Component:AddFunction("spawnedProps", "", "t", [[
 local %Results = %Table( )
@@ -172,9 +175,13 @@ end]], "%Results" )
 	Section: Spawn funcs
 ==============================================================================================*/
 
+Component:SetPerf( LEMON_PERF_EXPENSIVE * 2 )
+
 Component:AddFunction("spawn", "s", "e", "%PropCore.Spawn( %trace, %context, value %1, true)" )
 
 Component:AddFunction("spawn", "s, b", "e", "%PropCore.Spawn( %trace, %context, value %1, value %2)" )
+
+Component:SetPerf( LEMON_PERF_CHEAP )
 
 Component:AddFunction("noSpawnEffect", "b", "", "%data.PC_NoEffect = value %1", "" )
 
@@ -183,6 +190,7 @@ Component:AddFunction("canSpawn", "", "b", "(%PropCore.CanSpawn( %context ))" )
 /*==============================================================================================
 	Remove
 ==============================================================================================*/
+Component:SetPerf( LEMON_PERF_CHEAP )
 
 Component:AddFunction("remove", "e:", "", [[
 if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) then
@@ -192,6 +200,7 @@ end]], "" )
 /*==============================================================================================
     Position and angles
 ==============================================================================================*/
+Component:SetPerf( LEMON_PERF_NORMAL )
 
 Component:AddFunction("setPos", "e:v", "",[[
 if $IsValid( value %1 ) and value %2:IsNotHuge( ) and %IsOwner( %context.Player, value %1 ) then
@@ -210,6 +219,7 @@ end]], "" )
 /*==============================================================================================
     Parent
 ==============================================================================================*/
+Component:SetPerf( LEMON_PERF_CHEAP )
 
 Component:AddFunction("parent", "e:e", "", [[
 if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) and $IsValid( value %2 ) then
@@ -233,6 +243,7 @@ end]], "" )
 /*==============================================================================================
 	Section: Freeze
 ==============================================================================================*/
+Component:SetPerf( LEMON_PERF_NORMAL )
 
 Component:AddFunction("freeze", "e:b", "", [[
 if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) then

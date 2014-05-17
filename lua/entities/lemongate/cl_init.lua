@@ -1,8 +1,17 @@
 if !WireLib or !LEMON then return end
 
 include('shared.lua')
+CreateClientConVar( "lemon_share_keys", 0, true, true )
+CreateConVar( "lemongate_perf", "25000", {FCVAR_REPLICATED} )
 
 ENT.RenderGroup = RENDERGROUP_OPAQUE
+
+/*==========================================================================
+	Section: OverLay
+==========================================================================*/
+function ENT:GetOverlayText( )
+	return "LemonGate: Status Uknown\nWiremod on workshop is outdated."
+end
 
 /*==========================================================================
 	Section: Editor Animation
@@ -11,9 +20,6 @@ ENT.RenderGroup = RENDERGROUP_OPAQUE
 
 local RollDelta = 0 //math.rad( 80 )
 local Emitter = ParticleEmitter( vector_origin )
-
-ENT.NextSpark = CurTime()
-ENT.NextSmoke = CurTime()
 
 timer.Create( "Lemon_Editor_Animation", 1, 0, function( )
 	//RollDelta = -RollDelta
@@ -49,64 +55,32 @@ end )
 /*==========================================================================
 	Section: Crash Animation
 ==========================================================================*/
-function ENT:GetSpinner( )
-	if self:GetModel( ) ~= "models/lemongate/lemongate.mdl" then return end
-	return self:LookupAttachment("fan_attch")
-
-	--self:LocalToWorld( Vector( -2.873848, 2.881156, 0.910345 ) )
-end
-
-function ENT:Think( )
-	local Status = self:GetStatus( )
-	local Spinner = self:GetSpinner( )
+timer.Create( "Lemon_Crash_Animation", 1, 0, function( )
 	
-	if Spinner and self.EffectStatus ~= Status then
-		self.EffectStatus = nil
-		self:StopParticles( )
-		
-		if self:GetStatus() == 1 then -- 90%+
-			self:Spark( Spinner )
-			self.EffectStatus =  1
-		elseif self:GetStatus() == 2 then -- Exceeded quota.
-			self.EffectStatus = 2
-			for I = 1, 10 do
-				ParticleEffectAttach( "fire_verysmall_01", PATTACH_POINT_FOLLOW, self, Spinner )
+	for _, Gate in pairs( ents.FindByClass( "lemongate" ) ) do
+		if Gate:GetNWBool( "Crashed" ) then
+			
+			local Particle = Emitter:Add("omicron/lemongear", (Gate:GetPos( ) + Gate:GetUp( ) * 3) )
+			
+			if Particle then
+				Particle:SetColor( 255, 0, 0 )
+				Particle:SetVelocity( (Gate:GetUp( ) * 5) + Vector( 0, 0, 5 ) )
+
+				Particle:SetDieTime( 3 )
+				Particle:SetLifeTime( 0 )
+
+				Particle:SetStartSize( 0 )
+				Particle:SetEndSize( 3 )
+
+				Particle:SetStartAlpha( 255 )
+				Particle:SetEndAlpha( 0 )
+
+				Particle:SetRollDelta( RollDelta )
 			end
 		end
 	end
-	
-	self:NextThink(CurTime() + 0.5)
-	return true
-end
+end )
 
-function ENT:Spark( Spinner )
-	local Pos = self:GetAttachment( Spinner ).Pos
-
-	if(self.NextSpark < CurTime()) then
-		local fx_dat = EffectData()
-		fx_dat:SetMagnitude(math.random(0.1,0.3))
-		fx_dat:SetScale(math.random(0.5,1.5))
-		fx_dat:SetRadius(2)
-		fx_dat:SetOrigin(Pos)
-		util.Effect("sparks",fx_dat)
-		self.NextSpark = CurTime() + math.Rand(0.2,1)
-	end
-end
-
-function ENT:Draw()
-	self.BaseClass.Draw( self )
-
-	local Spinner = self:GetSpinner()
-	if !Spinner then return end
-
-	local Pos = self:GetAttachment( Spinner ).Pos
-
-	local dist = LocalPlayer():GetPos():Distance(self:GetPos())
-	if(self:GetStatus() == 3 && dist < 350) then
-		local Fade = (350 - dist) / 350
-		local R = math.Clamp(math.abs(math.sin(CurTime()*2))*255,200,255)
-		render.SetMaterial(Material("sprites/glow04_noz"))
-		render.DrawSprite(Pos, 17.5, 10, Color(R,10,10,255 * Fade))
-		render.DrawSprite(Pos, 12.5, 15, Color(R,10,10,255 * Fade))
-	end
-end
+/*==========================================================================
+	Section: Entity Context
+==========================================================================*/

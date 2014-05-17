@@ -1,0 +1,17 @@
+﻿Revert "Merge branch 'master' of https://github.com/SpaceTown-Developers/Lemon-Gate"
+
+This reverts commit 6f628d2d61fa5a6f16525c5527ab4e2a647c3721, reversing
+changes made to 1d9b321a8d9a1ada1f31dc5b7b10dee58433fa10.
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+# On branch master
+# Changes to be committed:
+#   (use "git reset HEAD <file>..." to unstage)
+#
+#	modified:   lua/ea_version.lua
+#	modified:   lua/lemongate/components/angle.lua
+#	modified:   lua/lemongate/components/egp.lua
+#	modified:   lua/lemongate/editor/ea_helperdata.lua
+#
+

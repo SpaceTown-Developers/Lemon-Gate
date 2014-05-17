@@ -19,6 +19,8 @@ Core:AddExternal( "Color", Color )
 ==============================================================================================*/
 local Class = Core:NewClass( "c", "color", { 255, 255, 255, 255 } )
 
+Core:SetPerf( LEMON_PERF_CHEAP )
+
 -- Assign:
 
 Core:AddOperator( "=", "c", "c", [[
@@ -99,6 +101,8 @@ Core:AddFunction("setBlue", "c:n", "c",  "{ value %1[1], value %1[2], math.Clamp
 
 Core:AddFunction("setAlpha", "c:n", "c", "{ value %1[1], value %1[2], value %1[3], math.Clamp(value %2, 0, 255) }", nil )
 
+Core:SetPerf( LEMON_PERF_ABNORMAL )
+
 -- Casting:
 
 Core:AddOperator( "string", "c", "s", "\"<\" .. string.Implode( \",\", value %1 ) .. \">\"" )
@@ -116,6 +120,7 @@ Core:AddOperator( "=", "c", "", [[
 /*==============================================================================================
 	General Functions
 ==============================================================================================*/
+Core:SetPerf( LEMON_PERF_NORMAL )
 
 Core:AddFunction( "hsv2rgb", "c:", "c", "local %C = %HSVToColor(value %1[1], value %1[2], value %1[3])", "{ %C.r, %C.g, %C.b, 255 }" )
 

@@ -27,6 +27,8 @@ function Class.Wire_In( Context, Cell, Value )
 	Context.Memory[ Cell ] = Vector3(Value)
 end
 
+Core:SetPerf( LEMON_PERF_CHEAP )
+
 Core:AddOperator( "default", "v", "v", "Vector3.Zero:Clone()" )
 
 -- Assign:
@@ -124,13 +126,16 @@ Core:AddFunction( "y", "v:", "n", "value %1.y", nil )
 
 Core:AddFunction( "z", "v:", "n", "value %1.z", nil )
 
-Core:AddFunction( "set", "v:n,n,n", "v", "value %1:Set(value %2, value %3, value %4)", nil )
 
-Core:AddFunction( "setX", "v:n", "v", "value %1:Set(value %2, value %1.y, value %1.z)", nil )
+Core:AddFunction( "set", "v:n,n,n", "", "value %1:Set(value %2, value %3, value %4)", nil )
 
-Core:AddFunction( "setY", "v:n", "v", "value %1:Set(value %1.x, value %2, value %1.z)", nil )
+Core:AddFunction( "setX", "v:n", "", "value %1:Set(value %2, value %1.y, value %1.z)", nil )
 
-Core:AddFunction( "setZ", "v:n", "v", "value %1:Set(value %1.x, value %1.y, value %2)", nil )
+Core:AddFunction( "setY", "v:n", "", "value %1:Set(value %1.x, value %2, value %1.z)", nil )
+
+Core:AddFunction( "setZ", "v:n", "", "value %1:Set(value %1.x, value %1.y, value %2)", nil )
+
+Core:SetPerf( LEMON_PERF_ABNORMAL )
 
 -- Casting:
 
@@ -145,6 +150,7 @@ Core:AddExternal( "Deg2Rad", math.pi / 180 )
 /*==============================================================================================
 	Section: Length and Distance
 ==============================================================================================*/
+Core:SetPerf( LEMON_PERF_NORMAL )
 
 Core:AddOperator( "#", "v", "n", "value %1:Length()" )
 
@@ -167,6 +173,7 @@ Core:AddFunction( "cross", "v:v", "v", "value %1:Cross( value %2 )" )
 /*==============================================================================================
 	Section: World and Local
 ==============================================================================================*/
+Core:SetPerf( LEMON_PERF_ABNORMAL )
 
 Core:AddFunction( "toWorldPos", "v,a,v,a", "v", "Vector3( $LocalToWorld(value %1:Garry(), value %2, value %3:Garry(), value %4) )" )
 

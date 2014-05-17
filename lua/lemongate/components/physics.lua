@@ -12,6 +12,8 @@ local Core = API:GetComponent( "core" )
 
 local Class = Core:NewClass( "p", "physics" )
 
+Core:SetPerf( LEMON_PERF_CHEAP )
+
 -- Changed:
 
 Core:AddOperator( "~", "p", "b", [[
@@ -55,6 +57,7 @@ Core:AddFunction( "getPhysicsIndex", "e:n", "p", "($IsValid(value %1) and value 
 /*==============================================================================================
 	Section: Position and angles
 ==============================================================================================*/
+Core:SetPerf( LEMON_PERF_CHEAP )
 
 Core:AddFunction( "pos", "p:", "v", "($IsValid(value %1) and Vector3( value %1:GetPos() ) or Vector3.Zero:Clone( ) )" )
 
@@ -101,6 +104,7 @@ Core:AddFunction( "inertia", "p:", "v", "($IsValid(value %1) and Vector3(value %
 /*==============================================================================================
 	Section: Bearing & Elevation
 ==============================================================================================*/
+Core:SetPerf( LEMON_PERF_NORMAL )
 
 Core:AddFunction( "bearing", "p:v", "n", [[
 local %Ent, %Val = value %1, 0
@@ -119,6 +123,8 @@ if %Ent and %Ent:IsValid( ) then
 	end
 end]], "%Val" )
 
+Core:SetPerf( LEMON_PERF_ABNORMAL )
+
 Core:AddFunction( "heading", "p:v", "a", [[
 local %Ent, %Val = value %1, Angle(0, 0, 0)
 if %Ent and %Ent:IsValid( ) then
@@ -136,6 +142,7 @@ end]], "%Val" )
 /*==============================================================================================
 	Section: Mass
 ==============================================================================================*/
+Core:SetPerf( LEMON_PERF_NORMAL )
 
 Core:AddFunction( "setMass", "p:n", "", [[
 if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1:GetEntity( ) )
@@ -171,11 +178,15 @@ end]], "(%util or Vector3.Zero:Clone( ))" )
 /*==============================================================================================
 	Section: Frozen
 ==============================================================================================*/
+Core:SetPerf( LEMON_PERF_CHEAP )
+
 Core:AddFunction( "isFrozen", "p:", "b", "($IsValid(value %1) and value %1:IsMoveable( ))" )
 
 /*==============================================================================================
 	Section: Apply Force
 ==============================================================================================*/
+Core:SetPerf( LEMON_PERF_EXPENSIVE )
+
 Core:AddFunction( "applyForce", "p:v", "", [[
 if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1:GetEntity( ) ) and value %2:IsNotHuge( ) then
 	value %1:ApplyForceCenter( value %2:Garry( ) )

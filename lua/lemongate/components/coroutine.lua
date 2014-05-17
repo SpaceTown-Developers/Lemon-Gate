@@ -25,9 +25,9 @@ $coroutine.create( function( ... )
 end )
 ]] )
 
-Component:AddFunction( "resume", "cr:", "b", "$coroutine.resume( value %1 )" )
+Component:AddFunction( "resume", "cr:", "b", "%context.bench = $SysTime( )", "$coroutine.resume( value %1 )" )
 
-Component:AddFunction( "resume", "cr:...", "b", "$coroutine.resume( value %1, %... )" )
+Component:AddFunction( "resume", "cr:...", "b", "%context.bench = $SysTime( )", "$coroutine.resume( value %1, %... )" )
 
 Component:AddFunction( "status", "cr:", "s", "$coroutine.status( value %1 )" )
 
@@ -42,18 +42,16 @@ if !$coroutine.running( ) then %context:Throw( %trace, "coroutine", "Used yield(
 ==============================================================================================*/
 Component:AddExternal( "sleep", function( Context, N )
 	local CoRoutine = coroutine.running( )
-	if !CoRoutine then Context:Throw( nil, "coroutine", "Used sleep( N ) outside coroutine." ) end
+	if !CoRoutine then Context:Throw( nil, "coroutine", "Used sleed( N ) outside coroutine." ) end
 
 	timer.Simple( N, function( )
 		if !IsValid( Context.Entity ) or !Context.Entity:IsRunning( ) then return end
 
-		collectgarbage( "stop" )
-		Context.cpu_timemark = SysTime()
-		
+		local Bench = SysTime( )
+
 		coroutine.resume( CoRoutine )
 
-		Context:UpdateBenchMark( { 0, 0 } )
-		collectgarbage( "restart" )
+		Context.Time = Context.Time + (SysTime( ) - Bench)
 	end )
 
 	coroutine.yield( )
@@ -74,11 +72,11 @@ function Component:GetQueue( Name )
 end
 
 function Component:PostEvent( Name )
-	local Queue = self:GetQueue( Name )
+	local Que = self:GetQueue( Name )
 	self.Queue[Name] = nil
 
-	for i = 1, #Queue do
-		Queue[i]( )
+	for i = 1, #Que do
+		Que[i]( )
 	end
 end
 
@@ -90,19 +88,17 @@ Component:AddExternal( "wait", function( Context, Name )
 		Context:Throw( nil, "coroutine", "No such waitable event " .. Name )
 	end
 
-	local Queue = Component:GetQueue( Name )
+	local Que = Component:GetQueue( Name )
 
-	Queue[ #Queue + 1 ] = function( )
+	Que[ #Que + 1 ] = function( )
 		local Context, CoRoutine = Context, CoRoutine -- Cus of GC
 		
 		if IsValid( Context.Entity ) and Context.Entity:IsRunning( ) then
-			collectgarbage( "stop" )
-			Context.cpu_timemark = SysTime()
-		
+			local Bench = SysTime( )
+
 			coroutine.resume( CoRoutine )
 
-			Context:UpdateBenchMark( { 0, 0 } )
-			collectgarbage( "restart" )
+			Context.Time = Context.Time + (SysTime( ) - Bench)
 		end
 	end
 

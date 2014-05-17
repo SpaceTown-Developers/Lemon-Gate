@@ -25,6 +25,8 @@ function Class.Wire_In( Context, Cell, Value )
 	Context.Memory[ Cell ] = Value
 end
 
+Core:SetPerf( LEMON_PERF_CHEAP )
+
 -- Assign:
 
 Core:AddOperator( "=", "a", "a", [[
@@ -120,13 +122,20 @@ Core:AddFunction( "getYaw", "a:", "n", "value %1.y", LEMON_INLINE_ONLY )
 
 Core:AddFunction( "getRoll", "a:", "n", "value %1.r", LEMON_INLINE_ONLY )
 
-Core:AddFunction( "set", "a:n,n,n", "a", "value %1:Set( Angle(value %2, value %3, value %4) )", "(value %1)" )
+Core:AddFunction( "setPitch", "a:n", "a", "Angle(value %2, value %1.y, value %1.r)", LEMON_INLINE_ONLY )
 
-Core:AddFunction( "setPitch", "a:n", "a", "value %1:Set( Angle(value %2, value %1.y, value %1.r) )", "(value %1)" )
+Core:AddFunction( "setYaw", "a:n", "a", "Angle(value %1.p, value %2, value %1.r)", LEMON_INLINE_ONLY )
 
-Core:AddFunction( "setYaw", "a:n", "a", "value %1:Set( Angle(value %1.p, value %2, value %1.r) )", "(value %1)" )
+Core:AddFunction( "setRoll", "a:n", "a", "Angle(value %1.p, value %1.y, value %2)", LEMON_INLINE_ONLY )
 
-Core:AddFunction( "setRoll", "a:n", "a", "value %1:Set( Angle(value %1.p, value %1.y, value %2) )", "(value %1)" )
+Core:AddFunction( "changePitch", "a:n", "", "value %1.p = value %2", "" )
+
+Core:AddFunction( "changeYaw", "a:n", "", "value %1.y = value %2", "" )
+
+Core:AddFunction( "changeRoll", "a:n", "", "value %1.r = value %2", "" )
+
+
+Core:SetPerf( LEMON_PERF_ABNORMAL )
 
 -- Casting:
 

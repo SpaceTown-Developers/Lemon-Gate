@@ -110,14 +110,14 @@ end
 
 function Compiler:GetExpression( RootTrace, IgnoreAss )
 	
+	if !self:HasTokens( ) then
+		return -- No tokens!
+	end
+	
 	local Trace = self:TokenTrace( RootTrace )
 	
 	self:PushFlag( "ExprTrace", Trace )
 	
-	if !self:HasTokens( ) then
-		self:ExpressionError( )
-	end
-
 	-- Operators
 	
 	local Expression = self:GetTokenOperator(
@@ -616,6 +616,12 @@ function Compiler:ParseClass( )
 		end
 	end
 
+	--print( "Parsed: " .. Class)
+
+	if Class == nil then
+		debug.Trace( )
+	end
+
 	return Class
 end
 
@@ -745,7 +751,8 @@ function Compiler:Statment_VAR( RootTrace )
 		if #Indexs > 1 then
 			local Var = self:NextLocal( )
 			local Statements = { "local " ..  Var .. " = " .. Variable.Inline }
-			local Prepare = { Variable.Prepare }
+			local Prepare = { Variable.Prepare }	
+			local Perf = Variable.Perf
 			
 			local Fake = self:FakeInstr( Variable.Trace, Variable.Return, Var )
 			for I = 1, #Indexs - 1 do
@@ -754,10 +761,11 @@ function Compiler:Statment_VAR( RootTrace )
 				
 				Prepare[ #Prepare + 1 ] = Get.Prepare
 				Statements[ #Statements + 1 ] = Var .. " = " .. Get.Inline
+				Perf = Perf + Get.Perf
 			end
 			
 			local Data = Indexs[#Indexs - 1]
-			Variable = self:Instruction( Data[3], Data[2], Var, string.Implode( "\n", Prepare ) .. string.Implode( "\n", Statements ) )
+			Variable = self:Instruction( Data[3], Perf, Data[2], Var, string.Implode( "\n", Prepare ) .. string.Implode( "\n", Statements ) )
 		end
 		
 		local Instruction = self:Compile_GET( Data[3], Variable, Data[1], Data[2] )
@@ -856,8 +864,7 @@ function Compiler:Statment_IN( RootTrace )
 end
 
 function Compiler:Statment_FUN( RootTrace, Static )
-	local Trace = self:TokenTrace( RootTrace )
-
+	local Trace, Data = self:TokenTrace( RootTrace ), self.TokenData
 	local ClassName = self:ParseClass( )
 	
 	if self:CheckToken( "var", "fun" ) then
@@ -866,21 +873,17 @@ function Compiler:Statment_FUN( RootTrace, Static )
 		self:RequireToken2( "var", "fun", "Variable expected for variable deceleration." )
 		
 		return self:Declair_Variables( Trace, Class.Short, "Local", Static )
-	end
-
-	if Static then
-		self:TraceError( RootTrace, "Modifier 'static' must not appear here." )
 	
-	elseif self:CheckToken( "ass" ) then
-		local Variable = self.TokenData
-
-		self:NextToken( )
-
-		return self:Compile_ASSIGN( Trace, Variable, self:GetExpression( RootTrace ) )
+	elseif Static then
+		self:TraceError( RootTrace, "Modifier 'static' must not appear here." )
+		
+	elseif self:AcceptToken( "ass" ) then
+		local Ref = self:Assign( Trace, ClassName, "f", "Local" )
+		
+		return self:Compile_ASSIGN( Trace, ClassName, self:GetExpression( RootTrace ) )
 	
 	elseif self:GetVariable( Trace, self.TokenData ) then
 		return self:Statment_VAR( )
-	
 	end
 		
 	self:PrevToken( )

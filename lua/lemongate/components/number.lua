@@ -28,6 +28,7 @@ end
 /*==============================================================================================
 	Section: Operators
 ==============================================================================================*/
+Core:SetPerf( LEMON_PERF_CHEAP )
 
 -- Assign:
 
@@ -49,6 +50,8 @@ local %Changed = (%click[value %1] == nil) or (%click[value %1] ~= %Memory)
 
 //Core:AddOperator( "~", "n", "b", "%click[value %1]" )
 
+Core:SetPerf( LEMON_PERF_NORMAL )
+
 -- Compare:
 
 Core:AddOperator( "==", "n,n", "b", "(value %1 == value %2)" )
@@ -62,6 +65,8 @@ Core:AddOperator( "<", "n,n", "b", "(value %1 < value %2)" )
 Core:AddOperator( ">=", "n,n", "b", "(value %1 >= value %2)" )
 
 Core:AddOperator( "<=", "n,n", "b", "(value %1 <= value %2)" )
+
+Core:SetPerf( LEMON_PERF_CHEAP )
 
 -- Arithmatic:
 
@@ -87,6 +92,8 @@ Core:AddOperator( "-", "n", "n", "(-value %1)" )
 
 Core:AddOperator( "$", "n", "n", "((%memory[value %1] or 0) - (%delta[value %1] or 0))" )
 
+Core:SetPerf( LEMON_PERF_NORMAL )
+
 -- Casting:
 
 Core:AddOperator( "boolean", "n", "b", "(value %1 > 1)" )
@@ -99,6 +106,7 @@ Core:AddOperator( "number", "s", "n", "($tonumber(value %1) or 0)" )
 /*==============================================================================================
 	Section: Assigment Operators
 ==============================================================================================*/
+Core:SetPerf( LEMON_PERF_ABNORMAL )
 
 -- Assign Before
 Core:AddOperator( "i++", "n", "n", [[
@@ -133,6 +141,7 @@ local %Value = %memory[value %1]
 /*==============================================================================================
 	Section: Min Max Functions
 ==============================================================================================*/
+Core:SetPerf( LEMON_PERF_NORMAL )
 
 Core:AddFunction( "min", "n,n", "n", "math.min(value %1,value %2)" )
 Core:AddFunction( "min", "n,n,n,", "n", "math.min(value %1,value %2,value %3)" )
@@ -173,6 +182,7 @@ Core:AddFunction( "sign", "n", "n", "(value %1 > %Round and 1 or (value %1 < -%R
 /*==============================================================================================
 	Section: Random Numbers
 ==============================================================================================*/
+Core:SetPerf( LEMON_PERF_ABNORMAL )
 
 Core:AddFunction( "random", "", "n", "math.random( )" )
 Core:AddFunction( "random", "n", "n", "(math.random( ) * value %1)" )
@@ -198,13 +208,17 @@ Core:AddFunction( "exp", "n", "n", "(math.exp(value %1))" )
 /*==============================================================================================
 	Section: Trig
 ==============================================================================================*/
+Core:SetPerf( LEMON_PERF_CHEAP )
 Core:AddFunction( "pi", "", "n", "math.pi" )
 
 Core:AddExternal( "deg2rad", math.pi / 180 )
 Core:AddExternal( "rad2deg", 180 / math.pi )
 
+Core:SetPerf( LEMON_PERF_NORMAL )
 Core:AddFunction( "toRad", "n", "n", "(value %1 * %deg2rad)" )
 Core:AddFunction( "toDeg", "n", "n", "(value %1 * %rad2deg)" )
+
+Core:SetPerf( LEMON_PERF_ABNORMAL ) -- Arent these a little expensive?
 
 Core:AddFunction( "acos", "n", "n", "(math.acos(value %1) * %rad2deg)" )
 Core:AddFunction( "asin", "n", "n", "(math.asin(value %1) * %rad2deg)" )

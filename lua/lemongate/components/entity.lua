@@ -32,6 +32,8 @@ function Class.Wire_Out( Context, Cell ) return Context.Memory[ Cell ] or Entity
 
 function Class.Wire_In( Context, Cell, Value ) Context.Memory[ Cell ] = Value end
 
+Core:SetPerf( LEMON_PERF_CHEAP )
+
 Core:AddOperator( "default", "e", "e", "%NULL_ENTITY" )
 
 -- Assign:
@@ -85,6 +87,7 @@ Core:AddFunction( "playerID", "e:", "n", "(value %1:IsPlayer( ) and value %1:Use
 /*==============================================================================================
 	Section: Position and angles
 ==============================================================================================*/
+Core:SetPerf( LEMON_PERF_CHEAP )
 
 Core:AddFunction( "pos", "e:", "v", "($IsValid(value %1) and Vector3( value %1:GetPos() ) or Vector3.Zero:Clone( ) )" )
 
@@ -120,6 +123,8 @@ Core:AddFunction( "isOnFire", "e:", "b", "($IsValid(value %1) and value %1:IsOnF
 Core:AddFunction( "isWeapon", "e:", "b", "($IsValid(value %1) and value %1:IsWeapon( ))" )
 
 Core:AddFunction( "owner", "e:", "e", "($IsValid(value %1) and %GetOwner(value %1) or %NULL_ENTITY)" )
+
+Core:SetPerf( LEMON_PERF_NORMAL )
 
 Core:AddFunction( "isFrozen", "e:", "b", [[
 	if $IsValid(value %1) then
@@ -157,6 +162,7 @@ Core:AddFunction( "passenger", "e:", "e", "(($IsValid(value %1) and value %1:IsV
 /*==============================================================================================
 	Section: Mass
 ==============================================================================================*/
+Core:SetPerf( LEMON_PERF_ABNORMAL )
 
 Core:AddFunction( "setMass", "e:n", "", [[
 local %Ent = value %1
@@ -166,6 +172,8 @@ if %Ent and %Ent:IsValid( ) and %IsOwner( %context.Player, value %1 ) then
 		%Phys:SetMass( math.Clamp( value %2, 0.001, 50000 ) )
 	end
 end]], LEMON_NO_INLINE )
+
+Core:SetPerf( LEMON_PERF_CHEAP )
 
 Core:AddFunction( "mass", "e:", "n", [[
 	if $IsValid(value %1) then
@@ -194,6 +202,7 @@ Core:AddFunction( "massCenter", "e:", "v", [[
 /*==============================================================================================
 	Section: OBB Box
 ==============================================================================================*/
+Core:SetPerf( LEMON_PERF_CHEAP )
 
 Core:AddFunction( "boxSize", "e:", "v", "($IsValid( value %1) and Vector3( value %1:OBBMaxs( ) - value %1:OBBMins( ) ) or Vector3(0,0,0) )" )
 
@@ -204,6 +213,8 @@ Core:AddFunction( "boxMax", "e:", "v", "($IsValid( value %1) and  Vector3( value
 Core:AddFunction( "boxMin", "e:", "v", "($IsValid( value %1) and  Vector3( value %1:OBBMins( ) ) or Vector3(0,0,0) )" )
 
 /******************************************************************************/
+
+Core:SetPerf( LEMON_PERF_NORMAL )
 
 Core:AddFunction( "aabbMin", "e:", "v", [[
 local %Ent, %Val = value %1, Vector3.Zero:Clone( )
@@ -227,6 +238,7 @@ end]], "%Val" )
 /*==============================================================================================
 	Section: Force
 ==============================================================================================*/
+Core:SetPerf( LEMON_PERF_EXPENSIVE )
 
 Core:AddFunction( "applyForce", "e:v", "", [[
 if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) and value %2:IsNotHuge( ) then
@@ -306,6 +318,7 @@ end]], "" )
 /*==============================================================================================
 	Section: Velocity
 ==============================================================================================*/
+Core:SetPerf( LEMON_PERF_NORMAL )
 
 Core:AddFunction( "vel", "e:", "v", [[
 local %Ret = Vector3(0, 0, 0)
@@ -347,6 +360,7 @@ end]], "%Ret" )
 /*==============================================================================================
 	Section: Constraints
 ==============================================================================================*/
+Core:SetPerf( LEMON_PERF_NORMAL )
 
 Core:AddFunction( "hasConstraints", "e:", "n", [[
 local %Ent, %Val = value %1, 0
@@ -360,6 +374,8 @@ if %Ent and %Ent:IsValid( ) then
 	%Val = $constraint.HasConstraints( %Ent )
 end]], "%Val" )
 
+Core:SetPerf( LEMON_PERF_ABNORMAL )
+
 Core:AddFunction( "isWeldedTo", "e:", "e", [[
 local %Ent, %Val = value %1, %NULL_ENTITY
 if %Ent and %Ent:IsValid( ) and $constraint.HasConstraints( %Ent ) then
@@ -370,6 +386,8 @@ if %Ent and %Ent:IsValid( ) and $constraint.HasConstraints( %Ent ) then
 		%Val = %Con.Ent1 or %Val
 	end	
 end]], "%Val" )
+
+Core:SetPerf( LEMON_PERF_EXPENSIVE )
 
 Core:AddFunction( "getConstraints", "e:", "e*", [[
 local %Cons, %Entity = { }, value %1
@@ -385,6 +403,7 @@ end]], "%Cons" )
 /*==============================================================================================
 	Section: Bearing & Elevation
 ==============================================================================================*/
+Core:SetPerf( LEMON_PERF_NORMAL )
 
 Core:AddFunction( "bearing", "e:v", "n", [[
 local %Ent, %Val = value %1, 0
@@ -403,6 +422,8 @@ if %Ent and %Ent:IsValid( ) then
 	end
 end]], "%Val" )
 
+Core:SetPerf( LEMON_PERF_ABNORMAL )
+
 Core:AddFunction( "heading", "e:v", "a", [[
 local %Ent, %Val = value %1, Angle(0, 0, 0)
 if %Ent and %Ent:IsValid( ) then
@@ -420,6 +441,7 @@ end]], "%Val" )
 /*==============================================================================================
     Section: Color 
 ==============================================================================================*/
+Core:SetPerf( LEMON_PERF_NORMAL )
 
 Core:AddFunction("setColor", "e:c", "", [[
 local %Ent, %Col = value %1, value %2
@@ -438,6 +460,7 @@ end]], "%Val" )
 /*==============================================================================================
 	Section: Material / Skin / Bodygroup
 ==============================================================================================*/
+Core:SetPerf( LEMON_PERF_CHEAP )
 
 Core:AddFunction( "getMaterial", "e:", "s", [[
 local %Ent, %Val = value %1, ""
@@ -496,6 +519,7 @@ end]], "(%util or Angle(0, 0, 0))")
 /*==============================================================================================
 	Section: Trails
 ==============================================================================================*/
+Core:SetPerf( LEMON_PERF_ABNORMAL )
 
 Core:AddFunction( "setTrail", "e:n,n,n,s,c", "", [[
 if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) then
@@ -524,6 +548,8 @@ if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) then
 		} )
 	end
 end]], "" )
+
+Core:SetPerf( LEMON_PERF_CHEAP )
 
 Core:AddFunction( "removeTrail", "e:", "", [[
 if $IsValid( value %1 ) and %IsOwner( %context.Player, value %1 ) then
@@ -556,13 +582,14 @@ Core:AddFunction( "teamFrags", "n", "n", "($team.TotalFrags(value %1) or 0)" )
 
 Core:AddFunction( "teamColor", "n", "c", "local %C = $team.GetColor(value %1)", "{ %C.r, %C.g, %C.b, %C.a }" )
 
-Core:AddFunction( "teams", "", "n*", [[local %Teams = { }
-	for Index,_ in pairs($team.GetAllTeams()) do %Teams[#%Teams + 1] = Index end
-]], "%Teams" )
+Core:SetPerf( LEMON_PERF_NORMAL )
+
+Core:AddFunction( "teams", "", "t*", "$team.GetAllTeams()" )
 
 /*==============================================================================================
 	Section: Aiming and Eye
 ==============================================================================================*/
+Core:SetPerf( LEMON_PERF_CHEAP )
 
 Core:AddFunction( "shootPos", "e:", "v", "( ($IsValid(value %1) and value %1:IsPlayer( )) and Vector3( value %1:GetShootPos() ) or Vector3.Zero:Clone() )" )
 
@@ -630,6 +657,8 @@ Core:AddFunction( "getEquipped", "e:", "e", "(($IsValid(value %1) and value %1:I
 ==============================================================================================*/
 Core:AddFunction( "lookupAttachment", "e:s", "n", "($IsValid(value %1) and value %1:LookupAttachment(value %2) or 0)" )
 
+Core:SetPerf( LEMON_PERF_CHEAP )
+
 Core:AddFunction( "attachmentPos", "e:n", "v", [[
 if $IsValid( value %1 ) then
 	local %At = value %1:GetAttachment(value %2)
@@ -693,6 +722,8 @@ local FindFilter = { -- E2 filters these.
 Core:AddExternal( "FindFilter", FindFilter )
 
 /***********************************************************************************************/
+
+Core:SetPerf( LEMON_PERF_EXPENSIVE )
 
 Core:AddFunction( "getPlayers", "", "e*", "$player.GetAll( )" )
 
