@@ -27,6 +27,8 @@ function Class.Wire_In( Context, Cell, Value )
 	Context.Memory[ Cell ] = Vector2(Value[1], Value[2])
 end
 
+Core:SetPerf( LEMON_PERF_CHEAP )
+
 Core:AddOperator( "default", "v2", "v2", "Vector2.Zero:Clone()" )
 
 -- Assign:
@@ -112,6 +114,8 @@ Core:AddFunction( "setX", "v2:n", "", "value %1:Set(value %2, value %1.y)", nil 
 
 Core:AddFunction( "setY", "v2:n", "", "value %1:Set(value %1.x, value %2)", nil )
 
+Core:SetPerf( LEMON_PERF_ABNORMAL )
+
 -- Casting:
 
 Core:AddOperator( "string", "v2", "s", [[("<" .. tostring( value %1 ) .. ">")]] )
@@ -128,6 +132,7 @@ local %Value = %memory[value %1] or Vector2.Zero
 /*==============================================================================================
 	length and Distance
 ==============================================================================================*/
+Core:SetPerf( LEMON_PERF_NORMAL )
 
 Core:AddOperator( "#", "v2", "n", "value %1:Length()" )
 

@@ -32,6 +32,7 @@ Core:AddOperator( "string", "q", "s", "tostring( value %1 )" )
 /*==============================================================================================
 	Section: Operators
 ==============================================================================================*/
+Core:SetPerf( LEMON_PERF_NORMAL )
 
 Core:AddOperator( "+", "q,q", "q", "(value %1 + value %2)" )
 Core:AddOperator( "+", "n,q", "q", "(value %1 + value %2)" )
@@ -49,6 +50,8 @@ Core:AddOperator( "/", "q,n", "q", "(value %1 / value %2)" )
 
 Core:AddOperator( "==", "q,q", "b", "(value %1 == value %2)" )
 Core:AddOperator( "!=", "q,q", "b", "(value %1 != value %2)" )
+
+Core:SetPerf( LEMON_PERF_ABNORMAL )
 
 Core:AddOperator( "^", "n,q", "q", "(value %1 ^ value %2)" )
 Core:AddOperator( "^", "q,n", "q", "(value %1 ^ value %2)" )
@@ -118,6 +121,7 @@ Core:AddOperator( "/", "q,q", "q", [[
 /*==============================================================================================
 	Section: Build Quat
 ==============================================================================================*/
+Core:SetPerf( LEMON_PERF_NORMAL )
 
 Core:AddFunction( "quat", "", "q", "Quaternion.Zero:Clone()" )
 Core:AddFunction( "quat", "n", "q", "Quaternion(value %1, 0, 0, 0)" )
@@ -132,6 +136,8 @@ Core:AddFunction("qi", "n", "q", "Quaternion(0, value %1, 0, 0)" )
 Core:AddFunction("qj", "n", "q", "Quaternion(0, 0, value %1, 0)" )
 Core:AddFunction("qk", "n", "q", "Quaternion(0, 0, 0, value %1)" )
 
+Core:SetPerf( LEMON_PERF_EXPENSIVE)
+
 Core:AddFunction( "quat", "a", "q", "Quaternion.Zero:Clone():AngleToQuat(value %1)" )
 Core:AddFunction( "quat", "e", "q", "$IsValid(value %1) and Quaternion.Zero:Clone():AngleToQuat(value %1:GetAngles()) or Quaternion.Zero:Clone()" )
 Core:AddFunction( "quat", "v,v", "q", "Quaternion.Zero:Clone():VecsToQuat(value %1, value %2)" )
@@ -139,6 +145,7 @@ Core:AddFunction( "quat", "v,v", "q", "Quaternion.Zero:Clone():VecsToQuat(value 
 /*==============================================================================================
 	Section: Get Quat
 ==============================================================================================*/
+Core:SetPerf( LEMON_PERF_CHEAP )
 
 Core:AddFunction( "real", "q:", "n", "(value %1.r)" )
 Core:AddFunction( "i", "q:", "n", "(value %1.i)" )
@@ -147,6 +154,8 @@ Core:AddFunction( "k", "q:", "n", "(value %1.k)" )
 Core:AddFunction( "vec", "q", "v", "$Vector3( value %1.i, value %1.j, value %1.k )" )
 
 Core:AddFunction( "qMod", "q", "q", "( value %1.r < 0 and Quaternion(-value %1.r, -value %1.i, -value %1.j, -value %1.k) or value %1 )" )
+
+Core:SetPerf( LEMON_PERF_NORMAL )
 
 Core:AddFunction( "forward", "q:", "v", [[
 	local %A, %B, %C, %D = value %1.r, value %1.i, value %1.j, value %1.k
@@ -177,6 +186,8 @@ Core:AddFunction( "inv", "q", "q", [[
 Core:AddFunction( "conj", "q", "q", "Quaternion(value %1.r, -value %1.i, -value %1.j, -value %1.k)" )
 Core:AddFunction( "exp", "q", "q", "(value %1:Exp())" )
 Core:AddFunction( "log", "q", "q", "(value %1:Log())" )
+
+Core:SetPerf( LEMON_PERF_ABNORMAL )
 
 Core:AddFunction( "qRotation", "v,n", "q", "Quaternion.Zero:Clone():RotateQuat(value %1, value %2)" )
 Core:AddFunction( "qRotation", "v", "q", "Quaternion.Zero:Clone():RotateQuat(value %1)" )

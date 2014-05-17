@@ -384,10 +384,6 @@ function PANEL:AddInviteMenu( )
 		self.pnlSharedView:SetVisible( false )
 	end
 
-	function txtName.OnEnter( )
-		btnSub:DoClick( )
-	end
-
 	-- Add to toolbar!
 	self.btnShared = self:SetupButton( "Start Session", Material( "fugue/share.png" ), RIGHT )
 

@@ -298,15 +298,15 @@ function Compiler:CompileCode( Code, Files, NoCompile )
 	return self
 end
 
-function Compiler:Instruction( Trace, Return, Inline, Prepare )
-	return { Trace = Trace, Return = Return, Return = Return, Inline = Inline, Prepare = Prepare }
+function Compiler:Instruction( Trace, Perf, Return, Inline, Prepare )
+	return { Trace = Trace, Return = Return, Return = Return, Inline = Inline, Prepare = Prepare, Perf = Perf }
 end
 
 local Format = string.format
 
 function Compiler:FakeInstr( Trace, Return, Inline, A, ... )
 	if A then Inline = Format( Inline, A, ... ) end
-	return self:Instruction( Trace, Return, Inline )
+	return self:Instruction( Trace, 0, Return, Inline )
 end -- Makes hacky stuff look less hacky!
 
 function Compiler:Evaluate( Trace, Instr )
@@ -314,14 +314,17 @@ function Compiler:Evaluate( Trace, Instr )
 		return Instr
 	end -- No need to evaluate here!
 	
+	local Perf = Instr.Perf 
 	local ID = self:NextLocal( )
-	local Lua = "local " .. ID .. " = function( Context, Memory, Delta, Click )\n"
+	local Lua = "local " .. ID .. " = function( )\n"
+	
+	if Perf and Perf > 0 then
+		Lua = Lua .. "Context:PushPerf( " .. self:CompileTrace( Trace ) .. ", " .. Perf .. " )\n"
+	end
 	
 	Lua = Lua ..( Instr.Prepare or "" ) .. "\nreturn " .. Instr.Inline .. "\nend\n"
 	
-	self:Prepare( ID, Lua )
-
-	local Instr = self:FakeInstr( Trace, Instr.Return or "", ID .. "( Context, Memory, Delta, Click )" )
+	local Instr = self:Instruction( Trace, 0, Instr.Return or "", ID .. "()", Lua )
 	Instr.Evaluated = true -- Prevents revaluation.
 	return Instr
 end
@@ -410,7 +413,7 @@ end
 ==============================================================================================*/
 
 function Compiler:Compile_SEQUENCE( Trace, Statements )
-	local Lines = { }
+	local Lua, Lines, Perf = "", { }, 0
 	
 	for I = 1, #Statements do
 		local Instr = Statements[ I ]
@@ -418,6 +421,8 @@ function Compiler:Compile_SEQUENCE( Trace, Statements )
 		if !Instr then
 			self:TraceError( Trace, "Unpredicted compile error, Sequence got invalid statement." )
 		end
+		
+		Perf = Perf + (Instr.Perf or 0)
 		
 		if Instr.Prepare and self:IsPreparable( Instr.Prepare ) then
 			table.insert( Lines, Instr.Prepare )
@@ -428,13 +433,17 @@ function Compiler:Compile_SEQUENCE( Trace, Statements )
 		end
 	end
 	
-	local Lua = Lines[1]
-
-	if #Lines > 1 then Lua = string.Implode( "\n", Lines ) end
-
-	Lua = Lua .. "\nContext:UpdateBenchMark( " .. self:CompileTrace( Trace ) .. " )\n"
-
-	return self:Instruction( Trace, "", "", Lua )
+	if Perf > 0 then
+		Lua = "Context:PushPerf( " .. self:CompileTrace( Trace ) .. ", " .. Perf .. " )\n"
+	end
+	
+	if #Lines > 1 then
+		Lua = Lua .. "\n" .. string.Implode( "\n", Lines ) .. "\n"
+	elseif Lines[1] then
+		Lua = Lua .. Lines[1]
+	end
+	
+	return self:Instruction( Trace, 0, "", "", Lua .. "\n" )
 end
 
 /*==============================================================================================
@@ -442,15 +451,16 @@ end
 ==============================================================================================*/
 
 function Compiler:Compile_NUMBER( Trace, Value )
-	return self:Instruction( Trace, "n", Value )
+	return self:Instruction( Trace, LEMON_PERF_CHEAP, "n", Value )
 end
 
 function Compiler:Compile_STRING( Trace, Value )
+	-- return self:Instruction( Trace, LEMON_PERF_CHEAP, "s", self:AddString( Value ) ) )
 	return self:FakeInstr( Trace, "s", self:AddString( Value ) )
 end
 
 function Compiler:Compile_BOOLBEAN( Trace, Value )
-	return self:Instruction( Trace, "b", Value and "true" or "false" )
+	return self:Instruction( Trace, LEMON_PERF_CHEAP, "b", Value and "true" or "false" )
 end
 
 /*==============================================================================================
@@ -472,9 +482,9 @@ function Compiler:Compile_CAST( Trace, CastType, Value, NoError )
 	if Op then
 		return Op.Compile( self, Trace, Value )
 	elseif CastTo.DownCast and CastTo.DownCast == CastFrom then
-		return self:Instruction( Trace, CastTo.Short, Value.Inline, Value.Prepare )
+		return self:Instruction( Trace, LEMON_PERF_CHEAP, CastTo.Short, Value.Inline, Value.Prepare )
 	elseif CastTo.UpCast[ Value.Return ] then
-		return self:Instruction( Trace, CastTo.Short, Value.Inline, Value.Prepare )
+		return self:Instruction( Trace, LEMON_PERF_CHEAP, CastTo.Short, Value.Inline, Value.Prepare )
 	elseif !NoError then
 		self:TraceError( Trace, "%s can not be cast to %s",  self:NType( CastFrom ), CastTo.Name )
 	end
@@ -903,7 +913,7 @@ function Compiler:Compile_IF( Trace, Condition, Statements, Else )
 	
 	Lua = Lua .. "end\n"
 	
-	return self:Instruction( Trace, "", "", Lua )
+	return self:Instruction( Trace, 1, "", "", Lua )
 end
 
 function Compiler:Compile_ELSEIF( Trace, Condition, Statements, Else )
@@ -924,12 +934,12 @@ function Compiler:Compile_ELSEIF( Trace, Condition, Statements, Else )
 		Sequence = Sequence .. Else.Inline .. "\n"
 	end
 	
-	return self:Instruction( Trace, "", Sequence, Prepare )
+	return self:Instruction( Trace, 1, "", Sequence, Prepare )
 end
 
 function Compiler:Compile_ELSE( Trace, Statements )
 	local Sequence = "else\n" .. (Statements.Prepare or "") .. (Statements.Inline or "") .. "\n"
-	return self:Instruction( Trace, "", Sequence, "" )
+	return self:Instruction( Trace, 1, "", Sequence, "" )
 end
 
 /*==============================================================================================
@@ -984,6 +994,8 @@ function Compiler:Compile_LAMBDA( Trace, Params, HasVarArg, Sequence )
 		local Lua = "local " .. ID .. " = function( " .. Params .. [[ )
 			local Trace = ]] .. self:CompileTrace( Trace ) .. [[
 			if ( Context.Entity and Context.Entity:IsRunning( ) ) then
+				Context:PushPerf( Trace, ]] .. (( Sequence.Perf or 0) + LEMON_PERF_CHEAP ) .. [[ )
+				
 				]] .. self:PushEnviroment( ) .. [[
 				]] .. string.Implode( "\n", CallPrepare ) .. [[
 				]] .. Sequence.Prepare .. [[
@@ -991,7 +1003,7 @@ function Compiler:Compile_LAMBDA( Trace, Params, HasVarArg, Sequence )
 		end]] .. "\n\n"
 			
 	-- 3) Function Done
-		return self:Instruction( Trace, "f", ID, Lua )
+		return self:Instruction( Trace, 1, "f", ID, Lua )
 end
 
 function Compiler:Compile_CALL( Trace, Value, ... )
@@ -1201,7 +1213,7 @@ end
 ==============================================================================================*/
 function Compiler:Compile_TABLE( Trace, Values, Keys, Count )
 	if Count == 0 then
-		return self:Instruction( Trace, "t", "Externals.Table( )" )
+		return self:Instruction( Trace, LEMON_PERF_ABNORMAL, "t", "Externals.Table( )" )
 	end --else
 		local ID = self:NextLocal( )
 		local Statements = { }
@@ -1234,6 +1246,7 @@ function Compiler:Compile_TABLE( Trace, Values, Keys, Count )
 		local Inst = self:Compile_SEQUENCE( Trace, Statements )
 		
 		Inst.Prepare = First .. "\n" .. Inst.Prepare
+		Inst.Perf = LEMON_PERF_ABNORMAL
 		Inst.Return = "t"
 		Inst.Inline = ID
 		
@@ -1288,7 +1301,7 @@ function Compiler:Compile_TRY( Trace, Block, Catch, Final )
 		
 		]] .. ( Final and Final.Prepare or "" )
 		
-	return self:Instruction( Trace, "", "", Lua )	
+	return self:Instruction( Trace, LEMON_PERF_ABNORMAL, "", "", Lua )	
 end
 
 function Compiler:Compile_CATCH( Trace, Ref, Exceptions, Block, Catch )
@@ -1306,7 +1319,7 @@ function Compiler:Compile_CATCH( Trace, Ref, Exceptions, Block, Catch )
 			
 		]] .. ( Catch and ( "else" .. Catch.Prepare ) or "end" )
 	
-	return self:Instruction( Trace, "", "", Lua )	
+	return self:Instruction( Trace, LEMON_PERF_NORMAL, "", "", Lua )	
 end
 
 /*==============================================================================================
@@ -1373,7 +1386,7 @@ function Compiler:Compile_EVENT( Trace, EventName, Perams, HasVarg, Block, Exit 
 	Lua = "Context.Event_" .. EventName .. " = function( " .. string.Implode( ",", EventParams ) .. [[ )
 		]] .. self:PushEnviroment( ) .. [[
 				
-		Context:UpdateBenchMark( ]] .. self:CompileTrace( Trace ) .. [[ )
+		Context:PushPerf( ]] .. self:CompileTrace( Trace ) .. "," .. Event.Perf .. [[ )
 		
 		]] .. string.Implode( "\n", EventPrepare ) .. [[
 		
@@ -1381,7 +1394,7 @@ function Compiler:Compile_EVENT( Trace, EventName, Perams, HasVarg, Block, Exit 
 		
 	end]]
 	
-	return self:Instruction( Trace, "", "", Lua )
+	return self:Instruction( Trace, 0, "", "", Lua )
 end
 
 /*==============================================================================================
@@ -1478,10 +1491,10 @@ function Compiler:Compile_INCLUDE( Trace, Path, Scoped )
 		self:NextToken( )
 	-- Now just call it =D
 	
-		return self:Instruction( Trace, "", "", "Context.Include" .. ID .. "( )" )
+		return self:Instruction( Trace, LEMON_PERF_ABNORMAL, "", "", "Context.Include" .. ID .. "( )" )
 	else
 	
-		return self:Instruction( Trace, "", "", "Context.Include" .. self.FilesLK[ LkPath ] .. "( )" )
+		return self:Instruction( Trace, LEMON_PERF_ABNORMAL, "", "", "Context.Include" .. self.FilesLK[ LkPath ] .. "( )" )
 	end
 end
 
@@ -1489,10 +1502,12 @@ end
 	Section: Cystom Syntax Functions
 ==============================================================================================*/
 function Compiler:Compile_PRINT( Trace, Values, Count )
+	local Perf = LEMON_PERF_NORMAL
 	local Inline, Lua = { }, { }
 	
 	for I = 1, Count do
 		local Instr = Values[ I ]
+		Perf = Perf + ( Instr.Perf or 0 )
 		
 		if Instr.Return ~= "..." then
 			Lua[I] = Format( "%s\nlocal __%i = %s", Instr.Prepare or "", I, Instr.Inline )
@@ -1515,8 +1530,11 @@ function Compiler:Compile_PRINT( Trace, Values, Count )
 		end
 	end
 	
-	return self:Instruction( Trace, "", "", [[do
+	return self:Instruction( Trace, 0, "", "", [[do
+		Context:PushPerf( ]] .. self:CompileTrace( Trace ) .. ", " .. Perf .. [[ )
+		
 		]] .. string.Implode( "\n", Lua ) .. [[
+		
 		Context.Player:PrintMessage( 3, string.Left( ]] .. string.Implode( " .. \" \" .. ", Inline ) .. [[, 249 ) )
 	end]] )
 end

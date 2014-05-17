@@ -19,22 +19,17 @@ end
 local CurTime, pcall, unpack = CurTime, pcall, unpack
 
 local function Timer( )
+	local Time, Sucess = CurTime( ), nil
+	
 	for _, Gate in pairs( API:GetEntitys( ) ) do
 		if Gate.Context then
-
 			local Context, FailSafe = Gate.Context, 0
 			
-			local Time = CurTime( )
-			
-			Context.cpu_time_start = SysTime()
-
 			for Key, Timer in pairs( Context.Data.Timers ) do
 				FailSafe = FailSafe + 1;
 				
-				Context:UpdateBenchMark( {0, 0} )
-				
 				if FailSafe > 500 then
-					Gate:ScriptError( nil, "Too many timers (max 500)!" )
+					print( "[LemonGate] Too meany timers!" )
 					break
 				elseif Timer.Status == -1 then
 					Timer.Last = Time - Timer.Diff
@@ -56,6 +51,9 @@ local function Timer( )
 						Context.Data.Timers[ Key ] = nil
 					end
 				end
+				
+				
+				Context.Perf = Context.Perf + LEMON_PERF_CHEAP
 			end
 		end
 	end
@@ -69,6 +67,7 @@ end )
 /*==============================================================================================
     General Time
 ==============================================================================================*/
+Component:SetPerf( LEMON_PERF_CHEAP )
 
 Component:AddFunction("curTime", "", "n", "$CurTime( )" )
 
@@ -81,6 +80,7 @@ Component:AddFunction("time", "s", "n", "$tonumber( $os.date(\"!*t\")[ value %1 
 /*==============================================================================================
 	Section: Timers
 ==============================================================================================*/
+Component:SetPerf( LEMON_PERF_EXPENSIVE )
 
 Component:AddFunction("timerCreate", "s,n,n,f[,b", "", [[
 %prepare
@@ -109,6 +109,8 @@ Component:AddFunction("timerCreate", "s,n,n,f,b,...", "", [[
 	AutoRemove = value %5,
 	Args = { %... }
 }]], "" )
+
+Component:SetPerf( LEMON_PERF_NORMAL )
 
 Component:AddFunction("timerAdjust", "s,n,n", "", [[
 %prepare

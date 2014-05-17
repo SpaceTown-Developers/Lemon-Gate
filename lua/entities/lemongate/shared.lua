@@ -11,10 +11,9 @@ ENT.Spawnable       = false
 ENT.AdminSpawnable  = false
 
 ENT.IsLemonGate = true 
-ENT.AutomaticFrameAdvance  = true
 
 /*==========================================================================
-	Section: Context Menu
+	Section: Context Menu:
 ==========================================================================*/
 local LEMON = LEMON
 local Util = LEMON.API.Util
@@ -81,11 +80,3 @@ properties.Add( "lemongate", {
 		end
 	end 
 } )
-
-/*==========================================================================
-	Section: Status
-==========================================================================*/
-
-function ENT:GetStatus(  )
-	return self:GetNWInt( "status", 0 )
-end

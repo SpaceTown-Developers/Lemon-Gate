@@ -9,6 +9,7 @@ local Component = API:NewComponent( "http", true )
 /*==============================================================================================
 	Section: Functions
 ==============================================================================================*/
+Component:SetPerf( LEMON_PERF_EXPENSIVE )
 
 Component:AddFunction( "httpRequest", "s,f,f", "", [[
 %prepare

@@ -4,40 +4,39 @@
 	Credits: Andreas "Syranide" Svensson for making the E2 editor
 =============================================================================*/
 
-local math_max 						= math.max 
-local math_min 						= math.min 
-local math_floor 					= math.floor 
-local math_ceil 					= math.ceil 
+local math_max 				= math.max 
+local math_min 				= math.min 
+local math_floor 			= math.floor 
+local math_ceil 			= math.ceil 
 
-local string_find 					= string.find
-local string_rep 					= string.rep
-local string_sub 					= string.sub
-local string_gsub 					= string.gsub
-local string_Explode 				= string.Explode
-local string_len 					= string.len
-local string_gmatch 				= string.gmatch
-local string_match 					= string.match
+local string_find 			= string.find
+local string_rep 			= string.rep
+local string_sub 			= string.sub
+local string_gsub 			= string.gsub
+local string_Explode 		= string.Explode
+local string_len 			= string.len
+local string_gmatch 		= string.gmatch
+local string_match 			= string.match
 
-local table_remove 					= table.remove 
-local table_insert 					= table.insert 
-local table_concat 					= table.concat
-local table_Count 					= table.Count 
-local table_KeysFromValue 			= table.KeysFromValue 
+local table_remove 			= table.remove 
+local table_insert 			= table.insert 
+local table_concat 			= table.concat
+local table_Count 			= table.Count 
+local table_KeysFromValue 	= table.KeysFromValue 
 
-local surface_SetFont 				= surface.SetFont
-local surface_DrawRect 				= surface.DrawRect
-local surface_DrawOutlinedRect 		= surface.DrawOutlinedRect
-local surface_DrawText 				= surface.DrawText
-local surface_GetTextSize 			= surface.GetTextSize
-local surface_SetDrawColor 			= surface.SetDrawColor
-local surface_SetTextColor 			= surface.SetTextColor
-local surface_SetTextPos 			= surface.SetTextPos
+local surface_SetFont 		= surface.SetFont
+local surface_DrawRect 		= surface.DrawRect
+local surface_DrawText 		= surface.DrawText
+local surface_GetTextSize 	= surface.GetTextSize
+local surface_SetDrawColor 	= surface.SetDrawColor
+local surface_SetTextColor 	= surface.SetTextColor
+local surface_SetTextPos 	= surface.SetTextPos
 
-local draw_SimpleText 				= draw.SimpleText
-local draw_WordBox 					= draw.WordBox
+local draw_SimpleText 		= draw.SimpleText
+local draw_WordBox 			= draw.WordBox
 
-local input_IsKeyDown 				= input.IsKeyDown
-local input_IsMouseDown 			= input.IsMouseDown
+local input_IsKeyDown 		= input.IsKeyDown
+local input_IsMouseDown 	= input.IsMouseDown
 
 local BookmarkMaterial 		= Material( "diagona-icons/152.png" )
 
@@ -1203,7 +1202,7 @@ function PANEL:PaintStatus( )
 	local Line = "Length: " .. #self:GetCode( ) .. " Lines: " .. #self.Rows .. " Row: " .. self.Caret.x .. " Col: " .. self.Caret.y
 	
 	if self:HasSelection( ) then
-		Line = Line .. " Sel: " .. #(self:GetSelection( ) or "") // Weird bug here found by Divran.
+		Line = Line .. " Sel: " .. #self:GetSelection( )
 	end
 
 	if self.SharedSession then
@@ -1218,6 +1217,7 @@ function PANEL:PaintStatus( )
 	local Wide, Tall = self:GetSize( )
 
 	draw_WordBox( 4, Wide - Width - 20 - ( self.ScrollBar.Enabled and 16 or 0 ), Tall - Height - 20, Line, "Trebuchet18", Color( 0,0,0,100 ), Color( 255,255,255,255 ) )
+
 end
 
 function PANEL:PaintTextOverlay( )
@@ -1285,7 +1285,7 @@ function PANEL:PaintSyncedCursorsAndSelections( )
 		end
 		
 		if visible then
-			self:PaintSelection( selection ) -- TODO: Add user color and outline
+			self:PaintSelection( selection )
 		end
 	end
 end
@@ -1294,6 +1294,7 @@ function PANEL:PositionIsVisible( pos )
 	return 	pos.x - self.Scroll.x >= 0 and pos.x < self.Scroll.x + self.Size.x + 1 and
 			pos.y - self.Scroll.y >= 0 and pos.y < self.Scroll.y + self.Size.y + 1
 end
+
 
 function PANEL:PaintCursor( Caret ) 
 	if self.TextEntry:HasFocus( ) and self:PositionIsVisible( Caret ) then
@@ -1310,7 +1311,7 @@ function PANEL:PaintCursor( Caret )
 	end
 end 
 
-function PANEL:PaintSelection( selection, color, outline )
+function PANEL:PaintSelection( selection )
 	local start, stop = self:MakeSelection( selection )
 	local line, char = start.x, start.y 
 	local endline, endchar = stop.x, stop.y 
@@ -1321,76 +1322,42 @@ function PANEL:PaintSelection( selection, color, outline )
 	if char < 0 then char = 0 end
 	if endchar < 0 then endchar = 0 end
 	
-	color = color or Color( 0, 0, 160, 255 ) 
-	outline = outline or false 
-	
+
 	for Row = line, endline do 
 		if Row > #self.Rows then break end
 		local length = #self.Rows[Row] - self.Scroll.y + 1
 		local LinePos = Row - self.Scroll.x
 		
-		surface_SetDrawColor( color )
-		if outline then 
-			if Row == line and line == endline then 
-				surface_DrawOutlinedRect( 
-					char * self.FontWidth + self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth, 
-					( LinePos ) * self.FontHeight, 
-					self.FontWidth * ( endchar - char ), 
-					self.FontHeight 
-				 )
-			elseif Row == line then 
-				surface_DrawOutlinedRect( 
-					char * self.FontWidth + self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth, 
-					( LinePos ) * self.FontHeight, 
-					self.FontWidth * math_min( self.Size.y - char + 2, length - char + 1 ), 
-					self.FontHeight 
-				 )
-			elseif Row == endline then 
-				surface_DrawOutlinedRect( 
-					self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth, 
-					( LinePos ) * self.FontHeight, 
-					self.FontWidth * endchar,  
-					self.FontHeight 
-				 ) 
-			elseif Row > line and Row < endline then 
-				surface_DrawOutlinedRect( 
-					self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth, 
-					( LinePos ) * self.FontHeight, 
-					self.FontWidth * math_min( self.Size.y + 2, length + 1 ),  
-					self.FontHeight 
-				 )
-			end
-		else 
-			if Row == line and line == endline then 
-				surface_DrawRect( 
-					char * self.FontWidth + self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth, 
-					( LinePos ) * self.FontHeight, 
-					self.FontWidth * ( endchar - char ), 
-					self.FontHeight 
-				 )
-			elseif Row == line then 
-				surface_DrawRect( 
-					char * self.FontWidth + self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth, 
-					( LinePos ) * self.FontHeight, 
-					self.FontWidth * math_min( self.Size.y - char + 2, length - char + 1 ), 
-					self.FontHeight 
-				 )
-			elseif Row == endline then 
-				surface_DrawRect( 
-					self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth, 
-					( LinePos ) * self.FontHeight, 
-					self.FontWidth * endchar,  
-					self.FontHeight 
-				 ) 
-			elseif Row > line and Row < endline then 
-				surface_DrawRect( 
-					self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth, 
-					( LinePos ) * self.FontHeight, 
-					self.FontWidth * math_min( self.Size.y + 2, length + 1 ),  
-					self.FontHeight 
-				 )
-			end
-		end 
+		surface_SetDrawColor( 0, 0, 160, 255 )
+		if Row == line and line == endline then 
+			surface_DrawRect( 
+				char * self.FontWidth + self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth, 
+				( LinePos ) * self.FontHeight, 
+				self.FontWidth * ( endchar - char ), 
+				self.FontHeight 
+			 )
+		elseif Row == line then 
+			surface_DrawRect( 
+				char * self.FontWidth + self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth, 
+				( LinePos ) * self.FontHeight, 
+				self.FontWidth * math_min( self.Size.y - char + 2, length - char + 1 ), 
+				self.FontHeight 
+			 )
+		elseif Row == endline then 
+			surface_DrawRect( 
+				self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth, 
+				( LinePos ) * self.FontHeight, 
+				self.FontWidth * endchar,  
+				self.FontHeight 
+			 ) 
+		elseif Row > line and Row < endline then 
+			surface_DrawRect( 
+				self.BookmarkWidth + self.LineNumberWidth + self.FoldingWidth, 
+				( LinePos ) * self.FontHeight, 
+				self.FontWidth * math_min( self.Size.y + 2, length + 1 ),  
+				self.FontHeight 
+			 )
+		end
 	end
 end
 
@@ -1620,4 +1587,4 @@ function PANEL:PerformLayout( )
 	self.Search:SetPos( self:GetWide( ) - self.ScrollBar:GetWide( ) - 285, self.Search.Y )
 end
 
-vgui.Register( "EA_Editor", PANEL, "EditablePanel" )
+vgui.Register( "EA_Editor", PANEL, "EditablePanel" ) 
