@@ -13,9 +13,6 @@ ENT.AdminSpawnable  = false
 ENT.IsLemonGate = true 
 ENT.AutomaticFrameAdvance  = true
 
-if CLIENT then game.AddParticles( "particles/fire_01.pcf" ) end
-PrecacheParticleSystem( "fire_verysmall_01" )
-
 /*==========================================================================
 	Section: Context Menu
 ==========================================================================*/

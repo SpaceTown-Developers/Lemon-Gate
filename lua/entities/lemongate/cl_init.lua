@@ -56,6 +56,8 @@ function ENT:GetSpinner( )
 	--self:LocalToWorld( Vector( -2.873848, 2.881156, 0.910345 ) )
 end
 
+PrecacheParticleSystem( "fire_verysmall_01" )
+
 function ENT:Think( )
 	local Status = self:GetStatus( )
 	local Spinner = self:GetSpinner( )
