@@ -14,6 +14,8 @@ function API.EGPAction( Entity, Context, ... )
 	local EMU = { player = Context.Player, entity = Context.Entity, prf = 0 }
 	
 	EGP:DoAction( Entity, EMU, ... )
+	
+	if EMU.prf > 0 then Context.Quota_Tick = Context.Quota_Tick + EMU.prf end
 end
 
 /*==============================================================================================
@@ -39,6 +41,7 @@ end
 /*==============================================================================================
 	Section: Frames
 ==============================================================================================*/
+Component:SetPerf( LEMON_PERF_NORMAL )
 
 Component:AddFunction( "egpSaveFrame", "wl:s", "", [[
 if $EGP:ValidEGP( value %1 ) then //and %IsOwner( %context.Player, value %1 ) then
@@ -443,52 +446,6 @@ if $EGP:ValidEGP( value %1 ) then
 		end
 	end 
 end]], LEMON_NO_INLINE )
-
-Component:AddFunction( "egpLineStrip", "wl:n,...", "", [[
-if $EGP:ValidEGP( value %1 ) and #{%...} >= 3 then //and %IsOwner( %context.Player, value %1 ) then
-	local Vertices, I = { }, 0
-	local Max = EGP.ConVars.MaxVertices:GetInt( )
-	
-	for _, Data in pairs( { %... } ) do
-		local Var, Type = Data[1], Data[2]
-		
-		if I > Max then
-			break
-		elseif Type == "xv2" then
-			I = I + 1
-			Vertices[ I ] = { x = Var.x, y = Var.y }
-		end
-	end
-	
-	local %Bool, %Obj = EGP:CreateObject( value %1, EGP.Objects.Names["LineStrip"], { index = value %2, vertices = Vertices }, %context.Player )
-	
-    if %Bool then
-		API.EGPAction( value %1, %context, "SendObject", %Obj )
-		%data.EGP[value %1] = true
-	end
-end]], "" )
-
-Component:AddFunction( "egpLineStrip", "wl:n,xxv2*", "", [[
-if $EGP:ValidEGP( value %1 ) and #value %3 >= 3 then //and %IsOwner( %context.Player, value %1 ) then
-	local Vertices, I = { }, 0
-	local Max = EGP.ConVars.MaxVertices:GetInt( )
-	
-	for _, Data in pairs( value %3 ) do
-		if I > Max then
-			break
-		else
-			I = I + 1
-			Vertices[ I ] = { x = Data.x, y = Data.y }
-		end
-	end
-	
-	local %Bool, %Obj = EGP:CreateObject( value %1, EGP.Objects.Names["LineStrip"], { index = value %2, vertices = Vertices }, %context.Player )
-	
-    if %Bool then
-		API.EGPAction( value %1, %context, "SendObject", %Obj )
-		%data.EGP[value %1] = true
-	end
-end]], "" )
 
 /*============================================================================================================================================
 	Section: Vertices

@@ -15,7 +15,7 @@ CITRIS.Name						= "Chip - Expression Advanced"
 CITRIS.Command 					= nil
 CITRIS.ConfigName 				= nil
 CITRIS.Tab						= "Wire"
-CITRIS.ClientConVar.Model 		= "models/mandrac/wire/e3.mdl"
+CITRIS.ClientConVar.Model 		= "models/lemongate/lemongate.mdl"
 CITRIS.ClientConVar.Weldworld 	= 0
 CITRIS.ClientConVar.Frozen		= 0
 cleanup.Register( "lemongates" )
@@ -45,7 +45,7 @@ function CITRIS:GetModel( )
 	local model = self:GetClientInfo( "Model" )
 	if model and model ~= "" then return Model( model ) end
 	
-	return "models/mandrac/wire/e3.mdl"
+	return "models/lemongate/lemongate.mdl"
 end
 
 function CITRIS:IsLemonGate(Entity)

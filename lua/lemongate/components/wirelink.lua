@@ -65,9 +65,13 @@ WireLink:Wire_Name( "WIRELINK" )
 
 function WireLink.Wire_In( Context, Cell, Value ) Context.Memory[ Cell ] = Value end
 
+Core:SetPerf( LEMON_PERF_CHEAP )
+
 Core:AddOperator( "default", "wl", "wl", "%NULL_ENTITY" )
 
 -- Get Port Operators:
+
+Core:SetPerf( LEMON_PERF_NORMAL )
 
 Core:AddOperator( "[]", "wl,s,n", "n", [[%context:FromWL( value %1, "NORMAL", value %2, 0 )]] )
 
@@ -80,6 +84,8 @@ Core:AddOperator( "[]", "wl,s,v", "v", [[Vector3( %context:FromWL( value %1, "VE
 Core:AddOperator( "[]", "wl,s,a", "a", [[%context:FromWL( value %1, "ANGLE", value %2, Angle( 0, 0,  0) )]] )
 
 -- Set Port Operators:
+
+Core:SetPerf( LEMON_PERF_ABNORMAL )
 
 Core:AddOperator( "[]=", "wl,s,n", "", [[%context:ToWL( value %1, "NORMAL", value %2, value %3 )]], "" )
 
@@ -95,6 +101,8 @@ Core:AddOperator( "[]=", "wl,s,a", "", [[%context:ToWL( value %1, "ANGLE", value
 	Cast Functions
 ==============================================================================================*/
 Core:AddException( "wirelink" )
+
+Core:SetPerf( LEMON_PERF_NORMAL )
 
 Core:AddOperator( "entity", "wl", "e", "value %1" )
 
@@ -112,6 +120,7 @@ end]], "value %1" )
 /*==============================================================================================
 	Port Functions
 ==============================================================================================*/
+Core:SetPerf( LEMON_PERF_NORMAL )
 
 Core:AddFunction("hasInput", "wl:s", "b", "local %WL = value %1", "($IsValid( %WL ) and %WL.Inputs and %WL.Inputs[%value2])" )
 
@@ -136,6 +145,7 @@ end]], "%Val" )
 /*==============================================================================================
 	Cell Writing
 ==============================================================================================*/
+Core:SetPerf( LEMON_PERF_CHEAP )
 
 Core:AddFunction("writeCell", "wl:n,n", "b", [[
 local %WL, %Val = value %1, false
@@ -154,6 +164,7 @@ local %WL, %Result = value %1, %Table()
 if $IsValid(%WL) and %WL.ReadCell then
 	local Start = value %2
 	for I = Start, Start + value %3 do
+		%context.Quota_Tick = %context.Quota_Tick + 0.1
 		%Result:Insert( nil, "n", %WL:ReadCell(I) or 0 )
 	end
 
@@ -191,6 +202,7 @@ if $IsValid( %WL ) and %WL.ReadCell then
 	local Cell= value %2
 	
 	for I = Cell, Cell + 16384 do
+		%context.Quota_Tick = %context.Quota_Tick + 0.1
 
 		local Byte = %WL:ReadCell(I, Byte)
 		if !Byte then
@@ -204,7 +216,7 @@ if $IsValid( %WL ) and %WL.ReadCell then
 		end
 	end
 
-	%cpu
+	%perf
 end]], "%Val" )
 
 -- Set Cell:
@@ -256,7 +268,9 @@ local function WriteStringZero( Context, Entity, Address, String )
 		
 	if ( WriteCell( Entity, Address+ #String, 0 ) ) then
 
-		for I = 1, #String do
+		Context:PushPerf( nil, #String * 0.1 )
+
+        for I = 1, #String do
             if !WriteCell( Entity, Address + I - 1, String_Byte( String, I ) ) then
 				return 0
 			end
@@ -270,7 +284,7 @@ end
 
 local function ReadStringZero( Contex, Entity, Address )
 	
-	local Table = { }
+	local Table, Perf = { }, 0
 	local ReadCell = Entity.ReadCell
 	
 	for I = Address, Address + 16384 do
@@ -286,6 +300,8 @@ local function ReadStringZero( Contex, Entity, Address )
 			
 			Table[#Table + 1] = String_Char( Math_Floor( Byte ) )
 	end
+	
+	Context:PushPerf( nil, #Table * 0.1 )
 
 	return Table_Concat( Table )
 end
@@ -313,7 +329,7 @@ WriteArray = function( Context, Entity, Address, Data, Clear )
 			local Value, Type = Values[I], Types[I]
 			
 			if ( I % 10 == 0 ) then
-				Context:UpdateBenchMark( )
+				Context:PushPerf( nil, 2 )
 			end
 			
 			if ( !MemoryValid ) then
@@ -357,6 +373,8 @@ Core:AddExternal( "WriteArray", WriteArray )
 
 /************************************************************************/
 
+Core:SetPerf( LEMON_PERF_NORMAL )
+
 Core:AddFunction("writeString", "wl:n,s", "n", [[
 if $IsValid(value %1) and value %1.WriteCell then
 	%util = %WriteStringZero( %context, value %1, value %2, value %3 )
@@ -369,6 +387,8 @@ end]], "( %util or \"\" )" )
 
 
 /******************************************************************************/
+
+Core:SetPerf( LEMON_PERF_EXPENSIVE )
 
 Core:AddFunction("writeTable", "wl:n,t", "n", [[
 if $IsValid(value %1) and value %1.WriteCell then
@@ -426,6 +446,8 @@ Core:AddExternal( "WriteToScreen", function( Entity, String, X, Y, TextColor, Ba
 		end
 	end
 end )
+
+Core:SetPerf( LEMON_PERF_EXPENSIVE * 2 )
 
 Core:AddFunction("writeString", "wl:s,n,n", "", "%WriteToScreen( value %1, value %2, value %3, value %4, value %5, value %6 )", "" )
 

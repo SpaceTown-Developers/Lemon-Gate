@@ -204,6 +204,8 @@ end
 
 Class:UsesMetaTable( Table )
 
+Component:SetPerf( LEMON_PERF_CHEAP )
+
 Component:AddOperator( "default", "t", "t", "%Table()" )
 
 -- Changed:
@@ -230,10 +232,13 @@ Component:AddOperator( "string", "t", "s", "tostring( value %1 )" )
 /*==============================================================================================
 	General Functions
 ==============================================================================================*/
+Component:SetPerf( LEMON_PERF_EXPENSIVE )
 
 Component:AddFunction( "copy", "t:", "t", "$setmetatable( table.Copy(value %1), %Table)" )
 
 -- Remove:
+
+Component:SetPerf( LEMON_PERF_ABNORMAL )
 
 Component:AddFunction( "remove", "t:n", "?", "%Table.Remove(value %1, value %2)" )
 
@@ -249,6 +254,7 @@ Component:AddFunction( "type", "t:s", "s", "LongType(value %1.Types[value %2])" 
 Component:AddFunction( "type", "t:e", "s", "LongType(value %1.Types[value %2])" )
 
 -- Exists
+Component:SetPerf( LEMON_PERF_CHEAP )
 
 Component:AddFunction( "exists", "t:n", "b", "(value %1.Data[value %2] ~= nil)" )
 
@@ -257,6 +263,7 @@ Component:AddFunction( "exists", "t:s", "b", "(value %1.Data[value %2] ~= nil)" 
 Component:AddFunction( "exists", "t:e", "b", "(value %1.Data[value %2] ~= nil)" )
 
 -- Array:
+Component:SetPerf( LEMON_PERF_EXPENSIVE )
 
 Component:AddFunction( "pop", "t:", "?", "%Table.Shift(value %1, value %1.Count)" )
 
@@ -266,47 +273,45 @@ Component:AddFunction( "shift", "t:n", "?", "%Table.Shift(value %1, value %2)" )
 
 -- Table:
 
+
+Component:SetPerf( LEMON_PERF_EXPENSIVE )
+
 Component:AddFunction( "minIndex", "t:", "?", [[
 local %Result, %Key
 
 for Key, Type, Value in value %1:Itorate( ) do
+	Context.Quota_Tick = Context.Quota_Tick + 0.5
 	
 	if Type == "n" and ( !%Result or Value < %Result ) then
 		%Key = Key
 		%Result = Value
 	end
 end
-
-%cpu
-
 local %Type = $type( %Key or 0 ):sub(1,1):lower( )
-
 %util = { %Key or 0, %Type ~= "p" and %Type or "e" }
-
 ]], "%util" )
 
 Component:AddFunction( "maxIndex", "t:", "?", [[
 local %Result, %Key
 
 for Key, Type, Value in value %1:Itorate( ) do
+	Context.Quota_Tick = Context.Quota_Tick + 0.5
+	
 	if Type == "n" and ( !%Result or Value > %Result ) then
 		%Key = Key
 		%Result = Value
 	end
 end
 
-%cpu
-
 local %Type = $type( %Key or 0 ):sub(1,1):lower( )
-
 %util = { %Key or 0, %Type ~= "p" and %Type or "e" }
-
 ]], "%util" )
 
 Component:AddFunction( "keys", "t:", "t", [[
 local %Result = %Table( )
 
 for Key, Value in pairs( value %1.Types ) do
+	Context.Quota_Tick = Context.Quota_Tick + 0.5
 	
 	local %IType = $type( Key )
 		
@@ -318,26 +323,24 @@ for Key, Value in pairs( value %1.Types ) do
 		%Result:Insert( nil, "e", Key )
 	end
 end
-
-%cpu
-
 ]], "%Result" )
 
 Component:AddFunction( "values", "t:", "t", [[
 local %Result = %Table( )
 
 for Key, Type, Value in value %1:Itorate( ) do
+	Context.Quota_Tick = Context.Quota_Tick + 0.5
+	
 	%Result:Insert( nil, Type, Value )
 end
-
-%cpu
-
 ]], "%Result" )
 
 Component:AddFunction( "invert", "t:", "t", [[
 local %Result = %Table( )
 
 for Key, Value in pairs( value %1.Types ) do
+	Context.Quota_Tick = Context.Quota_Tick + 0.5
+	
 	if Value == "n" or Value == "s" then
 		local %IType = $type( Key )
 		
@@ -350,14 +353,14 @@ for Key, Value in pairs( value %1.Types ) do
 		end
 	end
 end
-
-%cpu
 ]], "%Result" )
 
 Component:AddFunction( "merge", "t:t", "", [[
 local %Tbl = value %1
 
 for Key, Type, Value in value %2:Itorate( ) do
+	Context.Quota_Tick = Context.Quota_Tick + 0.5
+	
 	%Tbl:Set( Key, Type, Value )
 end
 ]], LEMON_PREPARE_ONLY )
@@ -366,25 +369,23 @@ Component:AddFunction( "add", "t:t", "", [[
 local %Tbl = value %1 
 
 for Key, Type, Value in value %2:Itorate( ) do
+	Context.Quota_Tick = Context.Quota_Tick + 0.5
+	
 	if $type( Key ) == "number" then
 		%Tbl:Insert( nil, Type, Value )
 	elseif !Tbl.Types[ Key ] then
 		%Tbl:Set( Key, Type, Value )
 	end
 end
-
-%cpu
 ]], LEMON_PREPARE_ONLY )
 
 Component:AddFunction( "concat", "t:s", "s", [[
 local %Result = { }
 
 for Key, Type, Value in value %1:Itorate( ) do
+	Context.Quota_Tick = Context.Quota_Tick + 0.1
 	table.insert( %Result, tostring( Value ) )
 end
-
-%cpu
-
 ]], "string.Implode( value %2, %Result )" )
 
 Component:AddFunction( "flip", "t:", "t", [[
@@ -400,16 +401,15 @@ for Key, Type, Value in value %1:Itorate( ) do
 	--else
 	--	%Result:Set( Key, Type, Value )
 	end
-end
-
-%cpu
-]], "%Result" )
+end]], "%Result" )
 
 
 
 /*==============================================================================================
 	Variant Index Operators
 ==============================================================================================*/
+Component:SetPerf( LEMON_PERF_NORMAL )
+
 Component:AddOperator( "[]=", "t,n,?", "?", "value %1:Set( value %2, value %3[2], value %3[1] )" )
 
 Component:AddOperator( "[]=", "t,s,?", "?", "value %1:Set( value %2, value %3[2], value %3[1] )" ) 
@@ -442,6 +442,8 @@ Component:AddOperator( "[]", "t,e", "?", [[( value %1:Get( value %2, "?") or %co
 	Index Operators
 ==============================================================================================*/
 function Component:BuildOperators( )
+	
+	self:SetPerf( LEMON_PERF_CHEAP )
 	
 	for Name, Class in pairs( API.Classes ) do
 		if !Class.NoTableUse then
@@ -512,6 +514,8 @@ end
 /*==============================================================================================
 	ForEach Loop
 ==============================================================================================*/
+Component:SetPerf( LEMON_PERF_NORMAL )
+
 Component:AddOperator( "foreach", "t", "", [[
 	%prepare
 	
@@ -535,11 +539,11 @@ Component:AddOperator( "foreach", "t", "", [[
 		
 		if VType == "?" then Value = { Value, Type } end
 			
+		%perf
+		
 		prepare %4
 		
 		prepare %6
-
-		%cpu
 	end
 ]] , "" )
 
@@ -547,13 +551,14 @@ Component:AddFunction( "sort", "t:f", "t", [[
 local %Sorted = %Table( )
 
 do
+	%context.Quota_Tick = %context.Quota_Tick + ( value %1.Size * 2 )
+	%perf //Rebalance this?
+
 	local Data = value %1.Data
 	local Types = value %1.Types
 	
 	local Look = { }
 	for _, V in pairs( value %1.Look ) do Look[V] = V end
-
-	%cpu
 
 	local Trace = %trace
 
@@ -569,8 +574,6 @@ do
 		%context:Throw( Trace, "table", "sort function returned " .. LongType( Return[2] ) .. " boolean expected." )
 	end )
 	
-	%cpu
-
 	local SData = %Sorted.Data
 	local STypes = %Sorted.Types
 	local SLook = %Sorted.Look
@@ -581,8 +584,6 @@ do
 		SLook[ Value ] = Value
 	end
 	
-	%cpu
-
 	%Sorted.Count = #SData
 	%Sorted.Size = value %1.Size
 end]], "%Sorted" )
@@ -609,6 +610,7 @@ function Table:Print( Context, Sep, Prints, Tables )
 				Context.Player:ChatPrint( "   " .. Sep .. "} --" )
 			else
 				Prints = Prints + 1
+				Context.Quota_Tick = Context.Quota_Tick + 1
 				Context.Player:ChatPrint( Format( Sep .. "(%s) %s = %s", Type, tostring( Key ), tostring( Value ) ) )
 			end
 		end
@@ -618,11 +620,14 @@ function Table:Print( Context, Sep, Prints, Tables )
 	return Prints
 end
 
+Component:SetPerf( LEMON_PERF_EXPENSIVE )
+
 Component:AddFunction( "printTable", "t", "", "value %1:Print( %context )", "" )
 
 /*==============================================================================================
 	Methods
 ==============================================================================================*/
+Component:SetPerf( LEMON_PERF_CHEAP )
 
 Component:AddFunction( "setMetaTable", "t,t", "t", [[
 	value %1.MetaTable = value %2
@@ -634,6 +639,8 @@ Component:AddFunction( "removeMetaTable", "t", "", "value %1.MetaTable = false",
 Component:AddOperator( "setmethod", "t,s,f", "", [[
 	value %1:Set( value %3, "f", value %2 )
 ]], "" )
+
+Component:SetPerf( LEMON_PERF_NORMAL )
 
 Component:AddOperator( "callmethod", "t,s,...", "?", [[
 	%prepare
@@ -665,6 +672,8 @@ Component:AddOperator( "call", "t,...", "?", [[
 local Component = API:NewComponent( "stable", true )
 
 Component:AddExternal( "STable", { } )
+
+Component:SetPerf( LEMON_PERF_ABNORMAL )
 
 Component:AddFunction( "getSTable", "s", "t", [[
 local %Shared = %STable[ value %1 ]

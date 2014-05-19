@@ -159,7 +159,7 @@ if TableCompnent then
 		Converted.Count = Table.size
 		
 		for Key, Value in pairs( Table.n ) do
-			Context.Perf = Context.Perf + 0.1
+			Context.Quota_Tick = Context.Quota_Tick + 0.1
 			
 			local Value, Type = API.E2:ToLemon( Context, Table.ntypes[ Key ], Value, Cache )
 			
@@ -167,7 +167,7 @@ if TableCompnent then
 		end
 		
 		for Key, Value in pairs( Table.s ) do
-			Context.Perf = Context.Perf + 0.1
+			Context.Quota_Tick = Context.Quota_Tick + 0.1
 			
 			local Value, Type = API.E2:ToLemon( Context, Table.stypes[ Key ], Value, Cache )
 			
@@ -176,7 +176,7 @@ if TableCompnent then
 		
 		if Table.e then
 			for Key, Value in pairs( Table.e ) do
-				Context.Perf = Context.Perf + 0.1
+				Context.Quota_Tick = Context.Quota_Tick + 0.1
 				
 				local Value, Type = API.E2:ToLemon( Context, Table.etypes[ Key ], Value, Cache )
 				
@@ -200,7 +200,7 @@ if TableCompnent then
 		Converted.Lemon = Table -- Lemon -> Lemon no data loss!
 		
 		for Key, Type, Value in Table:Itorate( ) do
-			Context.Perf = Context.Perf + 0.1
+			Context.Quota_Tick = Context.Quota_Tick + 0.1
 			Converted.size = Converted.size + 1
 			
 			local Value, Type = API.E2:ToE2( Context, Type, Value, Cache )

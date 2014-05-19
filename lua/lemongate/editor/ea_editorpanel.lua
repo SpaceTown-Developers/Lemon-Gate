@@ -722,7 +722,6 @@ function PANEL:AddSharedInvite( ID, Host, Name )
 	function Reject.DoClick( Btn )
 		List:RemoveItem( Pnl )
 		self.ToolBar.pnlSharedView:PerformLayout( )
-		self.ToolBar.pnlSharedView:SetVisible( false )
 		self.SharedInviteCount = self.SharedInviteCount - 1
 
 		RunConsoleCommand( "lemon_editor_decline", ID )

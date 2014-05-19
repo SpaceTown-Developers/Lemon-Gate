@@ -110,8 +110,12 @@ local Class = Component:NewClass( "rd", "ranger" )
 
 Class:UsesMetaTable( Ranger )
 
+Component:SetPerf( LEMON_PERF_ABNORMAL )
+
 -- Create a ranger object
 Component:AddFunction( "ranger", "", "rd", "%Ranger( )", LEMON_INLINE_ONLY )
+
+Component:SetPerf( LEMON_PERF_CHEAP )
 
 -- Set up a ranger.
 Component:AddFunction( "ignoreEntities", "rd:b", "", "value %1.Ignore_Entities = value %2", LEMON_PREPARE_ONLY )
@@ -148,6 +152,9 @@ Component:AddFunction( "mins", "rd:", "v", "( value %1.Mins or Vector3( 0, 0, 0 
 Component:AddFunction( "maxs", "rd:", "v", "( value %1.Maxs or Vector3( 0, 0, 0 ) )", LEMON_INLINE_ONLY )
 
 -- Do Trace
+
+Component:SetPerf( LEMON_PERF_EXPENSIVE )
+
 Component:AddFunction( "fire", "rd:v,v", "", "value %1:DoTrace( value %2:Garry( ), value %3:Garry( ) )", LEMON_PREPARE_ONLY )
 
 Component:AddFunction( "fire", "rd:v,v,n", "", "value %1:DoTrace( value %2:Garry( ), value %3:Garry( ), value %4 )", LEMON_PREPARE_ONLY )
@@ -159,11 +166,15 @@ end]], LEMON_PREPARE_ONLY )
 
 -- Start and End
 
+Component:SetPerf( LEMON_PERF_CHEAP )
+
 Component:AddFunction( "start", "rd:", "v", "Vector3( value %1.Start or Vector( 0, 0, 0 ) )", LEMON_INLINE_ONLY )
 
 Component:AddFunction( "end", "rd:", "v", "Vector3( value %1.End or Vector( 0, 0, 0 ) )", LEMON_INLINE_ONLY )
 
 -- Filter
+
+Component:SetPerf( LEMON_PERF_ABNORMAL )
 
 Component:AddFunction( "filter", "rd:e", "", "value %1:AddFilter( value %2 )", LEMON_PREPARE_ONLY )
 
@@ -172,6 +183,8 @@ Component:AddFunction( "unfilter", "rd:e", "", "value %1:Unfilter( value %2 )", 
 Component:AddFunction( "clearFilter", "rd:e", "", "value %1.Filter = { }", LEMON_PREPARE_ONLY )
 
 -- Results:
+
+Component:SetPerf( LEMON_PERF_CHEAP )
 
 Component:AddFunction( "entity", "rd:", "e", "( value %1.Result.Entity or %NULL_ENTITY )", LEMON_INLINE_ONLY )
 

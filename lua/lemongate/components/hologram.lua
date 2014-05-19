@@ -18,6 +18,7 @@ local Cvar_MaxScale = CreateConVar( "lemon_holograms_Size", "50" )
 local Cvar_ModelAll = CreateConVar( "lemon_holograms_model_any", "1" )
 
 -- Cvar based functions
+Component:SetPerf( LEMON_PERF_CHEAP )
 
 Component:AddFunction( "hologramLimit", "", "n", "$GetConVarNumber(\"lemon_holograms_max\", 0)" )
 Component:AddFunction( "hologramSpawnRate", "", "n", "$GetConVarNumber(\"lemon_holograms_per_tick\", 0)" )
@@ -163,6 +164,8 @@ local ModelEmu = {
 
 -- TODO: Api Hook!
 
+Component:SetPerf( LEMON_PERF_CHEAP )
+
 Component:AddExternal( "holomodel", ModelEmu )
 Component:AddFunction( "asGameModel", "s", "s", "( %holomodel[value %1] or \"\" )" )
 
@@ -173,9 +176,13 @@ local Hologram = Component:NewClass( "h", "hologram" )
 
 Hologram:Extends( "e" )
 
+Component:SetPerf( LEMON_PERF_CHEAP )
+
 Component:AddOperator( "default", "h", "h", "%NULL_ENTITY" )
 
 -- Casting:
+
+Component:SetPerf( LEMON_PERF_ABNORMAL )
 
 Component:AddOperator( "hologram", "e", "h", [[
 if !$IsValid( value %1 ) or !value %1.IsHologram then
@@ -217,6 +224,8 @@ function Component:SetID( Context, Entity, ID )
 
 	Entity.ID = ID
 end
+
+Component:SetPerf( LEMON_PERF_NORMAL )
 
 Component:AddFunction( "getID", "h:", "n", "(value %1.ID or -1)" )
 Component:AddFunction( "setID", "h:n", "", "%hologram:SetID( %context, value %1, value %2 )", "" )
@@ -284,6 +293,8 @@ function Component.NewHolo( Context, Model, Position, Angle )
 	return Entity
 end
 
+Component:SetPerf( LEMON_PERF_EXPENSIVE )
+
 Component:AddFunction( "hologram", "", "h", "%hologram.NewHolo( %context )" )
 
 Component:AddFunction( "hologram", "s", "h", "%hologram.NewHolo( %context, value %1 )" )
@@ -312,6 +323,7 @@ Component:AddFunction( "canMakeHologram", "", "b", "%hologram.CanHolo( %context 
 /*==============================================================================================
     Position
 ==============================================================================================*/
+Component:SetPerf( LEMON_PERF_CHEAP )
 
 Component:AddFunction("setPos", "h:v", "",[[
 if $IsValid( value %1 ) and value %1.Player == %context.Player then
@@ -331,6 +343,7 @@ end]], "" )
 /*==============================================================================================
     Angles
 ==============================================================================================*/
+Component:SetPerf( LEMON_PERF_CHEAP )
 
 Component:AddFunction("setAng", "h:a", "",[[
 if $IsValid( value %1 ) and value %1.Player == %context.Player then
@@ -350,6 +363,7 @@ end]], "" )
 /*==============================================================================================
     Scale
 ==============================================================================================*/
+Component:SetPerf( LEMON_PERF_NORMAL )
 
 Component:AddFunction("setScale", "h:v", "",[[
 if $IsValid( value %1 ) and value %1.Player == %context.Player then
@@ -413,6 +427,7 @@ Component:AddFunction("hasShading", "h:", "b", "($IsValid( value %1 ) and value 
 /*==============================================================================================
     Section: Clipping
 ==============================================================================================*/
+Component:SetPerf( LEMON_PERF_NORMAL )
 
 Component:AddFunction("pushClip", "h:n,v,v", "", [[
 if $IsValid( value %1 ) and value %1.Player == %context.Player then
@@ -494,6 +509,7 @@ end]], "" )
 /*==============================================================================================
     Section: Parent
 ==============================================================================================*/
+Component:SetPerf( LEMON_PERF_CHEAP )
 
 Component:AddFunction("parent", "h:e", "", [[
 if $IsValid( value %1 ) and value %1.Player == %context.Player and $IsValid( value %2 )then
@@ -539,6 +555,7 @@ end]], "%Val" )
 /*==============================================================================================
     Section: Bones
 ==============================================================================================*/
+Component:SetPerf( LEMON_PERF_NORMAL )
 
 Component:AddFunction("setBonePos", "h:n,v", "", [[
 if $IsValid( value %1 ) and value %1.Player == %context.Player then
@@ -583,6 +600,7 @@ end]], "( %util or 0 )" )
 /*==============================================================================================
     Section: Animation
 ==============================================================================================*/
+Component:SetPerf( LEMON_PERF_CHEAP )
 
 Component:AddFunction("setAnimation", "h:n[,n,n]", "", [[
 if $IsValid( value %1 ) and value %1.Player == %context.Player then
