@@ -52,26 +52,22 @@ end )
 /*---------------------------------------------------------------------------
 	Home Screen
 ---------------------------------------------------------------------------*/
-local HomeScreen = [[/*====================================================================
-	Expression Advanced:
-		* int i = 5
-		* number[] i = numberArray( )
+local HomeScreen = [[
+/*
+	IMPORTANT NOTICE:
+		LemonGate is broken and will not be fixed.
+		It is unstable and is not server worthy (sorry about that).
 
-	Editor Changes:
-		* CTR+B for voice chat.
-		* 596f752063616e206e6f7720736861726520796f757220746162732077697468206f7468657220706c61796572733f
+		In our quest for glory we discovered a better techinque for squeezing lemons.
+		The result is a lot cleaner and way more efficient, We call it ExpAdv2.
 
-	Check it out, We have a new Wiki:
-	 - https://github.com/SpaceTown-Developers/Lemon-Gate/wiki
-	
-	We have our own forums:
-	 - http://PoweredByLemons.com
-	 	
-	Also Report Bugs:
-	 - https://github.com/SpaceTown-Developers/Lemon-Gate/issues
-	
-	Credits: Rusketh, Oskar94, Divran, Syranide.
-====================================================================*/
+		So, if your the sort of person who likes Lemons, then your now in the wrong place.
+		Thus you need to install the beta Expression Advanced 2, witch is more stable then lemongate.
+
+		DOWNLOAD NOW: https://github.com/Rusketh/ExpAdv2/
+
+		If your still not convinced then SCREENS nuff said!
+*/
 ]]
 
 /*---------------------------------------------------------------------------
