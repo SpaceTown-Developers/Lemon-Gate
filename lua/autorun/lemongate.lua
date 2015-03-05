@@ -10,14 +10,14 @@ timer.Simple(5, function()
 		Hi, This message comes directly from Rusketh, the creator of LemonGate.
 		I hope you have enjoyed using my addon, how ever its time for an upgrade,
 		I have been on a few of the servers still using lemongate over the past few weeks
-		to inform you that lemongate is now depricated and no longer a working addon.
+		to inform you that lemongate is now deprecated and no longer a working addon.
 
-		Expression advanced 2 is the new vershion of LemonGate, it uses a new workshop
-		and a new github repository. Lemongate contains several abusable exploits and
-		is a unfortunatly a majour cause of some server lagg, this is all fixed in the new
+		Expression advanced 2 is the new version of LemonGate, it uses a new workshop
+		and a new github repository. Lemongate contains several abusive exploits and
+		is a unfortunately a major cause of some server lag, this is all fixed in the new
 		and improved ExpAdv2.
 
-		ExpAdv2 also contains a bulk of new functionality and features and I have proivded some buttons below
+		ExpAdv2 also contains a bulk of new functionality and features and I have provided some buttons below
 		that will link you to more information. If you do not wish to upgrade then please remove the lemongate addon
 		and the .gma file if you are on workshop, this irritating popup will then vanish with it.
 
