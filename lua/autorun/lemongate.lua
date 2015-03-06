@@ -1,5 +1,7 @@
 AddCSLuaFile()
-if SERVER then return end
+if SERVER then
+	return CreateConVar( "lemon_version", "999", FCVAR_NOTIFY )
+end
 
 timer.Simple(5, function()
 	local Frame = vgui.Create("DFrame")
