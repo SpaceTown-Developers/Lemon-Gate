@@ -59,7 +59,7 @@ timer.Simple(5, function()
 	local PS = vgui.Create("DLabel", Bar)
 	PS:SetPos(0,22)
 	PS:SetSize(550, 22)
-	PS:SetText("P.S: I am a brony and to =Pony Cloud= you insult me, and all the bronys on our dev team, for trying to help!")
+	PS:SetText("")
 
 	Frame:MakePopup()
 	Frame:Center()
